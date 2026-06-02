@@ -58,7 +58,7 @@ dev = [
 ]
 
 [project.urls]
-Repository = "https://github.com/rp3gregorio/apollo-hfe-kd-retrieval"
+Repository = "https://github.com/rp3gregorio/Lunar-HFE"
 
 [tool.setuptools]
 packages = ["lunar", "lunar.plotting"]

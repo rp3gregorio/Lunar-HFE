@@ -14,7 +14,7 @@ PDF identical to the submitted manuscript.
 ## Step 1 — Clone
 
 ```bash
-git clone https://github.com/rp3gregorio/apollo-hfe-kd-retrieval.git
+git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd apollo-hfe-kd-retrieval
 ```
 

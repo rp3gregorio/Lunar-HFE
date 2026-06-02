@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+title: >-
+  Code and data for "Estimates of Lunar Regolith Thermal Conductivity
+  K_d at Respective Apollo 15 and 17 Heat-Flow Boreholes"
+message: >-
+  If you use this software or the bundled HFE record, please cite both
+  the associated paper (preferred) and this repository.
+type: software
+authors:
+  - given-names: Ramon III Palinguba
+    family-names: Gregorio
+    email: rp3gregorio@gmail.com
+    affiliation: Kasai Laboratory, Institute of Science Tokyo
+repository-code: 'https://github.com/rp3gregorio/apollo-hfe-kd-retrieval'
+license: MIT
+version: '0.1.0'
+date-released: '2026-06-02'
+preferred-citation:
+  type: article
+  authors:
+    - given-names: Ramon III Palinguba
+      family-names: Gregorio
+      email: rp3gregorio@gmail.com
+  title: >-
+    Estimates of Lunar Regolith Thermal Conductivity K_d at Respective
+    Apollo 15 and 17 Heat-Flow Boreholes
+  journal: Journal of Geophysical Research, Planets
+  year: 2026
+  doi: 10.0000/TBD

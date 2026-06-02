@@ -1,0 +1,58 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+wheels/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Type checkers / linters
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Diviner GCP tile data — fetched on demand by scripts/fetch_diviner.py
+data/diviner/gcp/*.tab
+
+# LaTeX build artifacts
+paper/**/*.aux
+paper/**/*.bbl
+paper/**/*.blg
+paper/**/*.fls
+paper/**/*.fdb_latexmk
+paper/**/*.log
+paper/**/*.out
+paper/**/*.lof
+paper/**/*.lot
+paper/**/*.toc
+paper/**/*.synctex.gz
+
+# Working scratch
+.scratch/
+*.tmp

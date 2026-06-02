@@ -1,0 +1,40 @@
+# ChaSTE (Chandrayaan-3) in-situ thermal reference table
+# ----------------------------------------------------------------------
+# Derived scalar quantities from the peer-reviewed analysis of the
+# Chandra's Surface Thermophysical Experiment (ChaSTE) deployed at the
+# Shiv Shakti Point by the Chandrayaan-3 Vikram lander in August 2023.
+# These are NOT a redistribution of the ISRO PRADAN raw T(t,z) stream
+# (https://pradan.issdc.gov.in/ch3/, login-gated).
+#
+# Primary sources:
+#   Murty, S. V. S., Das, D., Khan, A., et al. (2025)
+#   "First in-situ thermal conductivity measurement of lunar regolith
+#    near the south polar region by ChaSTE on Chandrayaan-3"
+#   Scientific Reports 15, 91866.  doi:10.1038/s41598-025-91866-4
+#
+#   Das, D., Murty, S. V. S., et al. (2025)
+#   "Temperature profile of the top 10 cm of lunar regolith at the
+#    Chandrayaan-3 landing site near the south pole"
+#   Communications Earth & Environment 6, 2114.
+#   doi:10.1038/s43247-025-02114-6
+#
+#   Seth, G., et al. (2025), MNRAS 538, 2330 — 3-D thermal modelling of
+#   the ChaSTE site including the 6 deg local slope.
+#
+# ChaSTE is a 40 cm spike carrying 10 PRTs + one foil heater in a 60 W
+# power budget. The probe was deployed to ~10 cm penetration; two foil-
+# heater "heating pulses" were executed for thermal-conductivity retrieval.
+# ----------------------------------------------------------------------
+quantity,value,unit,source,notes
+lat_deg,-69.3736,deg,ISRO2023,Shiv Shakti Point - Chandrayaan-3 Vikram lander
+lon_deg,32.3192,deg,ISRO2023,east-longitude
+conductivity_80mm_heating1,0.0115,W/m/K,Murty2025,K_eff at 80 mm (foil-heater pulse 1)
+conductivity_80mm_heating1_err,0.0008,W/m/K,Murty2025,1-sigma retrieval uncertainty (pulse 1)
+conductivity_80mm_heating2,0.0124,W/m/K,Murty2025,K_eff at 80 mm (foil-heater pulse 2)
+conductivity_80mm_heating2_err,0.0009,W/m/K,Murty2025,1-sigma retrieval uncertainty (pulse 2)
+surface_T_peak_slope_K,355,K,Murty2025,noon T_peak for 6 deg sun-facing slope (Seth2025 3-D model)
+surface_T_peak_flat_K,330,K,Murty2025,noon T_peak for flat-surface 1-D model (same site)
+surface_T_peak_measured_K,335,K,Das2025,in-situ ChaSTE PRT-0 peak on local noon
+local_slope_deg,6,deg,Seth2025,slope angle that reconciles flat model with measurement
+probe_max_depth_mm,100,mm,Murty2025,ChaSTE maximum penetration depth
+heater_power_W,0.1,W,Murty2025,nominal foil-heater pulse power

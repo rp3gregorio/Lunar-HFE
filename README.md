@@ -32,7 +32,7 @@ The full reproduction recipe is in [`docs/REPRODUCING.md`](docs/REPRODUCING.md).
 Short version:
 
 ```bash
-git clone https://github.com/rp3gregorio/apollo-hfe-kd-retrieval.git
+git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd apollo-hfe-kd-retrieval
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"

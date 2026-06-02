@@ -2,14 +2,17 @@
 that depend on it, plus the held-out figure."""
 from __future__ import annotations
 import json, sys, pathlib
-sys.path.insert(0, '/Users/rp3gregorio/Lunar-V2/scripts')
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+# Resolve project root relative to this file so the script is portable.
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts" / "figures"))
+
 # Load Phase-A results
-RES = pathlib.Path('/Users/rp3gregorio/Lunar-V2/output/phase_a_results.json')
+RES = ROOT / "output" / "phase_a_results.json"
 d = json.loads(RES.read_text())
 
 # Add Q_b sensitivity (analytical via K_d/Q_b degeneracy on the new K_d*)
@@ -35,13 +38,11 @@ RES.write_text(json.dumps(d, indent=2))
 print(f"updated {RES}")
 
 # Now regenerate the figures that depend on qb_sensitivity + held-out
-LETTER_FIGS = pathlib.Path('/Users/rp3gregorio/Lunar-V2/paper/letter/figures')
-APPENDIX_FIGS = pathlib.Path('/Users/rp3gregorio/Lunar-V2/paper/appendix/figures')
+LETTER_FIGS = ROOT / "paper" / "letter" / "figures"
 
 from phase2_figures_v2 import fig_bootstrap, fig_robustness     # type: ignore
 from phase_a_pipeline import fig_holdout                         # type: ignore
 
 fig_bootstrap(d, LETTER_FIGS / 'fig_bootstrap.pdf')
 fig_robustness(d, LETTER_FIGS / 'fig_robustness.pdf')
-fig_holdout(d, APPENDIX_FIGS / 'fig_holdout.pdf')
 print("done.")

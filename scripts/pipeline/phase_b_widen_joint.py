@@ -10,13 +10,13 @@ from __future__ import annotations
 import json, sys, pathlib, time
 import numpy as np
 
-sys.path.insert(0, "/Users/rp3gregorio/Lunar-V2")
-sys.path.insert(0, "/Users/rp3gregorio/Lunar-V2/scripts")
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
 from phase_a_pipeline import (   # type: ignore
     SITES, joint_kd_h_dense, kd_star_from_residuals,
 )
 
-PHASE_A = pathlib.Path("/Users/rp3gregorio/Lunar-V2/output/phase_a_results.json")
+PHASE_A = pathlib.Path(__file__).resolve().parents[2] / "output/phase_a_results.json"
 
 def main():
     t0 = time.time()

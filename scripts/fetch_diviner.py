@@ -58,7 +58,9 @@ def _download(url: str, dest: pathlib.Path) -> None:
     try:
         with urllib.request.urlopen(url, context=ctx, timeout=60) as r:
             data = r.read()
-    except ssl.SSLError:
+    except (ssl.SSLError, urllib.error.URLError) as exc:
+        if "CERTIFICATE_VERIFY_FAILED" not in str(exc):
+            raise
         sys.stderr.write(
             "  SSL verification failed; retrying without certificate check "
             "(PDS data is public, this is safe).\n"

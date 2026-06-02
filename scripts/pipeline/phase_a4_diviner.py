@@ -25,7 +25,7 @@ What this script does
 
 How to run
 ──────────
-  cd /Users/rp3gregorio/Lunar-V2
+  cd <REPO_ROOT>
   python3 scripts/phase_a4_diviner.py
 
 The PDS files are ~156 MB each; budget ~5-10 minutes for the first
@@ -42,7 +42,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-sys.path.insert(0, "/Users/rp3gregorio/Lunar-V2")
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]))
 from lunar import _bootstrap as boot
 boot.ensure_lunar(extra=("spiceypy", "scipy"))
 
@@ -52,18 +52,18 @@ from lunar.diviner import (
 )
 
 # Re-use the publication style + solver wrapper from earlier scripts
-sys.path.insert(0, "/Users/rp3gregorio/Lunar-V2/scripts")
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
 from phase2_figures_v2 import (   # type: ignore
     C_A15, C_A17, C_HAYNE, C_TEAL, C_CHAR, C_DIM, C_GRID,
     FS_LABEL, FS_TICK, FS_LEGEND, fmt_axis,
 )
 from phase_a_pipeline import run_with, SITES, T_LUNAR, DT_STEP   # type: ignore
 
-DATA_DIR  = pathlib.Path("/Users/rp3gregorio/Lunar-V2/data/diviner/gcp")
+DATA_DIR  = pathlib.Path(__file__).resolve().parents[2] / "data/diviner/gcp"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-RESULTS   = pathlib.Path("/Users/rp3gregorio/Lunar-V2/output/phase_a_results.json")
-OUT_JSON  = pathlib.Path("/Users/rp3gregorio/Lunar-V2/output/phase_a4_results.json")
-OUT_FIG   = pathlib.Path("/Users/rp3gregorio/Lunar-V2/paper/appendix/figures/fig_diviner_closure.pdf")
+RESULTS   = pathlib.Path(__file__).resolve().parents[2] / "output/phase_a_results.json"
+OUT_JSON  = pathlib.Path(__file__).resolve().parents[2] / "output/phase_a4_results.json"
+OUT_FIG   = pathlib.Path(__file__).resolve().parents[2] / "paper/appendix/figures/fig_diviner_closure.pdf"
 
 
 def print_curl_equivalent(lat_min: int, lat_max: int) -> None:
@@ -170,7 +170,7 @@ def main():
     print()
 
     # Pull the unified style + helpers
-    sys.path.insert(0, "/Users/rp3gregorio/Lunar-V2/scripts")
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
     from phase2_figures_v2 import JGR_FULL, FS_LEGEND, FS_TICK, C_GRID, C_DIM   # type: ignore
 
     out = {}

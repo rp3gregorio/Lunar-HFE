@@ -19,7 +19,7 @@ import json, os, pathlib, sys
 from copy import deepcopy
 
 # Bootstrap (mirrors notebook cell 1)
-_here = pathlib.Path('/Users/rp3gregorio/Lunar-V2').resolve()
+_here = pathlib.Path('<REPO_ROOT>').resolve()
 sys.path.insert(0, str(_here))
 from lunar import _bootstrap as boot
 boot.ensure_lunar(extra=('spiceypy', 'scipy'))
@@ -255,7 +255,7 @@ ax.set_title(r'Per-site $K_d$ retrieval with Hayne (2017) shape held fixed',
 ax.legend(loc='upper right', fontsize=8, frameon=False, handlelength=1.8)
 ax.grid(alpha=0.3, lw=0.5)
 
-OUT = pathlib.Path('/Users/rp3gregorio/Lunar-V2/output/figures')
+OUT = pathlib.Path(__file__).resolve().parents[2] / 'output/figures'
 OUT.mkdir(parents=True, exist_ok=True)
 save_figure(fig, 'fig5_kd_sweep', output_dir=str(OUT))
 print(f'Saved {OUT}/fig5_kd_sweep.pdf')

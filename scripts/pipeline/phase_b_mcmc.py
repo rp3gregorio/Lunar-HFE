@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import emcee
 import corner
 
-sys.path.insert(0, "/Users/rp3gregorio/Lunar-V2/scripts")
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
 from phase2_figures_v2 import (   # type: ignore
     JGR_FULL,
     FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
@@ -34,9 +34,9 @@ from phase2_figures_v2 import (   # type: ignore
     fmt_axis,
 )
 
-PHASE_A = pathlib.Path("/Users/rp3gregorio/Lunar-V2/output/phase_a_results.json")
-OUT_FIG = pathlib.Path("/Users/rp3gregorio/Lunar-V2/paper/appendix/figures/fig_kd_qb_posterior.pdf")
-OUT_JSON = pathlib.Path("/Users/rp3gregorio/Lunar-V2/output/phase_b_mcmc_samples.json")
+PHASE_A = pathlib.Path(__file__).resolve().parents[2] / "output/phase_a_results.json"
+OUT_FIG = pathlib.Path(__file__).resolve().parents[2] / "paper/appendix/figures/fig_kd_qb_posterior.pdf"
+OUT_JSON = pathlib.Path(__file__).resolve().parents[2] / "output/phase_b_mcmc_samples.json"
 
 # ── Site parameters ──────────────────────────────────────────────────────────
 SITES = {
@@ -384,10 +384,10 @@ def make_comparison_figure(samples, summary):
                title=contrast_stats, title_fontsize=8.5)
 
     out = pathlib.Path(
-        "/Users/rp3gregorio/Lunar-V2/paper/letter/figures/fig_posterior_compare.pdf")
+        "<REPO_ROOT>/paper/letter/figures/fig_posterior_compare.pdf")
     fig.savefig(out)
     out2 = pathlib.Path(
-        "/Users/rp3gregorio/Lunar-V2/paper/appendix/figures/fig_posterior_compare.pdf")
+        "<REPO_ROOT>/paper/appendix/figures/fig_posterior_compare.pdf")
     fig.savefig(out2)
     plt.close(fig)
     print(f"Saved: {out}", flush=True)

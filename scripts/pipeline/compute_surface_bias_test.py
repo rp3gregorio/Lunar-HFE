@@ -35,7 +35,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts" / "figures"))
 
 from lunar.apollo_helpers import extract_sensor_stability        # noqa: E402
-from scripts.pipeline.phase_a_pipeline import (                  # noqa: E402
+from scripts.pipeline.retrieve_kd import (                  # noqa: E402
     SITES, run_with, kd_star_from_residuals,
 )
 

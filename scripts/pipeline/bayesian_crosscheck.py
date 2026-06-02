@@ -11,10 +11,10 @@ KDEs and joint contours.
 
 Output:
   paper/appendix/figures/fig_kd_qb_posterior.pdf
-  output/phase_b_mcmc_samples.json (posterior summary statistics)
+  output/bayesian_crosscheck_samples.json (posterior summary statistics)
 
 Runtime: ~30 s with 32 walkers × 4000 steps × 2 sites (likelihood is
-analytical via the cached RMSE-vs-K_d spline from phase_a_results.json).
+analytical via the cached RMSE-vs-K_d spline from kd_retrieval_results.json).
 """
 from __future__ import annotations
 import json, sys, pathlib, time
@@ -27,16 +27,16 @@ import emcee
 import corner
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
-from phase2_figures_v2 import (   # type: ignore
+from make_results_figures import (   # type: ignore
     JGR_FULL,
     FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
     C_HAYNE, C_MS, C_A15, C_A17, C_CHAR, C_DIM, C_GRID, C_CORAL,
     fmt_axis,
 )
 
-PHASE_A = pathlib.Path(__file__).resolve().parents[2] / "output/phase_a_results.json"
+PHASE_A = pathlib.Path(__file__).resolve().parents[2] / "output/kd_retrieval_results.json"
 OUT_FIG = pathlib.Path(__file__).resolve().parents[2] / "paper/appendix/figures/fig_kd_qb_posterior.pdf"
-OUT_JSON = pathlib.Path(__file__).resolve().parents[2] / "output/phase_b_mcmc_samples.json"
+OUT_JSON = pathlib.Path(__file__).resolve().parents[2] / "output/bayesian_crosscheck_samples.json"
 
 # ── Site parameters ──────────────────────────────────────────────────────────
 SITES = {

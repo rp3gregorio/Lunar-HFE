@@ -16,7 +16,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-# Shared design tokens (match make_letter_unified_figs.py)
+# Shared design tokens (match make_letter_figures.py)
 JGR_FULL = 7.48
 C_A15   = "#3D6E4A"   # forest
 C_A17   = "#B85B3A"   # coral

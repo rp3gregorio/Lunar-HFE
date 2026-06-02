@@ -31,7 +31,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts" / "figures"))
 
 from lunar.apollo_helpers import extract_sensor_stability   # noqa: E402
-from scripts.pipeline import phase_a_pipeline as pap        # noqa: E402
+from scripts.pipeline import retrieve_kd as pap        # noqa: E402
 
 KD_GRID = {"A15": np.linspace(1.5e-3, 15.0e-3, 28),
            "A17": np.linspace(3.0e-3, 22.0e-3, 30)}

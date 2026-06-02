@@ -35,7 +35,7 @@ from lunar.apollo_helpers import (                                  # noqa: E402
     extract_sensor_stability, find_stable_window,
     load_apollo_hfe_depth, iso_to_seconds,
 )
-from scripts.pipeline.phase_a_pipeline import (                     # noqa: E402
+from scripts.pipeline.retrieve_kd import (                     # noqa: E402
     SITES, run_with, kd_star_from_residuals,
 )
 

@@ -1,0 +1,32 @@
+# Chang'E-4 in-situ thermal reference table
+# ----------------------------------------------------------------------
+# Derived scalar quantities extracted from the peer-reviewed Chang'E-4
+# thermal-probe analysis. These values are used by Lunar-V2 for model
+# cross-checks at the Von Karman landing site. They are NOT a redistribution
+# of the CLPDS raw time-series (http://moon.bao.ac.cn, free registration).
+#
+# Primary source:
+#   Huang, J., Xiao, Z., Xiao, L., et al. (2022)
+#   "Diurnal Temperature Variations on the Moon Revisited:
+#    Insights from In-Situ Measurements by Chang'E-4"
+#   National Science Review 9, nwac175.  doi:10.1093/nsr/nwac175
+#
+# Landing coordinates: LRO/LROC control-network fit (Wu et al. 2019).
+# Effective K_c values are retrieved by Huang et al. 2022 from a coupled
+# 1-D thermal-conduction inversion of the four buried probes over the
+# 3rd lunar day (27 Feb - 28 Mar 2019, 900 s cadence).
+# ----------------------------------------------------------------------
+quantity,value,unit,source,notes
+lat_deg,-45.4446,deg,Wu2019,Von Karman crater floor (LROC control net)
+lon_deg,177.5991,deg,Wu2019,east-longitude
+elevation_m,-5935,m,Wu2019,mean planetary radius
+surface_conductivity,1.53e-3,W/m/K,Huang2022 Table 1,K_c at z=0 from 3rd-lunar-day inversion
+depth_1m_conductivity,8.48e-3,W/m/K,Huang2022 Table 1,K_c at z=1 m from 3rd-lunar-day inversion
+surface_bulk_density,471,kg/m3,Huang2022,inferred bulk density at regolith surface
+depth_30cm_bulk_density,824,kg/m3,Huang2022,0-30 cm mean bulk density
+T1_peak_K,290.9,K,Huang2022,T1 probe max temperature 3rd lunar day
+T2_peak_K,297.0,K,Huang2022,T2 probe max temperature 3rd lunar day
+T3_peak_K,297.5,K,Huang2022,T3 probe max temperature 3rd lunar day
+T4_peak_K,298.5,K,Huang2022,T4 probe max temperature 3rd lunar day
+probe_burial_depth_cm,1.0,cm,Huang2022,probes buried less than 1 cm below surface
+cadence_s,900,s,Huang2022,temperature readout interval

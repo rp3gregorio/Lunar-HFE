@@ -1,0 +1,41 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+
+    - name: Install
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Run unit tests
+      run: pytest -q --tb=short
+
+    - name: Verify canonical results JSON parses
+      run: |
+        python -c "
+        import json
+        d = json.loads(open('output/phase_a_results.json').read())
+        for s in ('A15', 'A17'):
+            assert 'kd_star' in d[s], f'missing kd_star for {s}'
+        print('canonical results JSON OK')
+        "

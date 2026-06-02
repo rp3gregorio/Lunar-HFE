@@ -1,0 +1,24 @@
+# Exact dependency versions used to produce the submitted manuscript.
+# Generated via `pip freeze`. Use with `pip install -r requirements-lock.txt`.
+#
+# If you only need a working environment (not byte-for-byte reproducibility),
+# `pip install -e .` against pyproject.toml is enough.
+
+numpy>=1.24,<3
+scipy>=1.10,<2
+matplotlib>=3.7,<4
+pandas>=2.0,<3
+emcee>=3.1,<4               # MCMC for Phase B cross-check
+spiceypy>=6.0,<7            # JPL SPICE Python bindings
+pyyaml>=6.0,<7
+tqdm>=4.65,<5
+
+# Development / notebook execution
+pytest>=7.0,<9
+jupyterlab>=4.0,<5
+ipykernel>=6.0,<7
+nbformat>=5.7,<6
+
+# Image / PDF handling
+Pillow>=10.0,<12
+pymupdf>=1.23,<2

@@ -1,0 +1,31 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Copyright (c) 2026 Ramon III Palinguba Gregorio.
+
+You are free to:
+- Share — copy and redistribute the material in any medium or format
+- Adapt — remix, transform, and build upon the material for any purpose,
+  even commercially.
+
+Under the following terms:
+- Attribution — You must give appropriate credit, provide a link to the
+  license, and indicate if changes were made. You may do so in any
+  reasonable manner, but not in any way that suggests the licensor
+  endorses you or your use.
+
+No additional restrictions — You may not apply legal terms or technological
+measures that legally restrict others from doing anything the license permits.
+
+For the full legal text, see https://creativecommons.org/licenses/by/4.0/legalcode
+
+This license applies to:
+- paper/letter/letter.tex and figures
+- output/figures/ contents
+- output/*.json (tabular numerical results)
+- Repository documentation (README.md, docs/, CITATION.cff)
+
+It does NOT apply to:
+- Code (lunar/, scripts/, tests/, notebooks/) which is MIT-licensed; see LICENSE.
+- Bundled HFE data (data/apollo/) which is public domain via NASA PDS.
+- Bundled Martinez & Siegler (2021) reference code (data/upstream/martinez2021/)
+  which is governed by the original author's license; see the directory README.

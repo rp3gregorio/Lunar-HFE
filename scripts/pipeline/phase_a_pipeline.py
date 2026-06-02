@@ -463,6 +463,23 @@ def main():
         if isinstance(o, dict): return {k: jsonify(v) for k, v in o.items()}
         if isinstance(o, (list, tuple)): return [jsonify(x) for x in o]
         return o
+    # Add Q_b sensitivity (analytical, from the K_d/Q_b degeneracy on
+    # the retrieved K_d*). Required by fig_robustness panel (a). Doing
+    # this *before* writing the JSON so the saved file is complete.
+    import numpy as _np
+    alphas = _np.linspace(0.0, 1.3, 27)
+    g15, g17 = _np.meshgrid(alphas, alphas, indexing='ij')
+    _kd15 = results['A15']['kd_star'] * g15
+    _kd17 = results['A17']['kd_star'] * g17
+    _contrast = _kd17 - _kd15
+    _sigma_c = (results['contrast_bootstrap']['ci_hi'] -
+                results['contrast_bootstrap']['ci_lo']) / 4.0
+    results['qb_sensitivity'] = dict(
+        alpha_grid=alphas.tolist(),
+        contrast_grid=_contrast.tolist(),
+        significance_grid=(_contrast / _sigma_c).tolist(),
+    )
+
     out_path = out_dir / 'phase_a_results.json'
     out_path.write_text(json.dumps(jsonify(results), indent=2))
     print(f"\nSaved: {out_path}", flush=True)

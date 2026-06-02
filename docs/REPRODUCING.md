@@ -70,10 +70,14 @@ jupyter lab notebooks/
 | Notebook | Wall time | Produces |
 |---|---|---|
 | `00_setup.ipynb` | <1 min | sanity check, data integrity |
-| `01_methods.ipynb` | 2-5 min | Figs 1-3, Table 1 |
-| `02_retrieval.ipynb` | 20-40 min | per-site K_d sweep + bootstrap; writes `output/phase_a_results.json` |
-| `03_results.ipynb` | 5-10 min | Figs 4-8, Tables 2-3 |
-| `04_discussion.ipynb` | 5-10 min | Figs 9-10, Table 4 |
+| `01_methods.ipynb` | 2-3 min | Figs 1-4, Table 1 |
+| `02_retrieval.ipynb` | ~5 min (fast); ~60 min full | per-site K_d sweep + bootstrap + Q_b sensitivity; writes `output/phase_a_results.json`. Heavy auxiliary sweeps for Table 3 are opt-in (`RUN_AUXILIARY = True`). |
+| `03_results.ipynb` | 3-5 min | Figs 5-9, Tables 2-3 |
+| `04_discussion.ipynb` | 2-3 min | Figs 10-11, Table 4 |
+
+End-to-end on the fast path: about **15 minutes**. The canonical
+auxiliary JSONs already ship with the repo, so the slow auxiliary
+sweeps (~60 min) are rarely needed unless you change inputs.
 
 Each notebook is **idempotent**: re-running it overwrites the same
 output files. Notebooks read the canonical JSON results from

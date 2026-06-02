@@ -11,7 +11,7 @@ apollo_helpers, and compute
 
 with k = number of free parameters (0 for the Hayne global fixed row,
 1 for each K_d* retrieval).  No values are fabricated: K_d* and the
-sigma_i come from output/phase_a_results.json and the restored HFE
+sigma_i come from output/kd_retrieval_results.json and the restored HFE
 record respectively.
 
 Run from the repo root:  python scripts/pipeline/compute_model_selection.py
@@ -25,10 +25,10 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / 'scripts' / 'figures'))   # phase2_figures_v2
+sys.path.insert(0, str(ROOT / 'scripts' / 'figures'))   # make_results_figures
 
 from lunar.apollo_helpers import extract_sensor_stability        # noqa: E402
-from scripts.pipeline.phase_a_pipeline import (                  # noqa: E402
+from scripts.pipeline.retrieve_kd import (                  # noqa: E402
     SITES, run_with, HAYNE,
 )
 
@@ -69,7 +69,7 @@ def stats(z_obs, T_obs, sigma, kd, k_model, site_cfg, n_free):
 
 
 def main():
-    res = json.load(open(ROOT / 'output' / 'phase_a_results.json'))
+    res = json.load(open(ROOT / 'output' / 'kd_retrieval_results.json'))
     out = {}
     for tag, cfg in SITES.items():
         z_obs, T_obs, sigma = deep_obs(cfg)

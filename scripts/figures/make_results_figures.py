@@ -124,14 +124,14 @@ ANTH_SEQ = LinearSegmentedColormap.from_list(
 
 # Output paths
 _ROOT         = pathlib.Path(__file__).parents[2]   # Lunar-V2/
-# phase_a_results.json is the single authoritative results file: it is
+# kd_retrieval_results.json is the single authoritative results file: it is
 # what the manuscript text and tables are built from (bootstrap with
 # N_boot = 1500), and it now also carries the cold_trap and
 # qb_sensitivity blocks. A previous version read phase2_results.json
 # here, which held a *different* bootstrap run (N_boot = 2000, contrast
 # CI [3.8,13.3] instead of [-3.2,16.6]) -- so the figures disagreed
 # with the text. Do not point this back at phase2_results.json.
-RESULTS       = _ROOT / "output" / "phase_a_results.json"
+RESULTS       = _ROOT / "output" / "kd_retrieval_results.json"
 LETTER_FIGS   = _ROOT / "paper" / "letter"     / "figures"
 APPENDIX_FIGS = _ROOT / "paper" / "appendix"   / "figures"
 
@@ -361,13 +361,13 @@ def fig_robustness(d, out_path):
     # (no in-axes legend — shared legend below the figure)
 
     # ── (b)(c) joint K_d × H per site ───────────────────────────────────────
-    # The dense 8×8 K_d–H sweep is taken from phase_a_results.json -- the
+    # The dense 8×8 K_d–H sweep is taken from kd_retrieval_results.json -- the
     # SAME authoritative file the manuscript K_d values come from -- and
     # plotted directly with no extrapolation. (An earlier version read a
     # coarse 3×3 grid from phase2_results.json and quadratically
     # extrapolated it; the two files disagreed, so we now use the dense
     # grid as the single source of truth.)
-    _pa = json.loads((_ROOT / "output" / "phase_a_results.json").read_text())
+    _pa = json.loads((_ROOT / "output" / "kd_retrieval_results.json").read_text())
 
     # Pre-load both joint grids to share colorbar levels
     site_ext = {}
@@ -485,12 +485,12 @@ def fig_robustness(d, out_path):
 # ══════════════════════════════════════════════════════════════════════════════
 # FIGURE — K_d sweep, SUPERSEDED single-panel version.
 #   The letter now uses the two-panel fig_kd_sweep() in
-#   make_letter_unified_figs.py.  Kept only for reference; not called
+#   make_letter_figures.py.  Kept only for reference; not called
 #   by main().  Do not reintroduce: it predates the genuine-M&S fix.
 # ══════════════════════════════════════════════════════════════════════════════
 def fig_kd_sweep_v2(d, out_path):
     """SUPERSEDED. Single-panel K_d sweep; replaced by the two-panel
-    fig_kd_sweep() in make_letter_unified_figs.py."""
+    fig_kd_sweep() in make_letter_figures.py."""
     fig, ax = plt.subplots(figsize=(JGR_FULL, 4.2))
     fig.subplots_adjust(left=0.10, right=0.97, top=0.89, bottom=0.15)
 
@@ -960,10 +960,10 @@ def fig_thermal_profiles(d, out_path):
     axes_zoom = [fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])]
 
     # ── run models and collect per-site data first ────────────────────────────
-    # Use phase_a_results.json as the single authoritative source for the
+    # Use kd_retrieval_results.json as the single authoritative source for the
     # Hayne K_d* -- this is the same file the manuscript text and Table 1
     # are built from, so the figure and the text cannot drift apart.
-    _pa_path = _ROOT / "output" / "phase_a_results.json"
+    _pa_path = _ROOT / "output" / "kd_retrieval_results.json"
     d_auth = json.loads(_pa_path.read_text())
 
     site_data = {}
@@ -1107,7 +1107,7 @@ def main():
     fig_bootstrap(d, LETTER_FIGS / "fig_bootstrap.pdf")
     fig_robustness(d, LETTER_FIGS / "fig_robustness.pdf")
     # fig_kd_sweep_v2 is superseded by the two-panel fig_kd_sweep() in
-    # make_letter_unified_figs.py and is no longer generated.
+    # make_letter_figures.py and is no longer generated.
     fig_lab_comparison(d, APPENDIX_FIGS / "fig_lab_comparison.pdf")
     # fig_cold_trap_depth is used by BOTH the letter (Fig 9) and the
     # appendix -- write both copies so neither goes stale.

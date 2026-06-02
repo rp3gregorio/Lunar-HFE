@@ -71,7 +71,7 @@ jupyter lab notebooks/
 |---|---|---|
 | `00_setup.ipynb` | <1 min | sanity check, data integrity |
 | `01_methods.ipynb` | 2-3 min | Figs 1-4, Table 1 |
-| `02_retrieval.ipynb` | ~5 min (fast); ~60 min full | per-site K_d sweep + bootstrap + Q_b sensitivity; writes `output/phase_a_results.json`. Heavy auxiliary sweeps for Table 3 are opt-in (`RUN_AUXILIARY = True`). |
+| `02_retrieval.ipynb` | ~5 min (fast); ~60 min full | per-site K_d sweep + bootstrap + Q_b sensitivity; writes `output/kd_retrieval_results.json`. Heavy auxiliary sweeps for Table 3 are opt-in (`RUN_AUXILIARY = True`). |
 | `03_results.ipynb` | 3-5 min | Figs 5-9, Tables 2-3 |
 | `04_discussion.ipynb` | 2-3 min | Figs 10-11, Table 4 |
 
@@ -97,13 +97,13 @@ byte-for-byte modulo figure regeneration timestamps.
 ## Verification
 
 The repository ships with the canonical JSON results
-([`output/phase_a_results.json`](../output/phase_a_results.json)). To
+([`output/kd_retrieval_results.json`](../output/kd_retrieval_results.json)). To
 verify that your run reproduces them:
 
 ```bash
 python -c "
 import json, math
-shipped = json.loads(open('output/phase_a_results.json').read())
+shipped = json.loads(open('output/kd_retrieval_results.json').read())
 print('A15 K_d* =', shipped['A15']['kd_star'] * 1e3, 'mW m^-1 K^-1')
 print('A17 K_d* =', shipped['A17']['kd_star'] * 1e3, 'mW m^-1 K^-1')
 assert math.isclose(shipped['A15']['kd_star'] * 1e3, 4.86, abs_tol=0.01)

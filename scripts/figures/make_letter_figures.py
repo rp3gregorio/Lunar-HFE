@@ -1,13 +1,13 @@
 """
 Regenerate the three letter figures previously produced by the
 01_apollo_validation notebook, using the same palette and style
-helpers as phase2_figures_v2.py so all six letter figures share a
+helpers as make_results_figures.py so all six letter figures share a
 single visual identity.
 
 Outputs (overwriting the old notebook versions):
-  paper/letter/figures/fig2_apollo_mean_T_profile.pdf
-  paper/letter/figures/apollo_amplitude_vs_depth.pdf
-  paper/letter/figures/fig5_kd_sweep.pdf
+  paper/letter/figures/fig_apollo_mean_T_profile.pdf
+  paper/letter/figures/fig_amplitude_vs_depth.pdf
+  paper/letter/figures/fig_kd_sweep.pdf
 """
 from __future__ import annotations
 import json, sys, pathlib
@@ -42,7 +42,7 @@ from lunar.solver import PixelInputs, solve_pixel
 from lunar.apollo_helpers import extract_sensor_stability
 
 # Pull the unified rcParams + palette from the phase-2 figure module.
-from phase2_figures_v2 import (   # type: ignore
+from make_results_figures import (   # type: ignore
     JGR_FULL,
     FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
     C_HAYNE, C_MS, C_A15, C_A17, C_CHAR, C_DIM, C_GRID, C_FOREST,
@@ -122,7 +122,7 @@ SITES = {
 }
 
 LETTER_FIGS = _REPO / "paper" / "letter" / "figures"
-PHASE_A     = _REPO / "output" / "phase_a_results.json"
+PHASE_A     = _REPO / "output" / "kd_retrieval_results.json"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -369,7 +369,7 @@ def fig_mean_T_profile():
     legend_below(fig, h, l, ncols=2, fontsize=FS_LEGEND,
                  handlelength=2.2, columnspacing=1.6)
 
-    out = LETTER_FIGS / "fig2_apollo_mean_T_profile.pdf"
+    out = LETTER_FIGS / "fig_apollo_mean_T_profile.pdf"
     fig.savefig(out)
     plt.close(fig)
     print(f"  → {out}")
@@ -443,7 +443,7 @@ def fig_amplitude_vs_depth():
                ncols=3, frameon=True, edgecolor=C_GRID, framealpha=0.97,
                fontsize=FS_LEGEND, handlelength=2.2, borderpad=0.6)
 
-    out = LETTER_FIGS / "apollo_amplitude_vs_depth.pdf"
+    out = LETTER_FIGS / "fig_amplitude_vs_depth.pdf"
     fig.savefig(out)
     plt.close(fig)
     print(f"  → {out}")
@@ -464,7 +464,7 @@ def fig_kd_sweep():
     d = json.loads(PHASE_A.read_text())
 
     # ── extend the sweep so the rising high-K_d tail is shown ────────────
-    from scripts.pipeline.phase_a_pipeline import SITES, run_kd_sweep_extended
+    from scripts.pipeline.retrieve_kd import SITES, run_kd_sweep_extended
     EXT = {"A15": np.linspace(15.5e-3, 22.0e-3, 5),
            "A17": np.linspace(25.5e-3, 30.0e-3, 4)}
     ext_curve = {}
@@ -532,7 +532,7 @@ def fig_kd_sweep():
                  title=r"Stars: retrieved $K_d^{*}$;  horizontal error bars: 95% bootstrap CI",
                  title_fontsize=FS_LABEL)
 
-    out = LETTER_FIGS / "fig5_kd_sweep.pdf"
+    out = LETTER_FIGS / "fig_kd_sweep.pdf"
     fig.savefig(out)
     plt.close(fig)
     print(f"  → {out}")

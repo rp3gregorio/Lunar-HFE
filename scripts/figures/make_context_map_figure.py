@@ -62,7 +62,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 OUT  = ROOT / "paper" / "letter" / "figures"
 MOON_PNG = OUT / "moon_global.png"
 
-# ALSEP gazetteer coordinates (match phase_a_pipeline.py)
+# ALSEP gazetteer coordinates (match retrieve_kd.py)
 SITES = {
     "A15": dict(lat=26.13, lon= 3.63, color=C_A15, label="Apollo 15"),
     "A17": dict(lat=20.19, lon=30.77, color=C_A17, label="Apollo 17"),

@@ -1,17 +1,34 @@
-"""
-Phase-A reviewer-response pipeline.
-Addresses the four blocking concerns from the critical review:
+"""Retrieve the deep-regolith thermal conductivity K_d at each Apollo
+HFE borehole and quantify uncertainty.
 
-  A1  — Extended K_d grid (so A17 bootstrap upper CI does not saturate)
-  A2  — Densified joint K_d × H grid (8×8 instead of 3×3)
-  A3  — Held-out validation: TG↔TR cross-prediction + leave-one-deepest-out
-  A5  — Sensor depth uncertainty (±2.5 cm) propagated through bootstrap
+Reads the bundled HFE record under data/apollo/, runs the 1-D
+Crank-Nicolson heat solver under the Hayne (2017) K(T,z) form,
+sweeps K_d against the deep-sensor RMSE, and reports:
 
-Outputs:
-  - output/phase_a_results.json (numerical)
-  - paper/letter/figures/fig_bootstrap.pdf      (refreshed with extended A17 + depth uncertainty)
-  - paper/letter/figures/fig_robustness.pdf     (refreshed with 8×8 joint grid)
-  - paper/appendix/figures/fig_holdout.pdf      (NEW; A3 deliverable)
+    - K_d* per site (point estimate at the RMSE minimum)
+    - 95% non-parametric bootstrap CI (N_boot = 1500, +-2.5 cm depth jitter)
+    - K_d / Q_b degeneracy mapping for the inter-site contrast
+    - joint (K_d, H) RMSE surface for the held-out diagnostic
+    - hold-out tests (TG vs TR, leave-one-deepest-out)
+
+Writes:
+    output/kd_retrieval_results.json     # canonical numerical results
+    paper/letter/figures/fig_bootstrap.pdf
+    paper/letter/figures/fig_robustness.pdf
+    paper/appendix/figures/fig_holdout.pdf
+
+Table of contents (jump to the section you need):
+    line  ~80  : Hayne / 3-layer conductivity model wrappers
+    line ~150  : run_kd_sweep_extended()     -- the K_d sweep
+    line ~260  : bootstrap_kd_with_depth_uncertainty()
+    line ~330  : joint_kd_h_dense()          -- joint (K_d, H) fit
+    line ~370  : holdout_tg_tr() and loo_deepest()
+    line ~410  : main()                      -- orchestrates the above
+
+Wall time: ~5 min on a recent laptop.
+
+Run with:
+    python scripts/pipeline/retrieve_kd.py
 """
 from __future__ import annotations
 import json, sys, pathlib, time
@@ -46,7 +63,7 @@ sys.stdout = open(sys.stdout.fileno(), mode='w', buffering=1)
 
 # Re-use the publication style from the v2 figure script
 sys.path.insert(0, str(_REPO / 'scripts' / 'figures'))
-from phase2_figures_v2 import (   # type: ignore
+from make_results_figures import (   # type: ignore
     C_A15, C_A17, C_HAYNE, C_MS, C_LAB, C_TEAL, C_TEAL_L,
     C_FOREST, C_CORAL, C_CHAR, C_DIM, C_GRID,
     ANTH_DIVERGE, ANTH_SEQ,
@@ -76,7 +93,7 @@ SITES = {
 DEPTH_SIGMA_CM = 2.5    # Nagihara 2018 sensor placement uncertainty
 
 # ── This-work discrete 3-layer conductivity model ────────────────────────────
-# Apollo-grounded layer structure (see make_letter_unified_figs.py header):
+# Apollo-grounded layer structure (see make_letter_figures.py header):
 #   0--2 cm    surface radiative layer (Langseth+ 1976), K = K_s
 #   2--20 cm   compaction transition; ramp curvature set by deep density
 #   >20 cm     compacted deep layer, K = K_d (the swept parameter)
@@ -480,13 +497,13 @@ def main():
         significance_grid=(_contrast / _sigma_c).tolist(),
     )
 
-    out_path = out_dir / 'phase_a_results.json'
+    out_path = out_dir / 'kd_retrieval_results.json'
     out_path.write_text(json.dumps(jsonify(results), indent=2))
     print(f"\nSaved: {out_path}", flush=True)
 
     # ── figures ───────────────────────────────────────────────────────────
     print(f"\n=== Figures ===", flush=True)
-    from phase2_figures_v2 import (   # type: ignore
+    from make_results_figures import (   # type: ignore
         fig_bootstrap, fig_robustness,
     )
     fig_bootstrap(results, fig_letter / 'fig_bootstrap.pdf')

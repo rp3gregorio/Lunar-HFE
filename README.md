@@ -52,7 +52,7 @@ Then run the 5 notebooks in order:
 
 Each notebook is idempotent: re-running it overwrites the corresponding
 figures and any JSON it produces in `output/`. The canonical retrieval JSON
-([`output/phase_a_results.json`](output/phase_a_results.json)) is committed for
+([`output/kd_retrieval_results.json`](output/kd_retrieval_results.json)) is committed for
 direct verification.
 
 ## Repository layout

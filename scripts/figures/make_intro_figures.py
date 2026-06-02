@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, Rectangle, FancyArrowPatch
 from matplotlib.lines import Line2D
 
-# ── shared design tokens (match phase2_figures_v2.py) ────────────────────────
+# ── shared design tokens (match make_results_figures.py) ────────────────────────
 JGR_FULL = 7.48
 C_CORAL  = "#B85B3A"
 C_CORAL_L= "#E5A88A"

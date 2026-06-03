@@ -40,9 +40,7 @@ _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
 from lunar import _bootstrap as boot
 boot.ensure_lunar(extra=('spiceypy', 'scipy'))
-boot.ensure_apollo_hfe(mission='a15',
-                       probes=('p1f1','p1f2','p1f3','p1f4',
-                               'p2f1','p2f2','p2f3','p2f4'))
+boot.ensure_apollo_hfe(mission='a15', probes=())
 boot.ensure_apollo_hfe(mission='a17', probes=())
 
 import numpy as np

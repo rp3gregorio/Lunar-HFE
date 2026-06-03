@@ -47,9 +47,7 @@ sys.path.insert(0, str(ROOT / "scripts" / "figures"))
 
 from lunar import _bootstrap as boot
 boot.ensure_lunar(extra=("spiceypy", "scipy"))
-boot.ensure_apollo_hfe(mission="a15",
-                       probes=("p1f1", "p1f2", "p1f3", "p1f4",
-                               "p2f1", "p2f2", "p2f3", "p2f4"))
+boot.ensure_apollo_hfe(mission="a15", probes=())
 boot.ensure_apollo_hfe(mission="a17", probes=())
 from lunar.apollo_helpers import extract_sensor_stability, iso_to_seconds
 from lunar.constants import LUNATION_SECONDS

@@ -70,25 +70,39 @@ But the actual script is `scripts/fetch_diviner.py` (renamed in
 cleanup). A user who hit this error would look for the wrong file.
 **Fix applied**: updated the error string to name `fetch_diviner.py`.
 
-### C3. `apollo_helpers.py` has substantial dead code (plotting helpers)
+### C3. `apollo_helpers.py` has substantial dead code (plotting helpers)  ✅ FIXED
 
-**File**: `lunar/apollo_helpers.py` lines 161–699 (≈540 of 700 lines)
+**File**: [lunar/apollo_helpers.py](../lunar/apollo_helpers.py) (was 700 lines)
 **Issue**: Five large plotting functions (`plot_stability_region`,
 `plot_per_sensor_stability_windows`, `plot_depth_colored_timeseries`,
 `plot_single_model_validation`, `plot_head_to_head`) and a solver
-runner (`run_site_solvers`, `compute_validation_stats`) are imported by
-the deleted `notebooks/01_apollo_validation.ipynb` only. None of the 5
-current notebooks or any figure script in `scripts/figures/` uses them.
-**Risk**:
-- 540 lines of orphan code in a "core" module
-- They reference `lunar.plotting.style_guide.save_figure` which is also
-  largely orphan
-- Future readers wonder why a "helpers" file has 700 lines
-**Fix**: move the active functions (`extract_sensor_stability`,
-`find_stable_window`, `iso_to_seconds`, `print_stability_table`,
-`SECONDS_PER_YEAR`) into a slimmer `lunar/apollo_helpers.py` and
-delete the rest. Or move plotting helpers into a separate
-`lunar/apollo_plots.py` and mark them as legacy.
+runner pair (`run_site_solvers`, `compute_validation_stats`) were
+imported by a since-deleted notebook only. None of the 5 current
+notebooks or any figure script in `scripts/figures/` used them.
+
+**Fix applied (broader cleanup pass)**:
+- Reduced `lunar/apollo_helpers.py` from 700 → 131 lines (kept
+  `iso_to_seconds`, `find_stable_window`, `extract_sensor_stability`).
+- Deleted the entire `lunar/plotting/` package (`animations.py`,
+  `style_guide.py`, `__init__.py` — 644 lines) since its only consumer
+  was the dead code above.
+- Reduced `lunar/validation.py` from 297 → 47 lines (kept only
+  `load_apollo_hfe_depth`; removed `HFERecord`,
+  `load_apollo_hfe_temperature`, `DivinerPCP`,
+  `load_diviner_pcp_polar`, the three CSV reference loaders).
+- Reduced `lunar/_bootstrap.py` from 433 → 304 lines (removed
+  `ensure_spice_kernels`, `ensure_change4`, `ensure_chaste`,
+  `ensure_lola_dem_80mpp`).
+- Deleted `data/upstream/` (Phase-2 reference .mat), `data/reference/`
+  (two Phase-3 reference CSVs), `data/apollo/a15/` (raw probe
+  time-series no longer read after `load_apollo_hfe_temperature`
+  deletion), and three orphan PNGs in `data/apollo/`.
+- Updated the three scripts that called `boot.ensure_apollo_hfe(...,
+  probes=(...))` to request `probes=()` (depth tables only), reflecting
+  that no consumer reads the raw probe files.
+
+Test suite is green (35/35) and the pipeline still reproduces
+`K_d* = 4.860 / 11.233 mW/m/K` bit-exact.
 
 ---
 

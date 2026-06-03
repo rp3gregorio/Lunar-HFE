@@ -497,6 +497,22 @@ def main():
         significance_grid=(_contrast / _sigma_c).tolist(),
     )
 
+    # Provenance: pin the bootstrap seed and git commit so the JSON is
+    # self-describing for reproducibility checks.
+    import subprocess as _sub
+    try:
+        _git = _sub.check_output(
+            ['git', '-C', str(_REPO), 'rev-parse', 'HEAD'],
+            stderr=_sub.DEVNULL,
+        ).decode().strip()
+    except Exception:
+        _git = 'unknown'
+    results['provenance'] = dict(
+        bootstrap_seed=42,
+        depth_sigma_cm=DEPTH_SIGMA_CM,
+        git_commit=_git,
+    )
+
     out_path = out_dir / 'kd_retrieval_results.json'
     out_path.write_text(json.dumps(jsonify(results), indent=2))
     print(f"\nSaved: {out_path}", flush=True)

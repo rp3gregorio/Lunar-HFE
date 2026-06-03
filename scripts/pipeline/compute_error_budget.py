@@ -9,7 +9,6 @@ Required inputs (run their generating scripts first if missing):
     output/borestem_sensitivity.json            -- compute_borestem_sensitivity.py
     output/stability_threshold_sensitivity.json -- compute_stability_threshold_sensitivity.py
     output/surface_bias_test.json               -- compute_surface_bias_test.py
-    output/headline_rmse.json                   -- compute_headline_rmse.py
     (no input file needed for sigma_Qb -- it is analytical from the
      K_d/Q_b degeneracy, with the published Q_b envelopes hard-coded
      below from Langseth (1976), Saito (2007), and Nagihara (2018).)

@@ -5069,5 +5069,10 @@
         1.679076616253005
       ]
     ]
+  },
+  "provenance": {
+    "bootstrap_seed": 42,
+    "depth_sigma_cm": 2.5,
+    "git_commit": "e8a3abbbe912c8c1c4b759bf8dd9682aac8d8824"
   }
 }

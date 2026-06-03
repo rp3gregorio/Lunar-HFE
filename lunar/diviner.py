@@ -211,7 +211,7 @@ def load_gcp_band(
         if not auto_download:
             raise FileNotFoundError(
                 f"Diviner GCP band not on disk: {path}\n"
-                "Run scripts/download_diviner_gcp.py to bootstrap."
+                "Run scripts/fetch_diviner.py to bootstrap."
             )
         download_gcp_band(lat_min, lat_max, ppd=ppd, cache_dir=cache_dir)
 

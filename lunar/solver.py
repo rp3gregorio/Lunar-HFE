@@ -152,48 +152,6 @@ def _thomas(a: np.ndarray, b: np.ndarray, c: np.ndarray, d: np.ndarray) -> np.nd
     return x
 
 
-def _assemble_tridiagonal(
-    grid: DepthGrid,
-    K: np.ndarray,
-    rho_cp: np.ndarray,
-    dt: float,
-    theta: float = 0.5,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Assemble the implicit operator rows for a finite-volume CN step.
-
-    Returns ``(a, b, c)`` such that the implicit step is
-
-        (I + theta dt L) T^{n+1} = (I - (1 - theta) dt L) T^n + BC terms.
-
-    The caller adds BC contributions to ``b`` and the RHS.
-    """
-    n = grid.n_layers
-    dz = grid.dz
-
-    K_face = _face_harmonic_mean(K)
-
-    dz_c = np.empty(n + 1)
-    dz_c[0] = 0.5 * dz[0]
-    dz_c[-1] = 0.5 * dz[-1]
-    for i in range(1, n):
-        dz_c[i] = 0.5 * (dz[i - 1] + dz[i])
-
-    cap = rho_cp * dz  # [J m^-2 K^-1]
-
-    a = np.zeros(n)
-    b = np.zeros(n)
-    c = np.zeros(n)
-
-    for i in range(n):
-        flux_left = K_face[i] / dz_c[i] if i > 0 else 0.0
-        flux_right = K_face[i + 1] / dz_c[i + 1] if i < n - 1 else 0.0
-        a[i] = -theta * dt * flux_left / cap[i]
-        c[i] = -theta * dt * flux_right / cap[i]
-        b[i] = 1.0 - (a[i] + c[i])
-
-    return a, b, c
-
-
 def surface_energy_balance_residual(
     T_s: float,
     insolation: float,

@@ -87,10 +87,20 @@ def main() -> int:
         kd_nom_mW = kd[site]["kd_star"] * 1e3
         sigma_Qb = kd_nom_mW * (env["high"] - env["low"]) / (2.0 * env["nominal"])
 
-        # Sweep half-ranges
-        sigma_zb = _half_range(bs[site])
+        # Sweep half-ranges.
+        # sigma_zb uses only the physically defensible cuts {70, 80, 90} cm.
+        # The 60-cm cut readmits a borestem-contaminated sensor at A17
+        # (manuscript Sec. 3.2) and is a diagnostic, not an uncertainty.
+        cuts = bs["cut_cm"]
+        zb_vals = [v for c, v in zip(cuts, bs[site]) if c >= 70]
+        sigma_zb = _half_range(zb_vals)
         sigma_thr = _half_range(th[site]["kd_star_mW"])
-        sigma_A = _half_range(sb[site]["kd_star"])
+        # sigma_A over the +/-0.02 Bond-albedo envelope (the +/-0.04
+        # extremes exceed the Vasavada 2012 lat-band scatter and at A17
+        # hop to a secondary RMSE minimum).
+        dA = np.asarray(sb["delta_albedo"], dtype=float)
+        kA = np.asarray(sb[site]["kd_star"], dtype=float)
+        sigma_A = _half_range(kA[np.abs(dA) <= 0.02])
 
         sigmas = {
             "sigma_stat": sigma_stat,

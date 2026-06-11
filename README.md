@@ -33,7 +33,7 @@ Short version:
 
 ```bash
 git clone https://github.com/rp3gregorio/Lunar-HFE.git
-cd apollo-hfe-kd-retrieval
+cd Lunar-HFE
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 python scripts/fetch_diviner.py     # ~310 MB from PDS-Geosciences
@@ -58,7 +58,7 @@ direct verification.
 ## Repository layout
 
 ```
-apollo-hfe-kd-retrieval/
+Lunar-HFE/
 ├── lunar/                  # 1-D heat solver + conductivity models
 ├── scripts/
 │   ├── pipeline/           # batch retrieval + sensitivity sweeps
@@ -67,12 +67,13 @@ apollo-hfe-kd-retrieval/
 ├── data/
 │   ├── apollo/             # HFE 1971–1977 record (Nagihara 2018, bundled)
 │   ├── diviner/            # GCP cache (fetched on demand)
-│   ├── reference/          # small CSVs (Mitchell 1973, Carrier 1991, …)
-│   └── upstream/           # third-party reference code (Martínez 2021)
-├── output/                 # canonical JSON results + generated figures
-├── paper/letter/           # LaTeX source + compiled PDF
+│   └── spice/              # SPICE kernels (DE440, lunar frames)
+├── output/                 # canonical JSON results
+├── paper/
+│   ├── letter/             # LaTeX source + figures + compiled PDF
+│   └── appendix/           # supplemental figures
 ├── tests/                  # pytest suite (run with `pytest`)
-└── docs/                   # extended documentation
+└── docs/                   # REPRODUCING.md, FLAG_REPORT.md, code review
 ```
 
 ## Citing this work

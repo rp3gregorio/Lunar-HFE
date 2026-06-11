@@ -384,26 +384,31 @@ def fig_amplitude_vs_depth():
     for ax, name in zip(axes, ["A15", "A17"]):
         cfg = SITES[name]
         obs = extract_sensor_stability(cfg["mission"], cfg["MIN_DEPTH_CM"])
-        # Per-sensor diurnal amplitude has to be computed from the raw
-        # data via SPICE LST folding; we approximate it here by the
-        # within-window standard deviation of the Apollo HFE record,
-        # which is dominated by the diurnal cycle for shallow sensors.
+        # Observed per-sensor diurnal-amplitude PROXY: sqrt(2) x the
+        # within-stability-window standard deviation (exact for a pure
+        # sinusoid). The window sigma is diurnal-dominated for shallow
+        # sensors and noise-dominated below the skin depth, which is
+        # precisely the diagnostic contrast the figure shows. The
+        # manuscript (Sec. 2.4) describes this same proxy.
         z_obs = np.array(obs["depth_cm_all"])
         T_std = np.array(obs["T_std_all"])
-        # Diurnal amplitude ≈ √2 × σ for a sinusoidal signal.
         amp_obs = np.sqrt(2.0) * T_std
 
         # Modelled regolith attenuation curves (analytical) for the
-        # two published K(z) forms. Both are dominated by the diurnal
-        # skin depth δ = √(2κ/ω) with κ = K/(ρ c_p) at T ~ 250 K and
-        # the published deep regolith density ρ ≈ 1500 kg m^-3
-        # (volumetric average over the top few skin depths).
+        # two published K(z) forms. Both use the diurnal skin depth
+        # delta = sqrt(2 kappa / omega) with kappa = K / (rho c_p)
+        # evaluated at T = 250 K and the published deep density
+        # rho_d = 1800 kg m^-3 (Hayne 2017); c_p(250 K) ~ 670 J/kg/K
+        # from the Hayne App. A polynomial.
         z_grid = np.linspace(0.0, 250.0, 400)   # cm
         omega  = 2 * np.pi / T_LUNAR
-        rho_c  = 1500.0 * 850.0     # ρ c_p, volumetric heat capacity
+        rho_c  = 1800.0 * 670.0     # rho_d x c_p(250 K)
 
-        # Hayne: K_d = 3.4 mW/m/K (published global value).
-        kappa_H = HAYNE["K_D"] / rho_c
+        # Hayne: K_d = 3.4 mW/m/K (published global value) WITH the
+        # radiative multiplier (1 + chi (T/350)^3) ~ 1.98 at 250 K --
+        # omitting it understates the deep skin depth by ~sqrt(2).
+        K_H250  = HAYNE["K_D"] * (1.0 + HAYNE["CHI"] * (250.0 / 350.0) ** 3)
+        kappa_H = K_H250 / rho_c
         delta_H = np.sqrt(2 * kappa_H / omega) * 100      # cm
         amp_H   = 100 * np.exp(-z_grid / delta_H)
 

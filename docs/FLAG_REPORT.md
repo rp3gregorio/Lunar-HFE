@@ -1,5 +1,18 @@
 # Flag Report — physics, code, and figure audit
 
+> **Status update (second pass, 2026-06-11):** F2 resolved by rewriting
+> §1/§2.2 to describe the implemented idealized forcing with bounded
+> neglected terms (tracked changes). F3 resolved: figure script fixed
+> (radiative term, consistent ρc_p) and regenerated; text/caption now
+> describe the √2σ proxy. F4 largely resolved: `compute_error_budget.py`
+> fixed (z_b ∈ {70,80,90}, ±0.02 albedo), JSON regenerated, Table 4 and
+> all dependent prose updated to the reproducible values (totals
+> 1.73/5.81) — remaining: commit the χ/H/Ks/ρ generating sweeps. Stale
+> numbers in F5/F6 (grids, H range, thresholds, 55–80 %, kd-sweep
+> caption) corrected in tracked changes. **F1 remains OPEN and blocks
+> submission**; the Diviner-closure stub, Bayesian outputs, and missing
+> appendix (F5) also remain open.
+
 Audit of the Lunar-HFE repository against the manuscript
 (`paper/letter/letter.tex`), performed 2026-06-11. Every flag below was
 verified by reading the released code and, where marked **measured**, by

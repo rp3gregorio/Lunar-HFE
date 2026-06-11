@@ -1,5 +1,24 @@
 # Flag Report — physics, code, and figure audit
 
+> **Status update (third pass, 2026-06-11): F1 RESOLVED.**
+> `lunar/equilibrium.py` replaces the fixed-length spin-up with a
+> flux-anchored periodic-equilibrium iteration (skin spin-ups alternated
+> with exact mean-flux reconstruction d⟨T⟩/dz = (Q_b − u_rect)/K, the
+> rectified flux u_rect measured from the resolved cycle). Certified:
+> initial guesses 240 vs 260 K agree to ≤0.023 K over the full column
+> (previously 1.6–4.5 K, swinging Kd\* 1.75→11.00); a 120-lunation
+> honest run from the converged profile drifts ≤0.08 K at sensor depths
+> (solver systematic ≲0.15 mW m⁻¹ K⁻¹ in Kd\*, an order below the
+> bootstrap σ). Regression tests in `tests/test_equilibrium.py`.
+> Converged headline values shift: Kd\*(A15) 4.86→4.58, Kd\*(A17)
+> 11.23→8.12 mW m⁻¹ K⁻¹ — the old A17 value was inflated by its warm
+> 255 K anchor; the inter-site ordering survives with a smaller
+> contrast (~3.5). Full pipeline re-run + manuscript number update in
+> progress. Also resolved this pass: Diviner hemisphere bug (southern
+> GCP bands fetched for northern sites), reproducible closure script
+> (`compute_diviner_closure.py`) replacing the notebook stub, and the
+> missing `paper/appendix/appendix.tex`.
+>
 > **Status update (second pass, 2026-06-11):** F2 resolved by rewriting
 > §1/§2.2 to describe the implemented idealized forcing with bounded
 > neglected terms (tracked changes). F3 resolved: figure script fixed
@@ -9,9 +28,7 @@
 > all dependent prose updated to the reproducible values (totals
 > 1.73/5.81) — remaining: commit the χ/H/Ks/ρ generating sweeps. Stale
 > numbers in F5/F6 (grids, H range, thresholds, 55–80 %, kd-sweep
-> caption) corrected in tracked changes. **F1 remains OPEN and blocks
-> submission**; the Diviner-closure stub, Bayesian outputs, and missing
-> appendix (F5) also remain open.
+> caption) corrected in tracked changes.
 
 Audit of the Lunar-HFE repository against the manuscript
 (`paper/letter/letter.tex`), performed 2026-06-11. Every flag below was

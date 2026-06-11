@@ -15,7 +15,7 @@ PDF identical to the submitted manuscript.
 
 ```bash
 git clone https://github.com/rp3gregorio/Lunar-HFE.git
-cd apollo-hfe-kd-retrieval
+cd Lunar-HFE
 ```
 
 ## Step 2 — Install Python dependencies

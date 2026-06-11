@@ -55,6 +55,7 @@ from lunar.constants import (
     K_SURFACE, H_PARAMETER, CHI_RADIATIVE, T_REFERENCE, LUNATION_SECONDS,
 )
 from lunar.solver import PixelInputs, solve_pixel
+from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.apollo_helpers import extract_sensor_stability
 
 sys.stdout = open(sys.stdout.fileno(), mode='w', buffering=1)
@@ -73,9 +74,25 @@ from make_results_figures import (   # type: ignore
 S0           = 1361.0
 T_LUNAR      = LUNATION_SECONDS
 DT_STEP      = 3600.0
-N_LUN_FAST   = 30
-TOL_FAST     = 0.05
+N_LUN_FAST   = 30          # retained for legacy callers; run_with now uses
+TOL_FAST     = 0.05        # the equilibrium driver below instead
+# Flux-anchored equilibrium iteration (lunar/equilibrium.py). The anchor
+# sits below the diurnal rectification zone (amplitude ~0.15 K at
+# 0.55 m, so the eddy-correlation flux <K' dT'/dz> omitted by the
+# mean-field reconstruction is < 1% of Q_b); n_inner covers ~1.2 anchor
+# relaxation times per outer step. Certified by a 120-lunation drift
+# test: a long honest run initialized from the converged profile moves
+# < 0.05 K at sensor depths.
+EQ_Z_ANCHOR  = 0.55        # m
+EQ_N_INNER   = 12          # lunations per outer iteration
+EQ_MAX_OUTER = 20
+EQ_ANCHOR_TOL = 0.005      # K
 GRID         = dict(z_max=5.0, dz0=0.002, growth=0.08)
+
+# In-process memo cache for converged mean profiles. Keyed on every
+# input that can change the forward model; saves the repeated sweeps in
+# the bootstrap cache build and the sensitivity scripts.
+_PROFILE_CACHE: dict = {}
 HAYNE = dict(K_S=K_SURFACE, H=H_PARAMETER, CHI=CHI_RADIATIVE,
              T_REF=T_REFERENCE)
 
@@ -157,6 +174,11 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
     if qb is not None:
         site['Q_BASAL'] = qb
     h = HAYNE['H'] if h is None else h
+    cache_key = (site.get('tag'), site['lat'], site['albedo'],
+                 site['emissivity'], site['Q_BASAL'],
+                 kd, h, k_model, rho_deep, martinez_alpha)
+    if cache_key in _PROFILE_CACHE:
+        return _PROFILE_CACHE[cache_key]
     grid_  = make_geometric_grid(**GRID)
     z_mid  = grid_.z_mid
     N_t    = int(T_LUNAR / DT_STEP) + 1
@@ -199,16 +221,23 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
                                       H=h, chi=HAYNE['CHI'])
     def cp_func(T):
         return specific_heat(T, model='hayne')
-    K_init = k_func(np.full_like(z_mid, site['T_MEAN_EFF']), z_mid)
-    T_init = site['T_MEAN_EFF'] + site['Q_BASAL'] * np.cumsum(grid_.dz / K_init)
-    out = solve_pixel(PixelInputs(
-        grid=grid_, t=t_s, bc_mode='radiative',
-        insolation=insol, albedo=site['albedo'],
-        emissivity=site['emissivity'], Q_b=site['Q_BASAL'], T_init=T_init,
-        n_lunations_spinup=N_LUN_FAST, spinup_tol_K=TOL_FAST,
-        K_func=k_func, cp_func=cp_func,
-    ))
-    return z_mid, out.T.mean(axis=1)
+    # Periodic steady state via the flux-anchored outer iteration
+    # (lunar/equilibrium.py). T_MEAN_EFF seeds the first iterate only;
+    # the converged profile is independent of it (audit flag F1).
+    eq = solve_periodic_equilibrium(
+        grid=grid_, t=t_s, insolation=insol,
+        albedo=site['albedo'], emissivity=site['emissivity'],
+        Q_b=site['Q_BASAL'], K_func=k_func, cp_func=cp_func,
+        T_guess=site['T_MEAN_EFF'],
+        z_anchor=EQ_Z_ANCHOR, n_inner=EQ_N_INNER,
+        max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL,
+    )
+    if not eq.converged or eq.flux_closure > 0.05:
+        print(f"   WARNING: equilibrium not fully converged "
+              f"(drift={eq.anchor_drift_K:.3f} K, "
+              f"closure={eq.flux_closure:.3%})", flush=True)
+    _PROFILE_CACHE[cache_key] = (z_mid, eq.T_mean)
+    return z_mid, eq.T_mean
 
 
 def kd_star_from_residuals(R, kd_grid, idx=None):

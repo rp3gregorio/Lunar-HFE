@@ -250,16 +250,17 @@ def run_pixel(site_cfg, *, kfunc):
     cos_lat = np.cos(np.deg2rad(site["lat"]))
     phase   = 2.0 * np.pi * t_s / T_LUNAR
     insol   = S0 * cos_lat * np.maximum(0.0, np.cos(phase))
-    K_init = kfunc(np.full_like(z_mid, site["T_MEAN_EFF"]), z_mid)
-    T_init = site["T_MEAN_EFF"] + site["Q_BASAL"] * np.cumsum(grid_.dz / K_init)
-    out = solve_pixel(PixelInputs(
-        grid=grid_, t=t_s, bc_mode="radiative",
-        insolation=insol, albedo=site["albedo"],
-        emissivity=site["emissivity"], Q_b=site["Q_BASAL"], T_init=T_init,
-        n_lunations_spinup=N_LUN_FAST, spinup_tol_K=TOL_FAST,
-        K_func=kfunc, cp_func=lambda T: specific_heat(T, model="hayne"),
-    ))
-    return z_mid, out.T, t_s
+    # Periodic steady state, independent of the T_MEAN_EFF seed
+    # (lunar/equilibrium.py; audit flag F1).
+    from lunar.equilibrium import solve_periodic_equilibrium
+    eq = solve_periodic_equilibrium(
+        grid=grid_, t=t_s, insolation=insol,
+        albedo=site["albedo"], emissivity=site["emissivity"],
+        Q_b=site["Q_BASAL"], K_func=kfunc,
+        cp_func=lambda T: specific_heat(T, model="hayne"),
+        T_guess=site["T_MEAN_EFF"],
+    )
+    return z_mid, eq.out.T, t_s
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -121,11 +121,18 @@ def _reconstruct_subskin(T_mean: np.ndarray, z: np.ndarray, i0: int,
 
 
 def _mean_flux_closure(T_mean: np.ndarray, z: np.ndarray, i0: int,
-                       Q_b: float, K_func) -> float:
-    """Max relative deviation of the mean conductive flux from Q_b below i0."""
+                       Q_b: float, K_func,
+                       u_rect: np.ndarray | None = None) -> float:
+    """Max relative deviation of the total mean flux from Q_b below i0.
+
+    The total cycle-mean flux is the mean-field part K(<T>) d<T>/dz plus
+    the rectified eddy part u_rect; in the true steady state their sum
+    equals Q_b at every depth.
+    """
     K = np.asarray(K_func(T_mean, z), dtype=float)
-    dTdz = np.gradient(T_mean, z)
-    q = K * dTdz                      # downward-positive steady flux
+    q = K * np.gradient(T_mean, z)
+    if u_rect is not None:
+        q = q + u_rect
     rel = np.abs(q[i0:] - Q_b) / Q_b
     return float(np.max(rel))
 
@@ -198,7 +205,8 @@ def solve_periodic_equilibrium(
             anchor_prev = anchor
             T_init = T_recon
 
-    closure = _mean_flux_closure(T_mean, z, i0, Q_b, K_func)
+    closure = _mean_flux_closure(T_mean, z, i0, Q_b, K_func,
+                                 u_rect=_rectified_flux(out.T, z, K_func))
     return EquilibriumResult(
         out=out, T_mean=T_mean, n_outer=n_outer,
         anchor_K=float(T_mean[i0]), anchor_drift_K=float(drift),

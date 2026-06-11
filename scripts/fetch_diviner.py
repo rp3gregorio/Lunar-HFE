@@ -3,7 +3,7 @@
 
 The paper compares modelled diurnal surface temperatures against the
 Diviner Lunar Radiometer Global Cumulative Product (GCP) at Apollo 15
-(lat -26.13 deg, 30s20s band) and Apollo 17 (lat -20.16 deg, 20s10s
+(lat +26.13 deg, 20n30n band) and Apollo 17 (lat +20.19 deg, 10n20n
 band). Only those two tiles are needed to reproduce Fig 8.
 
 Each tile is ~150 MB. Total download ~310 MB. Files are placed under
@@ -32,12 +32,12 @@ GCP_URL = (
 )
 
 # Only the two lat bands needed for A15 and A17 surface-T closure.
-BANDS = ("30s20s", "20s10s")
+BANDS = ("20n30n", "10n20n")
 
 # md5 checksums for integrity verification (populate after first download)
 EXPECTED_MD5 = {
-    "global_cumul_avg_cyl_30s20s_002.tab": "TBD",
-    "global_cumul_avg_cyl_20s10s_002.tab": "TBD",
+    "global_cumul_avg_cyl_20n30n_002.tab": "TBD",
+    "global_cumul_avg_cyl_10n20n_002.tab": "TBD",
 }
 
 

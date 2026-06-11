@@ -44,9 +44,11 @@ QB_NOMINAL = {"A15": 0.021, "A17": 0.015}
 QB_ENVELOPE = {"A15": (0.014, 0.025), "A17": (0.010, 0.018)}
 
 # K_d sweep grid (W m^-1 K^-1), wide enough to bracket every minimum.
-KD_GRID = np.linspace(2.0e-3, 22.0e-3, 41)
-# Q_b sweep grid per site, spanning the published envelope.
-QB_GRID = {s: np.linspace(lo, hi, 25) for s, (lo, hi) in QB_ENVELOPE.items()}
+# 0.5-mW resolution: the M1-M3 RMSE separations that drive the AICc
+# comparison are large compared to the RMSE change across one step.
+KD_GRID = np.linspace(2.0e-3, 22.0e-3, 21)
+# Q_b sweep grid per site, spanning the published envelope (1-mW steps).
+QB_GRID = {s: np.linspace(lo, hi, 9) for s, (lo, hi) in QB_ENVELOPE.items()}
 
 
 def deep_obs(site_cfg):

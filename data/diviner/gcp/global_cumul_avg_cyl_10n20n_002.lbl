@@ -22,17 +22,17 @@ DESCRIPTION                  = "This table contains brightness temperatures
                                 the Diviner Lunar Radiometer
                                 Experiment', Icarus, 283, 300-325.
                                "
-^HEADER                      = ("GLOBAL_CUMUL_AVG_CYL_30S20S_002.TAB", 1)
-^TABLE                       = ("GLOBAL_CUMUL_AVG_CYL_30S20S_002.TAB", 2)
+^HEADER                      = ("GLOBAL_CUMUL_AVG_CYL_10N20N_002.TAB", 1)
+^TABLE                       = ("GLOBAL_CUMUL_AVG_CYL_10N20N_002.TAB", 2)
 DATA_SET_ID                  = "LRO-L-DLRE-5-GCP-V1.0"
-FILE_NAME                    = "GLOBAL_CUMUL_AVG_CYL_30S20S_002.LBL"
+FILE_NAME                    = "GLOBAL_CUMUL_AVG_CYL_10N20N_002.LBL"
 MISSION_NAME                 = "LUNAR RECONNAISSANCE ORBITER"
 INSTRUMENT_HOST_NAME         = "LUNAR RECONNAISSANCE ORBITER"
 INSTRUMENT_HOST_ID           = "LRO"
 INSTRUMENT_NAME              = "DIVINER LUNAR RADIOMETER EXPERIMENT"
 INSTRUMENT_ID                = "DLRE"
 PRODUCT_TYPE                 = "GCP"
-PRODUCT_ID                   = "GLOBAL_CUMUL_AVG_CYL_30S20S_002.TAB"
+PRODUCT_ID                   = "GLOBAL_CUMUL_AVG_CYL_10N20N_002.TAB"
 LRO:CALIBRATION_SOFTWARE_VER_ID = "4.0"
 PRODUCER_ID               = LRO_DLRE_TEAM
 PRODUCER_FULL_NAME        = "JEAN-PIERRE WILLIAMS"
@@ -47,8 +47,8 @@ SPACECRAFT_CLOCK_START_COUNT = "0268505426.15400"
 SPACECRAFT_CLOCK_STOP_COUNT  = "0449539200.05636"
 PRODUCT_CREATION_TIME        = 2016-05-27T12:00:00
 PRODUCT_VERSION_ID           = "1"
-MAXIMUM_LATITUDE             = -20.00000 <deg>
-MINIMUM_LATITUDE             = -30.00000 <deg>
+MAXIMUM_LATITUDE             = 20.00000 <deg>
+MINIMUM_LATITUDE             = 10.00000 <deg>
 WESTERNMOST_LONGITUDE        = -180.00000 <deg>
 EASTERNMOST_LONGITUDE        = 180.00000 <deg>
 POSITIVE_LONGITUDE_DIRECTION = "EAST"

@@ -349,11 +349,22 @@ def fig_mean_T_profile():
                  title=f"({['a','b'][['A15','A17'].index(name)]})  {cfg['label']}")
         ax.invert_yaxis()
         ax.set_ylim(250, 0)
+        # Focus the T axis on the sensor/model range below the skin;
+        # the model surface approach (T(0) ~ 220 K) is off-topic here
+        # and previously compressed the data into ~15% of the panel.
+        # Clip the model curves to the plotted 250-cm depth window --
+        # the column continues to 5 m and ~264 K.
+        shown = z_mid <= 2.50
+        T_deepest = max(float(T_H[shown].max()), float(T_MS[shown].max()))
+        ax.set_xlim(float(T_obs.min()) - 3.0,
+                    max(float(T_obs.max()), T_deepest) + 1.5)
 
         # Boxed callout label for the borestem zone -- placed inside
         # the panel using axes coordinates (immune to data x-limits)
         # and drawn above the markers (zorder=5).
-        ax.text(0.04, 0.12,
+        # The callout lives inside the shaded zone it describes (and
+        # stays clear of the deepest sensors at panel bottom).
+        ax.text(0.04, 0.96,
                 "Borestem zone\n($z < 80$ cm, excluded)",
                 transform=ax.transAxes,
                 fontsize=FS_TICK - 0.5, color=C_CHAR,
@@ -429,6 +440,15 @@ def fig_amplitude_vs_depth():
                     mec="white", mew=0.7, markersize=7,
                     label="Apollo HFE  (obs.)")
 
+        # digitisation noise floor of the restored record (0.05-0.2 K,
+        # Nagihara 2018): the deep-sensor amplitudes flatten here, which
+        # is why they do not constrain the deep diffusivity (Sec. 2.4).
+        ax.axvspan(0.05, 0.2, color=C_TEAL_L if 'C_TEAL_L' in dir() else "#cfe3e3",
+                   alpha=0.35, zorder=0)
+        if name == "A15":
+            ax.text(0.095, 205, "digitisation\nnoise floor", ha="center",
+                    va="top", fontsize=FS_TICK - 1.5, color=C_DIM,
+                    style="italic", linespacing=1.2)
         # borestem zone
         ax.axhspan(0, 80, color="0.85", alpha=0.35, zorder=0)
         ax.text(2e-3, 12, "borestem zone (z < 80 cm)",
@@ -521,8 +541,7 @@ def fig_kd_sweep():
     fmt_axis(ax,
              xlabel=r"Deep conductivity  $K_d$  (mW m$^{-1}$ K$^{-1}$)",
              ylabel=r"Deep-sensor RMSE  (K)",
-             title="Per-site $K_d$ retrieval under the Hayne 2017 "
-                   "functional form")
+             title="")
     ax.set_xlim(0, 16)
     ax.set_ylim(0, 4)
     ax.grid(which="major", color=C_GRID, lw=0.4, alpha=0.7)

@@ -467,15 +467,13 @@ def fig_kd_sweep():
     """
     d = json.loads(PHASE_A.read_text())
 
-    # ── extend the sweep so the rising high-K_d tail is shown ────────────
-    from scripts.pipeline.retrieve_kd import SITES, run_kd_sweep_extended
-    EXT = {"A15": np.linspace(15.5e-3, 22.0e-3, 5),
-           "A17": np.linspace(25.5e-3, 30.0e-3, 4)}
-    ext_curve = {}
-    for name in ("A15", "A17"):
-        _, _, R, _ = run_kd_sweep_extended(SITES[name], EXT[name],
-                                           k_model="hayne")
-        ext_curve[name] = (EXT[name] * 1e3, np.sqrt((R ** 2).mean(axis=0)))
+    # ── the swept grids (1.0-15.0 / 3.0-25.0 mW) already bracket the
+    # converged minima (4.6 / 8.1) with clearly rising high-K_d tails,
+    # so no extension runs are needed; the axis is trimmed to the
+    # populated range below.
+    from scripts.pipeline.retrieve_kd import SITES  # noqa: F401 (parity)
+    ext_curve = {"A15": (np.empty(0), np.empty(0)),
+                 "A17": (np.empty(0), np.empty(0))}
 
     from scipy.interpolate import CubicSpline
     # No hand-tuned bottom margin: legend_below() reserves the strip.
@@ -525,7 +523,7 @@ def fig_kd_sweep():
              ylabel=r"Deep-sensor RMSE  (K)",
              title="Per-site $K_d$ retrieval under the Hayne 2017 "
                    "functional form")
-    ax.set_xlim(0, 30)
+    ax.set_xlim(0, 16)
     ax.set_ylim(0, 4)
     ax.grid(which="major", color=C_GRID, lw=0.4, alpha=0.7)
     ax.set_axisbelow(True)

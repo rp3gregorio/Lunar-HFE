@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 title: >-
-  Code and data for "Estimates of Lunar Regolith Thermal Conductivity
-  K_d at Respective Apollo 15 and 17 Heat-Flow Boreholes"
+  Code and data for "Difference of Lunar Regolith Thermal Conductivity
+  K_d at the Apollo 15 and 17 Heat-Flow Boreholes"
 message: >-
   If you use this software or the bundled HFE record, please cite both
   the associated paper (preferred) and this repository.
@@ -21,14 +21,14 @@ preferred-citation:
     - given-names: Ramon III Palinguba
       family-names: Gregorio
       email: rp3gregorio@gmail.com
-    - given-names: R.
+    - given-names: Richard
       family-names: Larsson
-    - given-names: T.
+    - given-names: Takayoshi
       family-names: Yamada
-    - given-names: Y.
+    - given-names: Yasuko
       family-names: Kasai
   title: >-
-    Estimates of Lunar Regolith Thermal Conductivity K_d at Respective
+    Difference of Lunar Regolith Thermal Conductivity K_d at the
     Apollo 15 and 17 Heat-Flow Boreholes
   journal: Journal of Geophysical Research, Planets
   year: 2026

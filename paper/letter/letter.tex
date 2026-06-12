@@ -95,7 +95,7 @@
 \reviewtrue            % <-- set to \reviewfalse for a clean PDF
 
 \ifreview
-  \newcommand{\new}[1]{\textcolor{blue!60!black}{#1}}
+  \newcommand{\new}[1]{\textcolor{green!60!black}{#1}}
   \newcommand{\old}[1]{\textcolor{red!70!black}{\sout{#1}}}
   \newcommand{\note}[1]{\textcolor{orange!90!black}{[\,#1\,]}}
 \else
@@ -107,17 +107,18 @@
 % --- Title ------------------------------------------------------------------
 % Alt title kept for reference:
 % Estimates of Lunar Regolith Thermal Conductivity K_d at the Apollo 15 and 17 Heat-Flow Boreholes
-\title{\bfseries Estimates of Lunar Regolith Thermal Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes}
+\title{\bfseries \old{Estimates} \new{Difference} of Lunar Regolith Thermal Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes}
+
 
 % --- Author block -----------------------------------------------------------
 % TODO before submission: confirm co-author first initials and Larsson's
 % affiliation; on switching to the AGU class, replace this whole block with
 % \authors{} + \affiliation{} + \correspondingauthor{}.
 \author{%
-  Ramon~III~P.~Gregorio$^{1,2}$,\quad
-  R.~Larsson$^{1}$,\quad
-  T.~Yamada$^{2}$,\quad
-  Y.~Kasai$^{1,2}$%
+  Ramon~III~P.~Gregorio$^{1,2,3}$,\quad
+  \new{Richard}~Larsson$^{1}$,\quad
+  \new{Takayoshi}~Yamada$^{2}$,\quad
+  \new{Yasuko}~Kasai$^{1,2}$%
 }
 
 % --- Manual affiliation footer (the AGU class will absorb this) -------------
@@ -134,7 +135,8 @@
       $^{2}$National Institute of Information and Communications
       Technology (NICT), Tokyo, Japan.%
       \\
-      Correspondence to: \texttt{rp3gregorio@gmail.com}.%
+     $^{3}$Ateneo de Davao University, Davao, Philippines.\\
+      Correspondence to: \texttt{\old{rp3gregorio@gmail.com} \new{Yasuko Kasai, kasai.y.aa@m.titech.ac.jp}}.%
     }%
     \vskip 1em {\@date}%
   \end{center}\par \vskip 1.5em%
@@ -146,6 +148,7 @@
 \begin{document}
 \linenumbers
 \maketitle
+
 
 \note{REMINDER: before submission (i) port to the AGUTeX
 (agujournal2019) class; (ii) confirm the four-author list and add the

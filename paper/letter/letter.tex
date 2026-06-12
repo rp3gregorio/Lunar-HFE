@@ -150,10 +150,11 @@
 \maketitle
 
 
-\note{REMINDER: before submission (i) port to the AGUTeX
-(agujournal2019) class; (ii) confirm the four-author list and add the
-AGU-required CRediT author-contribution statement; (iii) add the
-funding statement (grant numbers or ``no external funding'').}
+% TODO before submission: (i) port to the AGUTeX (agujournal2019)
+% class; (ii) add the AGU-required CRediT author-contribution
+% statement (needs each co-author's roles); (iii) add the funding
+% statement (grant numbers from Kasai Lab / NICT, or "no external
+% funding").
 
 % =====================================================================
 \begin{abstract}
@@ -305,11 +306,6 @@ measure directly. One concrete example is the upcoming TSUKIMI mission
 comparable to the Apollo HFE sensors and so depends explicitly on
 $K_d$}\new{forward model requires the sub-diurnal-skin temperature column
 that only the in-situ $K_d$ can anchor}.
-\note{REMINDER (science): justify the claim that the TSUKIMI terahertz
-radiometer probes depths comparable to the HFE sensors (0.8--2.4 m) ---
-sub-mm electrical skin depths in dry regolith are typically mm--cm.
-Either cite the TSUKIMI emission-kernel calculation or soften to
-``below the diurnal skin'' and lean on the boundary-condition argument.}
 
 \old{Because the emission-weighting kernel of any such instrument reaches
 depths at which the conductivity has approached its asymptote $K_d$, the
@@ -1197,9 +1193,9 @@ Bootstrap median $K_d^{*}$  & & & 4.88 & 11.51 \\
 \bottomrule
 \end{tabular}
 \end{table}
-\note{REMINDER: Table~\ref{tab:errorbudget} values are being
-regenerated with the converged solver (fixed-input sweeps running);
-update the table and the two dependent sentences before submission.}
+% TODO: Table 4 values are being regenerated with the converged
+% solver (fixed-input sensitivity sweeps); update the table body and
+% the two dependent sentences when output/kd_error_budget.json lands.
 
 \paragraph*{Reading the per-component error budget.}
 The derivation of each row in Table~\ref{tab:errorbudget} falls into one of

@@ -162,7 +162,12 @@ def fig_bootstrap(d, out_path):
     boot15 = np.array(d["A15"]["bootstrap"]["samples"]) * 1e3
     boot17 = np.array(d["A17"]["bootstrap"]["samples"]) * 1e3
 
-    bins = np.linspace(2, 19, 60)
+    # Data-driven binning: span the union of both bootstrap supports
+    # (plus the global reference value) so the panel has no dead space
+    # regardless of how tight the converged distributions are.
+    lo_x = min(boot15.min(), 3.0) - 0.3
+    hi_x = boot17.max() + 0.3
+    bins = np.linspace(lo_x, hi_x, 50)
     h15, _ = np.histogram(boot15, bins=bins)
     h17, _ = np.histogram(boot17, bins=bins)
     centers = 0.5 * (bins[:-1] + bins[1:])
@@ -186,7 +191,7 @@ def fig_bootstrap(d, out_path):
              xlabel=r"$K_d^{*}$  (mW m$^{-1}$ K$^{-1}$)",
              ylabel="bootstrap count",
              title="(a)  Per-site bootstrap distributions")
-    ax0.set_xlim(2, 22)
+    ax0.set_xlim(lo_x, hi_x)
     ax0.set_ylim(0, ymax * 1.10)
     ax0.xaxis.set_minor_locator(mtick.AutoMinorLocator())
     # NB: no in-axes legend — the shared legend is below the figure.
@@ -195,7 +200,8 @@ def fig_bootstrap(d, out_path):
     contrast = (boot17 - boot15)
     cmed, clo, chi_ = np.percentile(contrast, [50, 2.5, 97.5])
 
-    bins2 = np.linspace(-2, 16, 60)
+    bins2 = np.linspace(min(contrast.min(), -0.5) - 0.2,
+                        contrast.max() + 0.3, 50)
     hC, _ = np.histogram(contrast, bins=bins2)
     centers2 = 0.5 * (bins2[:-1] + bins2[1:])
     width2 = bins2[1] - bins2[0]
@@ -223,7 +229,7 @@ def fig_bootstrap(d, out_path):
              xlabel=r"$\Delta K_d^{*}$ (A17 − A15)  (mW m$^{-1}$ K$^{-1}$)",
              ylabel="bootstrap count",
              title="(b)  Inter-site contrast distribution")
-    ax1.set_xlim(-2, 17)
+    ax1.set_xlim(bins2[0], bins2[-1])
     ax1.xaxis.set_minor_locator(mtick.AutoMinorLocator())
     # (no in-axes legend — shared legend below)
 
@@ -299,8 +305,13 @@ def fig_robustness(d, out_path):
     # Both axes extend down to 0.05 so the diverging colormap shows
     # both the positive (A17 > A15) and negative (A17 < A15) contrast
     # regions; otherwise the panel reads as uniformly red.
-    a15_full = np.linspace(0.05, alphas[-1], 60)
-    a17_all  = np.linspace(0.05, alphas[-1], 60)
+    # Restrict to the neighbourhood of the published Q_b envelopes
+    # (A15: 14-25 of 21 nominal -> alpha 0.67-1.19; A17: 10-18 of 15
+    # -> alpha 0.67-1.20); alpha < 0.55 is unphysical territory that
+    # previously wasted half the panel.
+    A_LO, A_HI = 0.55, 1.30
+    a15_full = np.linspace(A_LO, A_HI, 60)
+    a17_all  = np.linspace(A_LO, A_HI, 60)
     A15_full, A17_full = np.meshgrid(a15_full, a17_all)
     contrast_full = kd_A17_nom * A17_full - kd_A15_nom * A15_full
     sig_full      = contrast_full / sigma_c
@@ -315,7 +326,7 @@ def fig_robustness(d, out_path):
     # with the sign of the contrast (negative = A17 less conductive than
     # A15, positive = A17 more conductive). Symmetric ±15 range keeps both
     # halves of the colormap fully used given the data range [-6, +14].
-    norm = TwoSlopeNorm(vmin=-7, vcenter=0, vmax=15)
+    norm = TwoSlopeNorm(vmin=-2.5, vcenter=0, vmax=8.5)
     # rasterized=True embeds the heatmap as a bitmap inside the PDF,
     # which Ghostscript flattens reliably; without this, gouraud-shaded
     # gradients can disappear when the PDF is post-processed (e.g. the
@@ -330,7 +341,7 @@ def fig_robustness(d, out_path):
     cbar.ax.tick_params(labelsize=FS_TICK, colors=C_CHAR)
     cbar.outline.set_edgecolor(C_GRID)
 
-    cs = axA.contour(a15_full, a17_all, sig_full, levels=[2, 4, 7],
+    cs = axA.contour(a15_full, a17_all, sig_full, levels=[0, 2, 4, 6],
                      colors=C_CHAR, linewidths=1.0, linestyles="--",
                      alpha=0.75)
     axA.clabel(cs, fmt=lambda x: f"{int(x)}σ",
@@ -339,24 +350,32 @@ def fig_robustness(d, out_path):
     # Diagonal (global rescaling, a15=a17) only where both axes overlap.
     # Drawn in dark charcoal (not white) so it stays legible over the
     # pale centre of the diverging colour map.
-    diag_a = np.linspace(0.05, alphas[-1], 100)
+    diag_a = np.linspace(A_LO, A_HI, 100)
     axA.plot(diag_a, diag_a, color=C_CHAR, lw=2.6, alpha=0.9,
              solid_capstyle="butt")
     axA.plot(1.0, 1.0, "o", color=C_CHAR, markersize=10, mec="white", mew=1.4,
              label="nominal $Q_b$ (both sites)")
     axA.plot(0.7, 1.0, "s", color=C_FOREST, markersize=11, mec="white",
              mew=1.4, label="Saito reanalysis  (A15 −30%)")
+    # Published per-site Q_b envelope box (Langseth 1976 / Saito 2007 /
+    # Nagihara 2018): the admissible region of independent revisions.
+    from matplotlib.patches import Rectangle
+    axA.add_patch(Rectangle((14/21, 10/15), (25-14)/21, (18-10)/15,
+                            fill=False, edgecolor=C_CHAR, lw=1.3,
+                            ls=(0, (5, 2)), alpha=0.9))
+    axA.plot([], [], ls=(0, (5, 2)), color=C_CHAR, lw=1.3,
+             label="published $Q_b$ envelope")
     axA.plot([], [], "-", color="white", lw=2.6,
              label="global rescaling diagonal  (contrast invariant)")
     axA.plot([], [], ls="--", color=C_CHAR, lw=1.0,
-             label="contrast significance contours (2σ, 4σ, 7σ)")
+             label="contrast significance contours (0σ, 2σ, 4σ, 6σ)")
 
     fmt_axis(axA,
              xlabel=r"A15 $Q_b$ rescaling factor  $\alpha_{15}$",
              ylabel=r"A17 $Q_b$ rescaling factor  $\alpha_{17}$",
              title=r"(a)  Inter-site $K_d^{*}$ contrast vs. non-uniform $Q_b$")
-    axA.set_xlim(0, alphas[-1])
-    axA.set_ylim(0, alphas[-1])
+    axA.set_xlim(A_LO, A_HI)
+    axA.set_ylim(A_LO, A_HI)
 
     # (no in-axes legend — shared legend below the figure)
 
@@ -460,7 +479,9 @@ def fig_robustness(d, out_path):
         Line2D([0],[0], color=C_CHAR, lw=2.4,
                label="global rescaling diagonal  (contrast invariant)"),
         Line2D([0],[0], ls="--", color=C_CHAR, lw=1.0,
-               label=r"contrast significance  ($2\sigma$, $4\sigma$, $7\sigma$)"),
+               label=r"contrast significance  ($0\sigma$, $2\sigma$, $4\sigma$, $6\sigma$)"),
+        Line2D([0],[0], ls=(0, (5, 2)), color=C_CHAR, lw=1.3,
+               label=r"published $Q_b$ envelope  (panel a)"),
         Line2D([0],[0], marker="D", color="none", markerfacecolor=C_CORAL,
                mec="white", markeredgewidth=1.3, markersize=9,
                label=r"joint $(K_d, H)$ RMSE minimum  (panels b, c)"),
@@ -1034,6 +1055,9 @@ def fig_thermal_profiles(d, out_path):
                  ylabel="Depth  (cm)" if col == 0 else "",
                  title=f"({col_labels[col]})  {site_cfg['label']}")
         ax_f.set_ylim(220, 0)
+        # Fixed common x-range: the huge within-window scatter bar of one
+        # excluded shallow A17 sensor otherwise stretches the axis ~12 K.
+        ax_f.set_xlim(214, 266)
         ax_f.yaxis.set_minor_locator(mtick.AutoMinorLocator())
         ax_f.xaxis.set_minor_locator(mtick.AutoMinorLocator())
 
@@ -1052,8 +1076,11 @@ def fig_thermal_profiles(d, out_path):
                       fmt="o", ms=7, color=C_site, mec="white", mew=1.0,
                       elinewidth=1.0, capsize=3.5, zorder=3)
 
-        # tight x-axis: span only the deep-region temperature range + margin
-        mask_deep = z_h >= MIN_CM
+        # tight x-axis: span only the temperature range actually shown
+        # (borestem base to the 220-cm panel floor) + margin; the model
+        # column continues to 500 cm and would otherwise drag the axis
+        # ~6 K past the visible curves.
+        mask_deep = (z_h >= MIN_CM) & (z_h <= 220.0)
         T_all_deep = np.concatenate([T_h[mask_deep], T_m[mask_deep],
                                      T_obs[deep] - T_err[deep],
                                      T_obs[deep] + T_err[deep]])

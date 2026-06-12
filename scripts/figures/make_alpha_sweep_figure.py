@@ -106,7 +106,11 @@ def main():
                   r"($\rho_d=\alpha\cdot 1800$ kg m$^{-3}$)",
                   fontsize=FS_LABEL)
     ax.set_ylabel(r"Deep-sensor RMSE  (K)", fontsize=FS_LABEL)
-    ax.set_xlim(0.68, 2.22)
+    # Trim to the populated range: both retrieved minima now sit near
+    # alpha ~ 1 and the solid-basalt reference (1.67) bounds the right;
+    # the legacy 2.2 limit (sized for the superseded A17 minimum at
+    # 1.83) left half the axis empty.
+    ax.set_xlim(0.68, 1.85)
     ax.tick_params(labelsize=FS_TICK)
     ax.grid(color=C_GRID, lw=0.4, alpha=0.7)
     ax.set_axisbelow(True)

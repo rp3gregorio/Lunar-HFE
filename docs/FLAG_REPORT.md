@@ -10,6 +10,10 @@
 > honest run from the converged profile drifts ≤0.08 K at sensor depths
 > (solver systematic ≲0.15 mW m⁻¹ K⁻¹ in Kd\*, an order below the
 > bootstrap σ). Regression tests in `tests/test_equilibrium.py`.
+> **F4 closed (final):** Table 4 regenerated end-to-end with the
+> converged solver; χ and H are now reported as conditionality of the
+> held-fixed Hayne form (χ=1.48 drives the minimum off-grid at both
+> sites — a new finding), totals 1.75 / 4.61 mW/m/K, solver row added.
 > Converged headline values shift: Kd\*(A15) 4.86→4.58, Kd\*(A17)
 > 11.23→8.12 mW m⁻¹ K⁻¹ — the old A17 value was inflated by its warm
 > 255 K anchor; the inter-site ordering survives with a smaller

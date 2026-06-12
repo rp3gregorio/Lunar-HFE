@@ -966,13 +966,22 @@ def fig_thermal_profiles(d, out_path):
     _pa_path = _ROOT / "output" / "kd_retrieval_results.json"
     d_auth = json.loads(_pa_path.read_text())
 
+    # Forward profiles come from the SAME pipeline driver as the
+    # retrieval (converged periodic equilibrium + the verified Martinez
+    # coefficients in lunar.properties). The local run_profile /
+    # make_k_* helpers above are retained for reference only; they used
+    # the superseded fixed-length spin-up and an unverified B1 variant.
+    from scripts.pipeline.retrieve_kd import (SITES as _PIPE_SITES,
+                                              run_with as _pipe_run_with)
     site_data = {}
     for name, site_cfg in SITE_CFGS.items():
         kd_r  = d_auth[name]["kd_star"]              # Hayne retrieved K_d*
         print(f"  Running Hayne K_d*={kd_r*1e3:.2f}  for {name} ...", flush=True)
-        z_h, T_h = run_profile(site_cfg, make_k_hayne(kd_r))
+        z_h_m, T_h = _pipe_run_with(_PIPE_SITES[name], kd=kd_r)
+        z_h = z_h_m * 100
         print(f"  Running M&S model for {name} ...", flush=True)
-        z_m, T_m = run_profile(site_cfg, make_k_ms())
+        z_m_m, T_m = _pipe_run_with(_PIPE_SITES[name], k_model='martinez')
+        z_m = z_m_m * 100
 
         obs_raw = extract_sensor_stability(site_cfg['mission'], min_depth_cm=0)
         sensors = obs_raw['sensors']

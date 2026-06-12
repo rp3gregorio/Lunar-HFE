@@ -40,7 +40,13 @@ from scripts.pipeline.retrieve_kd import (                  # noqa: E402
 )
 
 # Albedo offsets applied on top of each site's nominal Bond albedo.
-DA = [-0.04, -0.02, 0.0, +0.02, +0.04]
+# +/-0.01 matches the published Vasavada et al. (2012) lat-band albedo
+# scatter quoted in the manuscript error budget. Larger perturbations
+# (+/-0.02 and beyond) push the deep-T(K_d) response into a
+# non-monotonic regime where the RMSE bowl develops a second minimum
+# and the retrieval hops between branches; the resulting half-range is
+# not a meaningful 1-sigma. See docs/FLAG_REPORT.md (third pass).
+DA = [-0.01, 0.0, +0.01]
 KD_GRID = {"A15": np.linspace(1.5e-3, 15.0e-3, 28),
            "A17": np.linspace(3.0e-3, 22.0e-3, 30)}
 

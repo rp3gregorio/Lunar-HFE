@@ -27,6 +27,7 @@ import emcee
 import corner
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts" / "figures"))
 from make_results_figures import (   # type: ignore
     JGR_FULL,
     FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
@@ -260,7 +261,7 @@ def main():
     print(f"\nSaved: {OUT_FIG}", flush=True)
 
     # ── Companion figure: clean two-site comparison + contrast posterior ────
-    make_comparison_figure(samples, summary_all)
+    summary_all['contrast'] = make_comparison_figure(samples, summary_all)
 
     OUT_JSON.write_text(json.dumps(summary_all, indent=2))
     print(f"Saved: {OUT_JSON}", flush=True)
@@ -383,15 +384,18 @@ def make_comparison_figure(samples, summary):
                labelspacing=0.3,
                title=contrast_stats, title_fontsize=8.5)
 
-    out = pathlib.Path(
-        "<REPO_ROOT>/paper/letter/figures/fig_posterior_compare.pdf")
+    out = pathlib.Path(__file__).resolve().parents[2] / "paper/letter/figures/fig_posterior_compare.pdf"
     fig.savefig(out)
-    out2 = pathlib.Path(
-        "<REPO_ROOT>/paper/appendix/figures/fig_posterior_compare.pdf")
+    out2 = pathlib.Path(__file__).resolve().parents[2] / "paper/appendix/figures/fig_posterior_compare.pdf"
     fig.savefig(out2)
     plt.close(fig)
     print(f"Saved: {out}", flush=True)
     print(f"Saved: {out2}", flush=True)
+    print(f"  contrast: P(A17>A15)={p_gt*100:.1f}%  median={med_c:+.2f}  "
+          f"68% [{q16_c:+.2f},{q84_c:+.2f}]  95% [{q025_c:+.2f},{q975_c:+.2f}]", flush=True)
+    return dict(p_gt=float(p_gt), median=float(med_c),
+                q16=float(q16_c), q84=float(q84_c),
+                q025=float(q025_c), q975=float(q975_c))
 
 
 if __name__ == "__main__":

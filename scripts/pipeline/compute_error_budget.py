@@ -101,18 +101,34 @@ def main() -> int:
         kA = np.asarray(sb[site]["kd_star"], dtype=float)
         sigma_A = _half_range(kA[np.abs(dA) <= 0.0101])
 
+        # Solver systematic: upper bound from the equilibrium
+        # certification (drift <= 0.08 K at sensor depths x the measured
+        # dK_d*/dT response ~1.5-2 mW/m/K per K).
+        sigma_solver = 0.15
+
+        # Quadrature total covers the statistical and measured-input
+        # components that respond linearly across their envelopes.
+        # chi and H are NOT totaled: they parameterize the Hayne
+        # functional form itself, and re-retrieving at the Vasavada
+        # chi = 1.48 normalisation drives the minimum outside the
+        # physical sweep range at both sites -- K_d* is reported
+        # conditional on the published form (chi = 2.7, H = 6 cm),
+        # exactly as it is conditional on the published Q_b. Their
+        # ranges are reported separately as conditionality terms.
         sigmas = {
             "sigma_stat": sigma_stat,
+            "sigma_solver": sigma_solver,
             "sigma_Qb": sigma_Qb,
             "sigma_zb": sigma_zb,
             "sigma_thr": sigma_thr,
             "sigma_A": sigma_A,
-            "sigma_chi": float(fx[site]["sigma_chi"]),
-            "sigma_H": float(fx[site]["sigma_H"]),
             "sigma_Ks": float(fx[site]["sigma_Ks"]),
             "sigma_rho": float(fx[site]["sigma_rho"]),
         }
         total = float(np.sqrt(sum(s ** 2 for s in sigmas.values())))
+        sigmas["conditional_chi"] = float(fx[site]["sigma_chi"])
+        sigmas["conditional_H"] = float(fx[site]["sigma_H"])
+        sigmas["kd_at_chi_1p48"] = float(fx[site]["kd_at_chi_1p48"])
 
         budget[site] = {
             **sigmas,

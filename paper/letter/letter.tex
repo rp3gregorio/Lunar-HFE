@@ -175,7 +175,8 @@ the published basal heat fluxes ($21$ and $15$ mW m$^{-2}$;
 \citealp{langseth1976}), the retrieval yields
 $K_{d,\mathrm{A15}}^{*}=4.58^{+1.33}_{-0.28}$ and
 $K_{d,\mathrm{A17}}^{*}=8.12^{+0.49}_{-0.61}$ mW m$^{-1}$ K$^{-1}$
-($1\sigma$ non-parametric bootstrap), reducing the meter-scale-sensor
+($1\sigma$ statistical, non-parametric bootstrap; systematic terms in
+Table~4), reducing the meter-scale-sensor
 RMSE from 1.03 and 0.69 K under the global value $K_d=3.4$ to 0.95 and
 0.34 K. The inter-site contrast,
 $\Delta K_d^{*}=3.3^{+0.7}_{-1.3}$ mW m$^{-1}$ K$^{-1}$ (95\% CI
@@ -1135,142 +1136,136 @@ This represents the intrinsic limit of what two boreholes can deliver.
 \renewcommand{\arraystretch}{1.10}
 \caption{\textbf{Per-component $1\sigma$ error budget for $K_d^{*}$.}
 Values in mW m$^{-1}$ K$^{-1}$; entries below 0.05 are reported as
-$<\!0.05$. The total is the independent-errors quadrature sum
-$\sigma_{\rm tot}=\sqrt{\sum_i \sigma_i^2}$.}
+$<\!0.05$. \new{All components are re-derived with the certified
+equilibrium solver. The quadrature total covers the statistical and
+measured-input components; $\chi$ and $H$ parameterize the
+\citet{hayne2017} functional form that the retrieval holds fixed, and
+are reported separately as conditionality terms (see text) rather than
+summed --- re-retrieving at the \citet{vasavada2012} normalisation
+$\chi=1.48$ drives the RMSE minimum outside the physical sweep range at
+both sites.}}
 \label{tab:errorbudget}
 \begin{tabular}{@{}l p{0.20\linewidth} p{0.30\linewidth} r r@{}}
 \toprule
 Component & Envelope & Method & A15 & A17 \\
 \midrule
-\multicolumn{5}{@{}l}{\textit{Data-side (bootstrap + measured inputs)}} \\[2pt]
+\multicolumn{5}{@{}l}{\textit{Statistical and solver}} \\[2pt]
 $\sigma_\mathrm{stat}$
   & $\pm 2.5$\,cm depth jitter
-  & bootstrap 16--84 \% half-range
-  & 0.83 & 4.44 \\
-$\sigma_A$\,(albedo)
-  & $A\!\pm\!\old{0.01}\new{0.02}$
-  & re-retrieve $K_d^{*}$ at perturbed $A$
-  & \old{0.07}\new{0.23} & \old{0.54}\new{0.17} \\
+  & bootstrap 16--84\,\% half-range
+  & 0.80 & 0.55 \\
+$\sigma_\mathrm{solver}$
+  & $\le$0.08 K residual drift
+  & equilibrium certification bound (\S\ref{sec:solver})
+  & 0.15 & 0.15 \\
 \midrule
-\multicolumn{5}{@{}l}{\textit{Input-parameter uncertainty (Hayne coefficients)}} \\[2pt]
+\multicolumn{5}{@{}l}{\textit{Measured inputs}} \\[2pt]
 $\sigma_{Q_b}$
   & $Q_b$\,A15$\in\![14,25]$,\,A17$\in\![10,18]$
   & $K_d/Q_b$ degeneracy mapping
-  & \old{1.47}\new{1.27} & \old{3.45}\new{3.00} \\
-$\sigma_\chi$
-  & $\chi\!\in\![1.48,2.7]$
-  & re-retrieve at each endpoint
-  & \old{0.69}\new{0.73} & \old{2.03}\new{1.73} \\
-$\sigma_H$
-  & $H\!\in\!\old{[1,11]}\new{[3,10]}$\,cm
-  & half-range of per-$H$ $K_d^{*}$ on \old{$11\!\times\!8$}\new{$8\!\times\!8$} grid
-  & \old{0.31}\new{0.26} & \old{1.44}\new{1.39} \\
+  & 1.20 & 2.16 \\
+$\sigma_A$\,(albedo)
+  & $A\!\pm\!0.01$
+  & re-retrieve $K_d^{*}$ at perturbed $A$
+  & 0.80 & 3.50 \\
 $\sigma_{K_s}$
   & $K_s\!\pm\!30\%$
   & re-retrieve at perturbed $K_s$
-  & \old{0.06}\new{0.10} & \old{$<\!0.05$}\new{0.23} \\
+  & 0.53 & 1.96 \\
+$\sigma_\rho$
+  & $\rho_d\!\in\![1700,2000]$\,kg\,m$^{-3}$
+  & re-retrieve at perturbed $\rho_d$ ($\rho$ enters $\rho c_p$ only)
+  & $<\!0.05$ & 0.42 \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Methodological choices (this work)}} \\[2pt]
 $\sigma_\mathrm{thr}$
   & $0.04$--$0.16$\,K/yr ($4\!\times$ adopted)
-  & threshold sweep, \old{max $|\Delta K_d^{*}|$}\new{half-range of $K_d^{*}$}
-  & \old{0.03}\new{$<\!0.05$} & \old{0.11}\new{0.06} \\
+  & threshold sweep, half-range of $K_d^{*}$
+  & $<\!0.05$ & $<\!0.05$ \\
 $\sigma_{z_b}$
   & $z_b\!\in\!\{70,80,90\}$\,cm
   & cut sweep, half-range of $K_d^{*}$
-  & 0.10 & $<\!0.05$ \\
+  & 0.15 & $<\!0.05$ \\
 \midrule
-\multicolumn{5}{@{}l}{\textit{\old{Excluded by structure}\new{Structurally suppressed}}} \\[2pt]
-$\sigma_\rho$
-  & $\rho_d\!\in\![1700,2000]$\,kg\,m$^{-3}$
-  & \old{no explicit $\rho$ in Hayne $K(T,z)$ (eq.~\ref{eq:K})}\new{$\rho$
-    enters only $\rho c_p$ in eq.~\ref{eq:K}--\ref{eq:cp}; re-retrieve at
-    perturbed $\rho_d$}
-  & \old{0.00}\new{$<\!0.05$} & \old{0.00}\new{0.06} \\
+\textbf{Total (quadrature)} & & & \textbf{1.75} & \textbf{4.61} \\
+Bootstrap median $K_d^{*}$  & & & 4.63 & 8.13 \\
 \midrule
-\textbf{Total (quadrature)} & & & \textbf{\old{1.86}\new{1.73}} & \textbf{\old{6.17}\new{5.81}} \\
-Bootstrap median $K_d^{*}$  & & & 4.88 & 11.51 \\
+\multicolumn{5}{@{}l}{\textit{Conditionality of the held-fixed form (reported, not summed)}} \\[2pt]
+$\chi$
+  & $\chi\!\in\!\{1.48, 2.7\}$
+  & re-retrieve at the \citet{vasavada2012} endpoint
+  & \multicolumn{2}{c}{minimum exits sweep ($\le$1.5\,/\,$\ge$22)} \\
+$H$
+  & $H\!\in\![3,14]$\,cm
+  & per-$H$ $K_d^{*}$ half-range along the valley
+  & 0.43 & 5.32 \\
 \bottomrule
 \end{tabular}
 \end{table}
-% TODO: Table 4 values are being regenerated with the converged
-% solver (fixed-input sensitivity sweeps); update the table body and
-% the two dependent sentences when output/kd_error_budget.json lands.
 
 \paragraph*{Reading the per-component error budget.}
-The derivation of each row in Table~\ref{tab:errorbudget} falls into one of
-three categories: $\sigma_\mathrm{stat}$ is the 16--84 percentile
+The derivation of each row in Table~\ref{tab:errorbudget} falls into one
+of three categories: $\sigma_\mathrm{stat}$ is the 16--84 percentile
 half-width of the bootstrap distribution under the $\pm 2.5$ cm
 astronaut-emplacement envelope reported by \citet{nagihara2018};
 $\sigma_{Q_b}$ is obtained in closed form through the $K_d/Q_b$ degeneracy
 across the published reduction range (\citealp{langseth1976} canonical;
 \citealp{saito2007,nagihara2018} reanalysis); every remaining row is
-computed by re-running the full retrieval at the perturbed input. The
-non-bootstrap envelopes themselves are taken from the published literature:
-$\sigma_A$ \old{uses}\new{sweeps the Bond albedo by $\pm0.02$,
-bracketing} the \citet{vasavada2012} lat-band scatter\old{ on the Bond
-albedo}; $\sigma_\chi$ uses the actual Vasavada--Hayne disagreement
-(\citealp{hayne2017} Appendix~A adopts $\chi=2.7$; \citealp{vasavada2012}
-use $\chi^{*}=1.48$ under their normalisation, a factor of $\sim$1.8 that
-exceeds any $\pm 30\%$ approximation); $\sigma_{K_s}$ uses the
-\citet{cremers1971} laboratory scatter on Apollo~11 fines as a generous
-upper bound, since \citet{hayne2017} adopt
-$K_s=\SI{7.4e-4}{\watt\per\meter\per\kelvin}$ without a published
-uncertainty and these are the only laboratory data known to us for lunar
-regolith; the $\sigma_\rho$ envelope is the \citet{mitchell1973,carrier1991}
-Apollo-core compaction range.
+computed by re-running the full retrieval at the perturbed input, with the
+envelopes taken from the published literature ($\sigma_A$: the
+\citet{vasavada2012} lat-band albedo scatter of $\pm0.01$;
+$\sigma_{K_s}$: the \citet{cremers1971} laboratory scatter on Apollo~11
+fines; $\sigma_\rho$: the \citet{mitchell1973,carrier1991} Apollo-core
+compaction range; $\sigma_\mathrm{solver}$: the certified residual of the
+equilibrium construction, \S\ref{sec:solver}).
 
 \emph{How the total is combined.} The \textbf{Total (quadrature)} row is
 the independent-errors combination $\sigma_{\rm tot}=\sqrt{\sum_i
-\sigma_i^2}$, not the linear sum $\sum_i \sigma_i$. For A15 the worked
-arithmetic is
+\sigma_i^2}$ over the statistical, solver, measured-input, and
+methodological rows. The worked arithmetic is
 \begin{equation*}
-\begin{aligned}
-\sigma_{\rm tot}^{\rm A15} &=
-\big(0.83^{2}+\new{0.23^{2}+1.27^{2}+0.73^{2}+0.26^{2}}\old{0.07^{2}+1.47^{2}+0.69^{2}+0.31^{2}}\\
-&\quad{}+\new{0.10^{2}+0.02^{2}+0.10^{2}+0.02^{2}}\old{0.06^{2}+0.03^{2}+0.10^{2}+0^{2}}\big)^{1/2}\\
-&= \new{\sqrt{2.98}\;=\;1.73}\old{\sqrt{3.44}\;=\;1.86}~\text{mW m}^{-1}\,\text{K}^{-1};
-\end{aligned}
+\sigma_{\rm tot}^{\rm A15} =
+\big(0.80^{2}+0.15^{2}+1.20^{2}+0.80^{2}+0.53^{2}+0.01^{2}+0.01^{2}+0.15^{2}\big)^{1/2}
+= 1.75,
 \end{equation*}
-the corresponding linear sum $\sum_i \sigma_i = \old{3.30}\new{3.56}$
-would be the
-appropriate combination only under perfectly correlated worst-case errors,
-which we do not assume. The \old{1.86}\new{1.73} (A15) and
-\old{6.17}\new{5.81} (A17) totals therefore
-represent the standard quadrature combination of nominally independent
-components, and the same arithmetic at A17 gives
 \begin{equation*}
 \sigma_{\rm tot}^{\rm A17} =
-\big(\new{4.44^{2}+0.17^{2}+3.00^{2}+1.73^{2}+1.39^{2}+0.23^{2}+0.06^{2}+0.06^{2}}\old{4.44^{2}+0.54^{2}+3.45^{2}+2.03^{2}+1.44^{2}+0.05^{2}+0.11^{2}+0.05^{2}}\big)^{1/2}
-\approx \new{5.81}\old{6.17}.
+\big(0.55^{2}+0.15^{2}+2.16^{2}+3.50^{2}+1.96^{2}+0.42^{2}+0.03^{2}+0^{2}\big)^{1/2}
+\approx 4.61~\text{mW m}^{-1}\,\text{K}^{-1}.
 \end{equation*}
 We flag one residual correlation: $\sigma_\mathrm{stat}$ and $\sigma_{Q_b}$
-are not strictly independent because both propagate along the $K_d/Q_b$
-degeneracy ridge of Fig.~\ref{fig:robustness}a, so 1.86 and 6.17 should be
-read as the independence-idealised totals rather than as fully decorrelated
-standard errors; the practical effect on the absolute $K_d^{*}$ envelope is
-small because \old{the $Q_b$ envelope dominates}\new{these two terms
-jointly dominate} the budget at both sites in any
-case.
+both propagate along the $K_d/Q_b$ degeneracy ridge of
+Fig.~\ref{fig:robustness}a, so the totals are independence-idealised
+rather than fully decorrelated standard errors.
 
-Three conclusions follow. First, $\sigma_{Q_b}$ and $\sigma_\mathrm{stat}$
-together account for $\sim$\old{91\% of the quadrature sum at both
-sites}\new{77\% (A15) and $\sim$85\% (A17) of the quadrature sum}, with
-\old{the remaining $\sim$9\%}\new{most of the remainder} split between
-$\sigma_\chi$ and \old{(at A17) $\sigma_A$}\new{$\sigma_H$}. Second,
-$\sigma_\rho$ is \old{identically zero}\new{structurally suppressed}
-under the Hayne
-$K(T,z)$ form (eq.~\ref{eq:K}), which contains no explicit $\rho$
-dependence: $\rho(z)$ enters only the volumetric heat capacity $\rho c_p$,
-which controls the transient response and \old{not}\new{perturbs} the
-\old{steady-state}\new{rectified annual-mean}
-\old{deep }\new{meter-scale temperature }gradient \new{only at the
-$\lesssim0.06$ mW m$^{-1}$ K$^{-1}$ level}. A wider Apollo-core
-$\rho$ envelope therefore does not \new{materially }broaden $K_d^{*}$
-under this $K$-form\old{;
-the row is retained to record this structural property}. Third, the
-methodological-choice rows $\sigma_\mathrm{thr}$ and $\sigma_{z_b}$ sit an
-order of magnitude below the data-side and parameter terms, indicating
+\emph{The conditionality terms.} The $\chi$ and $H$ rows are deliberately
+excluded from the quadrature: they are not measured inputs with Gaussian
+envelopes but coefficients of the \citet{hayne2017} functional form that
+the retrieval holds fixed. Re-retrieving at the \citet{vasavada2012}
+normalisation $\chi=1.48$ drives the RMSE minimum outside the physical
+sweep range at both sites --- under the converged thermal physics, the
+rectified annual-mean temperature at sensor depths depends strongly on the
+radiative coefficient, so the Hayne form at the Vasavada $\chi$ cannot
+reproduce the HFE record at any admissible $K_d$. $K_d^{*}$ is therefore
+reported conditional on the published $(\chi, H)=(2.7, 6\,\mathrm{cm})$,
+in precisely the same sense as it is conditional on the published $Q_b$;
+the inter-site \emph{contrast} is far less exposed, since both sites share
+the same form.
+
+Three conclusions follow. First, the A15 budget is balanced among
+$\sigma_{Q_b}$, $\sigma_\mathrm{stat}$, and $\sigma_A$ (jointly
+$\sim$87\% of the quadrature sum), whereas the A17 budget is dominated by
+$\sigma_A$ and $\sigma_{K_s}$: at A17 the annual-mean response to $K_d$ is
+nearly flat over part of the sweep range, so even the $\pm0.01$ albedo
+envelope moves the minimum substantially --- the statistical precision of
+the A17 retrieval (CI half-width $\sim$1.1) is real, but its accuracy is
+systematics-limited at the $\pm$4.6 level. Second, $\sigma_\rho$ is
+structurally suppressed under the Hayne $K(T,z)$ form (eq.~\ref{eq:K}),
+which contains no explicit $\rho$ dependence: $\rho(z)$ enters only the
+volumetric heat capacity $\rho c_p$ and perturbs the rectified annual-mean
+column at the $\lesssim$0.4 mW m$^{-1}$ K$^{-1}$ level. Third, the
+methodological-choice rows $\sigma_\mathrm{thr}$ and $\sigma_{z_b}$ sit
+one to two orders of magnitude below the data-side terms, indicating
 robustness against both discretionary cuts.
 
 \paragraph*{Behaviour of the inter-site contrast under independent $Q_b$ revision.}

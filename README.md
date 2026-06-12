@@ -6,9 +6,9 @@ Apollo 15 and 17 Heat-Flow Experiment (HFE) boreholes from the restored
 
 This is the reproducibility repository for the paper:
 
-> Gregorio (2026), *Estimates of Lunar Regolith Thermal Conductivity $K_d$
-> at Respective Apollo 15 and 17 Heat-Flow Boreholes*, submitted to **JGR:
-> Planets**.
+> Gregorio, Larsson, Yamada & Kasai (2026), *Difference of Lunar Regolith
+> Thermal Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes*,
+> submitted to **JGR: Planets**.
 
 ## What it does
 
@@ -16,15 +16,18 @@ We retrieve the deep-regolith thermal conductivity $K_d$ separately at each
 Apollo HFE borehole by holding the Hayne (2017) $K(T,z)$ functional form fixed
 and sweeping $K_d$ against the deep-sensor RMSE. The retrieval yields
 
-- $K_{d,\text{A15}}^{*} = 4.86^{+1.12}_{-0.54}$ mW m⁻¹ K⁻¹
-- $K_{d,\text{A17}}^{*} = 11.23^{+8.12}_{-0.77}$ mW m⁻¹ K⁻¹
+- $K_{d,\text{A15}}^{*} = 4.58^{+1.33}_{-0.28}$ mW m⁻¹ K⁻¹
+- $K_{d,\text{A17}}^{*} = 8.12^{+0.49}_{-0.61}$ mW m⁻¹ K⁻¹
 
-(1σ non-parametric bootstrap, $N_\text{boot}=1500$, conditional on canonical
-basal heat flux $Q_b$).
+(1σ non-parametric bootstrap, $N_\text{boot}=1500$, conditional on the
+published basal heat fluxes; inter-site contrast 3.31, 95% CI [0.37, 4.58],
+p ≈ 0.011). The forward model is solved to a certified periodic steady
+state (see `lunar/equilibrium.py` and `docs/FLAG_REPORT.md`).
 
-These per-site values reduce the deep-sensor RMSE by ~3–10× relative to the
-published global $K_d = 3.4$ and supply the deep-$T(z)$ boundary condition
-needed by sub-surface radiative-transfer retrievals.
+These per-site values reduce the meter-scale-sensor RMSE relative to the
+published global $K_d = 3.4$ (halving it at Apollo 17) and supply the
+meter-scale $T(z)$ boundary condition needed by sub-surface
+radiative-transfer retrievals.
 
 ## Reproducing the paper
 
@@ -82,9 +85,9 @@ If you use this code or data, please cite both the paper and the repository:
 
 ```bibtex
 @article{gregorio2026,
-  author  = {Gregorio, R.~P.},
-  title   = {Estimates of Lunar Regolith Thermal Conductivity $K_d$
-             at Respective Apollo 15 and 17 Heat-Flow Boreholes},
+  author  = {Gregorio, R.~P. and Larsson, R. and Yamada, T. and Kasai, Y.},
+  title   = {Difference of Lunar Regolith Thermal Conductivity $K_d$
+             at the Apollo 15 and 17 Heat-Flow Boreholes},
   journal = {Journal of Geophysical Research: Planets},
   year    = {2026},
   doi     = {TBD}

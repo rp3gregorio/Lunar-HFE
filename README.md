@@ -69,6 +69,11 @@ exactly one definition of everything:
 | `scripts/pipeline/` | retrieval, bootstrap, sensitivity sweeps, MCMC (write `output/*.json`) |
 | `scripts/figures/` | figure generators; `scripts/make_all_figures.py` runs them all |
 
+New to the code? Read [`docs/CODE_MANUAL.md`](docs/CODE_MANUAL.md) for a
+one-page map, then the full developer guidebook
+[`docs/code_guide/code_guide.pdf`](docs/code_guide/code_guide.pdf) (module
+reference, data flow, and worked recipes).
+
 Then run the 5 notebooks in order:
 
 | Notebook | Produces |
@@ -101,7 +106,8 @@ Lunar-HFE/
 ├── paper/
 │   └── letter/             # LaTeX source + figures + compiled PDF
 ├── tests/                  # pytest suite (run with `pytest`)
-└── docs/                   # REPRODUCING.md, FLAG_REPORT.md, code review
+└── docs/                   # REPRODUCING.md, FLAG_REPORT.md, CODE_MANUAL.md,
+    └── code_guide/         #   code_guide.tex/pdf — full developer guidebook
 ```
 
 ## Citing this work

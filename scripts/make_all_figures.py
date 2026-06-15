@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate every figure in the paper, appendix, and guidebook.
+"""Regenerate every figure in the paper and guidebook (plus supplementary).
 
 One command to "draw out the figures." Each generator is run in turn,
 timed, and reported; a failure in one does not stop the others. Assumes

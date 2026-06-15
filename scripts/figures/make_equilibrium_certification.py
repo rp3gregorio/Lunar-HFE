@@ -11,7 +11,7 @@ Sec. 2.3 for the flux-anchored periodic-equilibrium driver
       started from the converged profile moves < 0.1 K at the
       sensor depths (i.e. the returned state is a true fixed point).
 
-Writes paper/appendix/figures/fig_equilibrium_certification.pdf and
+Writes output/figures/fig_equilibrium_certification.pdf and
 output/equilibrium_certification.json.
 
 Run with:
@@ -114,7 +114,7 @@ def main():
                edgecolor=C_GRID, framealpha=0.97, fontsize=FS_LEGEND,
                handlelength=1.8, borderpad=0.5)
 
-    out_fig = _REPO / "paper" / "appendix" / "figures" / "fig_equilibrium_certification.pdf"
+    out_fig = _REPO / "output" / "figures" / "fig_equilibrium_certification.pdf"
     fig.savefig(out_fig)
     plt.close(fig)
     out_json = _REPO / "output" / "equilibrium_certification.json"

@@ -9,11 +9,13 @@
 %
 %  CHANGE TRACKING
 %  ---------------
-%  \new{...}  inserted / revised text  (blue)
+%  \new{...}  inserted / revised text  (green)
 %  \old{...}  removed text, struck through for the record  (red)
 %  \note{...} author query / to-do  (orange)
-%  Flip \reviewtrue -> \reviewfalse (below) for a clean submission PDF:
-%  \new prints plainly, \old and \note disappear.
+%  DISPLAY MODE: set \def\displaymode{...} below to one of
+%    review  | newonly | clean   (see the block before the title).
+%    review  = full markup;  newonly = only the new wording, highlighted;
+%    clean   = submission PDF (no markup at all).
 % =====================================================================
 \documentclass[11pt]{article}
 
@@ -91,18 +93,35 @@
 \renewcommand{\sout}[1]{\ifmmode\text{\sout@orig{\ensuremath{#1}}}\else\sout@orig{#1}\fi}
 \makeatother
 
-\newif\ifreview
-\reviewtrue            % <-- set to \reviewfalse for a clean PDF
+% =====================================================================
+%  DISPLAY MODE -- change the ONE word below to switch how the document
+%  renders. No other edits needed.
+%
+%    review   : full markup -- new text green, old text struck through in
+%               red, author notes shown in orange. (Use while editing.)
+%    newonly  : show ONLY the new wording -- new text highlighted green,
+%               the struck-out old text and the notes HIDDEN. (Read the
+%               revised paper with the additions still visible.)
+%    clean    : final submission look -- new text plain black, old text
+%               and notes removed entirely, nothing highlighted.
+% =====================================================================
+\def\displaymode{newonly}        % <-- review | newonly | clean
 
-\ifreview
+\def\modereview{review}
+\def\modenewonly{newonly}
+\ifx\displaymode\modereview        % ---- full review markup ----
   \newcommand{\new}[1]{\textcolor{green!60!black}{#1}}
   \newcommand{\old}[1]{\textcolor{red!70!black}{\sout{#1}}}
   \newcommand{\note}[1]{\textcolor{orange!90!black}{[\,#1\,]}}
-\else
+\else\ifx\displaymode\modenewonly  % ---- new lines only, highlighted ----
+  \newcommand{\new}[1]{\textcolor{green!60!black}{#1}}
+  \newcommand{\old}[1]{}
+  \newcommand{\note}[1]{}
+\else                              % ---- clean submission ----
   \newcommand{\new}[1]{#1}
   \newcommand{\old}[1]{}
   \newcommand{\note}[1]{}
-\fi
+\fi\fi
 
 % --- Title ------------------------------------------------------------------
 % Alt title kept for reference:

@@ -503,68 +503,8 @@ def fig_robustness(d, out_path):
     print(f"  → {out_path}")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FIGURE — K_d sweep, SUPERSEDED single-panel version.
-#   The letter now uses the two-panel fig_kd_sweep() in
-#   make_letter_figures.py.  Kept only for reference; not called
-#   by main().  Do not reintroduce: it predates the genuine-M&S fix.
-# ══════════════════════════════════════════════════════════════════════════════
-def fig_kd_sweep_v2(d, out_path):
-    """SUPERSEDED. Single-panel K_d sweep; replaced by the two-panel
-    fig_kd_sweep() in make_letter_figures.py."""
-    fig, ax = plt.subplots(figsize=(JGR_FULL, 4.2))
-    fig.subplots_adjust(left=0.10, right=0.97, top=0.89, bottom=0.15)
-
-    for name, color in [("A15", C_A15), ("A17", C_A17)]:
-        s = d[name]
-        rmse = np.array(s["rmse_curve"])
-        if name == "A15":
-            kd_grid = np.linspace(1.5e-3, 9.0e-3, len(rmse)) * 1e3
-        else:
-            kd_grid = np.linspace(3.0e-3, 18.0e-3, len(rmse)) * 1e3
-
-        from scipy.interpolate import CubicSpline
-        cs = CubicSpline(kd_grid, rmse)
-        kdfine = np.linspace(kd_grid[0], kd_grid[-1], 400)
-
-        b = s["bootstrap"]
-        lo_kd, hi_kd = b["ci_lo"]*1e3, b["ci_hi"]*1e3
-        # 95% CI shading along the curve
-        kd_in_ci = (kdfine >= lo_kd) & (kdfine <= hi_kd)
-        ax.fill_between(kdfine[kd_in_ci], 0, cs(kdfine[kd_in_ci]),
-                        color=color, alpha=0.10, zorder=0)
-
-        ax.plot(kdfine, cs(kdfine), "-", color=color, lw=2.0, alpha=0.95,
-                label=f"{name}  $K_d^{{*}}={s['kd_star']*1e3:.2f}$  "
-                      f"[{lo_kd:.2f}, {hi_kd:.2f}]")
-        ax.plot(kd_grid, rmse, "o", color=color, markersize=4.0,
-                mec="white", mew=0.5, zorder=3)
-
-        kdstar = s["kd_star"] * 1e3
-        rmsestar = s["rmse_star"]
-        ax.plot(kdstar, rmsestar, "*", color=color, markersize=18,
-                mec="white", mew=1.3, zorder=5)
-
-    # vertical references with legend entries (so they go OUTSIDE)
-    ax.axvline(3.4, color=C_TEAL, ls="--", lw=1.2, alpha=0.75, zorder=1,
-               label="Hayne 2017 global  $K_d = 3.4$")
-    ax.axvline(3.8, color=C_FOREST, ls=":", lw=1.2, alpha=0.75, zorder=1,
-               label="Feng 2020 deep value  $K_d = 3.8$")
-
-    fmt_axis(ax,
-             xlabel=r"Deep conductivity  $K_d$  (mW m$^{-1}$ K$^{-1}$)",
-             ylabel=r"Deep-sensor RMSE  (K)",
-             title="Per-site $K_d$ retrieval under the Hayne 2017 functional form")
-    ax.set_xlim(0, 22)
-    ax.set_ylim(0, 6)
-    # Legend INSIDE upper-right
-    ax.legend(loc="upper right", fontsize=FS_LEGEND, framealpha=0.95,
-              title=r"Sites:  $K_d^{*}$  [95% bootstrap CI]",
-              title_fontsize=FS_LEGEND, handlelength=1.4, borderpad=0.5)
-
-    fig.savefig(out_path)
-    plt.close(fig)
-    print(f"  → {out_path}")
+# (The superseded single-panel fig_kd_sweep_v2 was removed; the letter
+#  uses the two-panel fig_kd_sweep() in make_letter_figures.py.)
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -329,7 +329,7 @@ def _k_hayne(T, z):
 
 
 def _kam(T):
-    """Woods-Robinson amorphous polynomial as used by Mart{\'\i}nez 2021."""
+    r"""Woods-Robinson amorphous polynomial as used by Mart{\'\i}nez 2021."""
     T = np.asarray(T, float)
     a = _MS_KAM
     return (a["A"] + a["B"] * T**-4 + a["C"] * T**-3 + a["D"] * T**-2
@@ -338,7 +338,7 @@ def _kam(T):
 
 
 def _k_martinez(T, z):
-    """Mart{\'\i}nez \& Siegler (2021) K(T, rho(z)) in W m^-1 K^-1, with
+    r"""Mart{\'\i}nez \& Siegler (2021) K(T, rho(z)) in W m^-1 K^-1, with
     rho(z) the published Hayne-form exponential density profile."""
     T = np.asarray(T, float); z = np.asarray(z, float)
     rho = RHO_D - (RHO_D - RHO_S) * np.exp(-z / H_PARAM)
@@ -391,7 +391,7 @@ def _draw_kz_comparison(ax):
 # Combined Fig 1: probe schematic (left) + K(z) comparison (right)
 # ════════════════════════════════════════════════════════════════════════════
 def fig_intro_probe():
-    """Two-panel introduction figure: (a) Apollo HFE probe schematic,
+    r"""Two-panel introduction figure: (a) Apollo HFE probe schematic,
     (b) published K(z) comparison between the Hayne (2017) form and
     the Mart{\'\i}nez \\& Siegler (2021) form, both evaluated at
     T = 250 K and at the same Hayne-form rho(z) so the visible

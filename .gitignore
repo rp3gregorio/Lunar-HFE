@@ -53,6 +53,17 @@ paper/**/*.lot
 paper/**/*.toc
 paper/**/*.synctex.gz
 
+# LaTeX build artifacts under docs/ (e.g. docs/code_guide)
+docs/**/*.aux
+docs/**/*.bbl
+docs/**/*.blg
+docs/**/*.fls
+docs/**/*.fdb_latexmk
+docs/**/*.log
+docs/**/*.out
+docs/**/*.toc
+docs/**/*.synctex.gz
+
 # Working scratch
 .scratch/
 *.tmp

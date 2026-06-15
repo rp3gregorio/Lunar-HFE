@@ -3,7 +3,7 @@
 # =====================================================================
 PY := python3
 
-.PHONY: help install test retrieve aux figures paper primer all clean
+.PHONY: help install test retrieve aux figures paper runtime all clean
 
 help:                ## show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -36,13 +36,16 @@ figures:             ## regenerate every figure (paper + guidebook + supplementa
 paper:               ## compile the letter, science guidebook, and code guide PDFs
 	cd paper/letter     && latexmk -pdf -interaction=nonstopmode letter.tex
 	cd paper/letter     && latexmk -pdf -interaction=nonstopmode letter_clean.tex
-	cd paper/primer     && latexmk -pdf -interaction=nonstopmode guidebook.tex
-	cd paper/primer     && latexmk -pdf -interaction=nonstopmode guidebook_print.tex
+	cd paper/guidebook     && latexmk -pdf -interaction=nonstopmode guidebook.tex
+	cd paper/guidebook     && latexmk -pdf -interaction=nonstopmode guidebook_print.tex
 	cd docs/code_guide  && latexmk -pdf -interaction=nonstopmode code_guide.tex
+
+runtime:             ## run all 5 notebooks end-to-end with timing -> docs/RUNTIME.md
+	$(PY) scripts/run_all_timed.py
 
 all: retrieve aux figures paper  ## full reproduction from scratch
 
 clean:               ## remove LaTeX build artifacts
 	cd paper/letter     && latexmk -C 2>/dev/null || true
-	cd paper/primer     && latexmk -C 2>/dev/null || true
+	cd paper/guidebook     && latexmk -C 2>/dev/null || true
 	cd docs/code_guide  && latexmk -C 2>/dev/null || true

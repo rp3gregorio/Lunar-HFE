@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Teaching figures for the beginner's primer (paper/primer/primer.tex).
+"""Teaching figures for the study guidebook (paper/guidebook/guidebook.tex).
 
 Produces three conceptual figures that do not appear in the letter:
 
@@ -35,7 +35,7 @@ from lunar.plotting.style import (   # type: ignore
     FS_TICK, FS_LABEL, FS_LEGEND, fmt_axis,
 )
 
-OUT = _REPO / "paper" / "primer" / "figures"
+OUT = _REPO / "paper" / "guidebook" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 
 C_SUN = "#E8A33D"

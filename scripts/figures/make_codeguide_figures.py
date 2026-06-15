@@ -41,7 +41,7 @@ def fig_architecture():
 
     # paper layer
     _box(ax, 1.0, 10.0, 4.3, 1.2, "paper/letter/\nletter.tex", "#EfF3F2", C_HAYNE)
-    _box(ax, 6.7, 10.0, 4.3, 1.2, "paper/primer/\nguidebook.tex", "#EfF3F2", C_HAYNE)
+    _box(ax, 6.7, 10.0, 4.3, 1.2, "paper/guidebook/\nguidebook.tex", "#EfF3F2", C_HAYNE)
 
     # scripts layer
     _box(ax, 0.8, 5.4, 5.0, 1.5,

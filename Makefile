@@ -33,14 +33,16 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 figures:             ## regenerate every figure (paper + guidebook + supplementary)
 	$(PY) scripts/make_all_figures.py
 
-paper:               ## compile the letter, appendix, primer, and guidebook PDFs
-	cd paper/letter   && latexmk -pdf -interaction=nonstopmode letter.tex
-	cd paper/letter   && latexmk -pdf -interaction=nonstopmode letter_clean.tex
-	cd paper/primer   && latexmk -pdf -interaction=nonstopmode guidebook.tex
-	cd paper/primer   && latexmk -pdf -interaction=nonstopmode guidebook_print.tex
+paper:               ## compile the letter, science guidebook, and code guide PDFs
+	cd paper/letter     && latexmk -pdf -interaction=nonstopmode letter.tex
+	cd paper/letter     && latexmk -pdf -interaction=nonstopmode letter_clean.tex
+	cd paper/primer     && latexmk -pdf -interaction=nonstopmode guidebook.tex
+	cd paper/primer     && latexmk -pdf -interaction=nonstopmode guidebook_print.tex
+	cd docs/code_guide  && latexmk -pdf -interaction=nonstopmode code_guide.tex
 
 all: retrieve aux figures paper  ## full reproduction from scratch
 
 clean:               ## remove LaTeX build artifacts
-	cd paper/letter   && latexmk -C 2>/dev/null || true
-	cd paper/primer   && latexmk -C 2>/dev/null || true
+	cd paper/letter     && latexmk -C 2>/dev/null || true
+	cd paper/primer     && latexmk -C 2>/dev/null || true
+	cd docs/code_guide  && latexmk -C 2>/dev/null || true

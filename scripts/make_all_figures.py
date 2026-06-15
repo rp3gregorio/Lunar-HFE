@@ -28,6 +28,7 @@ JOBS = [
     ("make_book_figures",       ["main"]),
     ("make_primer_figures",     ["main"]),
     ("make_equilibrium_certification", ["main"]),
+    ("make_codeguide_figures",  ["main"]),    # docs/code_guide diagrams
 ]
 
 

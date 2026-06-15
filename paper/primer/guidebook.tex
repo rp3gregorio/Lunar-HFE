@@ -97,6 +97,36 @@ A Guidebook from the Ground Up\\[2pt]
 Thermal\\ Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes''}
 \date{\normalsize\today}
 
+% =====================================================================
+%  PRINT MODE (grayscale, ink-light, for black-and-white printing).
+%  Activated by guidebook_print.tex, which does \def\PRINTMODE{1} before
+%  \input-ing this file. The on-screen colour build is the default.
+% =====================================================================
+\ifdefined\PRINTMODE
+  \renewtcolorbox{plainbox}[1][]{calloutbase,colback=white,colframe=black,
+    title={In plain words},#1}
+  \renewtcolorbox{mathbox}[1][]{calloutbase,colback=gray!4!white,colframe=black,
+    title={The equation, term by term},#1}
+  \renewtcolorbox{codebox}[1][]{calloutbase,colback=gray!7!white,colframe=black,
+    title={How the code does it},#1}
+  \renewtcolorbox{keybox}[1][]{calloutbase,colback=gray!12!white,colframe=black,
+    title={Key takeaway},#1}
+  \lstset{keywordstyle=\bfseries\color{black},
+    commentstyle=\itshape\color{gray!50!black},
+    stringstyle=\color{black},backgroundcolor=\color{white},
+    rulecolor=\color{black!60}}
+  \titleformat{\section}{\large\bfseries\color{black}}{\thesection}{0.6em}{}
+  \titleformat{\subsection}{\normalsize\bfseries\color{black}}{\thesubsection}{0.5em}{}
+  \renewcommand{\codefile}[1]{\par\smallskip\noindent
+    {\footnotesize\ttfamily\color{black}\textbf{file:}~#1}\par\nopagebreak}
+  \renewcommand{\partdivider}[1]{\par\addvspace{10pt}\refstepcounter{partno}%
+    \FloatBarrier\noindent\begin{tcolorbox}[colback=gray!15!white,colframe=black,
+      boxrule=1pt,arc=2pt,left=10pt,right=10pt,top=5pt,bottom=5pt,
+      before skip=4pt,after skip=6pt]\centering\large\bfseries\color{black}
+    PART \Roman{partno}\quad\textbullet\quad #1\end{tcolorbox}\par\addvspace{3pt}}
+  \hypersetup{linkcolor=black,urlcolor=black,citecolor=black}
+\fi
+
 \begin{document}
 \maketitle
 \vspace{-0.7cm}

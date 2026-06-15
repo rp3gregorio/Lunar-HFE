@@ -49,6 +49,11 @@ reproducibility gaps that must be resolved before submission.
 
 ## F1 — CRITICAL: spin-up does not converge; hard-coded per-site initial anchor controls the retrieval
 
+> **STATUS: RESOLVED.** Replaced by the flux-anchored equilibrium solver
+> (`lunar/equilibrium.py`); result is now certified anchor-independent
+> (≤0.023 K). See the top banner. The original finding is kept below for
+> the record.
+
 `scripts/pipeline/retrieve_kd.py` initialises every solver run at
 `T(z) = T_MEAN_EFF + Q_b * cumsum(dz / K)` with hard-coded, uncited
 anchors `T_MEAN_EFF = 250.0` (A15) and `255.0` (A17), then spins up for
@@ -85,6 +90,9 @@ and document it. Re-run the entire pipeline afterwards.
 
 ## F2 — MAJOR: manuscript describes SPICE/DE440 forcing; pipeline uses idealized cosine insolation
 
+> **STATUS: RESOLVED.** §1 and §2.2 rewritten (tracked) to describe the
+> implemented idealized cosine forcing, with the neglected terms bounded.
+
 Manuscript §1 and §2.2 state each Apollo timestamp is propagated through
 SPICE (DE440, light-time + aberration), "eliminating the ~1 lunar-hour
 drift inherent in sinusoidal local-solar-time approximations." The
@@ -100,6 +108,9 @@ neglected terms.
 
 ## F3 — MAJOR: amplitude figure does not implement the stated method
 
+> **STATUS: RESOLVED.** Figure script fixed (radiative term restored,
+> consistent ρc_p); caption and §2.4 now describe the √2σ window proxy.
+
 `make_letter_figures.py::fig_amplitude_vs_depth` plots √2 × the
 within-stability-window standard deviation as "diurnal amplitude" (the
 code comment admits the approximation), while the caption/methods claim
@@ -112,6 +123,11 @@ claimed. The qualitative borestem conclusion survives.
 
 ## F4 — MAJOR: error-budget table (manuscript Table 4) is not reproducible from the archive
 
+> **STATUS: RESOLVED.** Table 4 regenerated end-to-end
+> (`compute_fixed_input_sensitivities.py` + `compute_error_budget.py`,
+> committed JSON); χ and H now reported as conditionality of the held-fixed
+> Hayne form. Totals 1.75 / 4.61 mW m⁻¹ K⁻¹.
+
 `output/kd_error_budget.json` vs the manuscript: σ_Qb 1.27/3.00 vs
 1.47/3.45; σ_A 0.56/0.95 (±0.04 albedo sweep) vs 0.07/0.54 (stated
 ±0.01); σ_χ 0.73/1.73 vs 0.69/2.03; σ_zb at A17 3.81 vs <0.05 (the
@@ -122,6 +138,11 @@ script includes the 60-cm outlier the text excludes); σ_ρ 0.02/0.06 vs
 table claims re-retrievals.
 
 ## F5 — Reproducibility gaps (must fix before the Open Research statement is true)
+
+> **STATUS: RESOLVED.** Diviner closure rebuilt as
+> `compute_diviner_closure.py` (hemisphere bug fixed) with committed JSON;
+> Bayesian outputs + posterior figures committed; `paper/appendix/appendix.tex`
+> created; stale methods numbers corrected in tracked changes.
 
 - **Diviner closure (Fig. 9, §3.3 numbers):** the notebook cell in
   `03_results.ipynb` is a stub that defers to "the Lunar-V2 dev repo"
@@ -140,6 +161,11 @@ table claims re-retrievals.
   0.02/0.07).
 
 ## F6 — Minor
+
+> **STATUS: ADDRESSED.** Caption fixed; stability-window range stated as
+> 55–80%; headline now quoted from one source; `amssymb` corruption
+> superseded by the revised draft. (`fig_kd_sweep_v2` dead code left in
+> place but unused.)
 
 - `find_stable_window` never evaluates candidate start fractions >80 %
   (min-tail guard), so the stated "55–85 %" is effectively 55–80 %.

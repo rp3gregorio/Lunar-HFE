@@ -18,7 +18,7 @@ sys.path.insert(0, str(_REPO / "scripts" / "pipeline"))
 
 # (module, callables) — each module's figure entry point(s), in run order.
 JOBS = [
-    ("make_intro_figures",      ["fig_intro_models", "fig_intro_probe"]),
+    ("make_intro_figures",      ["fig_intro_probe"]),
     ("make_context_map_figure", ["main"]),
     ("make_apollo_timeline",    ["main"]),
     ("make_letter_figures",     ["main"]),

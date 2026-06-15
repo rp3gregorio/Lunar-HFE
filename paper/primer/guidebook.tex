@@ -5,10 +5,9 @@
 %  "Difference of Lunar Regolith Thermal Conductivity K_d at the
 %   Apollo 15 and 17 Heat-Flow Boreholes."
 %
-%  Written for a reader with NO prior background. It builds every idea
-%  from scratch -- the physics, the equations and how they are used,
-%  the data, the computer model, and the statistics (bootstrap, MCMC,
-%  AICc) -- before arriving at the results.
+%  Written for a reader with NO prior background in physics OR coding.
+%  Each idea is explained in plain words first, then the REAL code that
+%  implements it is shown and walked through line by line.
 %
 %  Build on Overleaf: upload the whole primer/ folder, compile
 %  guidebook.tex with pdfLaTeX. Every figure lives in primer/figures/.
@@ -24,6 +23,7 @@
 \usepackage{booktabs}
 \usepackage{xcolor}
 \usepackage[most]{tcolorbox}
+\usepackage{listings}
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf,labelsep=period}
 \usepackage[hidelinks,colorlinks=true,linkcolor=teal!60!black,
@@ -34,27 +34,47 @@
 
 \definecolor{teal}{HTML}{2A7E7E}
 \definecolor{coral}{HTML}{C0573B}
+\definecolor{codebg}{HTML}{F5F6F6}
 
-% chapter heading: lighter than the book-class default
 \usepackage{titlesec}
 \titleformat{\chapter}[display]
   {\normalfont\huge\bfseries\color{teal!55!black}}
   {\chaptertitlename\ \thechapter}{14pt}{\Huge}
 \titlespacing*{\chapter}{0pt}{0pt}{18pt}
 
-% callout boxes
+% --- code listing style ----------------------------------------------
+\lstdefinestyle{py}{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{teal!60!black}\bfseries,
+  commentstyle=\color{gray!60!black}\itshape,
+  stringstyle=\color{coral!70!black},
+  numbers=left,numberstyle=\tiny\color{gray},numbersep=8pt,
+  showstringspaces=false,breaklines=true,frame=single,
+  rulecolor=\color{gray!45},backgroundcolor=\color{codebg},
+  framesep=5pt,xleftmargin=16pt,aboveskip=9pt,belowskip=5pt,
+}
+\lstset{style=py}
+\newcommand{\codefile}[1]{\par\smallskip\noindent
+  {\footnotesize\ttfamily\color{teal!55!black}\textbf{file:}~#1}\par\nopagebreak}
+
+% --- callout boxes ---------------------------------------------------
 \newtcolorbox{plainbox}[1][]{colback=teal!5!white,colframe=teal!60!black,
   boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
   fonttitle=\bfseries,title={In plain words},#1}
 \newtcolorbox{mathbox}[1][]{colback=coral!5!white,colframe=coral!55!black,
   boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
   fonttitle=\bfseries,title={The equation, term by term},#1}
+\newtcolorbox{codebox}[1][]{colback=gray!5!white,colframe=gray!55!black,
+  boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
+  fonttitle=\bfseries,title={How the code does it},#1}
 \newtcolorbox{keybox}[1][]{colback=yellow!8!white,colframe=orange!55!black,
   boxrule=0.6pt,arc=2pt,left=6pt,right=6pt,top=4pt,bottom=4pt,
   fonttitle=\bfseries,title={Key takeaway},#1}
 
 \title{\vspace{-1cm}\bfseries The Lunar Heat-Flow Study:\\
-A Guidebook from the Ground Up}
+A Guidebook from the Ground Up\\[4pt]
+\large The physics, the code, and how the two fit together}
 \author{A plain-language companion to\\
 \emph{``Difference of Lunar Regolith Thermal Conductivity $K_d$ at the
 Apollo 15 and 17 Heat-Flow Boreholes''}}
@@ -64,623 +84,931 @@ Apollo 15 and 17 Heat-Flow Boreholes''}}
 \maketitle
 \thispagestyle{empty}
 
-\begin{plainbox}[title={Who this book is for}]
-You. Even if you have never taken a physics or statistics course. Every
-chapter starts from zero and builds up. The coloured boxes are your
-friends: \textcolor{teal!60!black}{\textbf{plain-words}} boxes restate
-the idea simply, \textcolor{coral!55!black}{\textbf{equation}} boxes
-unpack every symbol of a formula, and
-\textcolor{orange!60!black}{\textbf{key-takeaway}} boxes summarise what
-to remember. You can read the whole thing skipping every equation box
-and still understand the study; the boxes are there for when you want to
-go deeper.
+\begin{plainbox}[title={How to use this book}]
+You need \emph{no} background in physics or programming. Every chapter
+follows the same rhythm: \textbf{first the physics in plain words and
+pictures, then the actual code that performs it}, walked through line by
+line. The coloured boxes guide you:
+\textcolor{teal!60!black}{\textbf{plain-words}} restate an idea simply,
+\textcolor{coral!55!black}{\textbf{equation}} boxes name every symbol of
+a formula, \textcolor{gray!55!black}{\textbf{code}} boxes connect a
+formula to the lines that compute it, and
+\textcolor{orange!60!black}{\textbf{key-takeaway}} boxes say what to
+remember. The code is real --- it is copied from the repository you can
+download and run.
 \end{plainbox}
 
 \tableofcontents
 
-% =====================================================================
-\part{Foundations}
+% #####################################################################
+\part{The Physics, and the Code That Implements It}
+% #####################################################################
 
 \chapter{Why anyone studies heat in the Moon}
 
-The Moon looks dead and unchanging, but just under its surface there is a
-slow, quiet flow of heat --- and that flow carries information we can get
-no other way.
+The Moon looks dead and unchanging, but just beneath its surface there is
+a slow, quiet flow of heat --- and that flow carries information we can
+get no other way.
 
-\paragraph{The surface vs.\ the inside.}
-The Moon's surface is baked by the Sun during its two-week-long day and
-freezes during its two-week night. But a metre below the surface, none
-of that daily drama is felt. Down there, the temperature is set by two
-things only: how well the soil conducts heat, and a faint warmth seeping
-up from the Moon's deep interior. Measuring that quiet underground
-temperature tells us about both.
+\paragraph{Surface drama, deep calm.}
+The Moon's surface is roasted by the Sun through its two-week day and
+freezes through its two-week night, swinging by roughly
+$250\,^\circ$C. But a single metre down, none of that is felt. Down
+there the temperature is set by only two things: how well the soil
+conducts heat, and a faint, steady warmth seeping up from the Moon's
+interior.
 
 \paragraph{The number we are chasing.}
-The single most important property of the soil, for this purpose, is its
-\textbf{thermal conductivity}: how easily heat passes through it. We
-write it $K$, and the specific value deep down (where the soil is packed
-and settled) is $K_d$ (``$d$'' for deep). Lunar soil is an
-extraordinary insulator --- several times better than the styrofoam in a
-coffee cup --- which is exactly why the daily heat wave cannot get far
-below the surface.
+The key property of the soil is its \textbf{thermal conductivity} ---
+how easily heat passes through it. We write it $K$, and its value deep
+down (where the soil is compacted and settled) is $K_d$. Lunar soil is
+an extraordinary insulator, which is exactly why the surface heat cannot
+reach far below.
 
-\paragraph{Why it matters in practice.}
-Today, scientists who model the Moon use \emph{one single value of $K_d$
-for the entire globe}. That value was never checked against direct
-underground measurements, because such measurements exist at only two
-spots in all of history: the Apollo 15 and Apollo 17 landing sites,
-where astronauts buried thermometers in 1971--72. Every spacecraft that
-infers ground properties from orbit, and every future mission that wants
-to ``see'' below the surface, leans on that one assumed number.
+\paragraph{Why it matters.}
+Today every lunar thermal model uses \emph{one single value of $K_d$ for
+the whole Moon}, never checked against direct underground data --- because
+such data exist at only two places in history: the Apollo 15 and 17
+landing sites, where astronauts buried thermometers in 1971--72.
 
 \begin{keybox}
-This study uses the only two underground temperature records ever taken
-on the Moon to test a hidden assumption everyone relies on: \emph{is one
-conductivity value good enough for the whole Moon?} The short answer we
-will build toward: no --- the two sites differ by roughly a factor of
-two, and that difference is real.
+We use the only two underground temperature records ever taken on the
+Moon to test a hidden, universal assumption: is one conductivity value
+good enough for the entire Moon? We will build, step by step, to the
+answer: no --- the two sites differ by about a factor of two, and the
+difference is real.
 \end{keybox}
 
 % =====================================================================
-\chapter{How heat moves: conduction from scratch}
+\chapter{Heat, temperature, and the law of conduction}
 
-\section{Heat flows downhill (in temperature)}
-Heat is just jiggling atoms. Where atoms jiggle a lot, it is hot; where
-they jiggle little, it is cold. When a hot region touches a cold region,
-the jiggling spreads out: heat always flows from hot to cold. This
-spreading-through-solid-material is called \textbf{conduction}
-(Figure~\ref{fig:conduction}).
+\section{What heat and temperature actually are}
+Everything is made of atoms, and atoms are always jiggling. \textbf{Temperature}
+measures the \emph{average} jiggle: hot means vigorous jiggling, cold
+means sluggish. \textbf{Heat} is the \emph{energy} of that jiggling on
+the move --- energy flowing from a more-jiggly place to a less-jiggly
+one. We measure temperature in kelvin (K); $0\,$K is no jiggling at all,
+and lunar deep soil sits around $250\,$K ($-23\,^\circ$C).
+
+\section{Conduction: heat seeping through solid stuff}
+When a hot region touches a cold region, the fast atoms jostle their
+slower neighbours, passing energy along. This is \textbf{conduction}
+(Figure~\ref{fig:conduction}). No material moves --- only energy does,
+handed atom to atom. It is how a metal spoon's handle warms in hot soup.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.92\linewidth]{figures/fig_book_conduction.pdf}
-\caption{\textbf{Conduction.} Heat flows from the hot end to the cold
-end of a bar. How fast it flows depends on two things: how good a
-conductor the material is ($K$), and how steep the temperature change is
-along the bar. A steeper change, or a better conductor, means more heat
-per second.}
+\caption{\textbf{Conduction.} Heat always flows from hot to cold. How
+fast depends on two things: how good a conductor the material is ($K$),
+and how steep the temperature change is. A steeper change, or a better
+conductor, moves more heat per second.}
 \label{fig:conduction}
 \end{figure}
 
+\section{Two words we need: flux and gradient}
+\textbf{Heat flux} ($q$) is how much heat energy crosses one square
+metre each second --- measured in watts per square metre
+(W\,m$^{-2}$). \textbf{Temperature gradient} is how fast temperature
+changes with distance --- here, with depth $z$. If the temperature rises
+2 degrees over half a metre, the gradient is $4\,$K per metre. We write
+it $\partial T/\partial z$, which is just mathematical shorthand for
+``the slope of the temperature-versus-depth line.''
+
 \section{Fourier's law: the rate of heat flow}
-How much heat flows is captured by a 200-year-old rule, Fourier's law.
-In words: the heat flowing through a surface equals the conductivity
-times the steepness of the temperature change across it.
+Two centuries ago Joseph Fourier wrote down the rule connecting these:
+heat flux equals conductivity times gradient.
 
 \begin{mathbox}
 \[
 q \;=\; -\,K\,\frac{\partial T}{\partial z}
 \]
-\textbf{$q$} is the heat flux --- how much heat crosses one square metre
-each second (watts per m$^2$). \textbf{$K$} is the conductivity.
-\textbf{$\partial T/\partial z$} is the temperature gradient: how fast
-temperature $T$ changes as you move in depth $z$ (it is just ``rise over
-run'' for the temperature-vs-depth line). The minus sign encodes ``heat
-flows from hot to cold'' --- toward lower temperature.
+\textbf{$q$} --- heat flux (W\,m$^{-2}$). \textbf{$K$} --- conductivity
+(W\,m$^{-1}$\,K$^{-1}$): a big $K$ passes heat easily. \textbf{$\partial
+T/\partial z$} --- the temperature gradient (K\,m$^{-1}$). The minus sign
+means heat flows \emph{down} the gradient, from hot toward cold.
 \end{mathbox}
 
 \begin{plainbox}
-Think of a crowded room emptying through a door. The flow of people ($q$)
-is bigger if the door is wide (large $K$) and if the crowd is much denser
-inside than outside (steep gradient). Heat behaves the same way.
+A crowded room empties through a door faster if the door is wide (big
+$K$) and if it is far more crowded inside than out (steep gradient). Heat
+is the crowd; Fourier's law is the turnstile count.
 \end{plainbox}
 
-\section{From a single rule to the heat equation}
-Fourier's law tells us the flow \emph{through one surface}. To track the
-temperature \emph{everywhere over time}, we apply one more idea:
-bookkeeping. For any thin slice of soil, the heat that builds up inside
-it equals the heat flowing in from one side minus the heat flowing out
-the other. Combine that bookkeeping with Fourier's law and you get the
-\textbf{heat equation} --- the master equation of this whole study.
+\begin{keybox}
+Conductivity $K$ is the one material property that turns a temperature
+difference into a rate of heat flow. The entire study is an effort to
+measure $K$ deep in the lunar soil.
+\end{keybox}
+
+% =====================================================================
+\chapter{The materials: turning physics into numbers and code}
+
+Fourier's law needs three material properties: the conductivity $K$, and
+--- once things change in time --- the density $\rho$ and specific heat
+$c_p$. This chapter explains each physically, then shows the exact code
+that computes it. This is our first ``physics, then code'' pairing.
+
+\section{Conductivity that grows with depth and temperature}
+Two physical facts shape lunar conductivity:
+\begin{enumerate}
+\item \textbf{Depth.} The surface dust is fluffy and loosely packed (a
+      poor conductor); deeper down it is compressed, so grains touch
+      better and conduct better. So $K$ rises from a small surface value
+      $K_s$ to a larger deep value $K_d$ over a short transition depth
+      $H$.
+\item \textbf{Temperature.} Heat also crosses the tiny gaps between
+      grains as infrared light (radiation). Radiation grows fast with
+      temperature (as $T^3$), so warm soil conducts a bit better. This
+      is the ``radiative term,'' controlled by a coefficient $\chi$.
+\end{enumerate}
+
+\begin{mathbox}
+\[
+K(T,z) \;=\; \underbrace{\big[\,K_d - (K_d-K_s)\,e^{-z/H}\,\big]}_{\text{grows with depth}}
+\;\times\;
+\underbrace{\big[\,1 + \chi\,(T/350)^3\,\big]}_{\text{grows with temperature}}
+\]
+The first bracket starts at $K_s$ at the surface ($z=0$, where
+$e^{0}=1$) and climbs toward $K_d$ deep down (where $e^{-z/H}\to0$). The
+second bracket is 1 plus the radiative boost: $\chi$ sets its strength
+and 350\,K is just a reference temperature. $K_d$ is the single number we
+will retrieve.
+\end{mathbox}
+
+\begin{plainbox}
+Conductivity is not one number but a recipe: ``start small at the dusty
+top, rise to $K_d$ once packed, and add a little extra when warm.'' Our
+job is to find the one ingredient $K_d$ that makes this recipe match the
+buried thermometers.
+\end{plainbox}
+
+Here is exactly that formula in code. Notice how each line matches a
+piece of the equation above.
+
+\codefile{lunar/properties.py}
+\begin{lstlisting}
+def conductivity_hayne(T, z, Ks=K_SURFACE, Kd=K_DEEP,
+                       H=H_PARAMETER, chi=CHI_RADIATIVE):
+    T = np.asarray(T, dtype=np.float64)
+    z = np.asarray(z, dtype=np.float64)
+    Kc = Kd - (Kd - Ks) * np.exp(-z / H)          # grows with depth
+    return Kc * (1.0 + chi * (T / T_REFERENCE)**3) # times radiative boost
+\end{lstlisting}
+
+\begin{codebox}
+\texttt{Kc = Kd - (Kd - Ks)*np.exp(-z/H)} is the first bracket exactly:
+\texttt{np.exp(-z/H)} is $e^{-z/H}$. The last line multiplies by
+\texttt{(1.0 + chi*(T/T\_REFERENCE)**3)}, the radiative bracket, where
+\texttt{**3} means ``cubed'' and \texttt{T\_REFERENCE} is 350. The
+inputs \texttt{T} and \texttt{z} can be whole arrays (every depth at
+once), which is why the code wraps them in \texttt{np.asarray} --- NumPy
+then does the arithmetic on every layer in one shot.
+\end{codebox}
+
+\section{Density and specific heat: how much heat the soil stores}
+When temperatures change in time, we also need to know how much energy it
+takes to warm the soil. That is set by its \textbf{density} $\rho$ (how
+much mass per cubic metre) and its \textbf{specific heat} $c_p$ (energy
+to warm one kilogram by one degree). Density, like conductivity, rises
+with depth as the soil compacts:
+
+\begin{mathbox}
+\[
+\rho(z) \;=\; \rho_d - (\rho_d - \rho_s)\,e^{-z/H}
+\]
+Same shape as the conductivity's depth part: surface density $\rho_s$
+($\approx1100$) climbing to deep density $\rho_d$ ($\approx1800$\,kg\,m$^{-3}$)
+over the depth scale $H$.
+\end{mathbox}
+
+\codefile{lunar/properties.py}
+\begin{lstlisting}
+def density_hayne(z, rho_s=RHO_SURFACE, rho_d=RHO_DEEP, H=H_PARAMETER):
+    z = np.asarray(z, dtype=np.float64)
+    return rho_d - (rho_d - rho_s) * np.exp(-z / H)
+\end{lstlisting}
+
+The specific heat depends on temperature (cold soil stores heat
+differently from warm soil) and is captured by a polynomial fit to
+laboratory measurements of Apollo samples:
+
+\codefile{lunar/properties.py}
+\begin{lstlisting}
+def _cp_hayne(T):                  # c_p(T), a 4th-order polynomial
+    T = np.asarray(T, dtype=np.float64)
+    return (CP_HAYNE_C0 + CP_HAYNE_C1*T + CP_HAYNE_C2*T**2
+            + CP_HAYNE_C3*T**3 + CP_HAYNE_C4*T**4)
+\end{lstlisting}
+
+\begin{codebox}
+This is just $c_0 + c_1 T + c_2 T^2 + c_3 T^3 + c_4 T^4$ --- five fixed
+numbers ($c_0\ldots c_4$) multiplied by powers of temperature and added
+up. The numbers themselves are measured constants.
+\end{codebox}
+
+\section{Where the numbers come from}
+A rule of this project is that \emph{no number is invented} --- every
+constant is stored in one file with its literature source attached. For
+example:
+
+\codefile{lunar/constants.py}
+\begin{lstlisting}
+#: Surface contact conductivity [W m^-1 K^-1] -- Hayne et al. (2017).
+K_SURFACE: float = 7.4e-4
+#: Deep contact conductivity [W m^-1 K^-1] -- Hayne et al. (2017).
+K_DEEP: float = 3.4e-3          # the global value we test against
+#: H-parameter (density/conductivity scale height) [m] -- Hayne (2017).
+H_PARAMETER: float = 0.06
+#: Stefan-Boltzmann constant [W m^-2 K^-4] -- CODATA 2018.
+SIGMA_SB: float = 5.670374419e-8
+\end{lstlisting}
+
+\begin{keybox}
+The physics enters the computer as three small functions ---
+\texttt{conductivity\_hayne}, \texttt{density\_hayne}, \texttt{specific\_heat}
+--- each a direct transcription of a formula, fed by cited constants. If
+you understand the three formulas, you understand every material input to
+the model.
+\end{keybox}
+
+% =====================================================================
+\chapter{The heat equation: bookkeeping for energy}
+
+Fourier's law gives the flow through one surface. To follow the
+temperature \emph{everywhere, over time}, we add one idea: \textbf{energy
+bookkeeping}. Take a thin slice of soil. The heat energy that accumulates
+inside it per second equals what flows in from above minus what flows out
+below. Warm it if more comes in than leaves; cool it if the reverse.
+
+Apply Fourier's law to both faces of the slice and do the bookkeeping,
+and you get the \textbf{heat equation} --- the master equation the whole
+program solves.
 
 \begin{mathbox}
 \[
 \underbrace{\rho\,c_p\,\frac{\partial T}{\partial t}}
-  _{\text{heat piling up in the slice}}
+  _{\text{rate heat is stored in the slice}}
 \;=\;
 \underbrace{\frac{\partial}{\partial z}\!\left(K\,\frac{\partial T}{\partial z}\right)}
-  _{\text{(heat in)} - \text{(heat out)}}
+  _{\text{heat flowing in, minus out}}
 \]
-\textbf{Left side:} how fast the slice's temperature rises
-($\partial T/\partial t$), times how much heat that takes ---
-\textbf{$\rho$} is density (how much stuff is packed in) and
-\textbf{$c_p$} is specific heat (how much energy to warm it by one
-degree). \textbf{Right side:} the net heat arriving by conduction ---
-Fourier's law applied on both faces of the slice. If more heat comes in
-than leaves, the slice warms; if balanced, it holds steady.
+\textbf{Left:} how fast the slice warms ($\partial T/\partial t$ is
+temperature change per second) times how much heat that costs ($\rho
+c_p$). \textbf{Right:} the net conduction --- it is Fourier's flux
+$K\,\partial T/\partial z$, differenced across the slice (the outer
+$\partial/\partial z$). Balanced (right $=$ 0) means steady: no warming.
 \end{mathbox}
 
-\begin{keybox}
-The heat equation just says: \emph{temperature changes because more heat
-flows into a place than out of it.} Everything the computer does is solve
-this one equation, over and over, for the lunar soil column.
-\end{keybox}
+\begin{plainbox}
+``Temperature here changes because more heat arrives than leaves.'' That
+single sentence is the heat equation. Everything the computer does is
+apply it to thousands of thin slices, again and again, as the lunar day
+passes.
+\end{plainbox}
+
+This equation cannot be solved with pencil and paper for a real,
+property-varying column, so we solve it numerically --- the subject of
+Part~II.
 
 % =====================================================================
-\chapter{The lunar setting: skin, depth, and the steady zone}
+\chapter{The lunar column: forcing, skin, and the steady zone}
 
-\section{Two sources of heat}
-The soil column is heated from both ends (Figure~\ref{fig:heatflow}a).
-From \emph{above}, sunlight pours in during the lunar day, and at night
-the surface cools by glowing away infrared light. From \emph{below}, a
-tiny steady warmth rises from the Moon's interior --- the
-\textbf{basal heat flux}, written $Q_b$.
+\section{Heated from both ends}
+Our column of soil (Figure~\ref{fig:heatflow}a) is driven from
+\emph{above} by sunlight (and night-time cooling) and from \emph{below}
+by a steady warmth from the interior --- the \textbf{basal heat flux}
+$Q_b$, a few thousandths of a watt per square metre.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_primer_heatflow.pdf}
 \caption{\textbf{The lunar soil column.} (a) Sunlight heats from above;
-the basal flux $Q_b$ rises from below. The top zone (coral) feels the
-day--night swing; the deep zone (teal) is steady. Squares mark the buried
-thermometers. (b) The size of the daily swing collapses with depth ---
-by 80\,cm it is below the noise, which is why deep sensors read a steady
-value.}
+$Q_b$ rises from below. The top zone (coral) feels the day--night swing;
+the deep zone (teal) is steady. Squares mark the buried thermometers.
+(b) The daily swing collapses with depth --- below the noise by 80\,cm,
+which is why deep sensors read a steady value.}
 \label{fig:heatflow}
 \end{figure}
 
-\section{The skin depth: why the daily swing vanishes}
-The day--night temperature wave does not penetrate far. Each layer of
-soil absorbs and re-releases heat, smearing the wave out, so it shrinks
-fast with depth (Figure~\ref{fig:heatflow}b). The depth over which it
-fades to insignificance is the \textbf{skin depth} --- only a few
-centimetres on the Moon. By 80\,cm down, the daily swing is smaller than
-our thermometers can detect.
+\section{The skin depth: why the daily swing dies out}
+The day--night wave is absorbed and smeared by each layer it passes, so
+it shrinks fast with depth (Figure~\ref{fig:heatflow}b). The depth over
+which it fades to nothing is the \textbf{skin depth} --- only a few
+centimetres here. By 80\,cm down, the swing is smaller than any
+thermometer can read.
 
 \begin{plainbox}
-Press a warm hand on a thick quilt. The surface fibres warm, but a
-finger-width in, nothing changes. The Moon's daily heating is that hand;
-it only reaches the top few centimetres. Everything deeper just feels
-the steady average.
+Press a warm hand on a thick quilt: the surface warms, a finger-width in,
+nothing. The Moon's daily heating is that hand --- it reaches only the
+top few centimetres. Everything deeper feels just the steady average.
 \end{plainbox}
 
-\section{The steady deep zone --- where the measurement lives}
-Below the skin depth the soil is in a \textbf{steady state}: its
-temperature no longer wobbles with day and night. It only rises slowly
-and steadily with depth, because $Q_b$ is forever trickling upward. In
-that steady zone the full heat equation collapses to the simple balance
-we will use to extract $K_d$.
+\section{The steady deep zone and the gradient law}
+Below the skin depth the soil is in \textbf{steady state}: its
+temperature no longer wobbles, it only climbs slowly with depth as $Q_b$
+trickles up. There the time term of the heat equation vanishes and it
+collapses to the simple law that lets us measure $K_d$:
 
 \begin{mathbox}
 \[
 \frac{\Delta T}{\Delta z} \;=\; \frac{Q_b}{K_d}
+\qquad\Longrightarrow\qquad
+K_d \;=\; \frac{Q_b}{\Delta T/\Delta z}
 \]
-In the steady deep zone the temperature climbs at a constant rate with
-depth. That rate (\textbf{$\Delta T/\Delta z$}, the gradient) equals the
-upward heat flux \textbf{$Q_b$} divided by the conductivity
-\textbf{$K_d$}. Push fixed heat through a poor conductor (small $K_d$)
-and the temperature must climb steeply; through a good conductor (large
-$K_d$) it climbs gently.
+The deep temperature climbs at a steady rate $\Delta T/\Delta z$ equal to
+the flux $Q_b$ divided by the conductivity $K_d$. We \emph{measure} the
+gradient from the buried thermometers and we \emph{know} $Q_b$, so we
+solve for $K_d$.
 \end{mathbox}
 
 \begin{keybox}
-We can \emph{read the gradient} off the buried thermometers, and we
-\emph{know} $Q_b$ from the mission. Rearranging, $K_d = Q_b /
-(\Delta T/\Delta z)$. That is the entire study in one line --- everything
-else is doing this carefully and honestly.
+This is the whole study in one line: read the deep temperature gradient,
+divide the known heat flux by it, get the conductivity. Everything else
+is doing this carefully --- with the full time-dependent model instead of
+the shortcut, and with honest error bars.
+\end{keybox}
+
+% #####################################################################
+\part{How the Computer Solves the Equation}
+% #####################################################################
+
+\chapter{Step 1 --- the depth grid}
+
+\section{Physics: put the detail where the action is}
+All the fast change happens near the surface (the skin). So instead of
+slicing the column into equal layers, we make the top layers extremely
+thin (2\,mm) and let each successive layer be a little thicker. This
+spends computing effort where temperature changes fastest and saves it
+deep down where nothing moves. (A uniform grid is actually forbidden in
+this project for exactly this reason.)
+
+\section{Code: building the grid}
+\codefile{lunar/grid.py}
+\begin{lstlisting}
+def make_geometric_grid(z_max=3.0, dz0=0.002, growth=0.15):
+    faces = [0.0]
+    dz = dz0
+    while faces[-1] < z_max:
+        faces.append(faces[-1] + dz)   # next boundary
+        dz *= 1.0 + growth             # each layer thicker by `growth`
+    z_face = np.asarray(faces)
+    dz_arr = np.diff(z_face)                  # layer thicknesses
+    z_mid  = 0.5 * (z_face[:-1] + z_face[1:]) # layer centres
+    return DepthGrid(z_face=z_face, z_mid=z_mid, dz=dz_arr)
+\end{lstlisting}
+
+\begin{codebox}
+Start at the surface (\texttt{faces=[0.0]}) with a 2\,mm layer
+(\texttt{dz0=0.002}). Each loop adds the next boundary and then grows the
+thickness by 8--15\% (\texttt{dz *= 1+growth}), so layers gently fatten
+with depth until the column reaches \texttt{z\_max}. \texttt{z\_face} are
+the layer boundaries, \texttt{z\_mid} their centres (where temperature
+lives), and \texttt{dz} their thicknesses. That is the entire scaffolding
+the solver sits on.
+\end{codebox}
+
+\begin{keybox}
+The continuous column becomes a stack of layers --- thin at the top,
+thick at the bottom. Temperature is tracked at each layer's centre.
 \end{keybox}
 
 % =====================================================================
-\part{The Measurement}
+\chapter{Step 2 --- from calculus to arithmetic}
 
-\chapter{The Apollo data: two boreholes, fifty years old}
-
-\section{What was buried}
-On Apollo 15 (1971) and Apollo 17 (1972), astronauts drilled holes and
-lowered fibreglass tubes carrying thermometers to more than two metres
-depth (Figure~\ref{fig:probe}). These ``Heat-Flow Experiment'' (HFE)
-probes recorded temperatures for several years. Some of the record was
-later lost, then painstakingly \emph{restored from the original 1970s
-data tapes} in 2018. That restored record is our raw material.
+\section{Physics/method: differences instead of derivatives}
+The heat equation is written in calculus (those $\partial$ symbols mean
+``rate of change''). A computer cannot do calculus, but it can do
+arithmetic on our layers. The trick (the \textbf{finite-difference} or
+\textbf{control-volume} method) is to replace each ``rate of change''
+with a simple difference between neighbouring layers
+(Figure~\ref{fig:numerical}):
+\begin{itemize}
+\item the gradient between two layers $\approx$ (their temperature
+      difference) $\div$ (distance between their centres);
+\item the heat stored in a layer $\approx$ $\rho c_p \times$ (its
+      thickness) $\times$ (its temperature change).
+\end{itemize}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.84\linewidth]{figures/fig_intro_probe.pdf}
-\caption{\textbf{The probe.} A fibreglass stem holding thermometers at
-several depths. The shaded band ($z<80$\,cm) is discarded (next
-section). The right panel shows the two textbook conductivity models we
-later compare against.}
+\includegraphics[width=0.95\linewidth]{figures/fig_book_numerical.pdf}
+\caption{\textbf{From smooth to computable.} (a) Real temperature varies
+smoothly with depth. (b) The computer represents it as a stack of thin
+layers, each one number, updated step by step; fine enough layers
+reproduce the smooth curve (dashed).}
+\label{fig:numerical}
+\end{figure}
+
+\paragraph{Conductivity at the boundary between two layers.}
+Heat passing from layer $i$ to layer $i{+}1$ must cross the boundary
+between them, where the two layers have different conductivities. The
+physically correct combination is the \textbf{harmonic mean} (it
+correctly makes the worse insulator dominate, like two resistors in
+series):
+
+\codefile{lunar/solver.py}
+\begin{lstlisting}
+def _face_harmonic_mean(K):           # K = conductivity at each centre
+    K_face = np.empty(K.size + 1)
+    for i in range(1, K.size):
+        K_face[i] = 2.0 * K[i-1]*K[i] / (K[i-1] + K[i])   # harmonic mean
+    return K_face
+\end{lstlisting}
+
+\section{Method: stepping forward in time (Crank--Nicolson)}
+To advance temperature by one time step we use the \textbf{Crank--Nicolson}
+scheme: estimate the heat flows using the \emph{average} of the situation
+now and the situation one step ahead. Averaging the two makes the method
+stable and accurate (using only ``now'' can blow up; using only ``next''
+is less accurate). This turns one time step into a set of linked
+equations --- one per layer --- where each layer's new temperature
+depends on its own and its two neighbours' new temperatures.
+
+\section{Code: assembling one time step}
+The solver builds those linked equations as four lists of numbers
+(\texttt{a}, \texttt{b}, \texttt{c}, \texttt{d}): \texttt{a} and
+\texttt{c} are each layer's coupling to the layer above and below,
+\texttt{b} is the layer itself, and \texttt{d} is the known right-hand
+side from the current temperatures.
+
+\codefile{lunar/solver.py (the heart of \_step, lightly trimmed)}
+\begin{lstlisting}
+K   = K_func(T_prev, grid.z_mid)        # conductivity at every layer now
+rho = rho_func(grid.z_mid)              # density at every layer
+cp  = cp_func(T_prev)                   # specific heat at every layer
+cap = rho * cp * dz                     # heat capacity of each layer
+K_face = _face_harmonic_mean(K)         # conductivity at the boundaries
+
+# coupling of each layer to its neighbours (how easily heat crosses):
+alpha_l[i] = dt * K_face[i]   / (dz_c[i]   * cap[i])   # to layer above
+alpha_r[i] = dt * K_face[i+1] / (dz_c[i+1] * cap[i])   # to layer below
+
+# the linked equation for each layer (Crank-Nicolson, theta = 0.5):
+a[i] = -0.5 * alpha_l[i]                       # neighbour above
+c[i] = -0.5 * alpha_r[i]                       # neighbour below
+b[i] =  1.0 + 0.5*(alpha_l[i] + alpha_r[i])    # the layer itself
+d[i] =  0.5*alpha_l[i]*left + (1 - 0.5*(alpha_l[i]+alpha_r[i]))*T_prev[i] \
+        + 0.5*alpha_r[i]*right                 # the known part
+\end{lstlisting}
+
+\begin{codebox}
+Read \texttt{alpha} as ``how much heat can cross between these layers in
+one time step, relative to how much heat the layer can hold'' --- big
+\texttt{alpha} means strongly coupled. The \texttt{a, b, c} lines encode
+the unknown new temperatures (the half, \texttt{0.5}, is the
+Crank--Nicolson averaging), and \texttt{d} packages everything we already
+know from the current temperatures \texttt{T\_prev}. Doing this for every
+layer gives a system of linked equations to solve --- next chapter.
+\end{codebox}
+
+\begin{keybox}
+One time step $=$ build a coupled set of layer equations from the current
+temperatures and material properties, then solve them for the new
+temperatures. The averaging of ``now'' and ``next'' is what keeps it
+stable.
+\end{keybox}
+
+% =====================================================================
+\chapter{Step 3 --- solving the layer equations fast}
+
+\section{Method: a tridiagonal system}
+Because each layer touches only its two immediate neighbours, the linked
+equations form a special, easy shape called \textbf{tridiagonal} (only
+the diagonal and its two neighbours are non-zero). There is a classic,
+very fast recipe for solving these --- the \textbf{Thomas algorithm} ---
+that sweeps down once and back up once, instead of the slow general
+method. For thousands of layers this is the difference between instant
+and sluggish.
+
+\section{Code: the Thomas algorithm}
+\codefile{lunar/solver.py}
+\begin{lstlisting}
+def _thomas(a, b, c, d):           # solve the tridiagonal system A x = d
+    n = b.size
+    cp = np.empty(n); dp = np.empty(n); x = np.empty(n)
+    cp[0] = c[0]/b[0];  dp[0] = d[0]/b[0]
+    for i in range(1, n):                      # forward sweep
+        m = b[i] - a[i]*cp[i-1]
+        cp[i] = c[i]/m if i < n-1 else 0.0
+        dp[i] = (d[i] - a[i]*dp[i-1]) / m
+    x[n-1] = dp[n-1]
+    for i in range(n-2, -1, -1):               # back substitution
+        x[i] = dp[i] - cp[i]*x[i+1]
+    return x
+\end{lstlisting}
+
+\begin{codebox}
+The first loop sweeps from the surface down, eliminating each layer's
+dependence on the one above it (\texttt{cp}, \texttt{dp} are the
+cleaned-up coefficients). The second loop sweeps back up, reading off the
+new temperature \texttt{x} of each layer from the one below it. Output
+\texttt{x} is the temperature of every layer after this time step.
+\end{codebox}
+
+% =====================================================================
+\chapter{Step 4 --- the surface: balancing sunlight and glow}
+
+\section{Physics: the surface energy balance}
+The top layer is special: its temperature is whatever makes energy
+balance at every instant. Sunlight absorbed must equal infrared light
+radiated away \emph{plus} heat conducted downward into the soil:
+
+\begin{mathbox}
+\[
+\underbrace{(1-A)\,F_\odot}_{\text{sunlight absorbed}}
+\;-\;
+\underbrace{\varepsilon\,\sigma\,T_s^4}_{\text{infrared glow out}}
+\;-\;
+\underbrace{K\,\dfrac{T_s - T_\text{below}}{\Delta z/2}}_{\text{conducted downward}}
+\;=\; 0
+\]
+\textbf{$A$} albedo (fraction of sunlight reflected, so $1-A$ is
+absorbed); \textbf{$F_\odot$} the incoming sunlight; \textbf{$\varepsilon$}
+emissivity; \textbf{$\sigma$} the Stefan--Boltzmann constant; \textbf{$T_s$}
+the surface temperature we are solving for. The glow grows as
+$T_s^4$ --- very steeply --- which is why this cannot be solved by simple
+algebra.
+\end{mathbox}
+
+\section{Method: Newton's method finds $T_s$}
+Because $T_s$ appears as $T_s^4$, there is no tidy formula for it. So the
+code \emph{guesses, checks the imbalance, and corrects} --- repeatedly,
+using \textbf{Newton's method}, which uses the slope of the imbalance to
+make each correction. It converges in a handful of tries.
+
+\section{Code: the imbalance and the solver}
+\codefile{lunar/solver.py}
+\begin{lstlisting}
+def surface_energy_balance_residual(T_s, insolation, albedo, emissivity,
+                                    K_surf, dz_surf, T_subsurf):
+    radiative_in  = (1.0 - albedo) * insolation        # sunlight absorbed
+    radiative_out = emissivity * SIGMA_SB * T_s**4      # infrared glow
+    conductive    = K_surf * (T_s - T_subsurf) / (0.5*dz_surf)  # into soil
+    return radiative_in - radiative_out - conductive   # the imbalance
+\end{lstlisting}
+
+\codefile{lunar/solver.py (Newton iteration, trimmed)}
+\begin{lstlisting}
+for _ in range(max_iter):
+    R  = surface_energy_balance_residual(T_s, ...)     # current imbalance
+    dR = -4.0*emissivity*SIGMA_SB*T_s**3 - 2.0*K_surf/dz_surf  # its slope
+    T_s_new = T_s - R/dR                               # Newton correction
+    if abs(T_s_new - T_s) < tol:
+        return T_s_new                                 # converged
+    T_s = T_s_new
+\end{lstlisting}
+
+\begin{codebox}
+The first function returns the energy imbalance \texttt{R} for a trial
+surface temperature: zero means balanced. Newton's update
+\texttt{T\_s\_new = T\_s - R/dR} nudges the guess toward balance using the
+imbalance's slope \texttt{dR}; when the nudge becomes tiny the surface
+temperature has been found for this instant.
+\end{codebox}
+
+% =====================================================================
+\chapter{Step 5 --- the bottom: the geothermal flux}
+
+\section{Physics}
+At the bottom of the column we impose the steady heat from the interior:
+a fixed upward flux $Q_b$. This is what makes the deep temperature climb
+with depth in the first place --- the column is fed from below, not
+sealed off (sealing it off was a conceptual error the project explicitly
+avoids).
+
+\section{Code}
+In the time-step assembly, the bottom layer simply receives an extra
+dollop of heat each step:
+
+\codefile{lunar/solver.py}
+\begin{lstlisting}
+d[-1] += dt * inputs.Q_b / cap[-1]     # steady heat into the bottom layer
+\end{lstlisting}
+
+\begin{codebox}
+\texttt{d[-1]} is the bottom layer's known right-hand side; adding
+\texttt{dt*Q\_b/cap[-1]} injects the geothermal heat ($Q_b$ for a time
+\texttt{dt}, divided by the layer's heat capacity) every step. That one
+line is the entire bottom boundary condition.
+\end{codebox}
+
+% =====================================================================
+\chapter{Step 6 --- settling to equilibrium}\label{ch:equilibrium}
+
+\section{Physics: why settling is slow}
+With the recipe above the computer can march the lunar day forward step
+by step. But to get the \emph{settled} repeating state, it must run until
+the column forgets wherever it started. The surface skin forgets in a few
+lunar days; the deep soil, being such a good insulator, takes the
+equivalent of \emph{roughly a thousand} lunar days. Marching that long
+for every trial $K_d$ would be hopelessly slow.
+
+\section{Method and code: the shortcut}
+The fix uses the steady-state fact from Chapter~5: once settled, the same
+heat must flow through every layer, which fixes the entire deep profile
+directly --- no waiting. The \textbf{equilibrium solver} alternates a
+short march (to settle the fast skin) with a direct reconstruction of the
+deep part, repeating until nothing changes.
+
+\codefile{lunar/equilibrium.py (the outer loop, trimmed)}
+\begin{lstlisting}
+for it in range(1, max_outer + 1):
+    out = solve_pixel(... n_lunations_spinup=n_inner ...)  # short march
+    T_mean = out.T.mean(axis=1)                            # cycle-average
+    anchor = T_mean[i0]                                    # temp at 0.55 m
+    drift  = abs(anchor - anchor_prev)
+    # rebuild the deep profile from steady-state heat balance:
+    T_init = _reconstruct_subskin(T_mean, z, i0, Q_b, K_func, u_rect)
+    if drift < anchor_tol_K and it >= 2:
+        break                                              # converged
+    anchor_prev = anchor
+\end{lstlisting}
+
+\begin{codebox}
+Each pass does a short simulation (\texttt{solve\_pixel}), reads the
+settled temperature at an anchor depth (0.55\,m), then rebuilds the deep
+profile directly from the heat-balance law
+(\texttt{\_reconstruct\_subskin}). When the anchor stops moving between
+passes (\texttt{drift < anchor\_tol\_K}), the true settled state has been
+reached --- typically after a handful of passes, at the cost of the old
+short run rather than a thousand-day march.
+\end{codebox}
+
+\begin{keybox}
+Solving the model $=$ grid (Ch.\ 6) $+$ time-stepping each layer (Ch.\ 7--8)
+$+$ the two boundary rules (Ch.\ 9--10) $+$ settling to equilibrium
+(Ch.\ 11). Those five pieces are the entire forward model. Why the
+settling step matters so much gets its own treatment in
+Chapter~\ref{ch:bugfix}.
+\end{keybox}
+
+% =====================================================================
+\chapter{A worked trace: watching the machine run}
+
+It helps to follow the actual numbers once.
+
+\paragraph{One time step, for a layer at 0.5\,m, around 252\,K.}
+The code calls \texttt{conductivity\_hayne(252, 0.5, Kd=4.58e-3)}. The
+depth bracket is essentially $K_d$ (we are well below $H=6$\,cm), and the
+radiative bracket is $1 + 2.7\times(252/350)^3 \approx 2.0$, so
+$K\approx9.2\times10^{-3}$\,W\,m$^{-1}$\,K$^{-1}$. Density is
+$\rho\approx1800$ and $c_p\approx670$, so the layer's heat capacity
+\texttt{cap} sets how much its temperature moves. The solver compares the
+heat arriving from the slightly cooler layer above and the slightly
+warmer layer below, and nudges this layer's temperature by a tiny
+fraction of a degree. Repeat for every layer, every hour of the lunar
+day.
+
+\paragraph{One full retrieval, Apollo 15.}
+The pipeline tries many $K_d$ values; for each it runs the equilibrium
+solver and compares the predicted deep temperatures to the 7 real
+sensors via RMSE:
+\begin{center}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{cc}
+\toprule
+trial $K_d$ (mW\,m$^{-1}$\,K$^{-1}$) & RMSE (K) \\
+\midrule
+3.4 (the global value) & 1.03 \\
+4.58 (the best fit)    & \textbf{0.95} \\
+much higher            & rises again \\
+\bottomrule
+\end{tabular}
+\end{center}
+The RMSE is lowest at $K_d=4.58$ --- the bottom of the bowl in
+Figure~\ref{fig:retrieval}b --- so that is Apollo 15's retrieved
+conductivity.
+
+% #####################################################################
+\part{From Data to a Number, and its Uncertainty}
+% #####################################################################
+
+\chapter{The Apollo data and the retrieval}
+
+\section{The data}
+On Apollo 15 (1971) and 17 (1972), astronauts lowered thermometers more
+than two metres down (Figure~\ref{fig:probe}); the records were restored
+from the original tapes in 2018. Two honest housekeeping steps: discard
+every sensor above 80\,cm (the probe stem leaks surface heat down them ---
+the ``borestem cut''), and for each remaining sensor average its long,
+settled tail into one equilibrium temperature. Result: 7 trustworthy
+points at Apollo 15, 16 at Apollo 17 --- 23 numbers in total.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\linewidth]{figures/fig_intro_probe.pdf}
+\caption{\textbf{The probe.} A fibreglass stem with thermometers at
+several depths. Shaded band ($z<80$\,cm): discarded. Right panel: the two
+textbook conductivity models compared later.}
 \label{fig:probe}
 \end{figure}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_context_map.pdf}
-\caption{\textbf{Where the boreholes are.} Apollo 15 sits at a boundary
-between dark lava plains and bright highlands; Apollo 17 sits in a
-lava-filled valley. The different geology is one physical reason the two
-sites could have genuinely different conductivities.}
+\caption{\textbf{Where the boreholes are.} Apollo 15 on a mare/highland
+boundary; Apollo 17 in a lava-filled valley --- different geology, a
+physical reason the two sites could differ.}
 \label{fig:map}
 \end{figure}
 
-\section{Two honest housekeeping steps}
-\paragraph{Throw away the shallow sensors.}
-The fibreglass stem itself conducts a little surface heat downward,
-contaminating the shallowest thermometers. Rather than guess a
-correction, we discard \emph{every} sensor above 80\,cm before looking
-at any answer. This is the \textbf{borestem cut}, and being strict about
-it up front is part of what makes the result trustworthy.
-
-\paragraph{Use a settled temperature for each sensor.}
-Each record has early disturbances (from drilling, equipment glitches,
-slow drift). For every thermometer we automatically find the long, flat,
-settled stretch near the end and average it --- one reliable
-``equilibrium'' temperature per sensor.
-
-\begin{keybox}
-After housekeeping, the entire dataset is: one trustworthy temperature
-and its depth, for each deep sensor. Apollo 15 gives 7 such points;
-Apollo 17 gives 16. Twenty-three numbers. The whole study is about
-extracting the most defensible conclusion from those twenty-three
-numbers.
-\end{keybox}
-
-% =====================================================================
-\chapter{The forward model: using the equation on a computer}
-
-\section{Why we need a computer at all}
-The simple gradient law ($\Delta T/\Delta z = Q_b/K_d$) holds only in
-the perfectly steady deep zone. To connect it to reality --- including
-the day--night swing, the temperature-dependent soil properties, and the
-surface energy balance --- we must solve the full heat equation. That
-cannot be done with pencil and paper, so we solve it numerically.
-
-\section{Chopping the world into pieces}
-A computer cannot handle a smooth, continuous column. So we
-\textbf{discretise}: chop the depth into many thin layers and time into
-many small steps (Figure~\ref{fig:numerical}). Within each layer the
-temperature is one number; each time step, we update every layer using
-the heat that flowed between it and its neighbours. Do this for enough
-steps and the smooth solution emerges.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.95\linewidth]{figures/fig_book_numerical.pdf}
-\caption{\textbf{From continuous to computable.} (a) The real
-temperature varies smoothly with depth. (b) The computer represents it
-as a stack of thin layers, each with a single temperature, updated step
-by step. Thin enough layers reproduce the smooth curve (dashed).}
-\label{fig:numerical}
-\end{figure}
-
-\begin{plainbox}
-It is like animating a movie. Reality is continuous motion, but the film
-is a stack of still frames shown quickly. If the frames (our layers and
-time steps) are fine enough, the eye --- and the physics --- sees smooth
-motion.
-\end{plainbox}
-
-\paragraph{A detail that matters: the grid is not uniform.}
-The action is all near the surface (the skin), so we make the top layers
-very thin (2\,mm) and let them grow thicker with depth. This puts the
-computing effort where the temperature changes fastest.
-
-\section{The two ends: boundary conditions}
-Solving the equation needs a rule at each end of the column.
-\begin{itemize}
-\item \textbf{Top (the surface):} at every instant, sunlight absorbed
-      $=$ infrared glowed away $+$ heat conducted downward. This balance
-      sets the surface temperature. It is not a fixed number --- it
-      changes through the lunar day.
-\item \textbf{Bottom (deep down):} heat flows up at the fixed rate
-      $Q_b$. The column is fed from below, not sealed.
-\end{itemize}
-
-\section{Settling down: equilibrium}
-Because the deep soil is such a good insulator, it takes a very long
-simulated time to ``forget'' wherever you started it and settle into its
-true repeating state. Getting this settling right turns out to be the
-single most important technical point in the study --- important enough
-that it has its own chapter (Chapter~\ref{ch:bugfix}).
-
-% =====================================================================
-\part{From Data to a Number (and its Uncertainty)}
-
-\chapter{The retrieval: turning temperatures into $K_d$}
-
-\section{Guess, simulate, compare}
-We cannot measure conductivity directly, so we reverse the problem
-(Figure~\ref{fig:retrieval}a): guess a value of $K_d$, simulate what
-temperatures it would produce, and see how well they match the real
-sensors. Try many guesses; keep the one that matches best.
+\section{The retrieval: guess, simulate, compare}
+We cannot measure $K_d$ directly, so we reverse the problem
+(Figure~\ref{fig:retrieval}a): guess a $K_d$, simulate the temperatures
+it produces, score the mismatch, and keep the best.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_primer_retrieval.pdf}
 \caption{\textbf{Extracting a number.} (a) The guess--simulate--compare
-loop. (b) The real result: the mismatch (RMSE) traced against the
-guessed $K_d$ forms a bowl; its lowest point is the best fit. Apollo 15
-bottoms near 4.6, Apollo 17 near 8.1; the dashed line is the single
-``global'' value (3.4) in use today.}
+loop. (b) The real result: mismatch (RMSE) versus guessed $K_d$ forms a
+bowl whose bottom is the best fit --- Apollo 15 near 4.6, Apollo 17 near
+8.1; dashed line is the single global value (3.4).}
 \label{fig:retrieval}
 \end{figure}
 
-\section{Measuring the mismatch: RMSE}
-We need one number for ``how badly does this prediction miss the data.''
-That is the \textbf{root-mean-square error}.
-
 \begin{mathbox}
 \[
-\mathrm{RMSE} \;=\; \sqrt{\frac{1}{N}\sum_{i=1}^{N}
+\mathrm{RMSE} = \sqrt{\frac{1}{N}\sum_{i=1}^{N}
 \big(T^{\text{model}}_i - T^{\text{data}}_i\big)^2}
 \]
-For each of the $N$ sensors, take the gap between model and measurement,
-\textbf{square} it (so misses in either direction count, and big misses
-count a lot), \textbf{average} over all sensors (the $\frac{1}{N}\sum$),
-then take the \textbf{square root} to return to units of degrees. Zero
-means perfect; bigger means worse.
+For each of $N$ sensors take the model$-$data gap, square it (big misses
+count more, sign ignored), average, square-root back to degrees. Zero is
+perfect.
 \end{mathbox}
 
-\section{Reading the bowl}
-Plotting RMSE against the guessed $K_d$ gives a U-shaped bowl
-(Figure~\ref{fig:retrieval}b). Too-low $K_d$ predicts too-steep a
-gradient (bad); too-high predicts too-gentle (also bad); the bottom is
-the best fit, written $K_d^{*}$. A clear bowl with a distinct bottom
-means the data really do pin down a value.
-
 \begin{keybox}
-The retrieved conductivity is simply the bottom of the mismatch bowl.
-Apollo 15's bowl bottoms near 4.6, Apollo 17's near 8.1 --- already a
-hint that the two sites are different, and both above the single global
-value of 3.4.
+The retrieved conductivity is the bottom of the mismatch bowl: 4.6 at
+Apollo 15, 8.1 at Apollo 17 --- both above the global 3.4, and different
+from each other.
 \end{keybox}
 
 % =====================================================================
 \chapter{Uncertainty I: the bootstrap}
 
-\section{The question}
-The bowl gives one best number, but with only 7 or 16 data points, how
-sure can we be? If we had drilled the holes a little differently, would
-we get a wildly different answer? We need an honest error bar.
-
-\section{The trick: resample your own data}
-We cannot redo the Apollo missions. But we can \emph{pretend} to, using a
-clever statistical trick called the \textbf{bootstrap}
-(Figure~\ref{fig:bootstrap}). The idea: treat your real sensors as a bag
-of tickets, and draw a new ``mission'' from the bag \emph{with
-replacement} --- meaning after each draw you put the ticket back, so some
-sensors get picked twice and others not at all. Each such fake dataset is
-slightly different, so each gives a slightly different $K_d$. Do this
-1{,}500 times and look at the spread of answers.
+\section{The question and the trick}
+With only 7 or 16 points, how sure are we? We cannot redo Apollo, but we
+can \emph{resample} our own data: treat the sensors as a bag of tickets
+and draw a new set \emph{with replacement} (some sensors picked twice,
+some left out). Each fake set gives a slightly different $K_d$; doing this
+1{,}500 times, the spread of answers is the uncertainty
+(Figure~\ref{fig:bootstrap}).
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_book_bootstrap.pdf}
 \caption{\textbf{The bootstrap, from scratch.} (a) Your real sensors.
-(b) Make many ``resampled'' datasets by drawing with replacement ---
-repeats allowed, some left out. Each resample yields its own $K_d$.
-(c) The spread of those answers \emph{is} the uncertainty: here, 95\% of
-resampled answers for Apollo 15 fall between 4.1 and 7.5.}
+(b) Many resampled sets (repeats allowed, some left out); each yields its
+own $K_d$. (c) The spread of those answers is the error bar --- 95\% of
+Apollo 15's resamples fall in [4.1, 7.5].}
 \label{fig:bootstrap}
 \end{figure}
 
 \begin{plainbox}
-Why does this work? The spread you get from shuffling your own sample
-mimics the spread you would get if you could repeat the whole experiment
-many times. It lets a small dataset report its own reliability, with no
-assumptions about bell curves or formulas.
+Shuffling your own sample mimics the spread you would get from repeating
+the whole experiment --- letting a tiny dataset honestly report its own
+reliability, with no assumptions about bell curves.
 \end{plainbox}
 
-\section{What we report}
-From the 1{,}500 answers we quote the middle (the median) and the range
-that holds 95\% of them (the \textbf{95\% confidence interval}). We also
-do this for the \emph{difference} between the two sites --- and find that
-the difference is positive (Apollo 17 more conductive) in about 99\% of
-the resamples. ``Significant at the 95\% level'' simply means: the
-answer almost never lands on the wrong side of zero.
-
 \begin{keybox}
-Bootstrap $=$ measure your uncertainty by reshuffling your own data many
-times and watching how much the answer jumps around. Small jumps $=$
-confident; big jumps $=$ uncertain.
+Bootstrap $=$ measure uncertainty by reshuffling your own data many times
+and watching the answer jump. Small jumps mean confident. The two sites'
+difference stays positive in $\sim$99\% of reshuffles --- that is what
+``statistically significant'' means here.
 \end{keybox}
 
 % =====================================================================
 \chapter{Uncertainty II: Bayesian inference and MCMC}
 
-\section{A second opinion, with a twist}
-The bootstrap makes no assumptions, which is its strength. But there is a
-second, complementary way to handle uncertainty that lets us fold in
-\emph{what we already knew} about the basal heat flux $Q_b$. It is called
-\textbf{Bayesian inference}.
-
-\section{Prior, likelihood, posterior}
-Bayesian reasoning updates belief with evidence
-(Figure~\ref{fig:mcmc}a):
-\begin{itemize}
-\item the \textbf{prior} is what we believed before --- e.g.\ ``$Q_b$ is
-      probably around its published value, give or take.''
-\item the \textbf{likelihood} is what the new data say on their own.
-\item multiply them and you get the \textbf{posterior} --- the updated
-      belief, sharper than either alone.
-\end{itemize}
-
-\begin{mathbox}
-\[
-\underbrace{P(\text{answer}\mid\text{data})}_{\text{posterior}}
-\;\propto\;
-\underbrace{P(\text{data}\mid\text{answer})}_{\text{likelihood}}
-\;\times\;
-\underbrace{P(\text{answer})}_{\text{prior}}
-\]
-Read $P(A\mid B)$ as ``how plausible $A$ is, given $B$.'' The posterior
-(updated belief about the answer, given the data) is the likelihood (how
-well each candidate answer explains the data) times the prior (what we
-believed beforehand). The ``$\propto$'' means ``proportional to'' --- we
-only need the shape, then normalise.
-\end{mathbox}
-
-\section{Why we need MCMC}
-For our problem the answer has two unknowns at once ($K_d$ and $Q_b$),
-and the posterior is a 2-D landscape we cannot write down neatly. So we
-\emph{explore} it with a computational method called \textbf{Markov
-Chain Monte Carlo (MCMC)}: imagine a hiker who wanders the landscape,
-preferring to step toward more-plausible spots but occasionally
-wandering downhill, leaving a trail of footprints. After enough steps,
-the density of footprints maps out the posterior. We do not need a
-formula --- the walkers draw the picture for us.
+\section{Updating belief with data}
+A complementary method lets us fold in prior knowledge of the heat flux
+$Q_b$. \textbf{Bayesian inference} combines the \textbf{prior} (what we
+believed before), the \textbf{likelihood} (what the data say), into the
+\textbf{posterior} (updated belief), sharper than either
+(Figure~\ref{fig:mcmc}a).
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_book_mcmc.pdf}
-\caption{\textbf{Bayesian updating and the ridge.} (a) Prior (what we
-knew) times likelihood (what the data say) gives the posterior (updated
-belief), here sharper than either. (b) The 2-D landscape for our problem:
-plausibility is high all along a diagonal \emph{ridge}. The data fix the
-\emph{ratio} $Q_b/K_d$ (the gradient), not $K_d$ and $Q_b$ separately.
-Each dot is an MCMC ``footprint''; the star is the published value.}
+\caption{\textbf{Bayesian updating and the ridge.} (a) Prior $\times$
+likelihood $=$ posterior. (b) Our 2-D landscape: plausibility is high all
+along a diagonal \emph{ridge} because the data fix the \emph{ratio}
+$Q_b/K_d$, not each separately. Dots are MCMC ``footprints''; the star is
+the published value.}
 \label{fig:mcmc}
 \end{figure}
 
-\section{The ridge: the deepest limitation of one borehole}
-The MCMC reveals something important (Figure~\ref{fig:mcmc}b): the
-plausible answers form a long diagonal \textbf{ridge}, not a single peak.
-That is because a single borehole measures only the temperature gradient,
-which fixes the \emph{ratio} $Q_b/K_d$ --- not $K_d$ by itself. Halve
-both $Q_b$ and $K_d$ and the gradient is unchanged, so the data cannot
-tell the difference. This ``degeneracy'' is why the absolute conductivity
-depends on what we assume for $Q_b$, and why the \emph{difference between
-the two sites} is a sturdier result than either absolute value.
+\section{Why MCMC, and what the ridge means}
+With two unknowns ($K_d$ and $Q_b$) the posterior is a landscape we
+cannot write down, so \textbf{Markov Chain Monte Carlo (MCMC)} explores
+it with random ``walkers'' that wander toward more-plausible spots,
+leaving footprints whose density maps the answer. It reveals a long
+diagonal \textbf{ridge} (Figure~\ref{fig:mcmc}b): one borehole fixes only
+the gradient, i.e.\ the ratio $Q_b/K_d$ --- halve both and nothing
+changes. This is why absolute $K_d$ depends on the assumed $Q_b$, while
+the \emph{difference} between sites is sturdier.
 
 \begin{keybox}
-Bayesian/MCMC $=$ explore all answers consistent with the data
-\emph{and} prior knowledge, by having computational ``hikers'' map the
-landscape. For us it confirms the bootstrap and exposes the $K_d$--$Q_b$
-ridge: one borehole pins the ratio, not the individual numbers.
+Bayesian/MCMC $=$ explore every answer consistent with data and prior
+knowledge using random walkers. For us it confirms the bootstrap and
+exposes the $K_d$--$Q_b$ ridge.
 \end{keybox}
 
 % =====================================================================
 \chapter{Choosing between explanations: the AICc}
 
-\section{The danger of fitting too well}
-Suppose two stories explain the data: ``the two sites have different
-conductivities'' versus ``they have the same conductivity but different
-heat fluxes.'' How do we decide? We cannot just pick whichever fits the
-data more closely, because of a trap called \textbf{overfitting}: a model
-with more free knobs can \emph{always} fit the dots better, even by
-chasing meaningless noise (Figure~\ref{fig:aicc}a).
+\section{The overfitting trap}
+Two stories compete: ``different conductivity per site'' versus ``same
+conductivity, different heat flux.'' We cannot just pick whichever fits
+closer, because a model with more free knobs can \emph{always} fit
+better, even by chasing noise --- \textbf{overfitting}
+(Figure~\ref{fig:aicc}a).
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_book_aicc.pdf}
-\caption{\textbf{Overfitting and the AICc.} (a) A too-simple model misses
-the trend; a too-complex one wiggles through every point, chasing noise;
-the middle is right. More parameters always lower the misfit, so misfit
-alone cannot choose. (b) The AICc adds a penalty for extra parameters and
-scores our three real models: M1 (different $K_d$ per site) wins; M3 and
-M2 (shared $K_d$) score worse.}
+\caption{\textbf{Overfitting and the AICc.} (a) Too simple misses the
+trend; too complex chases noise; the middle is right. (b) The AICc adds a
+penalty for extra knobs and scores our three real models: M1 (per-site
+$K_d$) wins.}
 \label{fig:aicc}
 \end{figure}
 
-\section{Scoring fairly: misfit plus a penalty}
-The \textbf{Akaike Information Criterion} (the ``c'' is a small-sample
-correction, hence \textbf{AICc}) scores each model as its misfit
-\emph{plus a penalty for every extra free parameter}. The best model is
-the one with the lowest score --- it fits well \emph{without} buying that
-fit through needless complexity.
+\section{A fair scoreboard}
+The \textbf{AICc} scores each model as its misfit \emph{plus a penalty
+per free parameter}; lowest wins --- good fit without needless
+complexity.
 
 \begin{mathbox}
 \[
-\mathrm{AICc} \;=\;
-\underbrace{N\ln\!\big(\tfrac{\text{misfit}}{N}\big)}_{\text{rewards a good fit}}
-\;+\;
-\underbrace{2k}_{\text{penalty per knob}}
-\;+\;
-\underbrace{\frac{2k(k+1)}{N-k-1}}_{\text{small-sample correction}}
+\mathrm{AICc} =
+\underbrace{N\ln(\text{misfit}/N)}_{\text{rewards fit}}
++ \underbrace{2k}_{\text{penalty per knob}}
++ \underbrace{\frac{2k(k+1)}{N-k-1}}_{\text{small-sample fix}}
 \]
-\textbf{$N$} number of data points; \textbf{$k$} number of free
-parameters (knobs) in the model. The first term drops when the fit
-improves; the second and third rise as you add knobs. Lower total $=$
-better. Comparing models, only the \emph{difference} in AICc matters: a
-gap of $\gtrsim$2 is meaningful, $\gtrsim$10 is decisive.
+\textbf{$N$} data points, \textbf{$k$} free parameters. Only differences
+between models matter: a gap $\gtrsim2$ is meaningful, $\gtrsim10$
+decisive.
 \end{mathbox}
 
-\section{What it tells us}
-Scoring our three candidate models (Figure~\ref{fig:aicc}b), the
-``different $K_d$ per site'' model (M1) wins. The ``same $K_d$''
-alternatives score worse even though they were allowed to fit --- the
-data prefer genuinely different conductivities, not a shared value
-propped up by adjusting other knobs.
-
 \begin{keybox}
-AICc $=$ a fair scoreboard that rewards fitting the data but fines you
-for extra complexity. It picks the per-site-conductivity explanation
-over the one-size-fits-all alternatives.
+AICc $=$ a scoreboard rewarding fit but fining complexity. It picks the
+per-site-conductivity explanation over one-size-fits-all.
 \end{keybox}
 
-% =====================================================================
+% #####################################################################
 \part{The Result}
+% #####################################################################
 
 \chapter{The mistake we found and fixed}\label{ch:bugfix}
 
-\section{The bug: an answer that depended on a guess}
-To start a simulation, the computer needs an initial deep temperature.
-The old code simply typed one in (250\,K for Apollo 15, 255\,K for
-Apollo 17) and ran for 30 lunar days to ``settle.'' But deep lunar soil
-is such a good insulator that true settling takes the equivalent of
-\emph{roughly a thousand} lunar days. Thirty is far too few --- so the
-deep temperature the model reported was mostly just the typed-in guess,
-and the conductivity read off from it was partly an echo of that guess
-rather than a fact about the Moon.
-
-We proved this directly (Figure~\ref{fig:anchorfix}a): running the old
-method from three different starting guesses gave three different deep
-profiles, fanning apart by several degrees. An answer that moves when you
-change an arbitrary starting guess is not yet a measurement.
+\section{The bug}
+To start a simulation the computer needs an initial deep temperature. The
+old code typed one in (250\,K for Apollo 15, 255\,K for Apollo 17) and
+ran only 30 lunar days --- far short of the $\sim$1000 needed to settle.
+So the deep temperature was mostly the typed-in guess, and the
+conductivity read from it was partly an echo of that guess. We proved it
+(Figure~\ref{fig:anchorfix}a): three starting guesses gave three
+different deep profiles. An answer that moves with an arbitrary guess is
+not a measurement.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_primer_anchorfix.pdf}
-\caption{\textbf{The bug and the fix} (real model runs, Apollo 15).
-(a) Old method: starting from 245, 250, or 255\,K, the predicted deep
-profile fans out --- the arbitrary guess leaks into the answer.
-(b) New method: the same three starts land on a single curve through the
-real data. The result no longer depends on the guess.}
+\caption{\textbf{The bug and the fix} (real runs, Apollo 15). (a) Old
+method: starting from 245/250/255\,K, the deep profile fans out --- the
+guess leaks in. (b) New method: all three land on one curve through the
+data. The answer no longer depends on the guess.}
 \label{fig:anchorfix}
 \end{figure}
 
-\section{The fix: compute the settled state directly}
-Instead of ``start from a guess and wait,'' we compute the settled state
-directly, using the steady-state fact from Chapter~3: once settled, the
-\emph{same} heat must flow through every layer, and that single condition
-fixes the entire deep temperature profile --- no waiting needed. The
-method alternates a short simulation (to settle the fast surface skin)
-with a direct calculation (to fix the slow deep part), repeating until
-nothing changes.
+\section{The fix and the check}
+The equilibrium solver of Chapter~\ref{ch:equilibrium} computes the
+settled state directly. We verified it: starting from 240 vs 260\,K now
+agrees to within $0.02$\,K, and a long check-run does not drift
+(Figure~\ref{fig:anchorfix}b). We did \emph{not} just ``run longer'' --
+we used the heat-balance shortcut to jump to the answer.
 
-\begin{plainbox}
-We did \emph{not} simply ``run longer.'' Running a thousand lunar days
-for every one of thousands of trial values would take days of computer
-time. We used the steady-state shortcut to jump straight to the settled
-answer, at the cost of the old short run.
-\end{plainbox}
-
-We then \emph{verified} it: starting from wildly different guesses
-(240 vs 260\,K) now gives the same answer to within two-hundredths of a
-degree, and a long check-run started from the settled state does not
-drift (Figure~\ref{fig:anchorfix}b). The answer is now a property of the
-data and the physics, not of a typed-in number.
-
-\section{What changed in the numbers}
+\section{What changed}
 \begin{itemize}
-\item \textbf{Apollo 15: $4.86 \rightarrow 4.58$.} Barely moved --- its
-      old guess (250\,K) was close to the truth by luck.
-\item \textbf{Apollo 17: $11.23 \rightarrow 8.12$.} Dropped a lot --- its
-      old guess (255\,K) was too warm and had inflated the conductivity.
+\item \textbf{Apollo 15: $4.86\to4.58$} --- barely moved (its guess was
+      close by luck).
+\item \textbf{Apollo 17: $11.23\to8.12$} --- dropped a lot (its guess was
+      too warm and had inflated the value).
 \end{itemize}
 
 \begin{keybox}
-Fixing the bug made the science \emph{stronger}: the difference between
-the sites became statistically significant, the Apollo 17 value moved
-into the range other evidence expects, and an independent model that used
-to contradict the Apollo 17 result now agrees with it. When removing a
-flaw makes independent checks line up, that is the signature of a correct
-fix.
+The fix made the science \emph{stronger}: the site difference became
+significant, Apollo 17's value moved into the physically expected range,
+and an independent model that used to contradict it now agrees. When a
+fix makes independent checks line up, it is the right fix.
 \end{keybox}
 
 % =====================================================================
 \chapter{The results and what they mean}
 
-\section{The headline numbers}
+\section{Headline numbers}
 \begin{center}
 \renewcommand{\arraystretch}{1.3}
 \begin{tabular}{lcc}
@@ -689,164 +1017,141 @@ fix.
 \midrule
 Retrieved $K_d^{*}$ (mW\,m$^{-1}$\,K$^{-1}$) & $4.58$ & $8.12$ \\
 95\% confidence interval & $[4.1,\,7.5]$ & $[6.9,\,9.0]$ \\
-Difference (Apollo 17 $-$ 15) & \multicolumn{2}{c}{$3.3$, 95\% CI $[0.4,\,4.6]$, significant} \\
+Difference (17$-$15) & \multicolumn{2}{c}{$3.3$, 95\% CI $[0.4,\,4.6]$, significant} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-For scale, these units (milliwatts per metre per degree): water is
-$\sim$600, styrofoam $\sim$30, and lunar regolith near 5--8 --- an
-exceptional insulator. The fitted profiles through the real data are
-shown in Figure~\ref{fig:profiles}.
+For scale: water $\sim$600, styrofoam $\sim$30, lunar regolith near
+5--8 in these units --- an exceptional insulator. The fitted profiles
+are in Figure~\ref{fig:profiles}.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_thermal_profiles.pdf}
-\caption{\textbf{The fitted profiles.} Dots are the real deep sensors;
-curves are the best-fit models. Bottom row zooms on the deep region used.
-Apollo 15 shows the \emph{steeper} rise (lower conductivity needs a
-steeper gradient to pass its heat); Apollo 17, more conductive, rises
-more gently.}
+\caption{\textbf{The fitted profiles.} Dots: real deep sensors; curves:
+best-fit models. Apollo 15 rises \emph{more steeply} (lower conductivity
+needs a steeper gradient to pass its heat); Apollo 17, more conductive,
+rises gently.}
 \label{fig:profiles}
 \end{figure}
 
-\section{Why these values make physical sense}
-Apollo 15's 4.6 sits between the global average (3.4) and orbital
-estimates ($\sim$7), matching what the soil's fluffiness (porosity)
-predicts. Apollo 17 being $\sim$1.8 times higher is explained by two
-effects pointing the same way: its soil is volcanic basalt (intrinsically
-more conductive than Apollo 15's highland rock), and it is slightly more
-tightly packed. Neither effect needs to be extreme; together they cover
-the factor of 1.8 comfortably.
+\section{Why these values make sense}
+Apollo 15's 4.6 sits between the global 3.4 and orbital $\sim$7, matching
+soil porosity. Apollo 17 being $\sim$1.8$\times$ higher follows from two
+effects pointing the same way: its soil is volcanic basalt (more
+conductive than Apollo 15's highland rock) and slightly more packed ---
+neither pushed to an extreme.
 
-\section{An independent sanity check}
-The retrieval used only \emph{deep} temperatures. As a separate test, we
-checked whether the same models reproduce the \emph{surface} temperature
-swing measured from orbit by the Diviner instrument
-(Figure~\ref{fig:diviner}). They do --- confirming the whole simulation
-chain (sunlight, day length, surface balance) is set up correctly,
-independently of the deep retrieval.
+\section{Independent sanity check}
+Using only \emph{deep} temperatures for the fit, we then checked the
+models against the \emph{surface} swing seen from orbit (Diviner). They
+match (Figure~\ref{fig:diviner}), confirming the whole forcing chain is
+right --- a test that used no data from the retrieval.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_diviner_closure.pdf}
 \caption{\textbf{Independent check.} Grey dots: surface temperature over
-a lunar day, measured from orbit. Curves: our models, which were tuned
-only to the deep sensors. The good agreement confirms the setup; this
-surface data was never used in the retrieval.}
+a lunar day from orbit. Curves: our models, tuned only to the deep
+sensors. The agreement confirms the setup.}
 \label{fig:diviner}
 \end{figure}
 
 % =====================================================================
 \chapter{Honest limits and the bottom line}
 
-A trustworthy study is clear about where it could be wrong. Ours has
-three main caveats:
-
 \begin{enumerate}
-\item \textbf{Absolute values lean on the assumed $Q_b$.} Because the
-      data fix the ratio $Q_b/K_d$ (the ridge of Chapter~8), revising
-      the basal heat flux shifts $K_d$ proportionally. The
-      \emph{difference} between sites is far more robust than either
-      absolute number.
-\item \textbf{Only two boreholes exist.} Two points cannot prove how
-      conductivity varies across the whole Moon --- only that these two
-      places differ. The broader question needs new landed missions.
-\item \textbf{Apollo 17's value is systematics-sensitive.} Its error bar
-      is tight, but its accuracy depends on a few input choices (like the
-      surface brightness coefficient), which we report openly in the
-      paper's error budget.
+\item \textbf{Absolute values lean on $Q_b$.} The data fix the ratio
+      $Q_b/K_d$ (the ridge), so revising the heat flux shifts $K_d$
+      proportionally. The site \emph{difference} is far more robust.
+\item \textbf{Only two boreholes exist.} Two points cannot map the whole
+      Moon --- only show these two differ. The rest needs new missions.
+\item \textbf{Apollo 17 is systematics-sensitive.} Its error bar is
+      tight, but its accuracy depends on a few inputs, reported openly in
+      the paper's error budget.
 \end{enumerate}
 
 \begin{keybox}
-\textbf{Rock-solid:} the two sites need different conductivities, and
-Apollo 17 is the more conductive one. \textbf{Conditional:} the exact
-numbers, which depend on the assumed heat flux and the chosen model form.
-The paper is careful, throughout, to say which is which --- and that
-honesty is what makes it credible.
+\textbf{Rock-solid:} the two sites need different conductivities, Apollo
+17 the more conductive. \textbf{Conditional:} the exact numbers, which
+depend on the assumed heat flux and model form. The paper says, clearly,
+which is which --- and that honesty is what makes it credible.
 \end{keybox}
 
 % =====================================================================
 \appendix
 \chapter{How to run the code yourself}
 
-\begin{verbatim}
+\begin{lstlisting}[language=bash,numbers=none,keywordstyle=\color{black}]
 git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd Lunar-HFE
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
-python scripts/pipeline/retrieve_kd.py        # the core retrieval
-python scripts/figures/make_letter_figures.py # the figures
+python scripts/pipeline/retrieve_kd.py         # the core retrieval
+python scripts/figures/make_letter_figures.py  # the figures
 python scripts/figures/make_results_figures.py
-\end{verbatim}
+\end{lstlisting}
 
-\noindent The pieces:
+\noindent The pieces, mapped to this book:
 \begin{itemize}
-\item \texttt{lunar/} --- the engine. \texttt{solver.py} steps the heat
-      equation; \texttt{equilibrium.py} is the settled-state solver of
-      Chapter~\ref{ch:bugfix}; \texttt{properties.py} holds the
-      conductivity / density / heat formulas; \texttt{constants.py}
-      stores every physical number with its source.
-\item \texttt{scripts/pipeline/} --- the retrieval, bootstrap, Bayesian
-      MCMC, AICc model comparison, and sensitivity checks.
-\item \texttt{scripts/figures/} --- the figure generators, including
-      \texttt{make\_book\_figures.py} and \texttt{make\_primer\_figures.py}
-      which drew the teaching figures in this guidebook.
-\item \texttt{output/} --- the committed results, so anyone can verify
-      every number without rerunning.
-\item \texttt{docs/FLAG\_REPORT.md} --- the full audit trail behind
-      Chapter~\ref{ch:bugfix}.
+\item \texttt{lunar/properties.py} --- the material formulas (Ch.\ 3).
+\item \texttt{lunar/grid.py} --- the depth grid (Ch.\ 6).
+\item \texttt{lunar/solver.py} --- time-stepping, the tridiagonal solve,
+      and both boundaries (Ch.\ 7--10).
+\item \texttt{lunar/equilibrium.py} --- the settling solver (Ch.\ 11,
+      \ref{ch:bugfix}).
+\item \texttt{lunar/constants.py} --- every physical number, with source.
+\item \texttt{scripts/pipeline/} --- retrieval, bootstrap, MCMC, AICc.
+\item \texttt{output/} --- committed results, to verify every number.
+\item \texttt{docs/FLAG\_REPORT.md} --- the audit behind Ch.\ \ref{ch:bugfix}.
 \end{itemize}
 
 \chapter{Glossary of every term}
-
 \begin{description}[leftmargin=9.5em,style=nextline,font=\bfseries]
-\item[Conduction] Heat spreading through solid material.
-\item[Thermal conductivity ($K$, $K_d$)] How easily heat passes through
-  a material; $K_d$ is the deep, settled value --- our target. Small $=$
-  good insulator.
-\item[Fourier's law] Heat flux $=$ conductivity $\times$ temperature
-  gradient.
-\item[Heat equation] The master equation: temperature changes where more
-  heat flows in than out.
-\item[Density ($\rho$), specific heat ($c_p$)] How much material is
-  present, and how much energy it takes to warm it.
-\item[Basal heat flux ($Q_b$)] The steady warmth rising from the Moon's
-  interior.
-\item[Gradient ($\Delta T/\Delta z$)] Degrees of temperature change per
-  metre of depth. Steep $=$ good insulator (for fixed $Q_b$).
-\item[Diurnal skin / skin depth] The shallow zone where the day--night
-  swing is felt; the skin depth is how far it reaches.
-\item[Steady state / equilibrium] The settled condition where
-  temperature no longer changes from one lunar day to the next.
-\item[Boundary conditions] The rules at the column's ends: radiation
-  balance on top, fixed flux $Q_b$ at the bottom.
-\item[Discretisation] Splitting the smooth column into thin layers and
-  time into small steps so a computer can solve the equation.
-\item[Borestem cut] Discarding sensors above 80\,cm because the probe
-  stem contaminates them.
-\item[Retrieval] Guessing $K_d$, simulating, and keeping the value that
-  best matches the data.
-\item[RMSE] Root-mean-square error: one number for the typical
-  model--data gap, in degrees. Smaller is better.
-\item[Bootstrap] Resampling your own data many times (with replacement)
-  to measure how uncertain the answer is.
-\item[Bayesian inference] Updating belief by combining a prior with the
-  data's likelihood to get a posterior.
-\item[Prior / likelihood / posterior] What you believed before / what the
-  data say / the updated belief.
-\item[MCMC] Markov Chain Monte Carlo: exploring all plausible answers
-  with random ``walkers'' that map out the posterior.
-\item[Degeneracy / ridge] When data fix only a combination of two
-  unknowns (here $Q_b/K_d$), not each separately.
-\item[Overfitting] A too-complex model fitting noise instead of the true
-  trend.
-\item[AICc] A model-comparison score: misfit plus a penalty for extra
-  parameters. Lowest wins.
-\item[HFE] Heat-Flow Experiment --- the Apollo instruments whose data we
-  use.
-\item[A15 / A17] Apollo 15 and Apollo 17 sites.
+\item[Conduction] Heat spreading through solid material, atom to atom.
+\item[Temperature / heat] Average atomic jiggle / the energy of jiggling
+  on the move.
+\item[Thermal conductivity ($K$, $K_d$)] How easily heat passes; $K_d$ is
+  the deep settled value --- our target. Small $=$ good insulator.
+\item[Heat flux ($q$, $Q_b$)] Heat crossing one m$^2$ per second; $Q_b$
+  is the steady flux from the Moon's interior.
+\item[Gradient ($\partial T/\partial z$)] Temperature change per metre of
+  depth.
+\item[Fourier's law] Flux $=$ conductivity $\times$ gradient.
+\item[Heat equation] Temperature changes where more heat flows in than
+  out.
+\item[Density ($\rho$) / specific heat ($c_p$)] Mass per volume / energy
+  to warm 1\,kg by 1\,K.
+\item[Albedo ($A$) / emissivity ($\varepsilon$)] Fraction of sunlight
+  reflected / efficiency of infrared glow.
+\item[Skin depth] How far the day--night swing reaches (a few cm).
+\item[Steady state / equilibrium] Settled condition, unchanging day to
+  day.
+\item[Boundary conditions] Rules at the column ends: surface radiation
+  balance; fixed flux $Q_b$ at the bottom.
+\item[Grid / discretisation] Splitting the column into layers and time
+  into steps so a computer can solve the equation.
+\item[Finite difference] Replacing a calculus rate-of-change with a
+  difference between neighbours.
+\item[Crank--Nicolson] A stable time-stepping scheme averaging ``now''
+  and ``next.''
+\item[Tridiagonal / Thomas algorithm] The simple shape of the layer
+  equations, and the fast recipe that solves them.
+\item[Newton's method] Guess-and-correct using slope, used for the
+  surface temperature.
+\item[Borestem cut] Discarding sensors above 80\,cm (stem contamination).
+\item[Retrieval] Guessing $K_d$, simulating, keeping the best match.
+\item[RMSE] One number for the typical model--data gap, in degrees.
+\item[Bootstrap] Resampling your own data to measure uncertainty.
+\item[Bayesian / prior / likelihood / posterior] Updating belief: before
+  / data / after.
+\item[MCMC] Random walkers mapping all plausible answers.
+\item[Degeneracy / ridge] When data fix only a combination ($Q_b/K_d$),
+  not each unknown.
+\item[Overfitting / AICc] Fitting noise / a score that fines complexity.
+\item[HFE, A15/A17] Heat-Flow Experiment; the Apollo 15 and 17 sites.
 \end{description}
 
 \end{document}

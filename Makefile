@@ -30,13 +30,12 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) scripts/pipeline/bayesian_crosscheck.py
 	$(PY) scripts/pipeline/compute_diviner_closure.py
 
-figures:             ## regenerate every figure (paper + appendix + guidebook)
+figures:             ## regenerate every figure (paper + guidebook + supplementary)
 	$(PY) scripts/make_all_figures.py
 
 paper:               ## compile the letter, appendix, primer, and guidebook PDFs
 	cd paper/letter   && latexmk -pdf -interaction=nonstopmode letter.tex
 	cd paper/letter   && latexmk -pdf -interaction=nonstopmode letter_clean.tex
-	cd paper/appendix && latexmk -pdf -interaction=nonstopmode appendix.tex
 	cd paper/primer   && latexmk -pdf -interaction=nonstopmode guidebook.tex
 	cd paper/primer   && latexmk -pdf -interaction=nonstopmode guidebook_print.tex
 
@@ -44,5 +43,4 @@ all: retrieve aux figures paper  ## full reproduction from scratch
 
 clean:               ## remove LaTeX build artifacts
 	cd paper/letter   && latexmk -C 2>/dev/null || true
-	cd paper/appendix && latexmk -C 2>/dev/null || true
 	cd paper/primer   && latexmk -C 2>/dev/null || true

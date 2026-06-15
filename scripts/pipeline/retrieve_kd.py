@@ -15,7 +15,7 @@ Writes:
     output/kd_retrieval_results.json     # canonical numerical results
     paper/letter/figures/fig_bootstrap.pdf
     paper/letter/figures/fig_robustness.pdf
-    paper/appendix/figures/fig_holdout.pdf
+    output/figures/fig_holdout.pdf
 
 Table of contents (jump to the section you need):
     line  ~80  : Hayne / 3-layer conductivity model wrappers
@@ -349,7 +349,7 @@ def main():
     t0 = time.time()
     out_dir = _REPO / 'output'
     fig_letter = _REPO / 'paper' / 'letter' / 'figures'
-    fig_appendix = _REPO / 'paper' / 'appendix' / 'figures'
+    fig_appendix = _REPO / 'output' / 'figures'
     results = {}
 
     # ── A1: extended K_d grids ────────────────────────────────────────────

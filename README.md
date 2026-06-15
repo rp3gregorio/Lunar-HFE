@@ -99,8 +99,7 @@ Lunar-HFE/
 │   └── spice/              # SPICE kernels (DE440, lunar frames)
 ├── output/                 # canonical JSON results
 ├── paper/
-│   ├── letter/             # LaTeX source + figures + compiled PDF
-│   └── appendix/           # supplemental figures
+│   └── letter/             # LaTeX source + figures + compiled PDF
 ├── tests/                  # pytest suite (run with `pytest`)
 └── docs/                   # REPRODUCING.md, FLAG_REPORT.md, code review
 ```

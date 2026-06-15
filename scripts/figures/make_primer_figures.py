@@ -259,13 +259,14 @@ def fig_anchorfix():
         new_curves[g] = eq.T_mean
         print(f"     guess {g:.0f} K done", flush=True)
 
-    fig, (axL, axR) = plt.subplots(1, 2, figsize=(9.6, 4.8),
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(9.6, 5.0),
                                    gridspec_kw={"wspace": 0.26})
+    fig.subplots_adjust(bottom=0.24, top=0.88)
     for ax, curves, title in (
-            (axL, old_curves, "(a)  Old method (short spin-up)"),
-            (axR, new_curves, "(b)  New method (equilibrium solver)")):
+            (axL, old_curves, "(a)  Old method (short spin-up):\n      answers fan out with the guess"),
+            (axR, new_curves, "(b)  New method (equilibrium):\n      all guesses give one answer")):
         for g, col in zip(guesses, cols):
-            ax.plot(curves[g], z * 100, "-", color=col, lw=2.2,
+            ax.plot(curves[g], z * 100, "-", color=col, lw=2.4,
                     label=f"started from {g:.0f} K")
         ax.errorbar(T_obs[deep], z_obs[deep], fmt="o", ms=6, color=C_A15,
                     mec="white", mew=0.8, zorder=5,
@@ -275,18 +276,11 @@ def fig_anchorfix():
         ax.set_xlim(246, 260)
         fmt_axis(ax, xlabel="predicted temperature (K)",
                  ylabel="Depth (cm)" if ax is axL else "", title=title)
-        ax.legend(fontsize=FS_LEGEND - 0.5, loc="lower left", framealpha=0.95)
 
-    axL.text(0.5, 0.5, "answers fan out:\nthe guess leaks\ninto the result",
-             transform=axL.transAxes, ha="center", va="center",
-             fontsize=FS_TICK, color=C_CORAL, fontweight="bold",
-             bbox=dict(boxstyle="round,pad=0.4", facecolor="white",
-                       edgecolor=C_CORAL, alpha=0.92))
-    axR.text(0.5, 0.5, "all three land\non one curve:\nguess forgotten",
-             transform=axR.transAxes, ha="center", va="center",
-             fontsize=FS_TICK, color=C_TEAL, fontweight="bold",
-             bbox=dict(boxstyle="round,pad=0.4", facecolor="white",
-                       edgecolor=C_TEAL, alpha=0.92))
+    h, l = axL.get_legend_handles_labels()
+    fig.legend(h, l, loc="lower center", bbox_to_anchor=(0.5, 0.0), ncols=4,
+               frameon=True, edgecolor=C_GRID, framealpha=0.97,
+               fontsize=FS_LEGEND - 0.5, handlelength=1.8)
 
     fig.savefig(OUT / "fig_primer_anchorfix.pdf", bbox_inches="tight")
     plt.close(fig)

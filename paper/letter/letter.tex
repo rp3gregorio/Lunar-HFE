@@ -104,8 +104,14 @@
 %               revised paper with the additions still visible.)
 %    clean    : final submission look -- new text plain black, old text
 %               and notes removed entirely, nothing highlighted.
+%
+%  ONE-CLICK PRINTABLE VERSION: compile letter_clean.tex instead of this
+%  file (or run ./build_clean.sh) to force `clean` mode and get a
+%  flattened, markup-free PDF ready to print/submit.
 % =====================================================================
-\def\displaymode{newonly}        % <-- review | newonly | clean
+% A wrapper may \def\displaymode BEFORE \input-ing this file; only fall
+% back to the default below if it has not already been set.
+\ifdefined\displaymode\else \def\displaymode{newonly}\fi  % review | newonly | clean
 
 \def\modereview{review}
 \def\modenewonly{newonly}

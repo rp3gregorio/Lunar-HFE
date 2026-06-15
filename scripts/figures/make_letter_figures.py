@@ -362,13 +362,14 @@ def fig_mean_T_profile():
         # Boxed callout label for the borestem zone -- placed inside
         # the panel using axes coordinates (immune to data x-limits)
         # and drawn above the markers (zorder=5).
-        # The callout lives inside the shaded zone it describes (and
-        # stays clear of the deepest sensors at panel bottom).
-        ax.text(0.04, 0.96,
+        # The callout sits in the empty upper-right corner (warm side,
+        # shallow depth) so it never overlaps the curves or the markers,
+        # while still pointing into the shaded borestem zone it labels.
+        ax.text(0.97, 0.96,
                 "Borestem zone\n($z < 80$ cm, excluded)",
                 transform=ax.transAxes,
                 fontsize=FS_TICK - 0.5, color=C_CHAR,
-                ha="left", va="top",
+                ha="right", va="top",
                 bbox=dict(boxstyle="round,pad=0.32",
                           facecolor="white", edgecolor=BORE_EDGE,
                           linewidth=0.7, alpha=0.92),

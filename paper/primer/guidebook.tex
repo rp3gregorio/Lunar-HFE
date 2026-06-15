@@ -1061,6 +1061,244 @@ which is which --- and that honesty is what makes it credible.
 \end{keybox}
 
 % #####################################################################
+\partdivider{A Closer Look: Every Method in the Paper}
+% #####################################################################
+
+This part zooms into the procedures the earlier chapters only summarised,
+following the paper's own sections. If you want to know \emph{exactly}
+how a step was done --- especially the Apollo data selection --- this is
+the part to read. Each heading names the matching paper section.
+
+\section{Finding each sensor's settled temperature (paper \S2.1)}
+\label{sec:stability}
+\subsection{The problem}
+Each Apollo thermometer recorded for years, and the record is messy at
+first: there are transients from the drilling and emplacement, documented
+gaps when the station was switched off, and slow instrumental drift. We
+need \emph{one} trustworthy ``settled'' temperature per sensor --- the
+value it holds once all that has died away. Picking it by eye would be
+arbitrary and unrepeatable, so the code does it automatically with a
+clear, stated rule.
+
+\subsection{The idea: the longest flat tail}
+The settled part is the \emph{end} of the record, and it should be
+\emph{flat} --- no trend up or down. So the procedure looks for the
+\textbf{longest stretch at the end of the record whose temperature is
+not drifting}. ``Not drifting'' is made precise: fit a straight line to
+that stretch and require its slope to be nearly zero.
+
+\subsection{The exact recipe}
+\begin{enumerate}
+\item Consider candidate starting points from 55\% to 85\% of the way
+      through the record (13 evenly spaced choices). Earlier than 55\% is
+      still contaminated; later than 85\% leaves too few points.
+\item For each candidate start, fit a straight line (ordinary
+      least-squares) to \emph{everything from that point to the end}, and
+      read off its slope (degrees per year).
+\item Accept the \emph{earliest} candidate whose slope is flatter than
+      \textbf{0.08\,K per year} --- the longest tail that still counts as
+      ``settled.'' If a candidate qualifies, stop.
+\item If \emph{none} qualifies, fall back to averaging the last 25\% of
+      the record.
+\item The chosen window's average temperature is the sensor's
+      $T_\text{eq}$; the scatter (standard deviation) within the window
+      becomes that sensor's measurement uncertainty for later steps.
+\end{enumerate}
+
+\begin{mathbox}
+The acceptance test is simply
+\[
+\left|\,\text{slope of the line fit to the tail}\,\right|
+\;<\; 0.08~\text{K\,yr}^{-1}.
+\]
+That threshold is about $2.2\times10^{-4}$\,K per day --- roughly
+$4.6\times$ \emph{stricter} than the $10^{-3}$\,K/day sometimes used in
+older analyses. The stricter bar deliberately rejects windows that still
+have a faint residual drift, which would otherwise bias the gradient.
+\end{mathbox}
+
+\begin{plainbox}
+Imagine a long, noisy audio recording that starts with banging and
+settles into quiet. You want the quietest, longest stretch at the end.
+You slide the start point earlier and earlier, checking ``is this
+stretch still calm?'', and keep the earliest start that is still calm.
+That is exactly what the code does with temperature instead of sound,
+``calm'' meaning ``slope below 0.08\,K/yr.''
+\end{plainbox}
+
+Here is the real selection function, lightly trimmed:
+\codefile{lunar/apollo\_helpers.py}
+\begin{lstlisting}
+def find_stable_window(subset, slope_thresh_K_per_year=0.08, min_frac=0.20):
+    n = len(subset)
+    t_year = (iso_to_seconds(subset['time_iso']) - t0) / (86400.0*365.25)
+    T = subset['T'].astype(np.float64)
+    chosen_i, method = int(0.75*n), 'fallback_last25'   # the fallback
+    for frac in np.linspace(0.55, 0.85, 13):            # candidate starts
+        i0 = int(frac * n)
+        if n - i0 < max(40, int(min_frac*n)):           # too few points left
+            continue
+        slope, _ = np.polyfit(t_year[i0:], T[i0:], 1)   # fit a line to the tail
+        if abs(slope) <= slope_thresh_K_per_year:       # flat enough?
+            chosen_i, method = i0, 'trend_flat'         # accept earliest
+            break
+    return chosen_i                                     # start of the window
+\end{lstlisting}
+\begin{codebox}
+\texttt{np.linspace(0.55, 0.85, 13)} are the 13 candidate start fractions.
+\texttt{np.polyfit(t\_year[i0:], T[i0:], 1)} fits a straight line (degree
+1) to the tail and returns its \texttt{slope}. The first start whose
+\texttt{abs(slope)} clears the threshold is accepted (\texttt{break});
+otherwise \texttt{chosen\_i} stays at the 75\% fallback. The returned
+index marks where the settled window begins; the caller averages from
+there to the end.
+\end{codebox}
+
+\begin{keybox}
+The ``settled temperature'' is not eyeballed --- it is the average of the
+longest end-of-record stretch whose temperature trend is flatter than
+0.08\,K/yr. The choice barely matters: sweeping the threshold over a
+factor of four (0.04--0.16\,K/yr) moves the final conductivity by less
+than 0.05 --- far below the error bar.
+\end{keybox}
+
+\section{Why the cut is at 80\,cm: the borestem diagnostic (paper \S2.4)}
+The 80\,cm borestem cut is not a guess --- it is set by a second,
+independent clue: the size of the daily temperature wiggle at each sensor
+(Figure~\ref{fig:amplitude}). Physics says the daily wiggle should be
+microscopic below a few tens of centimetres (Chapter on skin depth). But
+the \emph{shallow} Apollo sensors show a wiggle ten times larger or more
+than any physical soil could produce. The only explanation is that the
+fibreglass tube holding them conducts surface heat straight down ---
+a ``heat short'' --- contaminating those sensors. That contamination
+fades out by about 80\,cm, which is why everything shallower is cut.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/fig_amplitude_vs_depth.pdf}
+\caption{\textbf{The borestem diagnostic.} Black dots: the measured daily
+temperature wiggle at each sensor. Curves: what physics predicts. Above
+80\,cm (shaded) the measured wiggle is far larger than physics allows ---
+the fibreglass stem leaking surface heat. Below 80\,cm the predicted
+wiggle is below the record's noise, so deep sensors carry no usable
+wiggle, only the steady temperature we want.}
+\label{fig:amplitude}
+\end{figure}
+
+\begin{plainbox}
+Two independent reasons converge on 80\,cm: the deep physics is clean
+there, and the daily-wiggle test shows contamination stops there. When
+two unrelated arguments point to the same cut, the cut is trustworthy.
+(In our figure the ``wiggle'' is estimated as $\sqrt{2}$ times the
+within-window scatter --- a stand-in for a full day-by-day analysis,
+enough to expose the order-of-magnitude shallow excess.)
+\end{plainbox}
+
+\section{The solar forcing that drives the surface (paper \S2.2)}
+The surface energy balance (\S9 earlier) needs the incoming sunlight
+$F_\odot$ at each moment. The model uses the airless-body rule
+$F_\odot = S_0\cos\theta$, where $S_0\approx1361$\,W\,m$^{-2}$ is the
+solar constant and $\theta$ is the Sun's angle from straight overhead:
+overhead at noon ($\cos\theta=1$, full sunlight), grazing at dawn/dusk
+($\cos\theta\to0$), and zero at night. The retrieval uses an idealised
+steady day--night cosine cycle for this angle (the paper states this
+plainly and bounds the small effects left out, such as the Moon's slight
+orbital tilt and its elliptical distance from the Sun).
+
+\section{Pinpointing the bottom of the bowl (paper \S2.5)}
+The retrieval does not just take the lowest point on the tried grid of
+$K_d$ values (28 points spanning 1.0--15.0 at Apollo 15, 30 points
+spanning 3.0--25.0 at Apollo 17, in mW\,m$^{-1}$\,K$^{-1}$). It fits a
+small parabola (a U-shaped curve) through the three lowest grid points
+and takes the \emph{exact} bottom of that parabola. This refines the
+answer below the spacing of the grid, the way you would sketch a smooth
+curve through three dots to find where it bottoms out.
+
+\section{The bootstrap, in full (paper \S2.5)}
+The bootstrap (Chapter on uncertainty) has two extra details worth
+stating. First, on each of the 1{,}500 resamples the code also nudges
+every sensor's depth by a small random amount (a ``jitter'' of about
+$\pm2.5$\,cm), because the astronauts could only place the probes that
+precisely --- so the depth uncertainty is folded into the error bar, not
+ignored. Second, the site \emph{difference} is computed \emph{within each
+resample} (the paired difference) and only then summarised, which
+correctly keeps the two sites' shared ups and downs from inflating the
+contrast's uncertainty. A more elaborate interval method (``BCa'')
+was checked and agrees with the simple percentile interval to within
+about 1.3 units, so the simple one is reported.
+
+\section{Cross-validation: does the fit survive leaving data out? (paper \S3.3)}
+Two checks guard against the answer being driven by one lucky sensor.
+\textbf{(1) Sensor-type cross-prediction.} The Apollo probes carry two
+kinds of thermometer (gradient bridges, ``TG'', and ring bridges,
+``TR''). Fit $K_d$ using only the TG sensors and predict the TR ones, and
+vice versa: the held-out predictions land within about 0.26\,K of the
+in-sample fit --- the two independent sensor types agree.
+\textbf{(2) Leave-one-deepest-out.} Remove the single deepest sensor (the
+most influential one), refit on the rest, and predict the removed one:
+the prediction is off by only 0.21\,K at Apollo 15 and 0.09\,K at Apollo
+17. The fit is not balancing on a single point.
+
+\begin{keybox}
+Hiding data and re-deriving the answer is the strongest internal honesty
+check available. Both checks pass comfortably, so the retrieved
+conductivities are properties of the whole dataset, not artefacts of one
+sensor or one sensor type.
+\end{keybox}
+
+\section{The error budget: what limits the answer (paper \S4.2)}
+The error bar is built from named, separately-computed pieces, then
+combined (added in quadrature --- squares added, then square-rooted,
+the right way to combine independent errors):
+\begin{center}\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lcc}
+\toprule
+source of uncertainty & Apollo 15 & Apollo 17 \\
+\midrule
+statistical (bootstrap)        & 0.80 & 0.55 \\
+basal heat flux $Q_b$          & 1.20 & 2.16 \\
+albedo (sunlight reflected)    & 0.80 & 3.50 \\
+surface conductivity $K_s$     & 0.53 & 1.96 \\
+solver settling                & 0.15 & 0.15 \\
+density, borestem cut, others  & $<0.2$ & $<0.5$ \\
+\midrule
+\textbf{combined} & \textbf{1.75} & \textbf{4.61} \\
+\bottomrule
+\end{tabular}
+\end{center}
+Two things stand out. The basal heat flux $Q_b$ is a leading term (it
+trades off directly against $K_d$ --- the ridge of the MCMC chapter). And
+the radiative coefficient $\chi$ is handled separately as a
+\emph{conditionality} rather than a normal error: pushing it to an
+alternative published value moves the bowl's minimum off the physical
+grid entirely, so the reported $K_d$ is stated as conditional on the
+standard $\chi$, exactly as it is conditional on $Q_b$.
+
+\section{Could a denser soil explain Apollo 17 instead? (paper \S4.3)}
+A fair worry: maybe Apollo 17 is not more conductive, just denser. The
+paper tests this with the second conductivity model (Martínez \& Siegler),
+which depends explicitly on density. It asks: \emph{what deep density
+would that model need to match each site?} The answer is
+$\sim$2026\,kg\,m$^{-3}$ at Apollo 15 (right at the upper edge of what
+Apollo cores show) and $\sim$1767\,kg\,m$^{-3}$ at Apollo 17 (comfortably
+ordinary). So Apollo 17's behaviour needs \emph{no} unusual density ---
+its enhanced heat conduction is carried by composition and grain contact,
+not by being strangely packed. This independent model agreeing within
+normal densities is part of why the result is trustworthy.
+
+\section{Why the difference survives even though the absolutes wobble (paper \S4.1--4.2)}
+The single most important subtlety: one borehole fixes only the
+\emph{ratio} $Q_b/K_d$ (the gradient), not $K_d$ alone --- the ridge of
+the MCMC chapter. So each site's absolute conductivity inherits the
+uncertainty of its assumed heat flux. But the \emph{difference} between
+the sites is far sturdier, because the two sites are compared like-for-like.
+The paper backs this with the model scoreboard (the AICc chapter): the
+``different conductivity per site'' model beats both ``same conductivity''
+alternatives. Different gradients at the two boreholes is the robust fact;
+the exact conductivities are the conditional part.
+
+% #####################################################################
 \partdivider{Appendices}
 % #####################################################################
 

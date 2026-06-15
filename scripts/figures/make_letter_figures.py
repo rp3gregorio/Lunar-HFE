@@ -40,7 +40,7 @@ from lunar.solver import PixelInputs, solve_pixel
 from lunar.apollo_helpers import extract_sensor_stability
 
 # Pull the unified rcParams + palette from the phase-2 figure module.
-from make_results_figures import (   # type: ignore
+from lunar.plotting.style import (   # type: ignore
     JGR_FULL,
     FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
     C_HAYNE, C_MS, C_A15, C_A17, C_CHAR, C_DIM, C_GRID, C_FOREST,
@@ -110,14 +110,7 @@ TL_Z2    = 0.20              # base of transition layer (m)
 TL_RHO_SITE = {"A15": 1825.0, "A17": 1960.0}   # kg/m^3
 TL_RHO_REF  = 1800.0          # Hayne (2017) nominal deep density
 
-SITES = {
-    "A15": dict(label="Apollo 15", lat=26.13, lon=3.63,
-                albedo=0.131, emissivity=0.95, Q_BASAL=0.021,
-                T_MEAN_EFF=250.0, MIN_DEPTH_CM=80, mission="a15"),
-    "A17": dict(label="Apollo 17", lat=20.19, lon=30.77,
-                albedo=0.137, emissivity=0.95, Q_BASAL=0.015,
-                T_MEAN_EFF=256.5, MIN_DEPTH_CM=80, mission="a17"),
-}
+from lunar.config import SITES  # single source of truth
 
 LETTER_FIGS = _REPO / "paper" / "letter" / "figures"
 PHASE_A     = _REPO / "output" / "kd_retrieval_results.json"

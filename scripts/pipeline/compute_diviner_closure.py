@@ -53,7 +53,7 @@ from lunar.properties import (conductivity_hayne, conductivity_martinez,
 
 from scripts.pipeline.retrieve_kd import SITES, HAYNE, S0, T_LUNAR, GRID
 
-from make_results_figures import (   # type: ignore
+from lunar.plotting.style import (   # type: ignore
     C_A15, C_A17, C_HAYNE, C_MS, C_CHAR, C_DIM, C_GRID,
     FS_TICK, FS_LEGEND, FS_LABEL, fmt_axis,
 )

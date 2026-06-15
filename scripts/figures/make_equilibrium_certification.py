@@ -36,7 +36,7 @@ from lunar.solver import PixelInputs, solve_pixel
 from lunar.properties import conductivity_hayne, specific_heat
 from scripts.pipeline.retrieve_kd import SITES, HAYNE, GRID, S0, T_LUNAR, DT_STEP
 
-from make_results_figures import (   # type: ignore
+from lunar.plotting.style import (   # type: ignore
     JGR_FULL, FS_TICK, FS_LEGEND, FS_LABEL,
     C_A15, C_A17, C_CHAR, C_DIM, C_GRID, fmt_axis,
 )

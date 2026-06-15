@@ -83,12 +83,7 @@ plt.rcParams.update({
 })
 
 JGR_FULL = 7.48
-SITES = {
-    "A15": dict(label="Apollo 15", mission="a15", min_depth_cm=80,
-                color=C_FOREST, T_mean_eff=250.0, Q_basal=0.021),
-    "A17": dict(label="Apollo 17", mission="a17", min_depth_cm=80,
-                color=C_CORAL, T_mean_eff=256.5, Q_basal=0.015),
-}
+from lunar.config import SITES  # single source of truth
 
 
 def _disturbance_events():

@@ -37,6 +37,7 @@ from matplotlib.patches import Rectangle
 JGR_FULL = 7.48
 C_A15   = "#3D6E4A"
 C_A17   = "#B85B3A"
+SITE_COLOR = {"A15": C_A15, "A17": C_A17}  # config SITES has no colour
 C_CHAR  = "#2A2520"
 C_DIM   = "#6E6862"
 C_GRID  = "#E8E5E0"
@@ -63,10 +64,7 @@ OUT  = ROOT / "paper" / "letter" / "figures"
 MOON_PNG = OUT / "moon_global.png"
 
 # ALSEP gazetteer coordinates (match retrieve_kd.py)
-SITES = {
-    "A15": dict(lat=26.13, lon= 3.63, color=C_A15, label="Apollo 15"),
-    "A17": dict(lat=20.19, lon=30.77, color=C_A17, label="Apollo 17"),
-}
+from lunar.config import SITES  # single source of truth
 
 # Zoom box size for the regional crops (degrees, half-widths)
 ZOOM_DLON = 15.0
@@ -106,7 +104,7 @@ def draw_global(ax, img):
 
     # site markers + callouts
     for name, s in SITES.items():
-        ax.plot(s["lon"], s["lat"], marker="o", color=s["color"],
+        ax.plot(s["lon"], s["lat"], marker="o", color=SITE_COLOR[name],
                 ms=8, mec="white", mew=1.3, zorder=5)
         dx = 28 if name == "A17" else -28
         dy = 22
@@ -118,10 +116,10 @@ def draw_global(ax, img):
             ha="left" if name == "A17" else "right",
             va="bottom",
             bbox=dict(boxstyle="round,pad=0.22",
-                      facecolor="white", edgecolor=s["color"],
+                      facecolor="white", edgecolor=SITE_COLOR[name],
                       linewidth=0.8, alpha=0.95),
             arrowprops=dict(arrowstyle="-",
-                            color=s["color"], lw=0.9,
+                            color=SITE_COLOR[name], lw=0.9,
                             connectionstyle="arc3,rad=0.0"),
             zorder=6,
         )
@@ -129,7 +127,7 @@ def draw_global(ax, img):
         rect = Rectangle((s["lon"] - ZOOM_DLON, s["lat"] - ZOOM_DLAT),
                           2 * ZOOM_DLON, 2 * ZOOM_DLAT,
                           facecolor="none",
-                          edgecolor=s["color"], linewidth=0.9,
+                          edgecolor=SITE_COLOR[name], linewidth=0.9,
                           linestyle=(0, (4, 2)), alpha=0.85, zorder=4)
         ax.add_patch(rect)
 
@@ -173,7 +171,7 @@ def draw_zoom(ax, img, site_key):
     # Site marker only -- the site name now appears in the panel
     # title so the in-panel callout box has been removed to keep the
     # terrain unobscured.
-    ax.plot(lon0, lat0, marker="o", color=s["color"], ms=11,
+    ax.plot(lon0, lat0, marker="o", color=SITE_COLOR[site_key], ms=11,
             mec="white", mew=1.6, zorder=5)
 
     # axis cosmetics
@@ -185,7 +183,7 @@ def draw_zoom(ax, img, site_key):
     ax.set_title(rf"({panel_label})  {s['label']} "
                  rf"({s['lat']:.1f}$^\circ$N, {s['lon']:.1f}$^\circ$E)",
                  fontsize=FS_TITLE - 0.5, fontweight="bold", pad=4,
-                 color=s["color"])
+                 color=SITE_COLOR[site_key])
 
 
 def main():

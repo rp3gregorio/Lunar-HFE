@@ -28,7 +28,7 @@ import corner
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts" / "figures"))
-from make_results_figures import (   # type: ignore
+from lunar.plotting.style import (   # type: ignore
     JGR_FULL,
     FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
     C_HAYNE, C_MS, C_A15, C_A17, C_CHAR, C_DIM, C_GRID, C_CORAL,
@@ -40,12 +40,7 @@ OUT_FIG = pathlib.Path(__file__).resolve().parents[2] / "paper/appendix/figures/
 OUT_JSON = pathlib.Path(__file__).resolve().parents[2] / "output/bayesian_crosscheck_samples.json"
 
 # ── Site parameters ──────────────────────────────────────────────────────────
-SITES = {
-    "A15": dict(qb_published=0.021, qb_prior_mean=0.018, qb_prior_sigma=0.005,
-                colour=C_A15),
-    "A17": dict(qb_published=0.015, qb_prior_mean=0.013, qb_prior_sigma=0.004,
-                colour=C_A17),
-}
+from lunar.config import SITES  # single source of truth
 
 
 def make_log_posterior(site, kd_grid_spline, qb_pub,

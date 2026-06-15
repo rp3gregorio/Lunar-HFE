@@ -32,16 +32,42 @@ radiative-transfer retrievals.
 ## Reproducing the paper
 
 The full reproduction recipe is in [`docs/REPRODUCING.md`](docs/REPRODUCING.md).
-Short version:
+There is a `Makefile` with one-word entry points — run `make help` to list
+them. Short version:
 
 ```bash
 git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd Lunar-HFE
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-python scripts/fetch_diviner.py     # ~310 MB from PDS-Geosciences
-jupyter lab notebooks/
+make install                 # editable install of the `lunar` package + dev deps
+python scripts/fetch_diviner.py   # ~310 MB from PDS-Geosciences (one-time)
+
+make retrieve                # core retrieval + bootstrap  -> output/*.json
+make aux                     # all sensitivity sweeps, model selection, MCMC, closure
+make figures                 # regenerate every figure (paper + appendix + guidebook)
+make paper                   # compile all PDFs
+# or simply:  make all
 ```
+
+Prefer notebooks? `jupyter lab notebooks/` and run the five in order
+(they call the same pipeline). Prefer scripts? Each file under
+`scripts/pipeline/` and `scripts/figures/` runs standalone.
+
+### How the code is organised (start here)
+
+All configuration and the physics engine live in the **`lunar/` package**;
+the **`scripts/`** are thin command-line drivers that call it. There is
+exactly one definition of everything:
+
+| Where | What |
+|---|---|
+| `lunar/config.py` | **single source of truth** — site table (`SITES`), grid, Hayne bundle, solver + sweep settings |
+| `lunar/constants.py` | cited physical constants |
+| `lunar/properties.py` | conductivity / density / specific-heat models |
+| `lunar/grid.py`, `solver.py`, `equilibrium.py` | the 1-D heat-equation engine |
+| `lunar/plotting/style.py` | shared figure palette + layout helpers |
+| `scripts/pipeline/` | retrieval, bootstrap, sensitivity sweeps, MCMC (write `output/*.json`) |
+| `scripts/figures/` | figure generators; `scripts/make_all_figures.py` runs them all |
 
 Then run the 5 notebooks in order:
 

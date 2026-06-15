@@ -58,81 +58,32 @@ from lunar.solver import PixelInputs, solve_pixel
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.apollo_helpers import extract_sensor_stability
 
-sys.stdout = open(sys.stdout.fileno(), mode='w', buffering=1)
 
-# Re-use the publication style from the v2 figure script
-sys.path.insert(0, str(_REPO / 'scripts' / 'figures'))
-from make_results_figures import (   # type: ignore
+# Shared publication style from the package (no longer a figure-script import).
+from lunar.plotting.style import (   # noqa: E402
     C_A15, C_A17, C_HAYNE, C_MS, C_LAB, C_TEAL, C_TEAL_L,
     C_FOREST, C_CORAL, C_CHAR, C_DIM, C_GRID,
     ANTH_DIVERGE, ANTH_SEQ,
     FS_BASE, FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
     fmt_axis,
 )
+# Single source of truth for ALL run configuration (lunar/config.py) --
+# SITES, GRID, the Hayne bundle, the equilibrium-solver settings, the
+# 3-layer parameters. These used to be redefined here and in four figure
+# scripts; now there is exactly one definition.
+from lunar.config import (   # noqa: E402
+    S0, T_LUNAR, DT_STEP, N_LUN_FAST, TOL_FAST,
+    EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL,
+    GRID, HAYNE, SITES, DEPTH_SIGMA_CM,
+    TL_Z1, TL_Z2, TL_RHO_REF, TL_RHO_SITE,
+)
+# scripts/figures kept on path for the end-of-run figure helpers
+# (fig_bootstrap, fig_robustness) imported inside main().
+sys.path.insert(0, str(_REPO / 'scripts' / 'figures'))
 
-# ── Constants ─────────────────────────────────────────────────────────────────
-S0           = 1361.0
-T_LUNAR      = LUNATION_SECONDS
-DT_STEP      = 3600.0
-N_LUN_FAST   = 30          # retained for legacy callers; run_with now uses
-TOL_FAST     = 0.05        # the equilibrium driver below instead
-# Flux-anchored equilibrium iteration (lunar/equilibrium.py). The anchor
-# sits below the diurnal rectification zone (amplitude ~0.15 K at
-# 0.55 m, so the eddy-correlation flux <K' dT'/dz> omitted by the
-# mean-field reconstruction is < 1% of Q_b); n_inner covers ~1.2 anchor
-# relaxation times per outer step. Certified by a 120-lunation drift
-# test: a long honest run initialized from the converged profile moves
-# < 0.05 K at sensor depths.
-EQ_Z_ANCHOR  = 0.55        # m
-EQ_N_INNER   = 12          # lunations per outer iteration
-EQ_MAX_OUTER = 20
-EQ_ANCHOR_TOL = 0.005      # K
-GRID         = dict(z_max=5.0, dz0=0.002, growth=0.08)
-
-# In-process memo cache for converged mean profiles. Keyed on every
-# input that can change the forward model; saves the repeated sweeps in
-# the bootstrap cache build and the sensitivity scripts.
+# In-process memo cache for converged mean profiles, keyed on every input
+# that can change the forward model (speeds the repeated sweeps).
 _PROFILE_CACHE: dict = {}
-HAYNE = dict(K_S=K_SURFACE, H=H_PARAMETER, CHI=CHI_RADIATIVE,
-             T_REF=T_REFERENCE)
-
-SITES = {
-    'A15': dict(tag='A15', label='Apollo 15', lat=26.13, lon=3.63,
-                albedo=0.131, emissivity=0.95, Q_BASAL=0.021,
-                T_MEAN_EFF=250.0, MIN_DEPTH_CM=80, mission='a15'),
-    'A17': dict(tag='A17', label='Apollo 17', lat=20.19, lon=30.77,
-                albedo=0.137, emissivity=0.95, Q_BASAL=0.015,
-                T_MEAN_EFF=255.0, MIN_DEPTH_CM=80, mission='a17'),
-}
-
-DEPTH_SIGMA_CM = 2.5    # Nagihara 2018 sensor placement uncertainty
-
-# ── This-work discrete 3-layer conductivity model ────────────────────────────
-# Apollo-grounded layer structure (see make_letter_figures.py header):
-#   0--2 cm    surface radiative layer (Langseth+ 1976), K = K_s
-#   2--20 cm   compaction transition; ramp curvature set by deep density
-#   >20 cm     compacted deep layer, K = K_d (the swept parameter)
-TL_Z1, TL_Z2 = 0.02, 0.20          # layer boundaries (m)
-TL_RHO_REF   = 1800.0              # Hayne (2017) nominal deep density
-TL_RHO_SITE  = {'A15': 2000.0, 'A17': 1900.0}   # RMSE-optimal per-site deep
-                                                # bulk densities, found by
-                                                # sweeping rho_d across the
-                                                # Apollo-core range
-                                                # 1700-2000 kg/m^3 (Mitchell
-                                                # 1973; Carrier 1991) and
-                                                # picking the rho_d that
-                                                # minimises the deep-sensor
-                                                # RMSE at the per-rho_d K_d*
-                                                # (compute_phase1_table.py).
-                                                # Both values sit inside the
-                                                # Apollo-core compaction
-                                                # range; A15 lands at the
-                                                # range top and A17 just
-                                                # below, consistent with the
-                                                # mare/highland compositional
-                                                # split (A17 basaltic
-                                                # embayment, A15 mixed
-                                                # margin).
 
 
 def conductivity_3layer(T, z, Kd, rho_deep=TL_RHO_REF):

@@ -689,137 +689,6 @@ def fig_cold_trap(d, out_path):
     print(f"  → {out_path}")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# APPENDIX FIGURE — Bayesian posterior (4 panels: 2 sites × {2D, marginal})
-# ══════════════════════════════════════════════════════════════════════════════
-def fig_posterior(out_path):
-    """Read the posterior arrays from the cache file in /tmp if available,
-    else recompute from json."""
-    # We'll regenerate the posterior from scratch using the K_d sweep curves,
-    # because the json doesn't store the (kdv, qbv, P) arrays.
-    import sys; sys.path.insert(0, str(_ROOT))
-    d = json.loads(RESULTS.read_text())
-
-    # Reload the pipeline's posterior method
-    from scripts.pipeline.phase2_pipeline_fast import kd_qb_posterior
-
-    QB_PUB = {"A15": 0.021, "A17": 0.015}
-    QB_PRIOR = {"A15": (0.018, 0.005), "A17": (0.013, 0.004)}
-
-    # We need R (residual matrix) which is NOT in json. We need to rerun
-    # K_d sweep OR re-derive R from rmse_curve. Since json only has the
-    # RMSE curve (not the residuals), build a posterior using the RMSE
-    # curve directly.
-    # JGR_FULL-wide, page-fitting height. A 12x9 in figure scaled to the
-    # text width became ~9 in tall and forced its own near-empty page.
-    # hspace is generous because panels (c)/(d) carry a TOP axis (the
-    # rescaled Q_b axis) plus a panel title, which must clear the
-    # (a)/(b) x-axis labels above them.
-    fig = plt.figure(figsize=(JGR_FULL, 6.2))
-    gs = fig.add_gridspec(2, 2, hspace=0.78, wspace=0.34,
-                          left=0.08, right=0.93, top=0.93, bottom=0.13)
-    axes = [[fig.add_subplot(gs[r, c]) for c in (0, 1)] for r in (0, 1)]
-
-    # Per-site explicit grid extents — chosen so the joint posterior is
-    # evaluated across the FULL plot box (no blank top/bottom strips).
-    KD_EXTENT_MW = {"A15": (1.5, 9.0), "A17": (3.0, 18.0)}
-    QB_EXTENT_MW = {"A15": (1.0, 36.0), "A17": (1.0, 30.0)}
-
-    for col, name in enumerate(["A15", "A17"]):
-        rmse = np.array(d[name]["rmse_curve"])
-        kd_lo_mW, kd_hi_mW = KD_EXTENT_MW[name]
-        kd_grid = np.linspace(kd_lo_mW*1e-3, kd_hi_mW*1e-3, len(rmse))
-        # Synthetic R: zero-mean residuals scaled to give the right RMSE
-        # (this is just to plug into kd_qb_posterior which only needs the
-        # diagonal RMSE shape and N).
-        N_deep = 7 if name == "A15" else 16
-        R = np.zeros((N_deep, len(rmse)))
-        # Distribute the squared residual evenly so RMSE matches
-        for k, rm in enumerate(rmse):
-            R[:, k] = rm   # all identical → RMSE = rm
-        qb_lo_mW, qb_hi_mW = QB_EXTENT_MW[name]
-        kdv, qbv, P = kd_qb_posterior(
-            R, kd_grid, qb_published=QB_PUB[name],
-            qb_prior_mean=QB_PRIOR[name][0],
-            qb_prior_sigma=QB_PRIOR[name][1],
-            kd_range=(kd_lo_mW*1e-3, kd_hi_mW*1e-3),
-            qb_range=(qb_lo_mW*1e-3, qb_hi_mW*1e-3))
-        kdv_mW = kdv * 1e3
-        qbv_mW = qbv * 1e3
-
-        # ── upper: 2D posterior ──────────────────────────────────────────
-        ax = axes[0][col]
-        ax.contourf(kdv_mW, qbv_mW, P, levels=20, cmap=ANTH_SEQ)
-        Pmax = P.max()
-        # dark-charcoal posterior-mass contours (legible over the pale map)
-        ax.contour(kdv_mW, qbv_mW, P,
-                   levels=[Pmax*0.05, Pmax*0.32, Pmax*0.68],
-                   colors=C_CHAR, linewidths=0.9,
-                   linestyles=["-", "--", ":"], alpha=0.8)
-
-        # mode -- filled diamond (conventional best-fit marker)
-        ij = np.unravel_index(np.argmax(P), P.shape)
-        ax.plot(kdv_mW[ij[1]], qbv_mW[ij[0]], marker="D",
-                markersize=9, color=C_CORAL, mec="white", mew=1.3,
-                zorder=6)
-
-        # iso-ratio rays -- dim charcoal, not white
-        for grad in [1.0, 2.0, 3.0]:
-            ax.plot(kdv_mW, grad * kdv_mW, color=C_DIM, lw=0.6,
-                    ls=":", alpha=0.55)
-
-        fmt_axis(ax,
-                 xlabel=r"$K_d$  (mW m$^{-1}$ K$^{-1}$)",
-                 ylabel=r"$Q_b$  (mW m$^{-2}$)",
-                 title=f"({chr(ord('a')+col)})  {name} joint posterior")
-        # Lock axis limits to the computed grid extent so the contourf
-        # fills the entire panel — no blank strips above/below.
-        ax.set_xlim(kdv_mW[0], kdv_mW[-1])
-        ax.set_ylim(qbv_mW[0], qbv_mW[-1])
-        # legend inside top-right: just one mode marker
-        ax.legend(handles=[Line2D([0], [0], marker="D", color="none",
-                                  markerfacecolor=C_CORAL, mec="white",
-                                  markersize=8, label="posterior mode")],
-                  loc="upper right", borderpad=0.5,
-                  facecolor="white", framealpha=0.97)
-
-        # ── lower: marginals ──────────────────────────────────────────────
-        ax = axes[1][col]
-        Pkd = P.sum(axis=0); Pkd /= Pkd.sum() * (kdv_mW[1]-kdv_mW[0])
-        Pqb = P.sum(axis=1); Pqb /= Pqb.sum() * (qbv_mW[1]-qbv_mW[0])
-
-        l1 = ax.plot(kdv_mW, Pkd, color=C_TEAL, lw=2.0,
-                     label=r"$P(K_d \mid \mathrm{data})$")[0]
-        ax2 = ax.twiny()
-        # twin top axis for Q_b
-        l2 = ax2.plot(qbv_mW, Pqb / Pqb.max() * Pkd.max(),
-                      color=C_CORAL, lw=2.0, ls="--",
-                      label=r"$P(Q_b \mid \mathrm{data})$  (rescaled)")[0]
-        ax2.set_xlim(qbv_mW[0], qbv_mW[-1])
-
-        ax.set_xlabel(r"$K_d$  (mW m$^{-1}$ K$^{-1}$)", color=C_TEAL)
-        ax.set_ylabel(r"$P(K_d)$", color=C_TEAL)
-        ax.tick_params(axis="x", colors=C_TEAL)
-        ax.tick_params(axis="y", colors=C_TEAL)
-        ax.set_title(f"({chr(ord('c')+col)})  {name} marginal posteriors")
-        ax2.set_xlabel(r"$Q_b$  (mW m$^{-2}$)", color=C_CORAL)
-        ax2.tick_params(axis="x", colors=C_CORAL)
-        ax2.spines["top"].set_color(C_CORAL)
-        ax2.spines["top"].set_visible(True)
-        ax.spines["bottom"].set_color(C_TEAL)
-        ax.legend([l1, l2],
-                  [r"$P(K_d \mid \mathrm{data})$",
-                   r"$P(Q_b \mid \mathrm{data})$  (rescaled)"],
-                  bbox_to_anchor=(1.0, -0.30), loc="upper right",
-                  ncols=2, fontsize=FS_LEGEND, borderpad=0.6)
-        ax.grid(color=C_GRID, lw=0.5)
-        ax.set_axisbelow(True)
-        for s in (ax.spines["left"], ax.spines["bottom"]):
-            s.set_color(C_TEAL)
-
-    fig.savefig(out_path)
-    plt.close(fig)
-    print(f"  → {out_path}")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1082,14 +951,10 @@ def main():
     print("Regenerating Phase-2 figures with publication-grade aesthetic:")
     fig_bootstrap(d, LETTER_FIGS / "fig_bootstrap.pdf")
     fig_robustness(d, LETTER_FIGS / "fig_robustness.pdf")
-    # fig_kd_sweep_v2 is superseded by the two-panel fig_kd_sweep() in
-    # make_letter_figures.py and is no longer generated.
-    fig_lab_comparison(d, APPENDIX_FIGS / "fig_lab_comparison.pdf")
-    # fig_cold_trap_depth is used by BOTH the letter (Fig 9) and the
-    # appendix -- write both copies so neither goes stale.
-    fig_cold_trap(d, LETTER_FIGS / "fig_cold_trap_depth.pdf")
-    fig_cold_trap(d, APPENDIX_FIGS / "fig_cold_trap_depth.pdf")
-    fig_posterior(APPENDIX_FIGS / "fig_kd_qb_posterior.pdf")
+    # NOTE: fig_lab_comparison and fig_cold_trap are not referenced by any
+    # manuscript, and fig_cold_trap needs a 'cold_trap' JSON block that the
+    # current pipeline no longer writes. Both functions remain defined for
+    # ad-hoc use, but main() only regenerates the figures the paper uses.
     print("Done.")
 
 if __name__ == "__main__":

@@ -67,3 +67,7 @@ docs/**/*.synctex.gz
 # Working scratch
 .scratch/
 *.tmp
+
+# Slide-deck rendered assets (regenerate: python slides/build_assets.py)
+slides/assets/
+slides/qa_preview.png

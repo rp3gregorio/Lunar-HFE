@@ -1,0 +1,424 @@
+% =====================================================================
+%  Per-site retrieval of lunar regolith thermal conductivity at the
+%  Apollo 15 & 17 heat-flow boreholes — models, method, and why it holds.
+%  A presentation-support write-up.
+%  Self-contained for Overleaf: upload this folder (justification.tex +
+%  figures/).  Compile:  latexmk -pdf justification.tex
+% =====================================================================
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\setlength{\emergencystretch}{3em}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}            % Times — clean, journal-like
+\usepackage[scaled=0.92]{helvet}            % Helvetica for sans headings
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+
+% ---- palette (matches the figures) ----
+\definecolor{forest}{HTML}{3D6E4A}
+\definecolor{coral}{HTML}{B85B3A}
+\definecolor{char}{HTML}{2B2B2B}
+\definecolor{dim}{HTML}{6B6B6B}
+\definecolor{rulec}{HTML}{C9C2B6}
+\hypersetup{colorlinks=true,allcolors=forest}
+
+% ---- headings (sans, forest) ----
+\titleformat{\section}{\normalfont\sffamily\large\bfseries\color{forest}}
+  {\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\sffamily\bfseries\color{char}}
+  {\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyhead[L]{\sffamily\footnotesize\color{dim}Apollo 15 \& 17 \;$K_d$ retrieval}
+\fancyhead[R]{\sffamily\footnotesize\color{dim}\thepage}
+
+\newcommand{\Tm}{\langle T\rangle}
+\newcommand{\code}[1]{{\ttfamily\small #1}}
+\newcommand{\kdunit}{\mathrm{mW\,m^{-1}\,K^{-1}}}
+
+\newtcolorbox{takeaway}[1][]{colback=forest!6,colframe=forest!55,boxrule=0.7pt,
+  arc=2pt,left=8pt,right=8pt,top=5pt,bottom=5pt,
+  title={\sffamily\bfseries Takeaway},coltitle=forest,fonttitle=\small,#1}
+\newtcolorbox{caveat}[1][]{colback=coral!7,colframe=coral!60,boxrule=0.7pt,
+  arc=2pt,left=8pt,right=8pt,top=5pt,bottom=5pt,
+  title={\sffamily\bfseries Be honest about},coltitle=coral,fonttitle=\small,#1}
+
+\newcommand{\figref}[1]{Fig.~\ref{#1}}
+
+\begin{document}
+\thispagestyle{empty}
+
+% ---------- title block ----------
+\begingroup\color{forest}\hrule height 2pt\endgroup
+\vspace{8pt}
+{\sffamily\bfseries\LARGE Per-site retrieval of regolith thermal conductivity\\[2pt]
+at the Apollo 15 and 17 heat-flow boreholes\par}
+\vspace{4pt}
+{\sffamily\large\color{dim} Models, method, and why the result holds --- a walkthrough\par}
+\vspace{6pt}
+{\color{char} R.\,P.\ Gregorio \quad\textbullet\quad Kasai Laboratory, Institute of Science Tokyo}
+\vspace{6pt}
+\begingroup\color{rulec}\hrule height 1pt\endgroup
+\vspace{10pt}
+
+\noindent\textit{Purpose.} This note lays out, end to end, what we did and why
+it is defensible: how the two published conductivity models are built and why
+the literature uses a single ``global'' $K_d$; how we instead retrieve $K_d$
+\emph{separately} at each borehole; what changed between the old and new
+steady-state solver and why the two give the same answer; a physical reading of
+why the two sites differ; and the role of the basal heat flux $Q_b$. (The
+statistical machinery --- bootstrap intervals, model selection --- is deferred;
+here the focus is the physics and the method.)
+
+% =====================================================================
+\section{The goal and the two sites}
+% =====================================================================
+The deep regolith thermal conductivity $K_d$ sets how steeply temperature rises
+with depth and how much of the Moon's interior heat reaches the surface. The
+Apollo Heat-Flow Experiment (HFE) left buried temperature sensors at two very
+different places (\figref{fig:map}): \textbf{Apollo~15} at Hadley Rille on the
+Imbrium mare/Apennine boundary, and \textbf{Apollo~17} in the Taurus--Littrow
+valley among highland massifs and dark pyroclastic mantle. The published thermal
+models use \emph{one} global $K_d$ for the whole Moon. Our question is simple:
+\emph{what is $K_d$ at each of these boreholes, separately?}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.72\linewidth]{figures/fig_context_map.pdf}
+\caption{The two heat-flow boreholes sit in geologically distinct terrains ---
+a first hint that a single global conductivity may not fit both.}
+\label{fig:map}
+\end{figure}
+
+% =====================================================================
+\section{The two published conductivity models (and how to reproduce them)}
+% =====================================================================
+Both models give the regolith conductivity $K$ as a function of temperature $T$
+and depth $z$. Reproducing them is just evaluating the formulas below; our code
+does exactly this in \code{lunar/properties.py}.
+
+\subsection{Hayne et al.\ (2017): the H-parameter model}
+The regolith is loose and porous at the surface and compacts with depth, so the
+solid (contact) conductivity rises from a surface value $K_s$ to a deep value
+$K_d$ over an $e$-folding depth $H$:
+\begin{equation}
+K_c(z) = K_d - (K_d - K_s)\,e^{-z/H}.
+\label{eq:Kc}
+\end{equation}
+Radiation across pore spaces then adds a strongly temperature-dependent term:
+\begin{equation}
+K(T,z) = K_c(z)\,\Bigl[\,1 + \chi\,(T/T_{\mathrm{ref}})^{3}\,\Bigr],
+\qquad T_{\mathrm{ref}}=350\,\mathrm{K}.
+\label{eq:Khayne}
+\end{equation}
+The bulk density follows the same compaction law,
+$\rho(z)=\rho_d-(\rho_d-\rho_s)e^{-z/H}$. The cited parameters are:
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Value & Meaning \\
+\midrule
+$K_s$ & $0.74\ \kdunit$ & surface contact conductivity \\
+$K_d$ & $3.4\ \kdunit$ \textbf{(global)} & \textbf{deep contact conductivity --- the value we refine} \\
+$H$   & $0.06\,\mathrm{m}$ & compaction $e$-folding depth \\
+$\chi$ & $2.7$ & radiative-term strength \\
+$T_{\mathrm{ref}}$ & $350\,\mathrm{K}$ & radiative normalisation \\
+$\rho_s,\rho_d$ & $1100,\,1800\ \mathrm{kg\,m^{-3}}$ & surface / deep bulk density \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Why the literature value is $K_d=3.4$.} Hayne et al.\ fit
+Eqs.~\eqref{eq:Kc}--\eqref{eq:Khayne} to the \emph{globally averaged} diurnal
+surface-temperature curves measured from orbit by the Diviner radiometer. A
+single $(K_s,K_d,H,\chi)$ best reproduced the global day--night behaviour, and
+$K_d=3.4\ \kdunit$ is that global-average deep asymptote. It was never meant to
+be site-specific --- which is exactly the gap we fill. \figref{fig:models}(a)
+shows where that asymptote sits and where our per-site values move it.
+
+\subsection{Mart\'inez \& Siegler (2021): a density-based model}
+This model writes the conductivity directly in terms of bulk density $\rho$,
+splitting it into a contact (phonon) term and a radiative term:
+\begin{equation}
+K(T,\rho) = (A_1\rho + A_2)\,k_{\mathrm{am}}(T) \;+\; (B_1\rho + B_2)\,T^{3},
+\label{eq:Kmartinez}
+\end{equation}
+where $k_{\mathrm{am}}(T)$ is the Woods--Robinson et al.\ (2019) amorphous-solid
+polynomial and $A_{1,2},B_{1,2}$ are fitted constants. The two models use
+different physics for the same quantity; \figref{fig:models}(b) shows they
+predict comparable total conductivity and the same steep rise with temperature.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_models.pdf}
+\caption{\textbf{Reproducing both models.} (a)~Hayne contact conductivity
+$K_c(z)$, Eq.~\eqref{eq:Kc}: it climbs from $K_s$ at the surface to its deep
+asymptote $K_d$. The published \emph{global} value is $3.4$; our per-site
+retrievals push it to $4.58$ (A15) and $8.12$ (A17). (b)~Full conductivity vs.\
+temperature at $1$\,m, Eq.~\eqref{eq:Khayne}, for Hayne and Mart\'inez --- the
+radiative $\propto T^3$ term roughly doubles $K$ by lunar midday. Both panels
+are evaluated directly from the model code.}
+\label{fig:models}
+\end{figure}
+
+% =====================================================================
+\section{Our method: retrieving \texorpdfstring{$K_d$}{Kd} per site}
+% =====================================================================
+\subsection{The forward model}
+We solve the 1-D heat equation in the regolith column,
+\begin{equation}
+\rho(z)\,c_p(T)\,\frac{\partial T}{\partial t}
+   = \frac{\partial}{\partial z}\!\left(K(T,z)\,\frac{\partial T}{\partial z}\right),
+\label{eq:heat}
+\end{equation}
+on a grid that is millimetre-fine at the top (to resolve the daily thermal wave)
+and reaches $5$\,m. The surface obeys a non-linear radiative balance,
+$(1-A)\,S(t) = \varepsilon\sigma T_s^4 + K\,\partial_z T|_0$, and the bottom
+admits the geothermal flux, $K\,\partial_z T = Q_b$. Driven by the periodic Sun,
+the column settles to a periodic steady state; that settled profile is what we
+compare to the sensors.
+
+\subsection{The retrieval}
+We hold the Hayne functional form fixed and treat $K_d$ as the single unknown.
+For each trial $K_d$ we solve Eq.~\eqref{eq:heat} to steady state and measure the
+misfit to the deep sensors,
+\begin{equation}
+\mathrm{RMSE}(K_d) = \sqrt{\tfrac{1}{N}\textstyle\sum_i
+   \bigl[\,\Tm(z_i;K_d) - T^{\mathrm{obs}}_i\,\bigr]^2 },
+\qquad
+K_d^{*} = \arg\min_{K_d}\ \mathrm{RMSE}(K_d).
+\end{equation}
+The misfit curve has a clean single minimum at each site (\figref{fig:sweep}),
+and that minimum is the retrieved $K_d^{*}$.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.76\linewidth]{figures/fig_kd_sweep.pdf}
+\caption{The retrieval, visualised: deep-sensor RMSE vs.\ trial $K_d$. Each site
+has a well-defined minimum, and Apollo~17's sits at a clearly higher
+conductivity than Apollo~15's.}
+\label{fig:sweep}
+\end{figure}
+
+\subsection{Result}
+The retrieval gives
+\[
+K_{d,\mathrm{A15}}^{*} = 4.58\ \kdunit,\qquad
+K_{d,\mathrm{A17}}^{*} = 8.12\ \kdunit,
+\]
+i.e.\ Apollo~17 is about twice as conductive as Apollo~15. With these per-site
+values the modelled deep temperatures track the data far better than the single
+global $K_d$ does (\figref{fig:profiles}); at Apollo~17 the misfit is roughly
+halved. (Confidence intervals and significance are quantified separately by
+bootstrap --- deferred here.)
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.76\linewidth]{figures/fig_thermal_profiles.pdf}
+\caption{Settled mean temperature vs.\ depth using each site's \emph{retrieved}
+$K_d^{*}$, against the deep-sensor measurements. The per-site fit threads the
+data better than the global value can.}
+\label{fig:profiles}
+\end{figure}
+
+% =====================================================================
+\section{Old vs.\ new: how we reach the steady state}
+% =====================================================================
+Everything above rests on ``solve to steady state.'' That step is where the old
+code went wrong, and where the new method earns its trust.
+
+\subsection{What ``steady state'' requires}
+The periodic steady state is pinned by two facts: the surface skin repeats each
+lunation, and --- below the skin, with no internal heat sources --- the same
+flux passes through every layer and equals the bottom flux $Q_b$. That fixes the
+deep gradient:
+\begin{equation}
+K(\Tm,z)\,\frac{d\Tm}{dz}=Q_b
+\quad\Longrightarrow\quad
+\frac{d\Tm}{dz}=\frac{Q_b}{K(\Tm,z)} .
+\label{eq:closure}
+\end{equation}
+The deep profile is therefore \emph{not} free; energy conservation fixes its
+slope once the temperature at one depth is known.
+
+\subsection{The old method, and its hidden bias (flag F1)}
+The old approach integrated Eq.~\eqref{eq:heat} forward for a fixed, short
+spin-up ($\sim$30 lunations). But the full column relaxes on a diffusive
+timescale of order $10^3$ lunations, so at sensor depth the profile still
+\emph{remembered the temperature it was started from}. That starting guess then
+leaked into $K_d$ as a hidden parameter. The trap: the usual ``did $\Tm$ change
+by $<0.01$\,K between lunations?'' check passes \emph{long before} the column is
+settled, so the answer looks converged while it is still drifting.
+
+\subsection{The new method: a flux-anchored shortcut}
+The new solver (\code{lunar/equilibrium.py}) does not wait for diffusion to
+discover Eq.~\eqref{eq:closure} --- it imposes it: (i) a \emph{short} spin-up
+settles the fast skin and fixes the cycle-mean ``anchor'' temperature just below
+it; (ii) from the anchor it integrates Eq.~\eqref{eq:closure} straight down to
+fill in the whole deep profile; (iii) iterate 3--5 times. It is like computing a
+tank's steady level from ``inflow $=$ outflow'' instead of waiting for the
+sloshing to stop.
+
+\subsection{Do they agree? Yes --- run the lunations and watch}
+The cleanest demonstration is to take the \emph{old} method and simply give it
+more lunations: as the spin-up lengthens, its profile marches monotonically onto
+the new method's answer (\figref{fig:conv}). Starting from two very different
+temperatures, $240$\,K and $260$\,K, both collapse onto the same curve
+(\figref{fig:overlay}). They must: both enforce the same two conditions, and the
+steady state satisfying them is unique --- the shortcut just gets there in
+$\sim$9\,s instead of the $\sim$3000 lunations ($\sim$4\,min) brute force needs.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.70\linewidth]{figures/fig_convergence.pdf}
+\caption{\textbf{The ``increasing-lunations'' graph.} Brute-force error (vs.\ the
+shortcut, at $1$\,m) falls steadily as the spin-up lengthens, heading for the
+shortcut's certified tolerance (dashed). Two different starting temperatures
+converge to the \emph{same} place --- evidence that the two methods share one
+solution.}
+\label{fig:conv}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_equilibrium_demo.pdf}
+\caption{Fully converged brute force from $240$\,K \emph{and} $260$\,K (dashed)
+overlaid on the shortcut (solid). The profiles are indistinguishable; the
+residual (right, tens of mK) is just brute force finishing its slow descent.}
+\label{fig:overlay}
+\end{figure}
+
+\begin{takeaway}
+The new method is not a different model --- it reaches the \emph{same} periodic
+steady state, certified by two diagnostics it returns on every solve
+(guess-independence $\le 0.03$\,K, and the deep flux closing on $Q_b$ to $<2\%$;
+\figref{fig:cert}), and confirmed by brute force converging onto it. It removes
+the F1 bias not by running longer but by not needing to.
+\end{takeaway}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.80\linewidth]{figures/fig_equilibrium_certification.pdf}
+\caption{Self-certification: guess-independence and mean-flux closure --- the
+numbers that prove the shortcut arrived at the true steady state.}
+\label{fig:cert}
+\end{figure}
+
+% =====================================================================
+\section{Why might the two sites differ?}
+% =====================================================================
+A factor-of-two conductivity contrast is large but physically reasonable: the
+two boreholes sample different regolith.
+
+\begin{center}\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & \textbf{Apollo 15} & \textbf{Apollo 17} \\
+\midrule
+Setting & Hadley Rille (mare/front) & Taurus--Littrow valley \\
+Latitude & $26.1^\circ$N & $20.2^\circ$N \\
+Bond albedo & 0.131 & 0.137 \\
+Deepest sensor & $1.39$\,m & $2.34$\,m \\
+Basal flux $Q_b$ (held fixed) & $21\ \mathrm{mW\,m^{-2}}$ & $15\ \mathrm{mW\,m^{-2}}$ \\
+\textbf{Retrieved $K_d^{*}$} & $\mathbf{4.58}$ & $\mathbf{8.12}\ \kdunit$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+Heat moves through dry regolith mainly by grain-to-grain contact, so a higher
+$K_d$ points to a denser, more compacted, or more rock-rich deep regolith.
+Plausible contributors at Apollo~17:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{Material and compaction.} Taurus--Littrow mixes highland massif
+debris with dense pyroclastic (dark-mantle) material; Hadley samples mare-basalt
+regolith. Different parent material and packing change grain contact and bulk
+density.
+\item \textbf{Independent support.} Re-running the retrieval with the
+\emph{density}-based Mart\'inez model (Eq.~\eqref{eq:Kmartinez}) prefers a higher
+effective deep density at Apollo~17 --- the same contrast seen through a model
+whose free lever is density rather than $K_d$. Two independent descriptions
+point the same way.
+\item \textbf{Rock abundance / gardening.} More buried fragments, or a more
+mature and sintered column, would also raise the effective conductivity.
+\end{itemize}
+
+\begin{caveat}
+We hold $Q_b$ fixed (next section), so part of the inferred contrast is, in
+principle, exchangeable with a flux difference. A formal model comparison
+(deferred) favours a \emph{conductivity} contrast over a flux contrast, but the
+honest framing is: \emph{Apollo~17's regolith conducts heat about twice as
+efficiently as Apollo~15's, conditional on the published basal fluxes.}
+\end{caveat}
+
+% =====================================================================
+\section{The role of the basal heat flux \texorpdfstring{$Q_b$}{Qb}}
+% =====================================================================
+$K_d$ cannot be read off in isolation: the deep gradient is $Q_b/K$
+(Eq.~\eqref{eq:closure}), so $K_d$ and $Q_b$ \emph{trade off}. Assume more heat
+from below and you would infer a higher conductivity to reproduce the same
+temperatures. The two are entangled, and this single record cannot separate
+them.
+
+We therefore fix $Q_b$ at the published Apollo values --- $21\ \mathrm{mW\,m^{-2}}$
+(A15) and $15\ \mathrm{mW\,m^{-2}}$ (A17) --- and report $K_d$ \emph{conditional}
+on them. \figref{fig:qb} maps the trade-off: many $K_d$--$Q_b$ combinations along
+a diagonal fit almost equally well, so the absolute $K_d$ shifts if $Q_b$ does.
+Reassuringly, the \emph{direction} of the inter-site contrast (A17 $>$ A15)
+persists even when $Q_b$ is allowed to vary, and $Q_b$ is one of the largest
+single terms in the error budget --- a direct fingerprint of this coupling.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.64\linewidth]{figures/fig_kd_qb_posterior.pdf}
+\caption{The $K_d$--$Q_b$ trade-off. Because the deep gradient is $Q_b/K$, the
+two are degenerate along a diagonal; the retrieved $K_d$ is conditional on the
+assumed $Q_b$. The contrast \emph{between} sites is more robust than either
+absolute value.}
+\label{fig:qb}
+\end{figure}
+
+% =====================================================================
+\section{Why this is defensible --- the short version}
+% =====================================================================
+\begin{enumerate}[leftmargin=1.5em,itemsep=3pt]
+\item \textbf{The models are reproduced from first formulas}
+(Eqs.~\eqref{eq:Kc}--\eqref{eq:Kmartinez}, \figref{fig:models}); the global
+$K_d=3.4$ is a deliberate global average we are refining, not a measured site
+value.
+\item \textbf{The retrieval is transparent}: one unknown, a single RMSE minimum
+per site (\figref{fig:sweep}), and a visibly better fit to the data
+(\figref{fig:profiles}).
+\item \textbf{The engine is trustworthy}: the new solver is certified
+(\figref{fig:cert}) \emph{and} independently confirmed by brute force converging
+onto it as the lunations increase (\figref{fig:conv},~\ref{fig:overlay}) --- the
+old hidden-spin-up bias is gone.
+\item \textbf{The contrast is physically sensible} (denser/different regolith at
+Apollo~17) and is echoed by an independent density-based model.
+\item \textbf{We are explicit about $Q_b$}: $K_d$ is conditional on the assumed
+basal flux, the trade-off is mapped, and the inter-site \emph{direction} is the
+robust statement.
+\end{enumerate}
+
+\vspace{4pt}
+\noindent\textit{Reproduce any of this:} \code{notebooks/02\_retrieval.ipynb}
+(the sweep + result), \code{notebooks/equilibrium\_demo.ipynb}
+(\figref{fig:conv},~\ref{fig:overlay}), and \code{pytest tests/test\_equilibrium.py}
+(the certification checks).
+
+\end{document}

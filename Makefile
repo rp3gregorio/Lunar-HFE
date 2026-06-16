@@ -39,7 +39,7 @@ paper:               ## compile the letter, science guidebook, and code guide PD
 	cd paper/guidebook     && latexmk -pdf -interaction=nonstopmode guidebook.tex
 	cd paper/guidebook     && latexmk -pdf -interaction=nonstopmode guidebook_print.tex
 	cd docs/code_guide  && latexmk -pdf -interaction=nonstopmode code_guide.tex
-	cd docs/method_equivalence && latexmk -pdf -interaction=nonstopmode equivalence.tex
+	cd docs/justification && latexmk -pdf -interaction=nonstopmode justification.tex
 
 runtime:             ## run all 5 notebooks end-to-end with timing -> docs/RUNTIME.md
 	$(PY) scripts/run_all_timed.py
@@ -50,4 +50,4 @@ clean:               ## remove LaTeX build artifacts
 	cd paper/letter     && latexmk -C 2>/dev/null || true
 	cd paper/guidebook     && latexmk -C 2>/dev/null || true
 	cd docs/code_guide  && latexmk -C 2>/dev/null || true
-	cd docs/method_equivalence && latexmk -C 2>/dev/null || true
+	cd docs/justification && latexmk -C 2>/dev/null || true

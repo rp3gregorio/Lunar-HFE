@@ -84,6 +84,11 @@ Then run the 5 notebooks in order:
 | `03_results.ipynb` | Figs 4–8 (mean-T, $K_d$ sweep, bootstrap, thermal profiles, Diviner closure), Tables 2–3 |
 | `04_discussion.ipynb` | Figs 9–10 (robustness, $\alpha$-sweep), Table 4 |
 
+Optional: [`equilibrium_demo.ipynb`](notebooks/equilibrium_demo.ipynb) is a
+standalone demonstration (not part of the reproduction set) that a long
+brute-force spin-up converges onto the fast flux-anchored solver — it
+parallelises the independent runs across CPU cores.
+
 Each notebook is idempotent: re-running it overwrites the corresponding
 figures and any JSON it produces in `output/`. The canonical retrieval JSON
 ([`output/kd_retrieval_results.json`](output/kd_retrieval_results.json)) is committed for

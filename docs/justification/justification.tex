@@ -311,12 +311,47 @@ finally stopped moving.}
 
 \subsection{The new method: a flux-anchored shortcut}
 The new solver (\code{lunar/equilibrium.py}) does not wait for diffusion to
-discover Eq.~\eqref{eq:closure} --- it imposes it: (i) a \emph{short} spin-up
-settles the fast skin and fixes the cycle-mean ``anchor'' temperature just below
-it; (ii) from the anchor it integrates Eq.~\eqref{eq:closure} straight down to
-fill in the whole deep profile; (iii) iterate 3--5 times. It is like computing a
-tank's steady level from ``inflow $=$ outflow'' instead of waiting for the
-sloshing to stop.
+discover Eq.~\eqref{eq:closure} --- it \emph{imposes} it, alternating two moves
+(\figref{fig:newfilm}; animated in \code{docs/justification/newmethod.gif}):
+\begin{description}[leftmargin=2.6em,itemsep=2pt]
+\item[\textnormal{\textbf{Step A --- settle the skin.}}] A \emph{short} spin-up
+(a few lunations) settles only the fast surface skin and reads the cycle-mean
+``anchor'' temperature just below it. The deep column is left alone.
+\item[\textnormal{\textbf{Step B --- reconstruct the deep profile.}}] From that
+anchor, integrate $d\Tm/dz=Q_b/K$ straight down. This \emph{snaps} the whole deep
+profile onto the correct steady slope in one shot --- no waiting for heat to
+diffuse there.
+\end{description}
+Repeat A--B until the anchor stops moving. The decisive contrast: after only a
+few lunations the old method's deep regolith has \emph{not moved at all}
+(\figref{fig:film}), whereas the new method's first reconstruct already puts the
+deep profile on the right gradient (\figref{fig:newfilm}). In total the new
+method uses $\sim$150 lunations of computation ($\sim$9\,s, about a dozen short
+A--B rounds), versus the $\sim$1000+ lunations the old method must crawl
+through --- like computing a tank's steady level from ``inflow $=$ outflow''
+instead of waiting for the sloshing to stop.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/newmethod_filmstrip.pdf}
+\caption{The new method, step by step (compare \figref{fig:film}). A short
+spin-up settles the skin (Step A); the reconstruct move then integrates
+$d\Tm/dz=Q_b/K$ to snap the deep profile onto the steady gradient (Step B); a
+dozen short rounds refine it to the target. It reaches the \emph{same} profile
+as brute force in a tiny fraction of the work.}
+\label{fig:newfilm}
+\end{figure}
+
+\paragraph{What is the ``target'' in these figures?} The dashed line in
+\figref{fig:film} and \figref{fig:newfilm} is the \emph{true periodic steady
+state} --- the one profile that satisfies both defining conditions
+(periodic skin $+$ flux closure, \S4.1). We draw it as the new method's
+converged output, but it is not an arbitrary choice: it is exactly the profile
+the old brute-force method crawls onto when run to completion. \figref{fig:conv}
+and \figref{fig:overlay} show that independently --- brute force, started from
+two different temperatures and run for thousands of lunations, lands on this
+same line. So ``target'' $=$ ``what both methods agree on,'' computed quickly by
+one and confirmed by the other.
 
 \subsection{Do they agree? Yes --- run the lunations and watch}
 The cleanest demonstration is to take the \emph{old} method and simply give it

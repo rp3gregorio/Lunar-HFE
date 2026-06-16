@@ -265,6 +265,50 @@ leaked into $K_d$ as a hidden parameter. The trap: the usual ``did $\Tm$ change
 by $<0.01$\,K between lunations?'' check passes \emph{long before} the column is
 settled, so the answer looks converged while it is still drifting.
 
+\subsection{How the old spin-up actually runs --- step by step}
+It helps to watch what the model literally does. \figref{fig:film}
+(\textbf{animated in \code{docs/justification/spinup.gif}} --- play it) shows one
+brute-force spin-up from start to finish.
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=3pt]
+\item \textbf{Start from a guess.} We fill the whole $5$\,m column with one
+temperature --- here a flat $240$\,K (the green line, first panel). It is
+deliberately wrong; the point is to watch the model try to correct it.
+\item \textbf{Step through one lunar day.} ``One lunation'' is a full day--night
+cycle ($\sim$29.5 Earth days), which we march through in hourly steps. The Sun
+heats the surface by day and it radiates heat away by night, so the top few
+centimetres swing through a huge range (the shaded band). But that daily wave
+dies out within $\sim$10--20\,cm --- below that, the rock barely feels day or
+night.
+\item \textbf{Heat seeps downward --- slowly.} What reaches the deep regolith is
+not the daily wave but its \emph{average}, which conducts a little deeper each
+lunation. It is like warming a thick wall from one face: the far side responds
+only after a long time. After \textbf{30 lunations} (\figref{fig:film}, the
+highlighted panel) only the top $\sim$0.5\,m has adjusted --- the regolith from
+$\sim$1 to $5$\,m is still near the wrong $240$\,K start, and the steady deep
+slope (set by $Q_b$) has not formed.
+\item \textbf{Why so slow?} The time for heat to diffuse to depth $z$ grows like
+$z^{2}$, so reaching $5$\,m takes of order $10^{3}$ lunations --- about thirty
+times longer than the old $30$-lunation spin-up.
+\item \textbf{The damage.} The HFE sensors sit at $0.8$--$2.4$\,m --- exactly the
+region that has \emph{not} settled at 30 lunations. The old code read its $K_d$
+off that half-baked profile, so the arbitrary starting temperature leaked
+straight into the answer (flag~F1).
+\end{enumerate}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/spinup_filmstrip.pdf}
+\caption{\textbf{What ``brute force'' actually is.} Snapshots of one spin-up
+(green $=$ current profile; dashed $=$ the true steady state it is heading for;
+shaded $=$ the daily temperature swing). At 0 lunations the column is at the
+flat guess; by 30 lunations only the top has moved while the deep part still sits
+near the start; it takes hundreds of lunations to reach the target. The
+``brute-force line'' in the other figures is just this green curve once it has
+finally stopped moving.}
+\label{fig:film}
+\end{figure}
+
 \subsection{The new method: a flux-anchored shortcut}
 The new solver (\code{lunar/equilibrium.py}) does not wait for diffusion to
 discover Eq.~\eqref{eq:closure} --- it imposes it: (i) a \emph{short} spin-up

@@ -1,17 +1,16 @@
 % =====================================================================
-%  Per-site retrieval of lunar regolith thermal conductivity at the
-%  Apollo 15 & 17 heat-flow boreholes — models, method, and why it holds.
-%  A presentation-support write-up.
-%  Self-contained for Overleaf: upload this folder (justification.tex +
-%  figures/).  Compile:  latexmk -pdf justification.tex
+%  The periodic-equilibrium solver: origin, calculation, validation, C++.
+%  A detailed defence of the method (old brute-force spin-up vs. the new
+%  flux-anchored solver). Self-contained for Overleaf: upload this folder
+%  (justification.tex + figures/).  Compile:  latexmk -pdf justification.tex
 % =====================================================================
 \documentclass[11pt]{article}
 
 \usepackage[a4paper,margin=2.3cm]{geometry}
 \setlength{\emergencystretch}{3em}
 \usepackage[T1]{fontenc}
-\usepackage{newtxtext,newtxmath}            % Times — clean, journal-like
-\usepackage[scaled=0.92]{helvet}            % Helvetica for sans headings
+\usepackage{newtxtext,newtxmath}
+\usepackage[scaled=0.92]{helvet}
 \usepackage{microtype}
 \usepackage{amsmath}
 \usepackage{graphicx}
@@ -24,482 +23,385 @@
 \usepackage{fancyhdr}
 \usepackage[hidelinks]{hyperref}
 
-% ---- palette (matches the figures) ----
 \definecolor{forest}{HTML}{3D6E4A}
 \definecolor{coral}{HTML}{B85B3A}
 \definecolor{char}{HTML}{2B2B2B}
 \definecolor{dim}{HTML}{6B6B6B}
 \definecolor{rulec}{HTML}{C9C2B6}
+\definecolor{codebg}{HTML}{F4F2EE}
 \hypersetup{colorlinks=true,allcolors=forest}
 
-% ---- headings (sans, forest) ----
-\titleformat{\section}{\normalfont\sffamily\large\bfseries\color{forest}}
-  {\thesection}{0.6em}{}
-\titleformat{\subsection}{\normalfont\sffamily\bfseries\color{char}}
-  {\thesubsection}{0.5em}{}
-\titlespacing*{\section}{0pt}{14pt}{6pt}
-\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+\titleformat{\section}{\normalfont\sffamily\large\bfseries\color{forest}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\sffamily\bfseries\color{char}}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{14pt}{5pt}
+\titlespacing*{\subsection}{0pt}{9pt}{3pt}
 
 \pagestyle{fancy}\fancyhf{}
 \renewcommand{\headrulewidth}{0.4pt}
-\renewcommand{\footrulewidth}{0pt}
-\fancyhead[L]{\sffamily\footnotesize\color{dim}Apollo 15 \& 17 \;$K_d$ retrieval}
+\fancyhead[L]{\sffamily\footnotesize\color{dim}The periodic-equilibrium solver}
 \fancyhead[R]{\sffamily\footnotesize\color{dim}\thepage}
 
 \newcommand{\Tm}{\langle T\rangle}
 \newcommand{\code}[1]{{\ttfamily\small #1}}
-\newcommand{\kdunit}{\mathrm{mW\,m^{-1}\,K^{-1}}}
-
-\newtcolorbox{takeaway}[1][]{colback=forest!6,colframe=forest!55,boxrule=0.7pt,
-  arc=2pt,left=8pt,right=8pt,top=5pt,bottom=5pt,
-  title={\sffamily\bfseries Takeaway},coltitle=forest,fonttitle=\small,#1}
-\newtcolorbox{caveat}[1][]{colback=coral!7,colframe=coral!60,boxrule=0.7pt,
-  arc=2pt,left=8pt,right=8pt,top=5pt,bottom=5pt,
-  title={\sffamily\bfseries Be honest about},coltitle=coral,fonttitle=\small,#1}
-
 \newcommand{\figref}[1]{Fig.~\ref{#1}}
+\newtcolorbox{kbox}[2][]{colback=#2!6,colframe=#2!55,boxrule=0.7pt,arc=2pt,
+  left=8pt,right=8pt,top=5pt,bottom=5pt,#1}
 
 \begin{document}
 \thispagestyle{empty}
-
-% ---------- title block ----------
 \begingroup\color{forest}\hrule height 2pt\endgroup
 \vspace{8pt}
-{\sffamily\bfseries\LARGE Per-site retrieval of regolith thermal conductivity\\[2pt]
-at the Apollo 15 and 17 heat-flow boreholes\par}
-\vspace{4pt}
-{\sffamily\large\color{dim} Models, method, and why the result holds --- a walkthrough\par}
-\vspace{6pt}
+{\sffamily\bfseries\LARGE The periodic-equilibrium solver\par}
+\vspace{3pt}
+{\sffamily\large\color{dim} Where it came from, exactly how it computes, how we
+know it is right, and porting it to C++\par}
+\vspace{5pt}
 {\color{char} R.\,P.\ Gregorio \quad\textbullet\quad Kasai Laboratory, Institute of Science Tokyo}
 \vspace{6pt}
 \begingroup\color{rulec}\hrule height 1pt\endgroup
-\vspace{10pt}
+\vspace{9pt}
 
-\noindent\textit{Purpose.} This note lays out, end to end, what we did and why
-it is defensible: how the two published conductivity models are built and why
-the literature uses a single ``global'' $K_d$; how we instead retrieve $K_d$
-\emph{separately} at each borehole; what changed between the old and new
-steady-state solver and why the two give the same answer; a physical reading of
-why the two sites differ; and the role of the basal heat flux $Q_b$. (The
-statistical machinery --- bootstrap intervals, model selection --- is deferred;
-here the focus is the physics and the method.)
-
-% =====================================================================
-\section{The goal and the two sites}
-% =====================================================================
-The deep regolith thermal conductivity $K_d$ sets how steeply temperature rises
-with depth and how much of the Moon's interior heat reaches the surface. The
-Apollo Heat-Flow Experiment (HFE) left buried temperature sensors at two very
-different places (\figref{fig:map}): \textbf{Apollo~15} at Hadley Rille on the
-Imbrium mare/Apennine boundary, and \textbf{Apollo~17} in the Taurus--Littrow
-valley among highland massifs and dark pyroclastic mantle. The published thermal
-models use \emph{one} global $K_d$ for the whole Moon. Our question is simple:
-\emph{what is $K_d$ at each of these boreholes, separately?}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.72\linewidth]{figures/fig_context_map.pdf}
-\caption{The two heat-flow boreholes sit in geologically distinct terrains ---
-a first hint that a single global conductivity may not fit both.}
-\label{fig:map}
-\end{figure}
+\noindent This document is a complete defence of \emph{one} piece of the
+pipeline: the routine that drives the regolith to its periodic steady state, on
+which the whole $K_d$ retrieval rests. It covers (1)~how the method came about,
+(2)~the old and new calculations in full numerical detail, (3)~precisely how
+they differ, (4)~how we know the new one is right, and (5)~a concrete C++ port.
+Animated companions: \code{spinup.gif}, \code{newmethod.gif},
+\code{reconstruct.gif} (in this folder).
 
 % =====================================================================
-\section{The two published conductivity models (and how to reproduce them)}
+\section{How the method came about}
 % =====================================================================
-Both models give the regolith conductivity $K$ as a function of temperature $T$
-and depth $z$. Reproducing them is just evaluating the formulas below; our code
-does exactly this in \code{lunar/properties.py}.
-
-\subsection{Hayne et al.\ (2017): the H-parameter model}
-The regolith is loose and porous at the surface and compacts with depth, so the
-solid (contact) conductivity rises from a surface value $K_s$ to a deep value
-$K_d$ over an $e$-folding depth $H$:
+\subsection{What has to be solved}
+To retrieve $K_d$ we compare modelled deep temperatures to the Apollo sensors.
+``Modelled'' means: integrate the 1-D heat equation in the regolith,
 \begin{equation}
-K_c(z) = K_d - (K_d - K_s)\,e^{-z/H}.
-\label{eq:Kc}
-\end{equation}
-Radiation across pore spaces then adds a strongly temperature-dependent term:
-\begin{equation}
-K(T,z) = K_c(z)\,\Bigl[\,1 + \chi\,(T/T_{\mathrm{ref}})^{3}\,\Bigr],
-\qquad T_{\mathrm{ref}}=350\,\mathrm{K}.
-\label{eq:Khayne}
-\end{equation}
-The bulk density follows the same compaction law,
-$\rho(z)=\rho_d-(\rho_d-\rho_s)e^{-z/H}$. The cited parameters are:
-
-\begin{center}\small
-\begin{tabular}{@{}lll@{}}
-\toprule
-Symbol & Value & Meaning \\
-\midrule
-$K_s$ & $0.74\ \kdunit$ & surface contact conductivity \\
-$K_d$ & $3.4\ \kdunit$ \textbf{(global)} & \textbf{deep contact conductivity --- the value we refine} \\
-$H$   & $0.06\,\mathrm{m}$ & compaction $e$-folding depth \\
-$\chi$ & $2.7$ & radiative-term strength \\
-$T_{\mathrm{ref}}$ & $350\,\mathrm{K}$ & radiative normalisation \\
-$\rho_s,\rho_d$ & $1100,\,1800\ \mathrm{kg\,m^{-3}}$ & surface / deep bulk density \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\paragraph{Why the literature value is $K_d=3.4$.} Hayne et al.\ fit
-Eqs.~\eqref{eq:Kc}--\eqref{eq:Khayne} to the \emph{globally averaged} diurnal
-surface-temperature curves measured from orbit by the Diviner radiometer. A
-single $(K_s,K_d,H,\chi)$ best reproduced the global day--night behaviour, and
-$K_d=3.4\ \kdunit$ is that global-average deep asymptote. It was never meant to
-be site-specific --- which is exactly the gap we fill. \figref{fig:models}(a)
-shows where that asymptote sits and where our per-site values move it.
-
-\subsection{Mart\'inez \& Siegler (2021): a density-based model}
-This model writes the conductivity directly in terms of bulk density $\rho$,
-splitting it into a contact (phonon) term and a radiative term:
-\begin{equation}
-K(T,\rho) = (A_1\rho + A_2)\,k_{\mathrm{am}}(T) \;+\; (B_1\rho + B_2)\,T^{3},
-\label{eq:Kmartinez}
-\end{equation}
-where $k_{\mathrm{am}}(T)$ is the Woods--Robinson et al.\ (2019) amorphous-solid
-polynomial and $A_{1,2},B_{1,2}$ are fitted constants. The two models use
-different physics for the same quantity; \figref{fig:models}(b) shows they
-predict comparable total conductivity and the same steep rise with temperature.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_models.pdf}
-\caption{\textbf{Reproducing both models.} (a)~Hayne contact conductivity
-$K_c(z)$, Eq.~\eqref{eq:Kc}: it climbs from $K_s$ at the surface to its deep
-asymptote $K_d$. The published \emph{global} value is $3.4$; our per-site
-retrievals push it to $4.58$ (A15) and $8.12$ (A17). (b)~Full conductivity vs.\
-temperature at $1$\,m, Eq.~\eqref{eq:Khayne}, for Hayne and Mart\'inez --- the
-radiative $\propto T^3$ term roughly doubles $K$ by lunar midday. Both panels
-are evaluated directly from the model code.}
-\label{fig:models}
-\end{figure}
-
-% =====================================================================
-\section{Our method: retrieving \texorpdfstring{$K_d$}{Kd} per site}
-% =====================================================================
-\subsection{The forward model}
-We solve the 1-D heat equation in the regolith column,
-\begin{equation}
-\rho(z)\,c_p(T)\,\frac{\partial T}{\partial t}
-   = \frac{\partial}{\partial z}\!\left(K(T,z)\,\frac{\partial T}{\partial z}\right),
+\rho(z)\,c_p(T)\,\partial_t T = \partial_z\!\bigl(K(T,z)\,\partial_z T\bigr),
 \label{eq:heat}
 \end{equation}
-on a grid that is millimetre-fine at the top (to resolve the daily thermal wave)
-and reaches $5$\,m. The surface obeys a non-linear radiative balance,
-$(1-A)\,S(t) = \varepsilon\sigma T_s^4 + K\,\partial_z T|_0$, and the bottom
-admits the geothermal flux, $K\,\partial_z T = Q_b$. Driven by the periodic Sun,
-the column settles to a periodic steady state; that settled profile is what we
-compare to the sensors.
+under a periodic Sun until the column reaches its \emph{periodic steady state}
+--- the condition where each lunation is identical to the last. Only then can we
+read off the cycle-mean temperature $\Tm(z)$ at the sensor depths and compare.
+Everything hinges on actually reaching that state.
 
-\subsection{The retrieval}
-We hold the Hayne functional form fixed and treat $K_d$ as the single unknown.
-For each trial $K_d$ we solve Eq.~\eqref{eq:heat} to steady state and measure the
-misfit to the deep sensors,
+\subsection{The naive method, and the bug we hit (flag F1)}
+The original code reached steady state the obvious way: start from a guessed
+profile and step Eq.~\eqref{eq:heat} forward for a fixed number of lunations
+(about 30), declaring success when the cycle-to-cycle change fell below
+$0.01$\,K. \textbf{The symptom that something was wrong:} the retrieved $K_d$
+moved when we changed the \emph{starting} temperature --- a physical answer must
+not depend on an arbitrary initial guess.
+
+\textbf{The diagnosis:} a fixed 30-lunation spin-up never reaches steady state at
+sensor depth. The column relaxes on the diffusive timescale of its full depth,
 \begin{equation}
-\mathrm{RMSE}(K_d) = \sqrt{\tfrac{1}{N}\textstyle\sum_i
-   \bigl[\,\Tm(z_i;K_d) - T^{\mathrm{obs}}_i\,\bigr]^2 },
-\qquad
-K_d^{*} = \arg\min_{K_d}\ \mathrm{RMSE}(K_d).
+\tau \sim \frac{z_{\max}^2}{\kappa}\approx \text{order }10^3\ \text{lunations}
+\qquad(z_{\max}=5\,\text{m},\ \kappa\sim10^{-8}\,\mathrm{m^2 s^{-1}}),
 \end{equation}
-The misfit curve has a clean single minimum at each site (\figref{fig:sweep}),
-and that minimum is the retrieved $K_d^{*}$.
+so after 30 lunations the deep regolith still holds its initial value, and that
+value leaks straight into $K_d$. Worse, the convergence test \emph{lied}: because
+the deep drift is so slow, the cycle-to-cycle change is already $<0.01$\,K while
+the profile is still far from settled. The model looked converged when it was
+not. (This is documented as audit flag~F1 in \code{docs/FLAG\_REPORT.md}.)
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.76\linewidth]{figures/fig_kd_sweep.pdf}
-\caption{The retrieval, visualised: deep-sensor RMSE vs.\ trial $K_d$. Each site
-has a well-defined minimum, and Apollo~17's sits at a clearly higher
-conductivity than Apollo~15's.}
-\label{fig:sweep}
-\end{figure}
-
-\subsection{Result}
-The retrieval gives
-\[
-K_{d,\mathrm{A15}}^{*} = 4.58\ \kdunit,\qquad
-K_{d,\mathrm{A17}}^{*} = 8.12\ \kdunit,
-\]
-i.e.\ Apollo~17 is about twice as conductive as Apollo~15. With these per-site
-values the modelled deep temperatures track the data far better than the single
-global $K_d$ does (\figref{fig:profiles}); at Apollo~17 the misfit is roughly
-halved. (Confidence intervals and significance are quantified separately by
-bootstrap --- deferred here.)
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.76\linewidth]{figures/fig_thermal_profiles.pdf}
-\caption{Settled mean temperature vs.\ depth using each site's \emph{retrieved}
-$K_d^{*}$, against the deep-sensor measurements. The per-site fit threads the
-data better than the global value can.}
-\label{fig:profiles}
-\end{figure}
-
-% =====================================================================
-\section{Old vs.\ new: how we reach the steady state}
-% =====================================================================
-Everything above rests on ``solve to steady state.'' That step is where the old
-code went wrong, and where the new method earns its trust.
-
-\subsection{What ``steady state'' requires}
-The periodic steady state is pinned by two facts: the surface skin repeats each
-lunation, and --- below the skin, with no internal heat sources --- the same
-flux passes through every layer and equals the bottom flux $Q_b$. That fixes the
-deep gradient:
+\subsection{The insight that fixed it}
+The escape came from asking what the steady state actually \emph{is}, rather than
+waiting for it. Below the diurnal skin there are no heat sources, so at steady
+state the same geothermal flux $Q_b$ passes through every layer; with Fourier's
+law $q=K\,\partial_z T$ this fixes the deep gradient exactly:
 \begin{equation}
 K(\Tm,z)\,\frac{d\Tm}{dz}=Q_b
 \quad\Longrightarrow\quad
 \frac{d\Tm}{dz}=\frac{Q_b}{K(\Tm,z)} .
 \label{eq:closure}
 \end{equation}
-The deep profile is therefore \emph{not} free; energy conservation fixes its
-slope once the temperature at one depth is known.
+The deep profile is therefore \emph{not} something to be discovered by long
+integration --- it is determined by Eq.~\eqref{eq:closure} once the temperature
+at a single shallow ``anchor'' depth is known. That observation is the whole
+method: settle the fast skin to get the anchor, then \emph{impose}
+Eq.~\eqref{eq:closure} for the deep column instead of waiting for diffusion to
+find it. The result is the flux-anchored solver, \code{lunar/equilibrium.py}.
 
-\subsection{The old method, and its hidden bias (flag F1)}
-The old approach integrated Eq.~\eqref{eq:heat} forward for a fixed, short
-spin-up ($\sim$30 lunations). But the full column relaxes on a diffusive
-timescale of order $10^3$ lunations, so at sensor depth the profile still
-\emph{remembered the temperature it was started from}. That starting guess then
-leaked into $K_d$ as a hidden parameter. The trap: the usual ``did $\Tm$ change
-by $<0.01$\,K between lunations?'' check passes \emph{long before} the column is
-settled, so the answer looks converged while it is still drifting.
+% =====================================================================
+\section{The old calculation, in full detail}
+% =====================================================================
+\subsection{Discretisation}
+The column is a geometric grid of $N\approx69$ cells, millimetre-thin at the
+surface and growing to $5$\,m. Time advances in $\Delta t=3600$\,s steps
+($\sim$709 steps per lunation). Equation~\eqref{eq:heat} is integrated with
+Crank--Nicolson (second-order, unconditionally stable), with material
+properties frozen at the explicit half-step (the standard linearisation for a
+mildly non-linear diffusion).
 
-\subsection{How the old spin-up actually runs --- step by step}
-It helps to watch what the model literally does. \figref{fig:film}
-(\textbf{animated in \code{docs/justification/spinup.gif}} --- play it) shows one
-brute-force spin-up from start to finish.
+\subsection{One time step}
+For interior cell $i$ define the face conductances
+$\alpha^{L}_i=\Delta t\,K_{i-1/2}/(\delta z_i\,c_i)$ and
+$\alpha^{R}_i=\Delta t\,K_{i+1/2}/(\delta z_{i+1}\,c_i)$, where $K_{i\pm1/2}$ are
+\emph{harmonic-mean} face conductivities, $c_i=\rho_i c_{p,i}\Delta z_i$ is the
+heat capacity of the cell, and $\delta z$ are centre-to-centre spacings. One
+Crank--Nicolson step solves the tridiagonal system $A\,T^{n+1}=d$ with
+\begin{equation}
+a_i=-\tfrac12\alpha^{L}_i,\quad
+b_i=1+\tfrac12(\alpha^{L}_i+\alpha^{R}_i),\quad
+c_i=-\tfrac12\alpha^{R}_i,
+\end{equation}
+\begin{equation}
+d_i=\tfrac12\alpha^{L}_i\,T^{n}_{i-1}
+   +\bigl[1-\tfrac12(\alpha^{L}_i+\alpha^{R}_i)\bigr]T^{n}_i
+   +\tfrac12\alpha^{R}_i\,T^{n}_{i+1}.
+\end{equation}
+This is solved by the \textbf{Thomas algorithm} (one forward sweep,
+$c'_i=c_i/(b_i-a_ic'_{i-1})$, $d'_i=(d_i-a_id'_{i-1})/(b_i-a_ic'_{i-1})$, then
+back-substitution $T_i=d'_i-c'_iT_{i+1}$). The two boundaries enter as:
+\begin{itemize}[leftmargin=1.4em,itemsep=1pt]
+\item \textbf{Surface (radiative).} The skin temperature $T_s$ is found each step
+by Newton iteration on the non-linear energy balance
+$R(T_s)=(1-A)S-\varepsilon\sigma T_s^4-K_s\,(T_s-T_0)/(\tfrac12\Delta z_0)=0$,
+with $R'(T_s)=-4\varepsilon\sigma T_s^3-2K_s/\Delta z_0$; the converged $T_s$
+feeds the cell-0 ghost terms.
+\item \textbf{Bottom (geothermal).} A Neumann flux: $b_{N}$ drops its right-face
+term and the source $d_{N}\mathrel{+}=\Delta t\,Q_b/c_N$ is added.
+\end{itemize}
+(Code: \code{lunar/solver.py}, functions \code{\_step}, \code{\_thomas},
+\code{\_solve\_surface\_newton}.)
 
-\begin{enumerate}[leftmargin=1.5em,itemsep=3pt]
-\item \textbf{Start from a guess.} We fill the whole $5$\,m column with one
-temperature --- here a flat $240$\,K (the green line, first panel). It is
-deliberately wrong; the point is to watch the model try to correct it.
-\item \textbf{Step through one lunar day.} ``One lunation'' is a full day--night
-cycle ($\sim$29.5 Earth days), which we march through in hourly steps. The Sun
-heats the surface by day and it radiates heat away by night, so the top few
-centimetres swing through a huge range (the shaded band). But that daily wave
-dies out within $\sim$10--20\,cm --- below that, the rock barely feels day or
-night.
-\item \textbf{Heat seeps downward --- slowly.} What reaches the deep regolith is
-not the daily wave but its \emph{average}, which conducts a little deeper each
-lunation. It is like warming a thick wall from one face: the far side responds
-only after a long time. After \textbf{30 lunations} (\figref{fig:film}, the
-highlighted panel) only the top $\sim$0.5\,m has adjusted --- the regolith from
-$\sim$1 to $5$\,m is still near the wrong $240$\,K start, and the steady deep
-slope (set by $Q_b$) has not formed.
-\item \textbf{Why so slow?} The time for heat to diffuse to depth $z$ grows like
-$z^{2}$, so reaching $5$\,m takes of order $10^{3}$ lunations --- about thirty
-times longer than the old $30$-lunation spin-up.
-\item \textbf{The damage.} The HFE sensors sit at $0.8$--$2.4$\,m --- exactly the
-region that has \emph{not} settled at 30 lunations. The old code read its $K_d$
-off that half-baked profile, so the arbitrary starting temperature leaked
-straight into the answer (flag~F1).
-\end{enumerate}
+\subsection{The spin-up loop}
+The driver repeats: run all $\sim$709 steps of one lunation, compare the new
+cycle to the previous one, and stop when $\max_i|T^{(k+1)}_i-T^{(k)}_i|<0.01$\,K.
+The \emph{only} knobs are the starting profile and the number of lunations.
+
+\subsection{Why 30 lunations fails}
+\figref{fig:film} (animated in \code{spinup.gif}) shows it. The Sun's daily wave
+penetrates only $\sim$10--20\,cm; below that, what changes the deep regolith is
+the slow downward conduction of the \emph{mean}, advancing $\sim z^2$ in time.
+After 30 lunations only the top $\sim$0.5\,m has adjusted; the regolith from
+$1$--$5$\,m still sits at the initial guess, and the steady slope
+(Eq.~\eqref{eq:closure}) has not formed. The sensors at $0.8$--$2.4$\,m lie
+exactly in that unsettled zone --- hence the bias.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{figures/spinup_filmstrip.pdf}
-\caption{\textbf{What ``brute force'' actually is.} Snapshots of one spin-up
-(green $=$ current profile; dashed $=$ the true steady state it is heading for;
-shaded $=$ the daily temperature swing). At 0 lunations the column is at the
-flat guess; by 30 lunations only the top has moved while the deep part still sits
-near the start; it takes hundreds of lunations to reach the target. The
-``brute-force line'' in the other figures is just this green curve once it has
-finally stopped moving.}
+\caption{Old method (brute force). Green $=$ current profile; dashed $=$ the true
+steady state; shaded $=$ daily swing. At 30 lunations only the top has moved; it
+takes hundreds of lunations to reach the target.}
 \label{fig:film}
 \end{figure}
 
-\subsection{The new method: a flux-anchored shortcut}
-The new solver (\code{lunar/equilibrium.py}) does not wait for diffusion to
-discover Eq.~\eqref{eq:closure} --- it \emph{imposes} it, alternating two moves
-(\figref{fig:newfilm}; animated in \code{docs/justification/newmethod.gif}):
-\begin{description}[leftmargin=2.6em,itemsep=2pt]
-\item[\textnormal{\textbf{Step A --- settle the skin.}}] A \emph{short} spin-up
-(a few lunations) settles only the fast surface skin and reads the cycle-mean
-``anchor'' temperature just below it. The deep column is left alone.
-\item[\textnormal{\textbf{Step B --- reconstruct the deep profile.}}] From that
-anchor, integrate $d\Tm/dz=Q_b/K$ straight down. This \emph{snaps} the whole deep
-profile onto the correct steady slope in one shot --- no waiting for heat to
-diffuse there. (\code{docs/justification/reconstruct.gif} animates exactly this:
-start at the anchor and walk downward; at every depth the slope is forced to be
-$Q_b/K$, so the deep profile draws itself.)
-\end{description}
-Repeat A--B until the anchor stops moving. The decisive contrast: after only a
-few lunations the old method's deep regolith has \emph{not moved at all}
-(\figref{fig:film}), whereas the new method's first reconstruct already puts the
-deep profile on the right gradient (\figref{fig:newfilm}). In total the new
-method uses $\sim$150 lunations of computation ($\sim$9\,s, about a dozen short
-A--B rounds), versus the $\sim$1000+ lunations the old method must crawl
-through --- like computing a tank's steady level from ``inflow $=$ outflow''
-instead of waiting for the sloshing to stop.
+% =====================================================================
+\section{The new calculation, in full detail}
+% =====================================================================
+The new solver keeps the \emph{exact same} time-stepper of \S2.2 --- it does not
+change the physics. It only changes \emph{how long} that stepper runs and what
+happens between runs. It alternates two moves (\figref{fig:newfilm}; animated in
+\code{newmethod.gif}).
+
+\subsection{Step A --- settle the skin}
+Run the stepper for a \emph{short} block of $n$ lunations from the current
+profile. Because the skin is shallow it equilibrates in a handful of lunations.
+Read the cycle-mean ``anchor'' temperature $\Tm(z_0)$ just below the skin.
+
+\subsection{Step B --- reconstruct the deep profile}
+From the anchor, integrate Eq.~\eqref{eq:closure} \emph{downward} to set every
+deeper cell. The code uses a midpoint (RK2) step (\code{\_reconstruct\_subskin}):
+\begin{equation}
+q_i = Q_b - u_i,\quad
+T_{1/2}=T_i+\tfrac12\frac{q_i}{K(T_i,z_i)}\Delta z,\quad
+T_{i+1}=T_i+\frac{q_i}{K(T_{1/2},z_{1/2})}\,\Delta z .
+\label{eq:recon}
+\end{equation}
+This is the move people find surprising: the deep temperatures are not simulated,
+they are \emph{computed} by walking down a known slope. With $Q_b=21$\,mW\,m$^{-2}$
+and $K\approx9$\,mW\,m$^{-1}$K$^{-1}$ at depth, the slope is $\sim$2.3\,K/m, so
+each metre adds $\sim$2.3\,K from the anchor downward (animated in
+\code{reconstruct.gif}).
+
+\subsection{The rectification correction \texorpdfstring{$u_i$}{u}}
+Near the skin the daily wave is still large, and the cycle-mean of the
+\emph{nonlinear} flux is not quite $K(\Tm)\,\partial_z\Tm$; the difference is the
+``rectified'' eddy term $u(z)=\langle K\,\partial_zT\rangle-K(\Tm)\,\partial_z\Tm$,
+computed exactly from the cycle (\code{\_rectified\_flux}) and subtracted in
+Eq.~\eqref{eq:recon}. It is a few percent of $Q_b$ at the anchor and negligible
+below $\sim$1\,m, but including it keeps the closure exact.
+
+\subsection{The outer iteration (exact schedule)}
+Steps A--B are iterated as a two-stage schedule (\code{solve\_periodic\_equilibrium}):
+\begin{center}\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Stage & anchor $z_0$ & inner lunations $n$ & max outer its & stop when drift $<$ \\
+\midrule
+1 (coarse) & 0.25\,m & 4  & 4  & 0.10\,K \\
+2 (fine)   & 0.55\,m & 12 & 20 & 0.005\,K \\
+\bottomrule
+\end{tabular}
+\end{center}
+Stage 1 cheaply kills the bulk of the initial-guess error high in the column;
+stage 2 anchors below the rectification zone and iterates to tolerance. ``Drift''
+is the change in the anchor temperature between successive outer iterations. In
+practice this converges in about a dozen outer rounds --- \textbf{$\sim$150
+lunations of stepping in total} (the rest of each iteration is the cheap
+algebra of Eq.~\eqref{eq:recon}).
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{figures/newmethod_filmstrip.pdf}
-\caption{The new method, step by step (compare \figref{fig:film}). A short
-spin-up settles the skin (Step A); the reconstruct move then integrates
-$d\Tm/dz=Q_b/K$ to snap the deep profile onto the steady gradient (Step B); a
-dozen short rounds refine it to the target. It reaches the \emph{same} profile
-as brute force in a tiny fraction of the work.}
+\caption{New method. A short spin-up settles the skin (Step A); the reconstruct
+move snaps the deep profile onto the steady gradient (Step B); a dozen short
+rounds refine it to the target.}
 \label{fig:newfilm}
 \end{figure}
 
-\paragraph{What is the ``target'' in these figures?} The dashed line in
-\figref{fig:film} and \figref{fig:newfilm} is the \emph{true periodic steady
-state} --- the one profile that satisfies both defining conditions
-(periodic skin $+$ flux closure, \S4.1). We draw it as the new method's
-converged output, but it is not an arbitrary choice: it is exactly the profile
-the old brute-force method crawls onto when run to completion. \figref{fig:conv}
-and \figref{fig:overlay} show that independently --- brute force, started from
-two different temperatures and run for thousands of lunations, lands on this
-same line. So ``target'' $=$ ``what both methods agree on,'' computed quickly by
-one and confirmed by the other.
-
-\subsection{Do they agree? Yes --- run the lunations and watch}
-The cleanest demonstration is to take the \emph{old} method and simply give it
-more lunations: as the spin-up lengthens, its profile marches monotonically onto
-the new method's answer (\figref{fig:conv}). Starting from two very different
-temperatures, $240$\,K and $260$\,K, both collapse onto the same curve
-(\figref{fig:overlay}). They must: both enforce the same two conditions, and the
-steady state satisfying them is unique --- the shortcut just gets there in
-$\sim$9\,s instead of the $\sim$3000 lunations ($\sim$4\,min) brute force needs.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.70\linewidth]{figures/fig_convergence.pdf}
-\caption{\textbf{The ``increasing-lunations'' graph.} Brute-force error (vs.\ the
-shortcut, at $1$\,m) falls steadily as the spin-up lengthens, heading for the
-shortcut's certified tolerance (dashed). Two different starting temperatures
-converge to the \emph{same} place --- evidence that the two methods share one
-solution.}
-\label{fig:conv}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_equilibrium_demo.pdf}
-\caption{Fully converged brute force from $240$\,K \emph{and} $260$\,K (dashed)
-overlaid on the shortcut (solid). The profiles are indistinguishable; the
-residual (right, tens of mK) is just brute force finishing its slow descent.}
-\label{fig:overlay}
-\end{figure}
-
-\begin{takeaway}
-The new method is not a different model --- it reaches the \emph{same} periodic
-steady state, certified by two diagnostics it returns on every solve
-(guess-independence $\le 0.03$\,K, and the deep flux closing on $Q_b$ to $<2\%$;
-\figref{fig:cert}), and confirmed by brute force converging onto it. It removes
-the F1 bias not by running longer but by not needing to.
-\end{takeaway}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.80\linewidth]{figures/fig_equilibrium_certification.pdf}
-\caption{Self-certification: guess-independence and mean-flux closure --- the
-numbers that prove the shortcut arrived at the true steady state.}
-\label{fig:cert}
-\end{figure}
-
 % =====================================================================
-\section{Why might the two sites differ?}
+\section{The precise difference between the two calculations}
 % =====================================================================
-A factor-of-two conductivity contrast is large but physically reasonable: the
-two boreholes sample different regolith.
+Both run the identical Crank--Nicolson stepper. The difference is entirely in how
+the \emph{deep} profile is obtained:
 
 \begin{center}\small
-\begin{tabular}{@{}lcc@{}}
+\begin{tabular}{@{}p{4.4cm}p{5.3cm}p{5.3cm}@{}}
 \toprule
- & \textbf{Apollo 15} & \textbf{Apollo 17} \\
+ & \textbf{Old (brute force)} & \textbf{New (flux-anchored)} \\
 \midrule
-Setting & Hadley Rille (mare/front) & Taurus--Littrow valley \\
-Latitude & $26.1^\circ$N & $20.2^\circ$N \\
-Bond albedo & 0.131 & 0.137 \\
-Deepest sensor & $1.39$\,m & $2.34$\,m \\
-Basal flux $Q_b$ (held fixed) & $21\ \mathrm{mW\,m^{-2}}$ & $15\ \mathrm{mW\,m^{-2}}$ \\
-\textbf{Retrieved $K_d^{*}$} & $\mathbf{4.58}$ & $\mathbf{8.12}\ \kdunit$ \\
+How the deep profile is set & by waiting for heat to diffuse down over the full $\tau\sim10^3$ lunations & computed directly from $d\Tm/dz=Q_b/K$ (Eq.~\eqref{eq:recon}) after a short skin spin-up \\
+Stepping done & $\sim$1000+ lunations in one long run & $\sim$150 lunations, in $\sim$12 short blocks \\
+Depends on the initial guess? & yes (if stopped early) & no --- the deep profile is reconstructed each round \\
+Convergence test & cycle-to-cycle $\Delta T$ (can give a false positive) & anchor drift $+$ flux closure on $Q_b$ (cannot) \\
+Wall time per solve & $\sim$4\,min & $\sim$9\,s \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent
-Heat moves through dry regolith mainly by grain-to-grain contact, so a higher
-$K_d$ points to a denser, more compacted, or more rock-rich deep regolith.
-Plausible contributors at Apollo~17:
-\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
-\item \textbf{Material and compaction.} Taurus--Littrow mixes highland massif
-debris with dense pyroclastic (dark-mantle) material; Hadley samples mare-basalt
-regolith. Different parent material and packing change grain contact and bulk
-density.
-\item \textbf{Independent support.} Re-running the retrieval with the
-\emph{density}-based Mart\'inez model (Eq.~\eqref{eq:Kmartinez}) prefers a higher
-effective deep density at Apollo~17 --- the same contrast seen through a model
-whose free lever is density rather than $K_d$. Two independent descriptions
-point the same way.
-\item \textbf{Rock abundance / gardening.} More buried fragments, or a more
-mature and sintered column, would also raise the effective conductivity.
-\end{itemize}
-
-\begin{caveat}
-We hold $Q_b$ fixed (next section), so part of the inferred contrast is, in
-principle, exchangeable with a flux difference. A formal model comparison
-(deferred) favours a \emph{conductivity} contrast over a flux contrast, but the
-honest framing is: \emph{Apollo~17's regolith conducts heat about twice as
-efficiently as Apollo~15's, conditional on the published basal fluxes.}
-\end{caveat}
+\begin{kbox}{forest}
+In one sentence: the old method \emph{discovers} the deep gradient $Q_b/K$ slowly
+by letting heat diffuse; the new method \emph{writes it down} from energy
+conservation and only simulates the fast shallow part. Same physics, same
+stepper, same answer --- $\sim$30$\times$ less work.
+\end{kbox}
 
 % =====================================================================
-\section{The role of the basal heat flux \texorpdfstring{$Q_b$}{Qb}}
+\section{How we know the new method is right}
 % =====================================================================
-$K_d$ cannot be read off in isolation: the deep gradient is $Q_b/K$
-(Eq.~\eqref{eq:closure}), so $K_d$ and $Q_b$ \emph{trade off}. Assume more heat
-from below and you would infer a higher conductivity to reproduce the same
-temperatures. The two are entangled, and this single record cannot separate
-them.
+Five independent checks, in increasing strength:
 
-We therefore fix $Q_b$ at the published Apollo values --- $21\ \mathrm{mW\,m^{-2}}$
-(A15) and $15\ \mathrm{mW\,m^{-2}}$ (A17) --- and report $K_d$ \emph{conditional}
-on them. \figref{fig:qb} maps the trade-off: many $K_d$--$Q_b$ combinations along
-a diagonal fit almost equally well, so the absolute $K_d$ shifts if $Q_b$ does.
-Reassuringly, the \emph{direction} of the inter-site contrast (A17 $>$ A15)
-persists even when $Q_b$ is allowed to vary, and $Q_b$ is one of the largest
-single terms in the error budget --- a direct fingerprint of this coupling.
+\paragraph{(1) Uniqueness (the argument).} Given the anchor value,
+Eq.~\eqref{eq:closure} is a first-order ODE with a smooth right-hand side, so it
+has exactly one solution below the anchor; the anchor itself is fixed by the
+fast surface balance. The periodic steady state is therefore unique. Any method
+that satisfies both defining conditions (periodic skin $+$ flux closure) has
+found it --- and both methods do.
+
+\paragraph{(2) Self-certification.} Every solve returns two diagnostics: the
+anchor \emph{drift} between outer iterations (we require $<0.03$\,K; typically
+$\sim$3\,mK) and the \emph{flux closure} $\max|\langle q\rangle-Q_b|/Q_b$ below
+the anchor (we require $<2\%$; \figref{fig:cert}). These are exactly the test the
+old fixed spin-up could not pass.
+
+\paragraph{(3) Guess-independence.} Starting the new solver from 240\,K and from
+260\,K gives sensor-depth temperatures agreeing to $<0.03$\,K. The very symptom
+that exposed F1 is now gone.
+
+\paragraph{(4) Brute-force cross-validation (the decisive one).} We take the
+\emph{old} method and simply run it far longer. As the lunations increase its
+profile marches monotonically onto the new method's answer (\figref{fig:conv}),
+and from two different starts it lands on the same curve to tens of mK at
+3000 lunations (\figref{fig:overlay}). The two methods agree where it can be
+checked directly.
+
+\paragraph{(5) Drift/rectification validation.} A 120-lunation drift test
+confirms the neglected higher-order term is $<1\%$ of $Q_b$ below the anchor, so
+Eq.~\eqref{eq:recon} closes to the stated tolerance. (Tests:
+\code{tests/test\_equilibrium.py}.)
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.64\linewidth]{figures/fig_kd_qb_posterior.pdf}
-\caption{The $K_d$--$Q_b$ trade-off. Because the deep gradient is $Q_b/K$, the
-two are degenerate along a diagonal; the retrieved $K_d$ is conditional on the
-assumed $Q_b$. The contrast \emph{between} sites is more robust than either
-absolute value.}
-\label{fig:qb}
+\includegraphics[width=0.70\linewidth]{figures/fig_convergence.pdf}
+\caption{Check (4): brute-force error vs.\ the shortcut falls steadily as the
+spin-up lengthens; two starts converge to the same place.}
+\label{fig:conv}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_equilibrium_demo.pdf}
+\caption{Brute force to 3000 lunations from 240\,K and 260\,K (dashed) on the
+shortcut (solid): indistinguishable; the residual is brute force still finishing.}
+\label{fig:overlay}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.80\linewidth]{figures/fig_equilibrium_certification.pdf}
+\caption{Check (2): guess-independence and mean-flux closure --- the returned
+proof that a solve reached the steady state.}
+\label{fig:cert}
 \end{figure}
 
 % =====================================================================
-\section{Why this is defensible --- the short version}
+\section{Porting to C++}
 % =====================================================================
-\begin{enumerate}[leftmargin=1.5em,itemsep=3pt]
-\item \textbf{The models are reproduced from first formulas}
-(Eqs.~\eqref{eq:Kc}--\eqref{eq:Kmartinez}, \figref{fig:models}); the global
-$K_d=3.4$ is a deliberate global average we are refining, not a measured site
-value.
-\item \textbf{The retrieval is transparent}: one unknown, a single RMSE minimum
-per site (\figref{fig:sweep}), and a visibly better fit to the data
-(\figref{fig:profiles}).
-\item \textbf{The engine is trustworthy}: the new solver is certified
-(\figref{fig:cert}) \emph{and} independently confirmed by brute force converging
-onto it as the lunations increase (\figref{fig:conv},~\ref{fig:overlay}) --- the
-old hidden-spin-up bias is gone.
-\item \textbf{The contrast is physically sensible} (denser/different regolith at
-Apollo~17) and is echoed by an independent density-based model.
-\item \textbf{We are explicit about $Q_b$}: $K_d$ is conditional on the assumed
-basal flux, the trade-off is mapped, and the inter-site \emph{direction} is the
-robust statement.
-\end{enumerate}
+\subsection{Where the time goes}
+A solve spends essentially all its time in the inner step (\S2.2), run hundreds
+of thousands of times. In the current Python, the tridiagonal \emph{solve}
+(\code{\_thomas}) is already JIT-compiled with Numba, but the matrix
+\emph{assembly} in \code{\_step} (building $a,b,c,d$ and the face means each step)
+is interpreted Python over $\sim$69-element arrays --- many cheap operations per
+step, which is exactly the pattern where interpreter overhead dominates. That is
+the part a compiled language removes.
 
-\vspace{4pt}
-\noindent\textit{Reproduce any of this:} \code{notebooks/02\_retrieval.ipynb}
-(the sweep + result), \code{notebooks/equilibrium\_demo.ipynb}
-(\figref{fig:conv},~\ref{fig:overlay}), and \code{pytest tests/test\_equilibrium.py}
-(the certification checks).
+\subsection{What to port, what to keep}
+The numerics are already isolated in three small, I/O-free modules --- port these:
+\begin{itemize}[leftmargin=1.4em,itemsep=1pt]
+\item \code{grid.py} --- build the geometric mesh (trivial array construction);
+\item \code{solver.py} --- the per-step assembly, the harmonic face means, the
+Thomas solve, and the Newton surface balance (\S2.2);
+\item \code{equilibrium.py} --- the outer A--B loop and the RK2 reconstruction
+(Eq.~\eqref{eq:recon}).
+\end{itemize}
+Keep \code{config.py} (emit it as JSON so the C++ side reads the same parameters),
+and leave the retrieval, statistics, and all plotting in Python calling the fast
+core through a thin binding (e.g.\ pybind11). The three-layer code layout
+(\figref{fig:arch}) is built for exactly this split.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.86\linewidth]{figures/fig_architecture.pdf}
+\caption{The codebase is layered so the numerics (\code{lunar/}) can be replaced
+by a C++ core while the drivers and analysis stay in Python.}
+\label{fig:arch}
+\end{figure}
+
+\subsection{Expected gain, honestly}
+For this tight small-array loop a compiled core typically buys $\sim$10--100$\times$
+on the stepping. \textbf{But} much of that is reachable \emph{without} C++:
+Numba already compiles \code{\_thomas}, and applying the same \code{@njit} (or a
+NumPy vectorisation) to \code{\_step} would capture most of the gain in pure
+Python. So C++ is the ceiling, not the only route. The three speed-ups are
+independent and multiply: the algorithm (the shortcut, $\sim$30$\times$, already
+done) $\times$ compilation (C++/Numba) $\times$ parallelism across independent
+solves (the $K_d$ sweep fans over CPU cores). For the present paper, Python plus
+the shortcut is already fast enough; C++ pays off when scaling to many DEM pixels
+or a mission pipeline that runs the solver millions of times.
+
+\subsection{How to validate the port}
+Port bottom-up and regression-test each layer against the Python reference: the
+grid arrays must match bit-for-bit; the stepper must reproduce the analytic
+constant-coefficient thermal wave (already used in \code{tests/test\_solver.py});
+and the full solver must reproduce the committed steady-state profiles and the
+\code{drift}/\code{flux\_closure} diagnostics. The existing 37-test suite is the
+cross-language regression harness.
+
+% =====================================================================
+\section*{How to defend each claim in one line}
+% =====================================================================
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item \emph{Why a new method?} A fixed spin-up doesn't reach steady state at
+sensor depth, so the initial guess biased $K_d$ (F1).
+\item \emph{What it does differently?} It imposes the deep gradient $Q_b/K$
+directly instead of waiting $\sim$10$^3$ lunations for diffusion to find it.
+\item \emph{How do we know it's right?} It is unique by construction, it
+certifies its own convergence, it is guess-independent, and brute force run long
+converges onto it.
+\item \emph{Faster?} $\sim$9\,s vs $\sim$4\,min per solve; portable to C++ for
+another $\sim$10--100$\times$ at scale.
+\end{itemize}
 
 \end{document}

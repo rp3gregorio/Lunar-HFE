@@ -163,6 +163,72 @@ def plot_curves(result, save=None):
     return fig
 
 
+SENSOR_Z = (0.8, 2.4)     # the depth band the science actually uses [m]
+
+
+def converged_profiles(n_lun=3000, guesses=(240.0, 260.0), kd=KD,
+                       site_key="A15", n_workers=2, parallel=True):
+    """Run brute force ALL THE WAY to convergence from each guess and
+    compare the final profile to the shortcut. The headline 'are they
+    equal?' test: overlay T(z)."""
+    sc = shortcut_profile(kd=kd, site_key=site_key)
+    tasks = [(float(g_), int(n_lun), kd, site_key) for g_ in guesses]
+    if parallel and len(tasks) > 1:
+        os.environ["PYTHONPATH"] = os.pathsep.join(
+            [str(_REPO), str(_REPO / "scripts" / "figures"),
+             os.environ.get("PYTHONPATH", "")])
+        from concurrent.futures import ProcessPoolExecutor
+        with ProcessPoolExecutor(max_workers=int(n_workers or len(tasks))) as ex:
+            res = list(ex.map(_task, tasks))
+    else:
+        res = [_task(a) for a in tasks]
+    z = sc["z"]
+    sens = (z >= SENSOR_Z[0]) & (z <= SENSOR_Z[1])
+    profiles, r_sensor, r_full = {}, {}, {}
+    for r in res:
+        profiles[r["guess"]] = r["T_mean"]
+        r_sensor[r["guess"]] = float(np.max(np.abs(r["T_mean"][sens] - sc["T_mean"][sens])))
+        r_full[r["guess"]] = float(np.max(np.abs(r["T_mean"][z >= 0.3] - sc["T_mean"][z >= 0.3])))
+    return dict(z=z, T_short=sc["T_mean"], shortcut=sc, profiles=profiles,
+                n_lun=int(n_lun), resid_sensor=r_sensor, resid_full=r_full,
+                sensor_z=SENSOR_Z)
+
+
+def plot_overlay(result):
+    """T(z) overlay: shortcut vs fully-converged brute force from two guesses."""
+    import matplotlib.pyplot as plt
+    from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM
+    z = result["z"]; Ts = result["T_short"]; cm = {240.0: C_A15, 260.0: C_A17}
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.5, 4.8))
+
+    axA.plot(Ts, z, color=C_CHAR, lw=4, alpha=0.45, label="shortcut equilibrium")
+    for g_, T in result["profiles"].items():
+        axA.plot(T, z, "--", color=cm.get(g_, C_DIM), lw=1.4,
+                 label=f"brute force {result['n_lun']} lun (start {g_:.0f} K)")
+    axA.axhspan(*result["sensor_z"], color=C_HAYNE, alpha=0.10)
+    axA.invert_yaxis(); axA.set_xlabel("cycle-mean T [K]"); axA.set_ylabel("depth [m]")
+    axA.set_title("(a)  Profiles lie on top of each other", loc="left", fontsize=10)
+    axA.legend(fontsize=8, frameon=False); axA.grid(alpha=0.25)
+
+    for g_, T in result["profiles"].items():
+        axB.plot(np.abs(T - Ts) * 1e3, z, color=cm.get(g_, C_DIM), lw=1.4,
+                 label=f"start {g_:.0f} K")
+    axB.axhspan(*result["sensor_z"], color=C_HAYNE, alpha=0.10, label="sensor depths")
+    axB.invert_yaxis(); axB.set_xlabel(r"$|T_{\rm brute}-T_{\rm short}|$  [mK]")
+    axB.set_ylabel("depth [m]")
+    axB.set_title("(b)  Difference vs depth", loc="left", fontsize=10)
+    axB.legend(fontsize=8, frameon=False); axB.grid(alpha=0.25)
+
+    worst = max(result["resid_sensor"].values()) * 1e3
+    fig.suptitle(
+        f"Same destination: brute force ({result['n_lun']} lunations, two starts) "
+        f"vs the shortcut\nmax difference across sensor depths "
+        f"({result['sensor_z'][0]}-{result['sensor_z'][1]} m): {worst:.0f} mK",
+        fontsize=10, color=C_CHAR)
+    fig.tight_layout(rect=[0, 0, 1, 0.91])
+    return fig
+
+
 def run(**kw):
     import matplotlib; matplotlib.use("Agg")
     res = compute_curves(**kw)

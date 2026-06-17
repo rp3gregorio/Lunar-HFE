@@ -28,12 +28,16 @@ Table of contents (jump to the section you need):
 Wall time: ~5 min on a recent laptop.
 
 Runtime breakdown (measured on 2.6 GHz 6-core Intel i7):
-    ~65%  Bootstrap uncertainty (1500 iterations × 2 sites, line ~430)
-    ~20%  Extended K_d sweeps (58 solver runs, line ~390)
-    ~12%  Joint K_d×H grid (128 solver runs, line ~470)
-     ~5%  3-layer model sweep (58 solver runs, line ~410)
-Most expensive single operation: solve_periodic_equilibrium (~40 lunations
-per call, invoked ~300 times total across all sweeps and grids).
+    PHYSICAL K_d RETRIEVAL (35% of total):
+        ~20%  Extended K_d sweeps (58 solver runs, line ~390)
+        ~12%  Joint K_d×H grid (128 solver runs, line ~470)
+         ~5%  3-layer model sweep (58 solver runs, line ~410)
+    STATISTICAL POST-PROCESSING (65% of total):
+        ~65%  Bootstrap uncertainty quantification (1500 resamples, line ~430)
+              (NOT part of thermal model - pure statistics for error bars)
+
+Core thermal computation: solve_periodic_equilibrium runs ~40 lunations per
+call, invoked ~300 times. Bootstrap reuses cached results - no new physics.
 
 Run with:
     python scripts/pipeline/retrieve_kd.py
@@ -281,15 +285,16 @@ def bootstrap_kd_with_depth_uncertainty(
           f"{len(z_grid_dense)} depths)", flush=True)
 
     # ──────────────────────────────────────────────────────────────────────────
-    # PERFORMANCE: Bootstrap loop is primary bottleneck (65% of total runtime)
+    # PERFORMANCE: Bootstrap statistical resampling (65% of runtime)
     # ──────────────────────────────────────────────────────────────────────────
-    # Each of 1500 bootstrap iterations performs: (1) resample sensor indices
-    # with replacement, (2) jitter depths by depth_sigma_cm (±2.5 cm nominal),
-    # (3) interpolate cached T_model(z,K_d) at jittered depths for all ~30 K_d
-    # values, (4) recompute K_d* via parabolic fit to resampled RMSE. Total:
-    # 1500 iterations × 2 sites × 30 K_d × 200 depths = 18M interpolations.
-    # Fast per operation but dominates due to iteration count. Reduce to 300
-    # iterations for testing (see docs/REPRODUCING.md).
+    # This is NOT part of K_d retrieval - pure statistical uncertainty analysis.
+    # Reuses cached thermal solver results from above. NO new physics runs.
+    #
+    # Each of 1500 iterations: (1) resample sensor indices with replacement,
+    # (2) jitter depths by ±2.5 cm, (3) interpolate cached T_model(z,K_d),
+    # (4) refit K_d* from resampled data. Total: 18M interpolations (cheap
+    # operations, expensive only due to iteration count). Reduce to 300 for
+    # testing (docs/REPRODUCING.md).
     # ──────────────────────────────────────────────────────────────────────────
     boots = np.empty(n_boot)
     for b in range(n_boot):
@@ -433,13 +438,12 @@ def main():
 
     # ── A5: depth-uncertainty bootstrap (extended grid + jittered depths) ─
     # ──────────────────────────────────────────────────────────────────────────
-    # PERFORMANCE: Bootstrap uncertainty quantification is primary bottleneck
+    # PERFORMANCE: Statistical post-processing (65% of runtime, but NOT physics)
     # ──────────────────────────────────────────────────────────────────────────
-    # Run 1500 bootstrap iterations per site (3000 total) to propagate depth
-    # uncertainty (±2.5 cm) through K_d retrieval. Each iteration resamples
-    # sensors, jitters depths, interpolates cached profiles, refits K_d*.
-    # Accounts for ~65% of total pipeline runtime. Reduce to 300 iterations
-    # for testing (docs/REPRODUCING.md).
+    # Bootstrap resampling to quantify uncertainty: 1500 iterations per site
+    # to propagate ±2.5 cm depth uncertainty into K_d* confidence intervals.
+    # Uses cached thermal solver results from A1 above - no new physics runs.
+    # This is pure statistics for error bars. Reduce to 300 for testing.
     # ──────────────────────────────────────────────────────────────────────────
     print(f"\n=== A5: bootstrap with depth uncertainty (±{DEPTH_SIGMA_CM} cm) ===",
           flush=True)

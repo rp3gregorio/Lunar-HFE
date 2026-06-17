@@ -173,21 +173,18 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
     def cp_func(T):
         return specific_heat(T, model='hayne')
     # ──────────────────────────────────────────────────────────────────────────
-    # ⏱️  EXPENSIVE: Core thermal solver (most expensive single operation)
+    # PERFORMANCE: Thermal solver dominates per-call runtime
     # ──────────────────────────────────────────────────────────────────────────
-    # Periodic steady state via the flux-anchored outer iteration
-    # (lunar/equilibrium.py). T_MEAN_EFF seeds the first iterate only;
-    # the converged profile is independent of it (audit flag F1).
+    # Flux-anchored equilibrium solver (lunar/equilibrium.py) runs 12 inner
+    # lunations per outer iteration, typically converging in 3-5 outer cycles
+    # (36-60 total lunations per call). Each lunation requires 2551 hourly
+    # timesteps; each timestep invokes Thomas tridiagonal solver plus Newton
+    # iteration for the radiative surface boundary condition.
     #
-    # Cost per call: ~12 inner lunations × 3-5 outer iterations = 36-60 lunations
-    # Each lunation: 2,551 timesteps (hourly over 29.53 days)
-    # Each timestep: tridiagonal solve (Thomas algorithm) + Newton surface iteration
-    #
-    # This function is called hundreds of times throughout the pipeline:
-    # - K_d sweeps: ~120 calls
-    # - Joint H×K_d grid: ~130 calls  
-    # - Hold-out tests: ~50 calls
-    # Total: ~300 solver runs × 40 lunations ≈ 12,000 lunations
+    # Called ~300 times in full pipeline: K_d sweeps (120), joint H×K_d grid
+    # (130), cross-validation tests (50). Total work: approximately 12000
+    # simulated lunations. Initial guess T_MEAN_EFF only seeds first iterate;
+    # final profile is independent of it (F1 audit).
     # ──────────────────────────────────────────────────────────────────────────
     eq = solve_periodic_equilibrium(
         grid=grid_, t=t_s, insolation=insol,
@@ -276,18 +273,15 @@ def bootstrap_kd_with_depth_uncertainty(
           f"{len(z_grid_dense)} depths)", flush=True)
 
     # ──────────────────────────────────────────────────────────────────────────
-    # ⏱️  MOST EXPENSIVE SECTION: Bootstrap resampling loop
+    # PERFORMANCE: Bootstrap loop is primary bottleneck (65% of total runtime)
     # ──────────────────────────────────────────────────────────────────────────
-    # Cost: 1,500 iterations × 2 sites × ~30 K_d values × 200 depth points
-    #     = ~18 million interpolations (fast but many)
-    # 
-    # This loop accounts for ~65% of total runtime!
-    # 
-    # Each iteration:
-    #   1. Resample sensor indices with replacement
-    #   2. Jitter depths by ±2.5 cm (depth uncertainty)
-    #   3. Interpolate T_model at jittered depths for all K_d values
-    #   4. Refit K_d* from the resampled residuals
+    # Each of 1500 bootstrap iterations performs: (1) resample sensor indices
+    # with replacement, (2) jitter depths by depth_sigma_cm (±2.5 cm nominal),
+    # (3) interpolate cached T_model(z,K_d) at jittered depths for all ~30 K_d
+    # values, (4) recompute K_d* via parabolic fit to resampled RMSE. Total:
+    # 1500 iterations × 2 sites × 30 K_d × 200 depths = 18M interpolations.
+    # Fast per operation but dominates due to iteration count. Reduce to 300
+    # iterations for testing (see docs/REPRODUCING.md).
     # ──────────────────────────────────────────────────────────────────────────
     boots = np.empty(n_boot)
     for b in range(n_boot):
@@ -388,11 +382,12 @@ def main():
         'A17': np.linspace(3.0e-3, 25.0e-3, 30),
     }
     # ──────────────────────────────────────────────────────────────────────────
-    # ⏱️  EXPENSIVE: Extended K_d sweep (~20% of runtime)
+    # PERFORMANCE: Extended K_d sweep accounts for ~20% of total runtime
     # ──────────────────────────────────────────────────────────────────────────
-    # Cost: A15 (28 K_d values) + A17 (30 K_d values) = 58 full solver runs
-    # Each run: ~40 lunations × 2,551 timesteps = ~100,000 timesteps
-    # This establishes the baseline RMSE vs K_d curves for both sites
+    # Run equilibrium solver at 28 (A15) + 30 (A17) = 58 K_d values to map out
+    # RMSE(K_d) curves. Each solver call runs ~40 lunations × 2551 timesteps.
+    # This establishes the baseline residual matrix R[sensor, K_d] used for
+    # optimal K_d* retrieval and subsequent bootstrap resampling.
     # ──────────────────────────────────────────────────────────────────────────
     cache = {}
     for name, cfg in SITES.items():
@@ -409,12 +404,12 @@ def main():
 
     # ── A1b: same K_d sweep under the this-work discrete 3-layer model ────
     # ──────────────────────────────────────────────────────────────────────────
-    # ⏱️  EXPENSIVE: 3-layer K_d sweep (~5% of runtime)
+    # PERFORMANCE: 3-layer model sweep adds ~5% to total runtime
     # ──────────────────────────────────────────────────────────────────────────
-    # Cost: Another 58 full solver runs (28 + 30) with different K(z) model
-    # The 3-layer model has the same single free parameter K_d, so we
-    # retrieve it the same way.  This quantifies how sensitive the
-    # retrieved K_d* is to the assumed K(z) transition shape.
+    # Repeat K_d sweep (58 solver runs) using discrete 3-layer conductivity
+    # model instead of continuous H-parameter formulation. Same single free
+    # parameter K_d; same retrieval method. Quantifies sensitivity of K_d* to
+    # assumed vertical transition structure between surface and deep regolith.
     # ──────────────────────────────────────────────────────────────────────────
     for name, cfg in SITES.items():
         print(f"\n=== A1b: 3-layer K_d sweep — {name} ===", flush=True)
@@ -430,14 +425,13 @@ def main():
 
     # ── A5: depth-uncertainty bootstrap (extended grid + jittered depths) ─
     # ──────────────────────────────────────────────────────────────────────────
-    # ⏱️  MOST EXPENSIVE SECTION: Bootstrap resampling (~65% of runtime!)
+    # PERFORMANCE: Bootstrap uncertainty quantification is primary bottleneck
     # ──────────────────────────────────────────────────────────────────────────
-    # Cost: 1,500 bootstrap iterations per site (3,000 total)
-    # Each iteration: resample sensors, jitter depths, interpolate across
-    # all K_d values, refit K_d*
-    # 
-    # This is the single biggest computational bottleneck in the entire pipeline.
-    # Reduces to ~300 iterations in fast mode (see docs/REPRODUCING.md).
+    # Run 1500 bootstrap iterations per site (3000 total) to propagate depth
+    # uncertainty (±2.5 cm) through K_d retrieval. Each iteration resamples
+    # sensors, jitters depths, interpolates cached profiles, refits K_d*.
+    # Accounts for ~65% of total pipeline runtime. Reduce to 300 iterations
+    # for testing (docs/REPRODUCING.md).
     # ──────────────────────────────────────────────────────────────────────────
     print(f"\n=== A5: bootstrap with depth uncertainty (±{DEPTH_SIGMA_CM} cm) ===",
           flush=True)
@@ -466,13 +460,12 @@ def main():
 
     # ── A2: 8x8 joint K_d × H grid ────────────────────────────────────────
     # ──────────────────────────────────────────────────────────────────────────
-    # ⏱️  EXPENSIVE: Joint K_d × H parameter sweep (~12% of runtime)
+    # PERFORMANCE: Joint parameter grid accounts for ~12% of total runtime
     # ──────────────────────────────────────────────────────────────────────────
-    # Cost: 8 × 8 = 64 solver runs per site × 2 sites = 128 solver runs
-    # Each run: ~40 lunations
-    # 
-    # Tests whether the H-parameter (density scale height) trades off with K_d.
-    # Result: minimal degeneracy, K_d* is robust to H variations.
+    # Map 8×8 grid in (K_d, H) space for both sites: 64 runs/site × 2 = 128
+    # solver calls at ~40 lunations each. Tests for degeneracy between deep
+    # conductivity K_d and compaction scale height H. Result: minimal trade-off,
+    # K_d* is robust to H variations.
     # ──────────────────────────────────────────────────────────────────────────
     print(f"\n=== A2: dense joint K_d × H (8×8 per site) ===", flush=True)
     h_grid = np.linspace(0.03, 0.10, 8)

@@ -237,6 +237,16 @@ def kd_star_from_residuals(R, kd_grid, idx=None):
 # A1 — Extended K_d sweep
 # ══════════════════════════════════════════════════════════════════════════════
 def run_kd_sweep_extended(site_cfg, kd_grid, k_model='hayne'):
+    """Sweep through K_d values to find optimal fit to Apollo HFE data.
+    
+    This is the core K_d retrieval loop. For each K_d value in kd_grid:
+    1. Run full thermal solver (40 lunations, ~100k timesteps)
+    2. Extract predicted temperatures at sensor depths
+    3. Compute residuals vs Apollo observations
+    
+    Returns residual matrix R[sensor, K_d] used to find K_d* that minimizes RMSE.
+    Takes ~1 minute for both sites (58 total solver runs).
+    """
     obs = extract_sensor_stability(site_cfg['mission'],
                                    min_depth_cm=site_cfg['MIN_DEPTH_CM'])
     z_obs = np.asarray(obs['depth_cm_all']) / 100.0
@@ -247,8 +257,10 @@ def run_kd_sweep_extended(site_cfg, kd_grid, k_model='hayne'):
     T_obs_deep = T_obs[deep]
     stype_deep = stype[deep]
 
+    # Build residual matrix: R[sensor_i, K_d_j] = T_model(K_d_j) - T_observed
     R = np.empty((len(z_obs_deep), len(kd_grid)))
     for k, kd in enumerate(kd_grid):
+        # EXPENSIVE: This calls solve_periodic_equilibrium (~40 lunations)
         z_mid, T_mean_z = run_with(site_cfg, kd=kd, k_model=k_model)
         T_pred = np.interp(z_obs_deep, z_mid, T_mean_z)
         R[:, k] = T_pred - T_obs_deep
@@ -405,9 +417,13 @@ def main():
     cache = {}
     for name, cfg in SITES.items():
         print(f"\n=== A1: extended K_d sweep — {name} ===", flush=True)
+        # This loop calls the thermal solver 28 (A15) or 30 (A17) times.
+        # Each call runs ~40 lunations × 2551 timesteps = ~100k timesteps.
+        # Total: 58 solver runs × 40 lunations = 2320 simulated lunations.
         z_obs, T_obs, R, stype = run_kd_sweep_extended(cfg, kd_grids[name])
         cache[name] = dict(z_obs=z_obs, T_obs=T_obs, R=R,
                            kd_grid=kd_grids[name], stype=stype)
+        # Find K_d* that minimizes RMSE via parabolic fit to R
         kd_star, rmse_star = kd_star_from_residuals(R, kd_grids[name])
         results[name] = dict(kd_star=kd_star, rmse_star=rmse_star,
                              kd_grid=kd_grids[name].tolist(),

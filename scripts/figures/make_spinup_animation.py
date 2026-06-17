@@ -29,7 +29,7 @@ from lunar.solver import PixelInputs, solve_pixel
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM
 
-DOC = _REPO / "docs" / "justification"
+DOC = _REPO / "docs" / "manuscript"
 FIG = DOC / "figures"
 FIG.mkdir(parents=True, exist_ok=True)
 

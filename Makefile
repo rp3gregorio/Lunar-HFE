@@ -3,7 +3,7 @@
 # =====================================================================
 PY := python3
 
-.PHONY: help install test retrieve aux figures paper runtime all clean
+.PHONY: help install test retrieve aux figures paper all clean
 
 help:                ## show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -30,24 +30,16 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) scripts/pipeline/bayesian_crosscheck.py
 	$(PY) scripts/pipeline/compute_diviner_closure.py
 
-figures:             ## regenerate every figure (paper + guidebook + supplementary)
+figures:             ## regenerate every figure (paper + manuscript)
 	$(PY) scripts/make_all_figures.py
 
-paper:               ## compile the letter, science guidebook, and code guide PDFs
-	cd paper/letter     && latexmk -pdf -interaction=nonstopmode letter.tex
-	cd paper/letter     && latexmk -pdf -interaction=nonstopmode letter_clean.tex
-	cd paper/guidebook     && latexmk -pdf -interaction=nonstopmode guidebook.tex
-	cd paper/guidebook     && latexmk -pdf -interaction=nonstopmode guidebook_print.tex
-	cd docs/code_guide  && latexmk -pdf -interaction=nonstopmode code_guide.tex
-	cd docs/justification && latexmk -pdf -interaction=nonstopmode justification.tex
-
-runtime:             ## run all 5 notebooks end-to-end with timing -> docs/RUNTIME.md
-	$(PY) scripts/run_all_timed.py
+paper:               ## compile the letter and the teaching manuscript
+	cd paper/letter        && latexmk -pdf -interaction=nonstopmode letter.tex
+	cd paper/letter        && latexmk -pdf -interaction=nonstopmode letter_clean.tex
+	cd docs/manuscript     && latexmk -pdf -interaction=nonstopmode manuscript.tex
 
 all: retrieve aux figures paper  ## full reproduction from scratch
 
 clean:               ## remove LaTeX build artifacts
-	cd paper/letter     && latexmk -C 2>/dev/null || true
-	cd paper/guidebook     && latexmk -C 2>/dev/null || true
-	cd docs/code_guide  && latexmk -C 2>/dev/null || true
-	cd docs/justification && latexmk -C 2>/dev/null || true
+	cd paper/letter        && latexmk -C 2>/dev/null || true
+	cd docs/manuscript     && latexmk -C 2>/dev/null || true

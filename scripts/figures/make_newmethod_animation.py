@@ -35,7 +35,7 @@ from lunar.equilibrium import (solve_periodic_equilibrium,
                                _rectified_flux, _reconstruct_subskin)
 from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM
 
-DOC = _REPO / "docs" / "justification"
+DOC = _REPO / "docs" / "manuscript"
 FIG = DOC / "figures"; FIG.mkdir(parents=True, exist_ok=True)
 SITE = SITES["A15"]; KD = 4.58e-3; GUESS = 240.0; ZMAX = 3.0; PROBE_Z = 1.0
 

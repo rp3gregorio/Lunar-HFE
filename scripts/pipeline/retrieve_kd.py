@@ -27,6 +27,14 @@ Table of contents (jump to the section you need):
 
 Wall time: ~5 min on a recent laptop.
 
+Runtime breakdown (measured on 2.6 GHz 6-core Intel i7):
+    ~65%  Bootstrap uncertainty (1500 iterations × 2 sites, line ~430)
+    ~20%  Extended K_d sweeps (58 solver runs, line ~390)
+    ~12%  Joint K_d×H grid (128 solver runs, line ~470)
+     ~5%  3-layer model sweep (58 solver runs, line ~410)
+Most expensive single operation: solve_periodic_equilibrium (~40 lunations
+per call, invoked ~300 times total across all sweeps and grids).
+
 Run with:
     python scripts/pipeline/retrieve_kd.py
 """

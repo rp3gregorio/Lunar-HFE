@@ -28,7 +28,7 @@ from lunar.properties import conductivity_hayne, specific_heat
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.plotting.style import C_A15, C_HAYNE, C_CHAR, C_DIM
 
-DOC = _REPO / "docs" / "justification"
+DOC = _REPO / "docs" / "manuscript"
 SITE = SITES["A15"]; KD = 4.58e-3; Z0 = 0.55; ZMAX = 3.0
 
 

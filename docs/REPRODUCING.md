@@ -70,10 +70,10 @@ jupyter lab notebooks/
 | Notebook | Wall time | Produces |
 |---|---|---|
 | `00_setup.ipynb` | <1 min | sanity check, data integrity |
-| `01_methods.ipynb` | 2-3 min | Figs 1-4, Table 1 |
+| `01_methods.ipynb` | 2-3 min | Figs 1-3, Table 1 |
 | `02_retrieval.ipynb` | ~5 min (fast); ~60 min full | per-site K_d sweep + bootstrap + Q_b sensitivity; writes `output/kd_retrieval_results.json`. Heavy auxiliary sweeps for Table 3 are opt-in (`RUN_AUXILIARY = True`). |
-| `03_results.ipynb` | 3-5 min | Figs 5-9, Tables 2-3 |
-| `04_discussion.ipynb` | 2-3 min | Figs 10-11, Table 4 |
+| `03_results.ipynb` | 3-5 min | Figs 4-8, Tables 2-3 |
+| `04_discussion.ipynb` | 2-3 min | Figs 9-10, Table 4 |
 
 End-to-end on the fast path: about **15 minutes**. The canonical
 auxiliary JSONs already ship with the repo, so the slow auxiliary
@@ -106,8 +106,8 @@ import json, math
 shipped = json.loads(open('output/kd_retrieval_results.json').read())
 print('A15 K_d* =', shipped['A15']['kd_star'] * 1e3, 'mW m^-1 K^-1')
 print('A17 K_d* =', shipped['A17']['kd_star'] * 1e3, 'mW m^-1 K^-1')
-assert math.isclose(shipped['A15']['kd_star'] * 1e3, 4.86, abs_tol=0.01)
-assert math.isclose(shipped['A17']['kd_star'] * 1e3, 11.23, abs_tol=0.01)
+assert math.isclose(shipped['A15']['kd_star'] * 1e3, 4.58, abs_tol=0.01)
+assert math.isclose(shipped['A17']['kd_star'] * 1e3, 8.12, abs_tol=0.01)
 print('Headline values verified.')
 "
 ```

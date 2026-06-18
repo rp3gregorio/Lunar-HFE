@@ -699,26 +699,24 @@ def fig_thermal_profiles(d, out_path):
     """Depth-temperature profiles against the Apollo HFE deep sensors at
     both sites, for two conductivity models: the Hayne (2017)
     smooth-exponential form at its per-site retrieved K_d*, and the
-    parameter-free Martinez & Siegler (2021) T,rho-dependent model
-    (make_k_ms below).  Runs the forward model from scratch."""
-    import sys; sys.path.insert(0, str(pathlib.Path(__file__).parents[2]))
-    from copy import deepcopy
-    from lunar.grid import make_geometric_grid
-    from lunar.solver import PixelInputs, solve_pixel
-    from lunar.properties import conductivity_hayne, specific_heat
-    from lunar.constants import (K_SURFACE, H_PARAMETER, CHI_RADIATIVE,
-                                  T_REFERENCE, LUNATION_SECONDS)
-    from lunar.apollo_helpers import extract_sensor_stability
+    parameter-free Martinez & Siegler (2021) T,rho-dependent model.
 
-    # ── forward-model settings (match pipeline) ───────────────────────────
-    GRID   = dict(z_max=5.0, dz0=0.002, growth=0.08)
-    DT     = 3600.0
-    N_LUN  = 30
-    TOL    = 0.01
-    T_LUN  = LUNATION_SECONDS
-    S0_    = 1361.0
-    CHI    = CHI_RADIATIVE
-    T_REF  = T_REFERENCE
+    The plotted forward profiles are produced by the SAME certified
+    pipeline driver as the retrieval (``run_with`` ->
+    ``solve_periodic_equilibrium``), so each deep profile is the
+    converged, starting-guess-independent periodic steady state.
+
+    Physics note (Phase 2): below the diurnal skin (~5 cm) the cycle-mean
+    temperature rises along the geothermal gradient ``d<T>/dz = Q_b / K``.
+    The profile is therefore a sloped line and is physically expected NOT
+    to approach a single constant temperature with depth -- a flat deep
+    profile would require zero interior heat flux (Q_b = 0). The two
+    models differ at depth precisely because they assume different deep
+    conductivities; that divergence is the measured signal, not an error.
+    """
+    import sys
+    sys.path.insert(0, str(pathlib.Path(__file__).parents[2]))
+    from lunar.apollo_helpers import extract_sensor_stability
 
     SITE_CFGS = {
         'A15': dict(label='Apollo 15', mission='a15', lat=26.13,
@@ -728,53 +726,6 @@ def fig_thermal_profiles(d, out_path):
                     albedo=0.137, emissivity=0.95, Q_BASAL=0.015,
                     T_MEAN_EFF=255.0, MIN_DEPTH_CM=80),
     }
-    # ── Genuine Martinez & Siegler (2021) conductivity model ──────────────
-    # K_MS(T,rho) = (A1 rho + A2) k_am(T) + (B1 rho + B2) T^3
-    # verified against their Zenodo code (lunar1Dheat v1.6, updateRK.m).
-    MS_AM = dict(A=-2.03297e-1, B=-11.472, C=22.5793, D=-14.3084,
-                 E=3.41742, F=0.01101, G=-2.80491e-5, H=3.35837e-8,
-                 I=-1.40021e-11)
-    MS_A1, MS_A2 = 5.0821e-6, -0.0051
-    MS_B1, MS_B2 = 2.022e-13, -1.953e-10
-    MS_RHO_S, MS_RHO_D, MS_H = 1100.0, 1800.0, 0.054
-
-    def make_k_hayne(kd):
-        def k(T, z):
-            return conductivity_hayne(T, z, Ks=K_SURFACE, Kd=kd,
-                                      H=H_PARAMETER, chi=CHI)
-        return k
-
-    def make_k_ms():
-        am = MS_AM
-        def k(T, z):
-            T_a = np.broadcast_to(np.asarray(T, float),
-                                  np.asarray(z, float).shape).astype(float)
-            z_a = np.asarray(z, float)
-            k_am = (am['A'] + am['B']*T_a**-4 + am['C']*T_a**-3
-                    + am['D']*T_a**-2 + am['E']*T_a**-1 + am['F']*T_a
-                    + am['G']*T_a**2 + am['H']*T_a**3 + am['I']*T_a**4)
-            rho = MS_RHO_D - (MS_RHO_D - MS_RHO_S) * np.exp(-z_a / MS_H)
-            return (MS_A1*rho + MS_A2)*k_am + (MS_B1*rho + MS_B2)*T_a**3
-        return k
-
-    def run_profile(site_cfg, k_func):
-        grid  = make_geometric_grid(**GRID)
-        z_mid = grid.z_mid
-        N_t   = int(T_LUN / DT) + 1
-        t_s   = np.linspace(0.0, T_LUN, N_t)
-        cos_l = np.cos(np.deg2rad(site_cfg['lat']))
-        insol = S0_ * cos_l * np.maximum(0.0, np.cos(2*np.pi * t_s / T_LUN))
-        K_init = k_func(np.full_like(z_mid, site_cfg['T_MEAN_EFF']), z_mid)
-        T_init = (site_cfg['T_MEAN_EFF']
-                  + site_cfg['Q_BASAL'] * np.cumsum(grid.dz / K_init))
-        out = solve_pixel(PixelInputs(
-            grid=grid, t=t_s, bc_mode='radiative',
-            insolation=insol, albedo=site_cfg['albedo'],
-            emissivity=site_cfg['emissivity'], Q_b=site_cfg['Q_BASAL'],
-            T_init=T_init, n_lunations_spinup=N_LUN, spinup_tol_K=TOL,
-            K_func=k_func, cp_func=lambda T: specific_heat(T, model='hayne'),
-        ))
-        return z_mid * 100, out.T.mean(axis=1)   # depth in cm, mean T profile
 
     # ── 2×2 grid: top = full profile, bottom = deep-only zoom ────────────────
     # Legend goes BELOW the plots so it cannot overlap any axis labels.
@@ -796,11 +747,11 @@ def fig_thermal_profiles(d, out_path):
     _pa_path = _ROOT / "output" / "kd_retrieval_results.json"
     d_auth = json.loads(_pa_path.read_text())
 
-    # Forward profiles come from the SAME pipeline driver as the
-    # retrieval (converged periodic equilibrium + the verified Martinez
-    # coefficients in lunar.properties). The local run_profile /
-    # make_k_* helpers above are retained for reference only; they used
-    # the superseded fixed-length spin-up and an unverified B1 variant.
+    # Forward profiles come from the SAME certified pipeline driver as the
+    # retrieval (converged periodic equilibrium via run_with ->
+    # solve_periodic_equilibrium, with the verified Martinez coefficients
+    # in lunar.properties), so the figure and the manuscript text cannot
+    # drift apart. (The old fixed-length spin-up helpers were removed.)
     from scripts.pipeline.retrieve_kd import (SITES as _PIPE_SITES,
                                               run_with as _pipe_run_with)
     site_data = {}

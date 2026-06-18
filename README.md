@@ -44,7 +44,7 @@ python scripts/fetch_diviner.py   # ~310 MB from PDS-Geosciences (one-time)
 
 make retrieve                # core retrieval + bootstrap  -> output/*.json
 make aux                     # all sensitivity sweeps, model selection, MCMC, closure
-make figures                 # regenerate every figure (paper + appendix + guidebook)
+make figures                 # regenerate every figure (paper + manuscript)
 make paper                   # compile all PDFs
 # or simply:  make all
 ```
@@ -69,10 +69,12 @@ exactly one definition of everything:
 | `scripts/pipeline/` | retrieval, bootstrap, sensitivity sweeps, MCMC (write `output/*.json`) |
 | `scripts/figures/` | figure generators; `scripts/make_all_figures.py` runs them all |
 
-New to the code? Read [`docs/CODE_MANUAL.md`](docs/CODE_MANUAL.md) for a
-one-page map, then the full developer guidebook
-[`docs/code_guide/code_guide.pdf`](docs/code_guide/code_guide.pdf) (module
-reference, data flow, and worked recipes).
+New to the code? The module map above is the quickest orientation. For a
+deeper, narrative walkthrough of the method and the underlying physics, see
+the teaching manuscript
+[`docs/manuscript/manuscript.pdf`](docs/manuscript/manuscript.pdf).
+Step-by-step reproduction instructions live in
+[`docs/REPRODUCING.md`](docs/REPRODUCING.md).
 
 Then run the 5 notebooks in order:
 
@@ -111,8 +113,8 @@ Lunar-HFE/
 ├── paper/
 │   └── letter/             # LaTeX source + figures + compiled PDF
 ├── tests/                  # pytest suite (run with `pytest`)
-└── docs/                   # REPRODUCING.md, FLAG_REPORT.md, CODE_MANUAL.md,
-    └── code_guide/         #   code_guide.tex/pdf — full developer guidebook
+└── docs/                   # REPRODUCING.md, FLAG_REPORT.md,
+    └── manuscript/         #   teaching manuscript (method + guidebook) + GIFs
 ```
 
 ## Citing this work

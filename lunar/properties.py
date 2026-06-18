@@ -1,5 +1,24 @@
 """Regolith thermal property models.
 
+In plain English
+----------------
+"Regolith" is the loose, dusty, broken-up soil covering the Moon. To
+simulate how heat moves through it, the solver needs three physical
+properties of that soil at every depth and temperature:
+
+  * Thermal conductivity (K) -- how easily heat flows through it. This
+    is THE quantity the whole paper is trying to measure deep down
+    (K_d). Lunar soil is an extraordinary insulator near the surface
+    (worse than styrofoam) because it is fluffy and sits in vacuum.
+  * Density (rho) -- how much mass is packed into each cubic metre. The
+    soil is fluffy at the top and compacts with depth.
+  * Specific heat (c_p) -- how much energy it takes to warm the soil by
+    one degree (its "thermal inertia" per kilogram).
+
+This file holds the published formulas for each of these. Each formula
+is tagged with the scientific paper it came from, and every number was
+checked against that source -- we never invent coefficients.
+
 Three conductivity models are provided, all accessible through
 :func:`get_conductivity_model`:
 
@@ -235,6 +254,64 @@ def conductivity_icy(
     T_arr = np.asarray(T, dtype=np.float64)
     K_ice = 567.0 / np.maximum(T_arr, 1.0)  # Klinger (1980)
     return (1.0 - phi) * K_dry + phi * K_ice
+
+
+# ---------------------------------------------------------------------------
+# Optional bedrock layer (OFF by default)
+# ---------------------------------------------------------------------------
+
+
+def with_bedrock(
+    k_func: Callable[..., np.ndarray],
+    *,
+    z_bedrock: float = 10.0,
+    width: float = 1.5,
+    K_rock: float = 2.0,
+) -> Callable[..., np.ndarray]:
+    """Wrap a conductivity model ``K(T, z)`` to add a deep bedrock layer.
+
+    In plain English
+    ----------------
+    The standard model treats the Moon as fluffy regolith all the way down.
+    In reality, below the regolith there is solid rock, which conducts heat
+    far better. This wrapper takes any existing conductivity function and
+    makes the conductivity smoothly rise from the regolith value to a
+    bedrock value ``K_rock`` once you go below ``z_bedrock`` metres. The
+    blend uses a ``tanh`` ramp of half-width ``width`` so there is no sharp
+    jump.
+
+    This is an OPTIONAL tool for future deep-profile studies (e.g. ice
+    stability). It is OFF by default everywhere (see
+    :data:`lunar.config.BEDROCK`). It does NOT change the Apollo K_d
+    retrieval, because all Heat-Flow sensors lie at <= 2.4 m -- far above
+    the transition (z_bedrock=10 m) -- where enabling it shifts the
+    resulting temperature by only ~0.05 K, well within the data scatter.
+
+    Parameters
+    ----------
+    k_func : callable
+        A base conductivity model ``K(T, z) -> ndarray`` (e.g. one returned
+        by :func:`get_conductivity_model`).
+    z_bedrock : float
+        Depth [m] of the regolith-to-bedrock transition midpoint.
+    width : float
+        Half-width [m] of the smooth ``tanh`` transition.
+    K_rock : float
+        Bedrock thermal conductivity [W m^-1 K^-1] (solid rock ~ 2).
+
+    Returns
+    -------
+    callable
+        A new ``K(T, z)`` function with the bedrock layer applied.
+    """
+    def k(T: np.ndarray, z: np.ndarray) -> np.ndarray:
+        K_reg = np.asarray(k_func(T, z), dtype=np.float64)
+        z_arr = np.asarray(z, dtype=np.float64)
+        # Fraction of "rock" at each depth: 0 in the regolith, 1 deep down.
+        frac = 0.5 * (1.0 + np.tanh((z_arr - z_bedrock) / width))
+        return (1.0 - frac) * K_reg + frac * K_rock
+
+    return k
 
 
 # ---------------------------------------------------------------------------

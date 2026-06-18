@@ -1,5 +1,19 @@
 """Geometric depth grid construction.
 
+In plain English
+----------------
+To simulate heat moving through soil, we chop the 5-metre column into
+many thin horizontal slices and track the temperature of each one. The
+trick: the slices are NOT all the same thickness. Near the surface,
+where temperature swings wildly between lunar day and night, we use
+paper-thin slices (~2 mm) so we capture the fast changes. Deeper down,
+where temperature barely moves, the slices get gradually thicker (each
+~8% thicker than the one above). This "geometric" spacing puts the
+computational effort where the action is -- like taking many photos per
+second of a sprint start but only one per minute of a marathon's
+middle. Uniform slices are deliberately forbidden: they would waste
+effort deep down while still missing the sharp surface gradient.
+
 The project rule (see .claude/skills/agents/physics.md) is that the subsurface
 grid MUST be geometric — uniform spacing is forbidden because it under-resolves
 the diurnal skin depth and over-resolves the deep interior.

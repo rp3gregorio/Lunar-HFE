@@ -1,0 +1,98 @@
+\section{The big picture: what question does this repo answer, and why care?}
+\label{sec:bigpicture}
+
+\subsection{The scientific question in one breath}
+\label{sec:question}
+
+How well does the loose, dusty soil on the Moon (called \textbf{regolith})
+conduct heat, about a metre below the surface, \emph{at two specific places} ---
+the Apollo~15 and Apollo~17 landing sites? And is that number \emph{the same at
+both sites}, or different?
+
+The single number that captures ``how well does deep Moon soil conduct heat'' is
+called \Kd{} --- the \emph{deep thermal conductivity}. This whole repository
+exists to measure \Kd{} at those two sites and to ask whether they differ.
+
+\subsection{Why this is hard, and why it matters}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item The Moon has been mapped from orbit in incredible detail. But orbiters
+    only see the \textbf{surface}. To know what is happening a metre \emph{down},
+    you need a thermometer \emph{in the ground}.
+  \item Thermometers have been buried in the Moon \textbf{exactly twice in
+    history}: during Apollo~15 (1971) and Apollo~17 (1972). Astronauts drilled
+    holes and dropped temperature probes down them. This was the
+    \textbf{Heat-Flow Experiment (HFE)}. The instruments radioed back
+    temperatures from 1971 to 1977.
+  \item That 1971--1977 record is therefore \emph{the only direct measurement of
+    metre-scale lunar soil conductivity that exists}. Everything else is an
+    educated guess extrapolated from surface data.
+  \item Current models (notably the widely used \textbf{Hayne et al.\ 2017}
+    model) apply a \textbf{single conductivity value to the entire Moon}. This
+    project asks: is one global number actually good enough, or do different
+    places genuinely differ?
+\end{itemize}
+
+\begin{plainenglish}
+We have two underground thermometers' worth of data, ever, from the whole Moon.
+This project squeezes that scarce data as hard as it can to answer one sharp
+question: does deep Moon soil conduct heat the same everywhere, or not?
+\end{plainenglish}
+
+\paragraph{Why anyone cares.}
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item Future missions want to detect \textbf{water ice} trapped below the
+    lunar surface. Whether ice stays frozen or sublimates away depends on the
+    \textbf{temperature profile underground}, which depends directly on \Kd{}.
+  \item An upcoming terahertz mission (\textbf{TSUKIMI}) will try to ``see'' into
+    the regolith from orbit. To interpret what it sees, it needs the underground
+    temperature-versus-depth curve $T(z)$ as a boundary condition --- and that
+    curve is set by \Kd{}.
+  \item More fundamentally: if ``one number for the whole Moon'' is wrong, every
+    model built on it inherits the error.
+\end{itemize}
+
+\subsection{The headline result (the answer)}
+\label{sec:headline}
+
+After all the modelling and statistics, this is what the repository finds (these
+exact numbers are committed in \file{output/kd\_retrieval\_results.json} and
+quoted in the paper abstract).
+
+\begin{table}[h]
+\centering
+\caption{The retrieved deep conductivity at each Apollo site.}
+\label{tab:headline}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Site} & \textbf{Retrieved \Kdstar} & \textbf{Units} \\
+\midrule
+Apollo 15 & \textbf{4.58} \;(\textbf{+1.33} / $-$0.28) & \mwmk \\
+Apollo 17 & \textbf{8.12} \;(\textbf{+0.49} / $-$0.61) & \mwmk \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item The little $*$ in \Kdstar{} means ``the best-fit value'' (the star is the
+    retrieved estimate).
+  \item The units \mwmk{} are milliwatts per metre per kelvin --- a measure of
+    conductivity (\autoref{sec:conductivity} explains what conductivity units
+    mean). For scale, the ``one global value'' everyone used before is
+    \Kd{}~$=$~\num{3.4} in the same units, window glass is ${\sim}1000$, and
+    copper is ${\sim}\num{4e8}$. Lunar regolith is an \emph{extraordinary}
+    insulator.
+  \item The \textbf{inter-site contrast} (the difference, A17~$-$~A15) is
+    ${\approx}\,$\num{3.3}~\mwmk{}, with a 95\% confidence interval of roughly
+    $[0.4, 4.6]$ that \textbf{excludes zero} ($p \approx 0.01$). In plain terms:
+    the two sites really do appear to differ --- Apollo~17 soil conducts heat
+    noticeably better than Apollo~15 soil --- by roughly a factor of~1.8.
+\end{itemize}
+
+\begin{keyidea}
+The two sites are different. Apollo~17 deep soil conducts heat about
+\textbf{1.8 times better} than Apollo~15 deep soil. That difference, established
+from the only underground data that exist, is the scientific contribution of the
+whole project. The rest of this guide explains \emph{how} the repository gets
+there.
+\end{keyidea}

@@ -1,5 +1,20 @@
 """1D subsurface heat-equation solver.
 
+In plain English
+----------------
+This is the heart of the simulation: it answers "given the sunlight
+hitting the surface, what is the temperature at every depth, hour by
+hour?" It does this by stepping forward in small time steps. At each
+step it applies one physical rule -- heat flows from hot to cold -- to
+every soil slice, letting warmth from the sunlit surface seep downward
+and night-time cold soak in from the top. Two things are pinned at the
+edges: the TOP, where the surface must balance incoming sunlight
+against heat radiated to space (a "radiative" boundary), and the
+BOTTOM, where a tiny, steady trickle of heat rises from the Moon's
+interior (the geothermal flux). The equation below is just the precise
+mathematical statement of "heat flows from hot to cold," with the soil
+properties from ``properties.py`` plugged in.
+
 Solves
 
 .. math::
@@ -152,6 +167,125 @@ def _thomas(a: np.ndarray, b: np.ndarray, c: np.ndarray, d: np.ndarray) -> np.nd
     return x
 
 
+@njit(cache=True)
+def _newton_surface_njit(
+    insolation: float,
+    albedo: float,
+    emissivity: float,
+    K_surf: float,
+    dz_surf: float,
+    T_subsurf: float,
+    T_s_guess: float,
+) -> float:
+    """JIT twin of :func:`_solve_surface_newton` (radiative surface BC).
+
+    The residual and its derivative are inlined here rather than calling
+    the Python :func:`surface_energy_balance_residual`, because a Numba
+    kernel cannot call an arbitrary Python function without falling back
+    to the interpreter. Arithmetic, iteration count and tolerance match
+    the Python version exactly so the two agree to floating-point round-off.
+    """
+    T_s = T_s_guess if T_s_guess > 1.0 else 1.0
+    for _ in range(40):
+        radiative_in = (1.0 - albedo) * insolation
+        radiative_out = emissivity * SIGMA_SB * T_s**4
+        conductive = K_surf * (T_s - T_subsurf) / (0.5 * dz_surf)
+        R = radiative_in - radiative_out - conductive
+        dR = -4.0 * emissivity * SIGMA_SB * T_s**3 - 2.0 * K_surf / dz_surf
+        step = R / dR
+        T_s_new = T_s - step
+        if T_s_new < 1.0:
+            T_s_new = 0.5 * (T_s + 1.0)
+        if abs(T_s_new - T_s) < 1e-4:
+            return T_s_new
+        T_s = T_s_new
+    return T_s
+
+
+@njit(cache=True)
+def _cn_step_kernel(
+    T_prev: np.ndarray,
+    K: np.ndarray,
+    rho_cp: np.ndarray,
+    dz: np.ndarray,
+    dt: float,
+    insol_new: float,
+    albedo: float,
+    emissivity: float,
+    Q_b: float,
+    use_dirichlet: bool,
+    T_s_prev_in: float,
+    T_s_new_in: float,
+):
+    """One Crank-Nicolson step, fully JIT-compiled.
+
+    This is the compiled twin of :func:`_step_python`: the per-cell
+    assembly loops, the surface-BC handling and the tridiagonal solve that
+    used to run in interpreted Python now run as machine code. It is kept
+    *generic* over the conductivity model by taking the already-evaluated
+    property arrays (``K``, ``rho_cp``) as inputs — the (arbitrary) Python
+    ``K_func``/``rho_func``/``cp_func`` callables are evaluated by the
+    caller (:func:`_step_fast`), so Hayne, Martinez, 3-layer and the
+    optional bedrock wrapper all flow through this same kernel unchanged.
+
+    The arithmetic is a line-for-line copy of :func:`_step_python`; the
+    regression test ``tests/test_solver_jit_identity.py`` pins the two
+    implementations together to ~1e-12 K so they cannot silently drift.
+    """
+    n = T_prev.size
+    K_face = _face_harmonic_mean(K)
+
+    dz_c = np.empty(n + 1)
+    dz_c[0] = 0.5 * dz[0]
+    dz_c[n] = 0.5 * dz[n - 1]
+    for i in range(1, n):
+        dz_c[i] = 0.5 * (dz[i - 1] + dz[i])
+
+    cap = rho_cp * dz
+
+    alpha_l = np.zeros(n)
+    alpha_r = np.zeros(n)
+    for i in range(n):
+        alpha_l[i] = dt * K_face[i] / (dz_c[i] * cap[i])
+        alpha_r[i] = dt * K_face[i + 1] / (dz_c[i + 1] * cap[i])
+
+    a = np.zeros(n)
+    b = np.zeros(n)
+    c = np.zeros(n)
+    for i in range(n):
+        a[i] = -0.5 * alpha_l[i]
+        c[i] = -0.5 * alpha_r[i]
+        b[i] = 1.0 + 0.5 * (alpha_l[i] + alpha_r[i])
+
+    d = np.zeros(n)
+    for i in range(n):
+        left = T_prev[i - 1] if i > 0 else T_prev[i]
+        right = T_prev[i + 1] if i < n - 1 else T_prev[i]
+        d[i] = (
+            0.5 * alpha_l[i] * left
+            + (1.0 - 0.5 * (alpha_l[i] + alpha_r[i])) * T_prev[i]
+            + 0.5 * alpha_r[i] * right
+        )
+
+    if use_dirichlet:
+        T_s_prev = T_s_prev_in
+        T_s_new = T_s_new_in
+    else:
+        T_s_new = _newton_surface_njit(
+            insol_new, albedo, emissivity, K[0], dz[0], T_prev[0], T_prev[0]
+        )
+        T_s_prev = T_s_new
+
+    d[0] -= 0.5 * alpha_l[0] * T_prev[0]
+    d[0] += 0.5 * alpha_l[0] * T_s_prev
+    d[0] += 0.5 * alpha_l[0] * T_s_new
+
+    b[n - 1] -= 0.5 * alpha_r[n - 1]
+    d[n - 1] += dt * Q_b / cap[n - 1]
+
+    return _thomas(a, b, c, d), T_s_new
+
+
 def surface_energy_balance_residual(
     T_s: float,
     insolation: float,
@@ -233,7 +367,7 @@ def _default_cp(T: np.ndarray) -> np.ndarray:
     return specific_heat(T, model="hayne")
 
 
-def _step(
+def _step_python(
     grid: DepthGrid,
     T_prev: np.ndarray,
     T_surface_prev: float | None,
@@ -242,7 +376,12 @@ def _step(
     idx_new: int,
     dt: float,
 ) -> np.ndarray:
-    """One Crank-Nicolson step.
+    """One Crank-Nicolson step — generic pure-Python reference.
+
+    This is the original, model-agnostic implementation. It remains the
+    correctness oracle for the JIT kernel (see
+    ``tests/test_solver_jit_identity.py``) and the automatic fallback when
+    Numba is unavailable (see ``_step`` at the end of this section).
 
     Physics::
 
@@ -358,6 +497,54 @@ def _step(
     d[-1] += dt * inputs.Q_b / cap[-1]
 
     return _thomas(a, b, c, d), T_s_new
+
+
+def _step_fast(
+    grid: DepthGrid,
+    T_prev: np.ndarray,
+    T_surface_prev: float | None,
+    T_surface_new: float | None,
+    inputs: PixelInputs,
+    idx_new: int,
+    dt: float,
+) -> np.ndarray:
+    """One Crank-Nicolson step via the JIT kernel (fast path).
+
+    The arbitrary Python property callables are evaluated here (vectorised
+    NumPy, the same call as :func:`_step_python`), then the heavy assembly
+    and solve are handed to :func:`_cn_step_kernel`. Because only the
+    already-evaluated arrays cross into the kernel, every conductivity
+    model (Hayne, Martinez, 3-layer, bedrock wrapper) works unchanged.
+    """
+    K_func = inputs.K_func or _default_K
+    rho_func = inputs.rho_func or _default_rho
+    cp_func = inputs.cp_func or _default_cp
+
+    T_prev = np.ascontiguousarray(T_prev, dtype=np.float64)
+    K = np.ascontiguousarray(K_func(T_prev, grid.z_mid), dtype=np.float64)
+    rho = rho_func(grid.z_mid)
+    cp = cp_func(T_prev)
+    rho_cp = np.ascontiguousarray(rho * cp, dtype=np.float64)
+    dz = np.ascontiguousarray(grid.dz, dtype=np.float64)
+
+    if T_surface_prev is not None and T_surface_new is not None:
+        return _cn_step_kernel(
+            T_prev, K, rho_cp, dz, float(dt), 0.0,
+            inputs.albedo, inputs.emissivity, inputs.Q_b,
+            True, float(T_surface_prev), float(T_surface_new),
+        )
+    assert inputs.insolation is not None
+    return _cn_step_kernel(
+        T_prev, K, rho_cp, dz, float(dt), float(inputs.insolation[idx_new]),
+        inputs.albedo, inputs.emissivity, inputs.Q_b,
+        False, 0.0, 0.0,
+    )
+
+
+# Production dispatch: the JIT path when Numba is present, otherwise the
+# generic pure-Python reference. Both produce identical results; the kernel
+# is simply compiled to machine code (see docs/NUMBA_VS_CPP_JUSTIFICATION.md).
+_step = _step_fast if NUMBA_OK else _step_python
 
 
 def solve_pixel(inputs: PixelInputs) -> PixelOutputs:

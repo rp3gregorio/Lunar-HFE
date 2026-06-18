@@ -62,7 +62,7 @@ import matplotlib.pyplot as plt
 
 from lunar.grid import make_geometric_grid
 from lunar.properties import (conductivity_hayne, conductivity_martinez,
-                              specific_heat)
+                              specific_heat, with_bedrock)
 from lunar.constants import (
     K_SURFACE, H_PARAMETER, CHI_RADIATIVE, T_REFERENCE, LUNATION_SECONDS,
 )
@@ -87,7 +87,7 @@ from lunar.config import (   # noqa: E402
     S0, T_LUNAR, DT_STEP, N_LUN_FAST, TOL_FAST,
     EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL,
     GRID, HAYNE, SITES, DEPTH_SIGMA_CM,
-    TL_Z1, TL_Z2, TL_RHO_REF, TL_RHO_SITE,
+    TL_Z1, TL_Z2, TL_RHO_REF, TL_RHO_SITE, BEDROCK,
 )
 # scripts/figures kept on path for the end-of-run figure helpers
 # (fig_bootstrap, fig_robustness) imported inside main().
@@ -114,7 +114,7 @@ def conductivity_3layer(T, z, Kd, rho_deep=TL_RHO_REF):
 
 # ── Solver wrappers ──────────────────────────────────────────────────────────
 def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
-             rho_deep=None, martinez_alpha=None):
+             rho_deep=None, martinez_alpha=None, bedrock=None):
     """Drive the 1-D solver for one site under a chosen K(z) model.
 
     Parameters
@@ -137,9 +137,15 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
     if qb is not None:
         site['Q_BASAL'] = qb
     h = HAYNE['H'] if h is None else h
+    # Optional bedrock layer (OFF by default via config.BEDROCK). Pass a dict
+    # with enabled=True to turn it on for deep-profile / ice-stability runs.
+    bedrock_cfg = BEDROCK if bedrock is None else bedrock
+    _bk = ((bool(bedrock_cfg.get('enabled')), bedrock_cfg.get('z_bedrock_m'),
+            bedrock_cfg.get('width_m'), bedrock_cfg.get('K_rock'))
+           if bedrock_cfg else (False, None, None, None))
     cache_key = (site.get('tag'), site['lat'], site['albedo'],
                  site['emissivity'], site['Q_BASAL'],
-                 kd, h, k_model, rho_deep, martinez_alpha)
+                 kd, h, k_model, rho_deep, martinez_alpha, _bk)
     if cache_key in _PROFILE_CACHE:
         return _PROFILE_CACHE[cache_key]
     grid_  = make_geometric_grid(**GRID)
@@ -182,6 +188,17 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
         def k_func(T, z):
             return conductivity_hayne(T, z, Ks=HAYNE['K_S'], Kd=kd,
                                       H=h, chi=HAYNE['CHI'])
+    # Apply the optional bedrock layer on top of whichever K(z) model was
+    # built above. OFF by default -> this block is skipped and the published
+    # regolith-only retrieval is unchanged.
+    if bedrock_cfg and bedrock_cfg.get('enabled'):
+        _k_base = k_func
+        k_func = with_bedrock(
+            _k_base,
+            z_bedrock=bedrock_cfg.get('z_bedrock_m', 10.0),
+            width=bedrock_cfg.get('width_m', 1.5),
+            K_rock=bedrock_cfg.get('K_rock', 2.0),
+        )
     def cp_func(T):
         return specific_heat(T, model='hayne')
     # ──────────────────────────────────────────────────────────────────────────
@@ -189,9 +206,9 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
     # ──────────────────────────────────────────────────────────────────────────
     # Flux-anchored equilibrium solver (lunar/equilibrium.py) runs 12 inner
     # lunations per outer iteration, typically converging in 3-5 outer cycles
-    # (36-60 total lunations per call). Each lunation requires 2551 hourly
-    # timesteps; each timestep invokes Thomas tridiagonal solver plus Newton
-    # iteration for the radiative surface boundary condition.
+    # (36-60 total lunations per call). Each lunation requires 709 hourly
+    # timesteps (T_LUNAR/DT_STEP+1); each timestep invokes Thomas tridiagonal
+    # solver plus Newton iteration for the radiative surface boundary condition.
     #
     # Called ~300 times in full pipeline: K_d sweeps (120), joint H×K_d grid
     # (130), cross-validation tests (50). Total work: approximately 12000
@@ -205,11 +222,16 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
         T_guess=site['T_MEAN_EFF'],
         z_anchor=EQ_Z_ANCHOR, n_inner=EQ_N_INNER,
         max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL,
+        # Certify flux closure over the retrieval window (the trusted sensor
+        # depths) -- the depth range that actually enters the fit and where
+        # the mean-flux relation is valid (below the diurnal skin).
+        z_closure_min=site['MIN_DEPTH_CM'] / 100.0,
     )
-    if not eq.converged or eq.flux_closure > 0.05:
+    if not eq.converged or eq.flux_closure > 0.03:
         print(f"   WARNING: equilibrium not fully converged "
               f"(drift={eq.anchor_drift_K:.3f} K, "
-              f"closure={eq.flux_closure:.3%})", flush=True)
+              f"closure={eq.flux_closure:.3%} below {eq.z_closure:.2f} m)",
+              flush=True)
     _PROFILE_CACHE[cache_key] = (z_mid, eq.T_mean)
     return z_mid, eq.T_mean
 
@@ -410,7 +432,7 @@ def main():
     # PERFORMANCE: Extended K_d sweep accounts for ~20% of total runtime
     # ──────────────────────────────────────────────────────────────────────────
     # Run equilibrium solver at 28 (A15) + 30 (A17) = 58 K_d values to map out
-    # RMSE(K_d) curves. Each solver call runs ~40 lunations × 2551 timesteps.
+    # RMSE(K_d) curves. Each solver call runs ~40 lunations × 709 timesteps.
     # This establishes the baseline residual matrix R[sensor, K_d] used for
     # optimal K_d* retrieval and subsequent bootstrap resampling.
     # ──────────────────────────────────────────────────────────────────────────
@@ -418,7 +440,7 @@ def main():
     for name, cfg in SITES.items():
         print(f"\n=== A1: extended K_d sweep — {name} ===", flush=True)
         # This loop calls the thermal solver 28 (A15) or 30 (A17) times.
-        # Each call runs ~40 lunations × 2551 timesteps = ~100k timesteps.
+        # Each call runs ~40 lunations × 709 timesteps = ~28k timesteps.
         # Total: 58 solver runs × 40 lunations = 2320 simulated lunations.
         z_obs, T_obs, R, stype = run_kd_sweep_extended(cfg, kd_grids[name])
         cache[name] = dict(z_obs=z_obs, T_obs=T_obs, R=R,

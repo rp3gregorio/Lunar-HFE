@@ -1,0 +1,501 @@
+\section{Physics fundamentals, from scratch}
+\label{sec:physics}
+
+This section assumes you know nothing about heat physics. Take it slowly.
+
+\subsection{Heat vs.\ temperature (they are not the same thing)}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{Temperature} is \emph{how hot something is} --- a single number
+    at a point, like \SI{300}{\kelvin}. It tells you the average jiggling energy
+    of the atoms there.
+  \item \textbf{Heat} is \emph{energy in transit} --- energy flowing from a
+    hotter place to a colder place. You measure it as a \emph{rate of flow}.
+\end{itemize}
+
+\begin{analogy}
+Temperature is like the \textbf{water level} in a tank; heat is like the
+\textbf{water flowing} between tanks. Two tanks at the same level (same
+temperature) have no flow between them, even if one is huge and one is tiny.
+\end{analogy}
+
+\textbf{Kelvin (K)} is just the temperature scale scientists use. It starts at
+absolute zero (the coldest possible), so there are no negative numbers.
+\SI{0}{\celsius} $=$ \SI{273.15}{\kelvin}. Lunar daytime soil-surface can hit
+${\sim}\SI{390}{\kelvin}$ (scorching); lunar night can fall below
+\SI{100}{\kelvin} ($-\SI{170}{\celsius}$). A metre down, it settles to a
+near-constant ${\sim}\SI{250}{\kelvin}$.
+
+\subsection{Conduction: how heat moves through a solid}
+
+There are three ways heat travels: \textbf{conduction} (through direct contact,
+atom bumping atom), \textbf{convection} (carried by a moving fluid like air or
+water), and \textbf{radiation} (electromagnetic waves, like sunlight or the
+warmth you feel from a fire).
+
+The Moon has \textbf{no air and no water underground}, so inside the regolith
+column there is essentially only \textbf{conduction} (plus a small radiative
+effect across the tiny gaps between dust grains, which we fold into an
+``effective'' conductivity --- see \autoref{sec:conductivity}). This is why the
+model is ``1-D conduction.''
+
+The basic law of conduction (\textbf{Fourier's law}) says, in words: \emph{heat
+flows from hot to cold, and the rate of flow is proportional to how steep the
+temperature change is, times how good a conductor the material is.} As a tiny
+equation,
+\begin{equation}
+  q \;=\; -\,K\,\frac{\mathrm{d}T}{\mathrm{d}z},
+  \label{eq:fourier}
+\end{equation}
+where:
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item $\mathrm{d}T/\mathrm{d}z$ is the \textbf{temperature gradient}: how fast
+    temperature changes as you go down ($z$ is depth). Steep gradient $\to$ fast
+    flow.
+  \item $K$ is the \textbf{thermal conductivity}: the material property --- high
+    $K$ means heat flows easily (metal), low $K$ means it resists (styrofoam,
+    lunar dust).
+  \item The minus sign just means heat flows \emph{down} the gradient, from hot
+    to cold.
+\end{itemize}
+In this repo Fourier's law literally appears as the conductive term in the
+surface energy balance and in every interior step. See
+\code{surface\_energy\_balance\_residual} in \file{lunar/solver.py}.
+
+\subsection{The 1-D heat equation --- full derivation from scratch}
+\label{sec:heateq}
+
+This section answers three questions in order: (1)~what problem is the code
+actually solving? (2)~where does the differential equation come from, step by
+step, with no prior PDE course assumed? (3)~what do the top and bottom
+boundaries mean? The final equation is the one in \file{lunar/solver.py} and
+in the paper (Eq.~\eqref{eq:heat}).
+
+\subsubsection{The problem in one sentence}
+
+\begin{keyidea}
+Given how sunlight hits the lunar surface hour by hour, and given how the soil
+conducts heat at each depth, \textbf{find} the temperature $T$ at every depth
+$z$ and every time $t$.
+\end{keyidea}
+
+The simulator predicts a \textbf{temperature profile through the soil column}
+--- temperatures from the surface down to \SI{5}{m} --- and updates that
+profile as the lunar day/night cycle rolls on. In code, the answer lives in
+\code{PixelOutputs.T} from \code{solve\_pixel} in \file{lunar/solver.py}: a
+2-D array of shape \code{(N\_z, N\_t)}.
+
+\subsubsection{Picture a thin horizontal slice of soil}
+
+Imagine the regolith as a \textbf{stack of thin horizontal pancakes}, each
+between depth $z$ and $z+\Delta z$. Focus on one pancake in the middle:
+
+\begin{verbatim}
+     surface (z = 0)  <- sunlight, radiation to space
+  -----------------------------------------
+        warmer layer
+  -----------------------------------------   <- top face (depth z)
+        OUR SLICE  (thickness Delta z)
+  -----------------------------------------   <- bottom face (z + Delta z)
+        cooler layer
+  -----------------------------------------
+        ...
+  -----------------------------------------
+     bottom (z = 5 m)  <- steady heat from interior
+\end{verbatim}
+
+We track a column of soil \SI{1}{m} $\times$ \SI{1}{m} in footprint. The
+slice has mass $\rho\,\Delta z$ per m$^2$ and thermal mass $\rho\,c_p\,\Delta z$
+--- energy needed to warm it by \SI{1}{\kelvin}. The product $\rho\,c_p$ is
+\textbf{thermal inertia}: dense, high-$c_p$ soil is hard to warm or cool (like a
+heavy cast-iron pan).
+
+\subsubsection{Heat flux at each face}
+
+\textbf{Heat flux} $q$ [\unit{W.m^{-2}}] is the rate thermal energy crosses a
+horizontal plane. Fourier's law (Eq.~\eqref{eq:fourier}) gives
+\begin{equation}
+  q(z) \;=\; -\,K(T,z)\,\frac{\partial T}{\partial z}.
+\end{equation}
+Heat flows from hot toward cold. For a slice between $z$ and $z+\Delta z$,
+let $q_\mathrm{in}$ be flux across the top face and $q_\mathrm{out}$ across the
+bottom.
+
+\subsubsection{Energy conservation (the bookkeeping step)}
+
+Energy is not created or destroyed in the slice:
+\begin{equation}
+  \underbrace{\rho\,c_p\,\Delta z\,\frac{\partial T}{\partial t}}_{\text{rate stored energy changes}}
+  \;=\;
+  q_\mathrm{in} - q_\mathrm{out}.
+  \label{eq:slice-balance}
+\end{equation}
+The left side is how fast the slice warms; the right side is net heat flowing
+in.
+
+\subsubsection{From two faces to a derivative}
+
+For a thin slice, $q_\mathrm{out} - q_\mathrm{in} \approx
+(\partial q/\partial z)\,\Delta z$, so
+$q_\mathrm{in} - q_\mathrm{out} \approx -(\partial q/\partial z)\,\Delta z$.
+Substitute into Eq.~\eqref{eq:slice-balance} and cancel $\Delta z$:
+\begin{equation}
+  \rho\,c_p\,\frac{\partial T}{\partial t} \;=\; -\,\frac{\partial q}{\partial z}.
+\end{equation}
+Insert $q = -K\,\partial T/\partial z$:
+\begin{equation}
+  \rho(z)\,c_p(T)\,\frac{\partial T}{\partial t}
+   \;=\; \frac{\partial}{\partial z}\!\left[\,K(T,z)\,\frac{\partial T}{\partial z}\,\right].
+  \label{eq:heat}
+\end{equation}
+That is the \textbf{1-D heat equation} --- the single rule the whole simulator
+enforces.
+
+\begin{plainenglish}
+\textbf{Why ``partial'' derivatives?} $T$ depends on \emph{both} depth $z$
+\emph{and} time $t$. $\partial T/\partial t$ means ``how fast temperature at
+this depth is changing right now''; $\partial T/\partial z$ means ``how steep
+the profile is at this instant.'' You do not need a full PDE course to use
+this --- treat them as separate rates of change.
+\end{plainenglish}
+
+\begin{plainenglish}
+\textbf{Discrete version (what the computer does).} On a finite grid,
+\begin{equation*}
+  (\rho c_p)_i\,\frac{T_i^{n+1}-T_i^{n}}{\Delta t}
+  = \text{(flux in from above)} - \text{(flux out below)}.
+\end{equation*}
+Crank--Nicolson (\autoref{sec:cn}) rearranges this so $\Delta t =
+\SI{1}{h}$ is stable. Inside \code{\_step} in \file{lunar/solver.py}:
+\code{cap\_i * dT\_i/dt = flux\_right(i) - flux\_left(i)}.
+\end{plainenglish}
+
+\subsubsection{Reading the final equation, term by term}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Piece & Plain English & Code \\
+\midrule
+$T(z,t)$ & Temperature at depth $z$, time $t$ & \code{PixelOutputs.T[i,k]} \\
+$\partial T/\partial t$ & Warming/cooling rate & finite difference over $\Delta t$ \\
+$\rho(z)$, $c_p(T)$ & Density, specific heat & \code{rho\_func}, \code{cp\_func} \\
+$\rho\,c_p$ & Thermal inertia & \code{cap} in \code{\_step} \\
+$K(T,z)$ & Conductivity & \code{K\_func} \\
+$K\,\partial T/\partial z$ & Heat flux (Fourier) & face fluxes in \code{\_step} \\
+$\partial/\partial z[\cdots]$ & Net flux in minus out & difference of face fluxes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Left side} = storage; \textbf{right side} = net conduction from
+neighbours. When $K$ varies with $z$ or $T$, it stays \emph{inside} the
+$\partial/\partial z$ --- the same gradient can carry different flux where
+conductivity changes.
+
+\subsubsection{The two boundaries (summary)}
+
+The PDE needs two boundary conditions. \textbf{\autoref{sec:bc-full}} derives
+them from scratch; \textbf{\autoref{sec:orbit-top-bc}} adds orbital geometry,
+insolation diagrams, and the surface energy-balance figure.
+both from scratch and explains their connection to the interior equation and
+to \file{lunar/solver.py}. In brief: top radiative balance
+(Eq.~\eqref{eq:bc-top-teach}); bottom geothermal flux
+(Eq.~\eqref{eq:bc-bot-teach}).
+
+\subsubsection{What ``solving'' means in this repository}
+
+The simulator solves an \textbf{initial-boundary-value problem}:
+\begin{enumerate}[leftmargin=1.5em,itemsep=3pt]
+  \item \textbf{PDE} (interior): Eq.~\eqref{eq:heat}.
+  \item \textbf{Top BC} (each timestep): Eq.~\eqref{eq:bc-top-teach}.
+  \item \textbf{Bottom BC}: Eq.~\eqref{eq:bc-bot-teach}.
+  \item \textbf{Initial condition}: starting profile $T(z,t{=}0)$ --- the
+    equilibrium driver (\autoref{sec:anchor}) removes dependence on the guess.
+\end{enumerate}
+
+\textbf{One timestep} in \code{solve\_pixel}: evaluate $K,\rho,c_p$; assemble
+Crank--Nicolson; Newton solve for $T_s$; tridiagonal solve (\code{\_thomas}) for
+interior cells; advance by $\Delta t$. Repeat $\sim$709 steps per lunation.
+
+\begin{headsup}
+\textbf{Sanity checks.} (i)~Flat $T$ $\Rightarrow$ zero flux $\Rightarrow$
+$\partial T/\partial t = 0$. (ii)~Steady state with bottom heat $\Rightarrow$
+$\mathrm{d}\langle T\rangle/\mathrm{d}z = Q_b/K$ (geothermal gradient).
+(iii)~Larger $K$ $\Rightarrow$ deeper diurnal damping (larger skin depth).
+These are exactly what the code exhibits.
+\end{headsup}
+
+``1-D'' means we only track depth ($z$), ignoring sideways variation --- valid
+over the small patch around a borehole.
+
+\subsection{The three soil properties --- what they mean and why the heat equation needs them}
+\label{sec:properties}
+
+\subsubsection{Thermal capacity: why $\rho\,c_p$ sits on the left}
+
+When you warm soil, you store \textbf{internal energy}. For a slice of thickness
+$\Delta z$ and footprint \SI{1}{m^2}:
+\[
+  \text{mass} = \rho\,\Delta z \quad (\si{kg/m^2}), \qquad
+  \text{energy to warm by \SI{1}{\kelvin}} = \rho\,c_p\,\Delta z \quad (\si{J/m^2}).
+\]
+So $\rho\,c_p$ is \textbf{volumetric heat capacity} (\si{J.m^{-3}.K^{-1}}). Dividing
+the energy-balance rate by this capacity gives the warming rate --- exactly why
+$\rho$ and $c_p$ multiply on the \textbf{left} of Eq.~\eqref{eq:heat}.
+
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Symbol & Name & Units & Code \\
+\midrule
+$\rho(z)$ & Density & \si{kg/m^3} & \code{density\_hayne} \\
+$c_p(T)$ & Specific heat & \si{J.kg^{-1}.K^{-1}} & \code{specific\_heat} \\
+$\rho c_p$ & Volumetric heat capacity & \si{J.m^{-3}.K^{-1}} & \code{cap} in \code{\_step} \\
+$K(T,z)$ & Conductivity & \si{W.m^{-1}.K^{-1}} & \code{conductivity\_hayne} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{analogy}
+$\rho\,c_p$ is the soil's \textbf{thermal mass} (hard to change temperature).
+$K$ is its \textbf{conductance} (how easily heat travels through).
+\end{analogy}
+
+All three are evaluated at every grid cell from \file{lunar/properties.py}.
+
+\subsection{Thermal conductivity \texorpdfstring{$K(T,z)$}{K(T,z)} --- full physical picture}
+\label{sec:conductivity}
+
+\Kd{} --- the quantity this project retrieves --- lives inside the conductivity
+formula. Two channels carry heat in vacuum regolith:
+
+\begin{enumerate}[leftmargin=1.5em,itemsep=3pt]
+  \item \textbf{Contact conduction} --- grain-to-grain; weak when fluffy.
+  \item \textbf{Radiative conduction across vacuum gaps} --- grows with $T^3$.
+\end{enumerate}
+
+Hayne splits these explicitly:
+\[
+  K(T,z) = \underbrace{K_c(z)}_{\text{structural}} \times
+           \underbrace{\bigl[1 + \chi\,(T/350)^3\bigr]}_{\text{radiative boost}}.
+\]
+
+\subsubsection{Structural part $K_c(z)$ --- compaction with depth}
+\begin{equation}
+  K_c(z) = K_d - (K_d - K_s)\,e^{-z/H}.
+  \label{eq:kc}
+\end{equation}
+At $z{=}0$: $K_c{=}K_s$ (fluffy surface, ${\sim}0.74$~\mwmk). Deep down:
+$K_c\to K_d$ (the unknown we fit). The scale height $H\sim\SI{6}{cm}$ sets how
+fast the transition happens; at $z{=}H$ the rise is ${\sim}63\%$ complete.
+
+\subsubsection{Radiative boost --- why $T^3$?}
+Across a vacuum gap, net radiative flux $\propto T_1^4 - T_2^4 \approx 4T^3\Delta T$
+for small $\Delta T$. Hayne folds this into:
+\begin{equation}
+  K(T,z) = K_c(z)\,\bigl[\,1 + \chi\,(T/350)^3\,\bigr].
+  \label{eq:krad}
+\end{equation}
+At $T\approx\SI{250}{\kelvin}$ the factor is ${\sim}2$ --- radiation roughly
+\textbf{doubles} effective $K$. \textbf{Not optional} (known bug if omitted).
+
+\subsubsection{Density and specific heat}
+Density compacts with the same exponential form (Hayne Eq.~5):
+$\rho(z)=\rho_d-(\rho_d-\rho_s)e^{-z/H}$.
+Specific heat $c_p(T)$ is a 4th-order polynomial (\code{specific\_heat}); it sets
+thermal inertia but is not the retrieval's free parameter.
+
+So \Kd{} is one knob in a fixed published shape; the retrieval freezes $K_s$, $H$,
+$\chi$, and slides only \Kd{} until the model matches Apollo data.
+
+\begin{lstlisting}[caption={Cited conductivity constants in \file{lunar/constants.py}.}]
+# Surface contact conductivity [W m^-1 K^-1] -- Hayne et al. (2017) Table 2.
+K_SURFACE: float = 7.4e-4
+# Deep contact conductivity [W m^-1 K^-1] -- Hayne et al. (2017) Table 2.
+K_DEEP: float = 3.4e-3
+# Radiative conductivity coefficient chi [dimensionless] -- Hayne et al. (2017).
+CHI_RADIATIVE: float = 2.7
+\end{lstlisting}
+
+\begin{headsup}
+\textbf{Units.} Conductivity is in \unit{W.m^{-1}.K^{-1}} (watts per metre per
+kelvin). $3.4\times10^{-3}$~\unit{W.m^{-1}.K^{-1}} $=$ \num{3.4}~\mwmk{} --- the
+paper quotes milliwatts (mW) because the numbers are tiny. \SI{1}{W} $=$
+\SI{1000}{mW}. So the committed \Kdstar{}~$=4.58\times10^{-3}$ in the JSON prints
+as \num{4.58}~\mwmk{}.
+\end{headsup}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.78\textwidth]{fig_conductivity.png}
+\caption[Conductivity rises with depth and temperature]{The Hayne $K(T,z)$ law,
+Eqs.~\eqref{eq:kc}--\eqref{eq:krad}, at the Apollo~15 \Kdstar. \textbf{What to
+notice:} each curve climbs steeply over the first few centimetres --- that is the
+structural rise from fluffy surface ($K_s$) toward the deep value $K_d$ governed
+by the scale height $H$. The three curves (cold to hot) are spread apart by the
+radiative $T^3$ boost: hotter soil conducts \emph{better} even at the same depth.
+\textbf{Why it matters:} the single deep number we retrieve, \Kdstar, is the
+plateau these curves are climbing toward.}
+\label{fig:conductivity}
+\end{figure}
+
+\subsection{The thermal skin and skin depth --- full derivation}
+\label{sec:skin}
+
+\subsubsection{Thermal diffusivity}
+\[
+  \alpha = \frac{K}{\rho\,c_p} \quad [\si{m^2/s}].
+\]
+Dividing the heat equation by $\rho c_p$ (constant properties):
+$\partial T/\partial t = \alpha\,\partial^2 T/\partial z^2$ --- a diffusion equation.
+
+\subsubsection{The decaying thermal wave}
+For sinusoidal surface forcing $T(0,t)=T_{\mathrm{mean}}+A_s\cos(\omega t)$:
+\[
+  T(z,t) = T_{\mathrm{mean}} + A_s\,e^{-z/\delta}\cos(\omega t - z/\delta).
+\]
+At $z=\delta$ the amplitude is $A_s/e\approx 0.37A_s$.
+
+\subsubsection{Deriving the skin depth}
+Substituting into the diffusion equation gives
+\begin{equation}
+  \delta = \sqrt{\frac{2\alpha}{\omega}}.
+  \label{eq:skin}
+\end{equation}
+Larger $\alpha$ $\Rightarrow$ deeper skin; larger $\omega$ $\Rightarrow$ shallower
+skin. For the Moon, $\delta\sim\SI{6}{cm}$.
+
+Apollo sensors at \SI{0.8}{m}--\SI{2.4}{m} sit \textbf{10--40$\times$ deeper}
+than $\delta$ --- below the diurnal noise, in the quiet zone set by the geothermal
+gradient. This underpins \code{MIN\_DEPTH\_CM = 80} and the Anchor Point Method.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.78\textwidth]{fig_skin_depth.png}
+\caption[The daily heat wave dies out with depth]{The size of the day/night
+temperature swing as you go down, for both sites (note the \emph{logarithmic}
+horizontal axis). \textbf{What to notice:} the swing starts at ${\sim}100$~K at
+the surface and collapses by a factor of a thousand within about a metre --- the
+dotted line marks the $1/e$ skin depth $\delta$, only a few centimetres. Below
+that the curve plunges to essentially nothing. \textbf{Why it matters:} the
+Apollo sensors used for the fit all sit well below this skin, in the quiet zone
+where temperature is set purely by the deep heat flow.}
+\label{fig:skin}
+\end{figure}
+
+\subsection{Radiation, sunlight, and the geothermal gradient --- full picture}
+\label{sec:boundaries}
+
+\subsubsection{Stefan--Boltzmann: why $T^4$?}
+Every surface emits radiation $q_{\mathrm{rad}}=\varepsilon\sigma T^4$. A slightly
+hotter surface radiates vastly more ($2\times$ temperature $\Rightarrow 16\times$
+power). This makes the surface balance non-linear (Newton solve, \autoref{sec:newton}).
+
+\subsubsection{Surface energy balance}
+\begin{equation}
+  \underbrace{(1-A)\,S(t)}_{\text{absorbed}}
+   \;-\; \underbrace{\varepsilon\sigma T_s^4}_{\text{radiated}}
+   \;-\; \underbrace{q_{\mathrm{cond}}(0)}_{\text{into soil}}
+   \;=\; 0.
+  \label{eq:surface}
+\end{equation}
+Implemented in \code{surface\_energy\_balance\_residual} (\file{lunar/solver.py}).
+
+\subsubsection{Insolation model}
+\[
+  S(t) = S_0\cos(\mathrm{lat})\,\max\!\bigl(0,\cos(2\pi t/T_{\mathrm{lunation}})\bigr).
+\]
+Built in \code{run\_with}. Idealised diurnal cosine; neglected terms are bounded in
+the paper.
+
+\subsubsection{Geothermal gradient --- full derivation}
+Bottom BC: $-K\,\partial T/\partial z|_{\mathrm{bottom}} = Q_b$.
+Time-average the heat equation in periodic steady state ($\partial\langle T\rangle/\partial t=0$):
+\[
+  \frac{\partial}{\partial z}\!\Bigl[K\,\frac{\partial\langle T\rangle}{\partial z}\Bigr]=0
+  \quad\Rightarrow\quad K\,\frac{\mathrm{d}\langle T\rangle}{\mathrm{d}z}=\mathrm{const}=Q_b.
+\]
+Hence
+\begin{equation}
+  \frac{\mathrm{d}\langle T\rangle}{\mathrm{d}z} = \frac{Q_b}{K}.
+  \label{eq:geotherm}
+\end{equation}
+Larger $Q_b$ or smaller $K$ $\Rightarrow$ steeper rising mean profile. Example:
+$Q_b=0.021$~\si{W/m^2}, $K_d\approx 0.0046$~\si{W/m/K} $\Rightarrow$
+gradient $\approx\SI{4.6}{K/m}$.
+
+This \Qb{} matters for the retrieval: deep $T$ depends on the \textbf{ratio}
+$Q_b/K_d$ --- the \textbf{\Kd--\Qb{} degeneracy} (\autoref{sec:degeneracy}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.78\textwidth]{fig_mean_profile.png}
+\caption[Below the skin the mean temperature keeps rising]{The cycle-averaged
+temperature $\langle T\rangle$ versus depth for both sites, from the certified
+equilibrium solver. \textbf{What to notice:} below ${\sim}1$~m the curve becomes
+a straight, \emph{tilted} line --- it does not flatten out. That tilt is the
+geothermal gradient $Q_b/K$ of Eq.~\eqref{eq:geotherm}. \textbf{Why it matters:}
+the deep slope encodes the ratio $Q_b/K_d$; reading the Apollo temperatures
+against this line is exactly how the project pins down \Kd.}
+\label{fig:meanprofile}
+\end{figure}
+
+\subsection{Boundary conditions --- full derivation and connection to the main equation}
+\label{sec:bc-full}
+
+\subsubsection{Why the main equation is not enough}
+The heat equation (Eq.~\eqref{eq:heat}) is second-order in $z$, so it needs
+\textbf{two boundary conditions} plus an initial condition $T(z,t{=}0)$ to pick a
+unique solution. The complete problem: interior PDE $+$ top BC $+$ bottom BC $+$
+initial profile (paper Eqs.~1--3).
+
+\subsubsection{One unifying idea: energy balance at every control volume}
+Interior cells: flux in minus flux out equals storage. At boundaries the same
+bookkeeping applies, but one face is the domain edge (space above, or deep
+interior below) --- not another soil cell.
+
+\subsubsection{Top boundary --- radiative surface balance}
+At $z=0$ there is no conduction from above. Energy balance on the surface skin:
+\begin{equation}
+  (1-A)\,S(t) \;-\; \varepsilon\sigma T_s^4 \;-\; q_{\mathrm{cond}}(0) \;=\; 0.
+  \label{eq:bc-top-teach}
+\end{equation}
+The conductive term is Fourier's law at the top face:
+$q_{\mathrm{cond}}(0)=-K\,\partial T/\partial z|_{0+}\approx K_{\mathrm{surf}}(T_s-T_{\mathrm{sub}})/(\Delta z_0/2)$,
+implemented in \code{surface\_energy\_balance\_residual}. Each timestep,
+\code{\_solve\_surface\_newton} finds $T_s$; the first row of the tridiagonal
+system uses $T_s$ as a ghost temperature coupling the BC to the interior PDE.
+
+\subsubsection{Bottom boundary --- geothermal flux}
+Below the 5~m column we prescribe upward flux $Q_b$ (Neumann condition):
+\begin{equation}
+  -\,K\,\frac{\partial T}{\partial z}\Big|_{z=z_{\mathrm{max}}} \;=\; Q_b.
+  \label{eq:bc-bot-teach}
+\end{equation}
+For the deepest cell, the outgoing flux at the bottom face is fixed to $Q_b$
+rather than computed from a neighbour. In \code{\_step}:
+\code{d[-1] += dt * Q\_b / cap[-1]} adds the basal energy source. In steady
+state this forces $K\,\mathrm{d}\langle T\rangle/\mathrm{d}z=Q_b$ everywhere
+(Eq.~\eqref{eq:geotherm}).
+
+\subsubsection{How the pieces fit in one timestep}
+\begin{enumerate}[leftmargin=1.5em,itemsep=2pt]
+  \item \textbf{Top:} Newton solve for $T_s$ from radiative balance.
+  \item \textbf{Interior:} Crank--Nicolson discretisation of Eq.~\eqref{eq:heat}.
+  \item \textbf{Bottom:} add $Q_b$ source to the last cell.
+  \item \textbf{Coupled solve:} one Thomas tridiagonal sweep for $T^{n+1}$.
+\end{enumerate}
+The BCs are not separate from the PDE --- they are the same energy-conservation
+principle at the domain edges, wired into the same linear system.
+
+\begin{headsup}
+\textbf{Sanity check.} Day/night surface swings $\leftarrow$ top BC;
+rising mean profile $\leftarrow$ bottom BC; quiet deep sensors $\leftarrow$
+interior damping (skin depth). Wrong BCs would still run but would not match
+Apollo or Diviner.
+\end{headsup}
+
+\input{sections/02b_orbit_top_bc}

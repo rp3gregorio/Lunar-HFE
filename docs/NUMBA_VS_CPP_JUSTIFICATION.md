@@ -1,492 +1,212 @@
-# Technical Justification: Why Numba JIT is Sufficient vs C++ Rewrite
+# Is the thermal solver fast enough, or do we need C++?
 
-**For: Expert C++ Developer Review**  
-**Context: Lunar thermal model performance optimization**  
-**Date: 2026-06-17**
+**Question:** the 1-D heat solver is the slow part of the pipeline. Should
+the inner loop be rewritten in C++?
 
----
+**Answer (measured, not guessed): No.** The slow part was one Python loop
+that simply had not been handed to the speed-up tool we already depend on
+(Numba). Once we did that, the solver got **7× faster on a real run** while
+producing **the exact same scientific numbers** (agreement to ~2×10⁻¹² K).
+A full C++ rewrite would buy at most another minute or two, for months of
+work and a real risk of changing published results. It is not worth it.
 
-## Executive Summary
-
-**Recommendation: Keep Numba JIT, add parallelization. Do NOT port to C++.**
-
-- **Current performance**: Numba achieves 90-98% of hand-optimized C++ speed
-- **Remaining bottleneck**: Serial execution (not language choice)
-- **Optimal path**: Parallelize Python code → 5-7x speedup in 1 day vs months for C++ port
-- **C++ would gain**: ~20-30% additional speed after parallelization (diminishing returns)
-- **Development cost**: Python+Numba: 1 day | C++ rewrite: 3-6 months
+**Author:** Ramon III Palinguba Gregorio · **Date:** 2026-06-18 ·
+**Status:** implemented and tested (Phase 4)
 
 ---
 
-## 1. How Numba JIT Works (Under the Hood)
+## 1. Plain-English background
 
-### 1.1 Compilation Pipeline
+Think of the simulator as a kitchen with several cooking stations. To find
+the slow station we put a stopwatch on each one (this is called
+"profiling"). One station was doing the overwhelming majority of the work.
 
-```
-Python source with @njit
-    ↓
-Numba's type inference (specialized for float64, int64, etc.)
-    ↓
-LLVM IR generation (same intermediate representation as Clang++)
-    ↓
-LLVM optimization passes (same optimizer as C++)
-    ↓
-Native machine code (x86-64, ARM64, etc.)
-    ↓
-Cached on disk (.pyc bytecode + .nbc compiled cache)
-```
+There is also a built-in "speed booster" in this project called **Numba**
+(it appears in the code as the tag `@njit`). Numba takes a slow Python
+function and, the first time it runs, translates it into fast machine code —
+the same *kind* of fast code a C++ compiler produces, because Numba uses the
+same underlying compiler engine (LLVM). After that one-time translation,
+the function runs at near-C++ speed for the rest of the program.
 
-**Key insight**: Numba uses **the same LLVM backend as Clang++**. The generated machine code is nearly identical.
-
-### 1.2 What Gets Compiled in This Codebase
-
-In `lunar/solver.py`:
-
-```python
-@njit(cache=True)
-def _thomas(a, b, c, d):
-    """Thomas algorithm for tridiagonal systems."""
-    n = b.size
-    cp = np.empty(n)
-    dp = np.empty(n)
-    x = np.empty(n)
-    
-    # Forward sweep
-    cp[0] = c[0] / b[0]
-    dp[0] = d[0] / b[0]
-    for i in range(1, n):
-        m = b[i] - a[i] * cp[i - 1]
-        cp[i] = c[i] / m if i < n - 1 else 0.0
-        dp[i] = (d[i] - a[i] * dp[i - 1]) / m
-    
-    # Back substitution
-    x[n - 1] = dp[n - 1]
-    for i in range(n - 2, -1, -1):
-        x[i] = dp[i] - cp[i] * x[i + 1]
-    
-    return x
-```
-
-**Numba compiles this to:**
-- Type-specialized for `float64` arrays (no Python object overhead)
-- Tight loop with register allocation
-- SIMD vectorization where applicable
-- No bounds checking in the inner loop
-- Zero Python interpreter involvement at runtime
-
-**Equivalent C++ would be:**
-```cpp
-void thomas(const double* a, const double* b, const double* c, 
-            const double* d, double* x, int n) {
-    double* cp = new double[n];
-    double* dp = new double[n];
-    
-    cp[0] = c[0] / b[0];
-    dp[0] = d[0] / b[0];
-    for (int i = 1; i < n; i++) {
-        double m = b[i] - a[i] * cp[i-1];
-        cp[i] = (i < n-1) ? c[i] / m : 0.0;
-        dp[i] = (d[i] - a[i] * dp[i-1]) / m;
-    }
-    
-    x[n-1] = dp[n-1];
-    for (int i = n-2; i >= 0; i--) {
-        x[i] = dp[i] - cp[i] * x[i+1];
-    }
-    
-    delete[] cp;
-    delete[] dp;
-}
-```
-
-**Performance difference**: ~2-5% (C++ slightly faster due to manual memory management)
+The whole question of "Python vs C++" really comes down to: **is the slow
+station running as fast machine code, or as slow interpreted Python?**
 
 ---
 
-## 2. Benchmarking Evidence
+## 2. What we found by profiling (the surprise)
 
-### 2.1 Literature Benchmarks
+Before this work, only two *tiny* helper functions in `lunar/solver.py`
+carried the `@njit` speed tag:
 
-From [Numba vs C++ benchmarks](https://numba.pydata.org/numba-doc/dev/user/performance-tips.html):
+* `_thomas` — solves the small banded system of equations, and
+* `_face_harmonic_mean` — averages conductivity between soil layers.
 
-| Operation | Pure Python | Numba JIT | C++ (gcc -O3) | Speedup Factor |
-|-----------|------------|-----------|---------------|----------------|
-| Dense matrix multiply | 1.00x | 0.95x | 1.00x | 95% of C++ |
-| Tridiagonal solve | 1.00x | 0.92x | 1.00x | 92% of C++ |
-| Tight numerical loops | 1.00x | 0.88-0.98x | 1.00x | 88-98% of C++ |
-| Mixed operations | 1.00x | 0.70-0.90x | 1.00x | 70-90% of C++ |
+But the function doing almost all the work — `_step`, which assembles and
+advances one time step — was **plain interpreted Python**, and so was the
+Newton iteration that balances the sunlit surface. The stopwatch made this
+unmistakable (steady-state run, counting only the real numerical work):
 
-### 2.2 This Codebase's Computational Profile
+| Station (function) | Share of solver time | Was it sped up? |
+|---|---:|---|
+| `_step` (build + advance one timestep) | **86 %** | **No — plain Python** |
+| `conductivity_hayne` | 4 % | No |
+| `_cp_hayne` (specific heat) | 4 % | No |
+| `density_hayne` | 2 % | No |
+| `_solve_surface_newton` | ~2 % | No |
+| everything else (incl. the two `@njit` helpers) | ~2 % | partly |
 
-From `retrieve_kd.py` analysis:
+So the earlier belief that "almost all the runtime is already Numba-compiled"
+was **incorrect**. The hot loop was interpreted Python. That is good news:
+it means a large speed-up was available cheaply, and it has nothing to do
+with the choice of programming language.
 
-```
-Total runtime: ~300 seconds (5 minutes)
-Breakdown:
-  - Bootstrap loop (Numba-compiled interpolations):     195s (65%)
-  - Equilibrium solver (Numba-compiled CN solver):       60s (20%)  
-  - Joint grid sweep (Numba-compiled solver):            36s (12%)
-  - Python overhead (I/O, plotting, JSON):                9s (3%)
-```
-
-**Critical observation**: 97% of runtime is in Numba-compiled code that's already near-optimal. Only 3% is Python overhead.
-
-### 2.3 Realistic C++ Speedup Estimate
-
-Assuming perfect C++ implementation:
-- Numba sections (97%): 2-3x faster → saves ~100-150s
-- Python overhead (3%): 10x faster → saves ~8s
-- **Total C++ speedup: ~1.4-1.6x** (from 300s → 190-210s)
-
-But with parallelization (which works equally well in Python and C++):
-- **8-core parallel Python+Numba: 300s → 45s** (6.7x speedup)
-- **8-core parallel C++: 300s → 30s** (10x speedup)
-
-**Diminishing returns**: C++ gains you 15 seconds after spending 3-6 months on rewrite.
+(The figures for this analysis are in
+`output/figures/fig_phase4_profile.png` and
+`output/figures/fig_phase4_njit_vs_cpp.png`, produced by
+`scripts/analysis/phase4_performance.py`.)
 
 ---
 
-## 3. What Numba CANNOT Do Well
+## 3. How much faster is Numba, really? (the benchmark)
 
-### 3.1 Where C++ Would Win
+We built a Numba copy of the inner loop using the *same* physics formulas
+and the *same* physical constants, checked it gives the identical answer,
+and then timed it:
 
-1. **Complex data structures**: Python lists/dicts inside JIT-compiled code
-   - **Not applicable here**: We use pure NumPy arrays
-   
-2. **Extensive branching with unpredictable patterns**
-   - **Not applicable**: Our code has simple, predictable branches
-   
-3. **String manipulation in tight loops**
-   - **Not applicable**: No string processing in hot paths
-   
-4. **Very small functions called millions of times** (call overhead)
-   - **Not applicable**: Our inner loops are large enough to amortize overhead
+| Piece of work | Plain Python | Numba | Speed-up |
+|---|---:|---:|---:|
+| One `_thomas` solve | 41 µs | 1.3 µs | **33×** |
+| One full inner "lunar day" loop | 80 ms | 0.6 ms | **133×** |
 
-5. **Fine-grained memory control** (custom allocators, object pooling)
-   - **Marginal benefit**: NumPy already uses efficient memory layouts
+**The one-time cost:** Numba has to translate ("compile") a function the
+first time it is called. That first call took about half a second; every
+call afterwards was ~0.6 ms. So it is *compile once, then run fast forever* —
+negligible over a pipeline that calls the solver hundreds of times.
 
-### 3.2 This Codebase's Bottleneck Analysis
-
-From profiling `retrieve_kd.py`:
-
-```python
-# HOTTEST FUNCTION (called ~300 times):
-def solve_periodic_equilibrium(...):
-    # Cost: 36-60 lunations × 2,551 timesteps × tridiagonal solve
-    # Each tridiagonal solve: ~50 floating-point ops
-    # Total: ~5-8 million flops per call
-    
-    # Numba-compiled inner kernel (_thomas, _step):
-    #   → 95% of CPU time
-    #   → Already running at near-C++ speed
-    
-    # Python overhead:
-    #   → Function call setup: <0.1% of time
-    #   → NumPy array allocation: <1% of time
-```
-
-**Conclusion**: The Numba-compiled kernels are already optimal. The bottleneck is **serial execution**, not language choice.
+This confirms the key fact: **Numba already runs at C++-class speed**,
+because it compiles through the same LLVM engine a C++ compiler uses.
 
 ---
 
-## 4. Development Cost Analysis
+## 4. What we changed (and why it is safe for the science)
 
-### 4.1 Python + Parallelization (Recommended)
+The solver is *generic*: `solve_pixel` / `solve_periodic_equilibrium`
+accept arbitrary conductivity, density and specific-heat functions
+(`K_func`, `rho_func`, `cp_func`). Production uses the Hayne form, but the
+codebase also supports `martinez`, a discrete `3layer` model, and an
+optional `bedrock` wrapper. A Numba kernel cannot accept arbitrary Python
+functions cleanly, so the design had to keep all of those working.
 
-**Time investment**: 1 day  
-**Difficulty**: Easy (10-20 lines of code)
+The clean solution (in `lunar/solver.py`):
 
-```python
-# Add to imports
-from joblib import Parallel, delayed
+1. **`_cn_step_kernel`** — a new `@njit` kernel that does the heavy work
+   (the per-cell assembly loops, the surface-balance Newton iteration, and
+   the tridiagonal solve). Crucially it takes the *already-evaluated*
+   property **arrays** as inputs — it never sees a Python function. This is
+   what keeps it generic: Hayne, Martinez, 3-layer and bedrock all just
+   produce different number arrays that feed the same fast kernel.
+2. **`_newton_surface_njit`** — a compiled twin of the surface Newton solve,
+   inlined into the kernel (a kernel can't call the Python residual function
+   directly).
+3. **`_step_fast`** — evaluates the (arbitrary) property functions in Python
+   exactly as before, then hands the arrays to the kernel.
+4. **`_step_python`** — the original, unchanged, model-agnostic
+   implementation. It is kept as the human-readable reference, the automatic
+   fallback when Numba is not installed, and the oracle for the regression
+   test.
+5. **`_step = _step_fast if NUMBA_OK else _step_python`** — production uses
+   the fast path; if Numba is ever missing, the solver still runs correctly
+   (just slower).
 
-# Parallelize K_d sweep (currently 20% of runtime)
-def run_kd_sweep_extended_parallel(site_cfg, kd_grid):
-    obs = extract_sensor_stability(...)
-    
-    # Instead of sequential loop:
-    results = Parallel(n_jobs=-1)(
-        delayed(run_with)(site_cfg, kd=kd) 
-        for kd in kd_grid
-    )
-    
-    # Unpack results...
-    return z_obs, T_obs, R, stype
-
-# Speedup: 5-7x on 8-core machine
-# New runtime: 300s → 45s
-```
-
-**Risk**: Low (trivial code changes, easy to test)
-
-### 4.2 C++ Rewrite
-
-**Time investment**: 3-6 months (1 senior developer)  
-**Difficulty**: High
-
-**What needs to be ported:**
-
-1. **Core solver** (`lunar/solver.py`, ~400 lines)
-   - Crank-Nicolson assembly
-   - Thomas algorithm
-   - Newton surface iteration
-   - Requires: C++ linear algebra library (Eigen, Armadillo)
-
-2. **Material properties** (`lunar/properties.py`, ~300 lines)
-   - Hayne conductivity model
-   - Martinez-Siegler conductivity
-   - Specific heat polynomials
-   - Requires: Math library, polynomial evaluation
-
-3. **Equilibrium solver** (`lunar/equilibrium.py`, ~250 lines)
-   - Flux-anchored outer iteration
-   - Rectified flux computation
-   - Sub-skin reconstruction
-   - Requires: Integration with solver, careful state management
-
-4. **Grid system** (`lunar/grid.py`, ~150 lines)
-   - Geometric grid generation
-   - Requires: Custom data structures
-
-5. **Apollo data handling** (`lunar/apollo_helpers.py`, ~200 lines)
-   - File I/O
-   - Sensor extraction
-   - Requires: C++ I/O library (HDF5, CSV parser)
-
-6. **Configuration system** (`lunar/config.py`, ~100 lines)
-   - Site parameters
-   - Constants
-   - Requires: C++ config library (YAML, JSON)
-
-7. **Testing infrastructure** (`tests/`, ~800 lines)
-   - Unit tests for all components
-   - Requires: Google Test or Catch2 framework
-
-**Total LOC to port**: ~2,200 lines  
-**Additional infrastructure**: Build system (CMake), CI/CD, documentation
-
-**Risk**: High
-- Regression risk (reproducing exact numerics)
-- Maintenance burden (two codebases)
-- Loss of SciPy/NumPy ecosystem (interpolation, optimization, statistics)
-- Onboarding difficulty (fewer people know C++ than Python)
+Nothing about the public API, the boundary conditions, or the numerical
+scheme changed. Only *where the same arithmetic runs* (machine code vs
+interpreter) changed.
 
 ---
 
-## 5. The Parallelization Advantage
+## 5. Proof the science is unchanged
 
-### 5.1 Why This Code is "Embarrassingly Parallel"
+We saved the solver outputs **before** and **after** the change for both
+Apollo sites at their published retrieved conductivities (A15 `K_d` =
+4.58 mW m⁻¹ K⁻¹, A17 `K_d` = 8.12 mW m⁻¹ K⁻¹), plus the Martinez, 3-layer
+and bedrock paths, and compared the full temperature columns:
 
-```python
-# PERFECT for parallelization (no data dependencies):
+| Case | Largest temperature difference |
+|---|---:|
+| A15 (Hayne) | 2.0 × 10⁻¹³ K |
+| A17 (Hayne) | 2.1 × 10⁻¹² K |
+| A15 (Martinez) | 4.5 × 10⁻¹³ K |
+| A15 (3-layer) | 9.4 × 10⁻¹³ K |
+| A15 (bedrock, enabled) | 4.0 × 10⁻¹³ K |
+| **Overall** | **2.1 × 10⁻¹² K** |
 
-# 1. Bootstrap loop - 65% of runtime
-for b in range(1500):
-    boots[b] = compute_bootstrap_sample(...)  # ← 100% independent
+That is around 10⁻¹² K — a *trillionth* of a degree, i.e. ordinary
+floating-point round-off. For comparison, the solver systematic already
+carried in the paper's error budget is ±0.15 mW m⁻¹ K⁻¹ and the
+measurement scatter is far larger still. **The published `K_d` numbers
+(4.58 and 8.12) are unaffected.**
 
-# 2. K_d sweep - 20% of runtime  
-for k, kd in enumerate(kd_grid):
-    R[:, k] = run_with(kd=kd)  # ← 100% independent
+A dedicated regression test, `tests/test_solver_jit_identity.py`, locks the
+fast kernel to the pure-Python reference (to ~10⁻¹⁰ K) for the radiative
+boundary condition, the Dirichlet boundary condition, and a non-Hayne
+model, so the two implementations can never silently drift in the future.
 
-# 3. Joint H×K_d grid - 12% of runtime
-for i, h in enumerate(h_grid):
-    for j, kd in enumerate(kd_grid):
-        rmse[i, j] = run_with(h=h, kd=kd)  # ← 100% independent
-```
-
-**Total parallelizable**: 97% of runtime
-
-### 5.2 Parallel Scaling Efficiency
-
-| Cores | Python+Numba | C++ (est.) | Efficiency |
-|-------|-------------|-----------|------------|
-| 1     | 300s        | 200s      | 100%       |
-| 2     | 155s        | 105s      | 97%        |
-| 4     | 80s         | 55s       | 94%        |
-| 8     | 45s         | 30s       | 83%        |
-| 16    | 25s         | 17s       | 75%        |
-
-**Key insight**: Parallelization gives 6-12x speedup regardless of language. The C++ advantage is constant (~1.5x), so after parallelization the gap shrinks to 15 seconds.
+**Tests:** all **45** pass (`export MPLCONFIGDIR=/tmp/mpl &&
+python3 -m pytest -q`) — the 42 pre-existing tests plus the 3 new identity
+tests.
 
 ---
 
-## 6. When Would C++ Actually Be Worth It?
+## 6. Measured speed-up
 
-### 6.1 Scenarios Where C++ Wins
+On one real, end-to-end solver call (`run_with`, a full flux-anchored
+equilibrium), measured on this machine:
 
-1. **Real-time systems** (need <100ms latency)
-   - Not applicable: This is a batch processing pipeline
-   
-2. **Embedded systems** (memory-constrained, <1GB RAM)
-   - Not applicable: This runs on workstations with 16-64GB RAM
-   
-3. **Integration with existing C++ codebase**
-   - Not applicable: This is a standalone Python project
-   
-4. **Need for 10-100x speedup** (algorithmic + language optimization)
-   - Not applicable: Parallelization already gives 6-7x, and algorithm is optimal
-   
-5. **Commercial deployment** (minimize Python runtime dependency)
-   - Not applicable: This is research code distributed via Conda/pip
+| Path | Time for one call | Full ~300-call pipeline |
+|---|---:|---:|
+| Before (interpreted `_step`) | 8.4 s | ~42 min |
+| After (JIT kernel) | 1.15 s | ~6 min |
+| **Speed-up** | **7.3×** | **7.3×** |
 
-### 6.2 Current Situation Assessment
+(The per-call speed-up is ~7× rather than the kernel's 133× because the
+remaining ~14% of each call — evaluating the property formulas and the
+equilibrium bookkeeping — is deliberately left in generic Python so every
+conductivity model keeps working. Those parts are cheap.)
 
-| Criterion | Threshold for C++ | This Project | C++ Worth It? |
-|-----------|------------------|--------------|---------------|
-| Runtime after parallelization | <10 seconds | ~45s | ❌ No |
-| Memory footprint | >50% of RAM | <5% | ❌ No |
-| Must eliminate Python | Yes | No | ❌ No |
-| Need >10x speedup | Yes | No (6x is enough) | ❌ No |
-| Deployment to end-users | Millions | <100 scientists | ❌ No |
+This is single-core. The pipeline's 300 calls are independent, so running
+them across CPU cores would cut the wall-clock time roughly by the core
+count on top of this — but that is an optional, separate change.
 
 ---
 
-## 7. The Numba Advantage: Scientific Ecosystem
+## 7. Why C++ is still not worth it
 
-### 7.1 What You'd Lose in C++
+* **The speed gap to C++ is already closed.** Numba compiles through the
+  same LLVM backend as a C++ compiler, so the hot kernel now runs at
+  C++-class speed. A hand-tuned C++ version would realistically be ~1.3×
+  faster than the JIT kernel — saving on the order of a minute over the
+  whole pipeline.
+* **The cost is enormous and one-sided.** Porting the solver, properties,
+  equilibrium driver, grid and I/O to C++ (with Eigen/pybind11, a build
+  system, and re-validation against the published numbers) is a multi-month
+  effort with a high risk of subtly changing results.
+* **We would lose the Python scientific ecosystem** (NumPy, SciPy,
+  matplotlib, the bootstrap statistics) that the rest of the pipeline relies
+  on.
 
-**Python scientific stack dependencies in this codebase:**
-
-1. **NumPy/SciPy**:
-   - `np.interp()` - 1D interpolation (used in bootstrap)
-   - `np.gradient()` - numerical differentiation (used in equilibrium solver)
-   - `scipy.integrate` - potential future use for ODE solving
-   
-2. **Data handling**:
-   - `pandas` - Apollo data loading and manipulation
-   - Native JSON/HDF5 support
-   
-3. **Visualization**:
-   - `matplotlib` - all figures (30+ plots)
-   
-4. **Statistics**:
-   - `np.percentile()` - bootstrap confidence intervals
-   - Native support for statistical operations
-
-**C++ equivalent**:
-- Must link external libraries (Eigen, Boost, HDF5, etc.)
-- More complex build system
-- Manual memory management
-- Verbose error handling
-
-### 7.2 Maintainability Comparison
-
-**Python (current)**:
-```python
-# Clear, self-documenting code
-boots = np.percentile(samples, [2.5, 50, 97.5])
-T_interp = np.interp(z_new, z_old, T_old)
-results = {'kd_star': float(kd), 'ci_lo': float(boots[0])}
-with open('results.json', 'w') as f:
-    json.dump(results, f, indent=2)
-```
-
-**C++ equivalent**:
-```cpp
-// Verbose, requires external libraries
-#include <vector>
-#include <algorithm>
-#include <nlohmann/json.hpp>
-#include <fstream>
-
-std::vector<double> boots = percentile(samples, {2.5, 50.0, 97.5});
-std::vector<double> T_interp = interpolate(z_new, z_old, T_old);
-nlohmann::json results;
-results["kd_star"] = kd;
-results["ci_lo"] = boots[0];
-std::ofstream f("results.json");
-f << std::setw(2) << results << std::endl;
-```
-
-**Lines of code estimate**: Python codebase (2,000 LOC) → C++ (~4,000 LOC)
-
----
-
-## 8. Performance Profiling Results
-
-### 8.1 Actual Profiling Data
-
-Run `retrieve_kd.py` with profiling:
-
-```bash
-python -m cProfile -s cumtime scripts/pipeline/retrieve_kd.py > profile.txt
-```
-
-**Top functions by cumulative time:**
-
-| Function | Cumtime (s) | % Total | Language | C++ Gain |
-|----------|------------|---------|----------|----------|
-| `solve_periodic_equilibrium` | 180 | 60% | Numba-compiled | ~1.05x |
-| `bootstrap_kd_with_depth_uncertainty` | 90 | 30% | Numba-compiled | ~1.05x |
-| `_thomas` (tridiagonal solve) | 25 | 8% | Numba-compiled | ~1.02x |
-| `np.interp` | 15 | 5% | NumPy (C) | 0.98x (C already!) |
-| Python overhead (I/O, setup) | 10 | 3% | Python | ~10x |
-
-**Estimated C++ improvement**:
-- 60% × 1.05 + 30% × 1.05 + 8% × 1.02 + 5% × 0.98 + 3% × 10 = **1.28x speedup**
-
-**Parallel Python improvement**:
-- **6.7x speedup** on 8 cores (measured)
-
----
-
-## 9. Recommendation Matrix
-
-| Goal | Python+Parallel | C++ Rewrite | Winner |
-|------|----------------|-------------|---------|
-| Speed improvement | 6-7x | 8-10x | Python (95% of C++ gain) |
-| Development time | 1 day | 3-6 months | Python (200x faster) |
-| Maintenance burden | Low | High | Python |
-| Risk of regression | Very low | High | Python |
-| Ecosystem access | Full SciPy stack | Limited | Python |
-| Onboarding new devs | Easy | Hard | Python |
-| Code readability | Excellent | Good | Python |
-| Debugging ease | Easy | Moderate | Python |
-| CI/CD complexity | Simple | Complex | Python |
-
-**Clear winner: Python + Parallelization**
-
----
-
-## 10. Final Verdict
-
-### For the Expert C++ Developer
-
-**I acknowledge your points:**
-- C++ can achieve 1.5-2x better single-threaded performance
-- Fine-grained memory control is possible
-- Eliminates Python interpreter overhead
-
-**However, in this specific case:**
-
-1. **Numba already achieves 90-98% of C++ speed** (same LLVM backend)
-2. **The bottleneck is serial execution, not language** (parallelization is orthogonal to language choice)
-3. **Development cost is 200x higher** (6 months vs 1 day)
-4. **Diminishing returns**: After parallelization, C++ gains you 15 seconds (45s → 30s)
-5. **Risk/reward ratio is poor**: 6 months of work for 30% speedup vs 1 day for 600% speedup
-
-### The Numbers
-
-| Approach | Time Investment | Speedup | Final Runtime | ROI |
-|----------|----------------|---------|---------------|-----|
-| Do nothing | 0 days | 1.0x | 300s | - |
-| **Parallelize Python** | 1 day | **6.7x** | **45s** | **6.7x per day** |
-| C++ rewrite (serial) | 90 days | 1.5x | 200s | 0.017x per day |
-| C++ rewrite + parallel | 90 days | 10x | 30s | 0.11x per day |
-
-**Recommendation**: Invest 1 day in parallelizing the Python code. After that, if 45 seconds is still too slow, *then* consider C++. But for scientific code at this scale, 45s is excellent.
+**Recommendation:** keep Python + Numba. The bottleneck has been fixed in
+the language we already use, with the science proven identical. If even more
+speed is ever needed, parallelising the 300 independent calls is the next
+cheap win — long before C++ would make sense.
 
 ---
 
 ## References
 
-1. Numba documentation: https://numba.pydata.org/numba-doc/dev/user/performance-tips.html
-2. "A Performance Comparison of Numba and C++" (Berkeley, 2019)
-3. LLVM optimization passes: https://llvm.org/docs/Passes.html
-4. Lam, S.K., et al. "Numba: A LLVM-based Python JIT compiler." LLVM-HPC 2015.
-
----
-
-**Author**: Ramon III Palinguba Gregorio  
-**Reviewer**: [To be reviewed by C++ expert]  
-**Date**: 2026-06-17
+1. Numba documentation — performance tips:
+   https://numba.pydata.org/numba-doc/dev/user/performance-tips.html
+2. Lam, S. K., Pitrou, A., Seibert, S. "Numba: A LLVM-based Python JIT
+   compiler." LLVM-HPC 2015.
+3. This work: `scripts/analysis/phase4_performance.py` (profiling +
+   benchmark + figures); `lunar/solver.py` (`_cn_step_kernel`,
+   `_step_fast`); `tests/test_solver_jit_identity.py` (identity test).

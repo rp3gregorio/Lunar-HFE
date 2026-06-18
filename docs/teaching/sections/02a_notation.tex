@@ -1,0 +1,196 @@
+\section{Notation reference --- every symbol used in this project}
+\label{sec:notation}
+
+This section is a \textbf{complete symbol map}. Keep it open while reading the
+physics sections or the code. Symbols are grouped by topic; each entry gives the
+meaning, typical units, and where it appears in the repository.
+
+\subsection{Coordinates, time, and indexing}
+
+\begin{longtable}{@{}p{0.14\linewidth} p{0.22\linewidth} p{0.18\linewidth} p{0.38\linewidth}@{}}
+\toprule
+Symbol & Meaning & Units & Where in code / paper \\
+\midrule
+\endhead
+$z$ & Depth, positive \textbf{downward} from the regolith surface & \si{m} &
+  \code{grid.z\_mid}, paper $z=0$ at surface \\
+$t$ & Time within one lunation cycle & \si{s} &
+  \code{PixelInputs.t}, hourly steps in production \\
+$T(z,t)$ & Temperature at depth $z$ and time $t$ & \si{K} &
+  \code{PixelOutputs.T[i,k]} \\
+$T_s(t)$ & \textbf{Skin} (surface) temperature & \si{K} &
+  \code{PixelOutputs.T\_surface}, solved by Newton each step \\
+$\langle T\rangle(z)$ & Cycle-\textbf{mean} (time-averaged) temperature at depth $z$ &
+  \si{K} & \code{EquilibriumResult.T\_mean}, ``annual mean'' in paper \\
+$\partial T/\partial t$ & Rate of temperature change in time & \si{K/s} &
+  discretised as $(T^{n+1}-T^n)/\Delta t$ \\
+$\partial T/\partial z$ & Temperature gradient with depth & \si{K/m} &
+  \code{np.gradient}, Fourier flux \\
+$i$, $k$ & Grid index (depth), time index & --- &
+  cell $i$, timestep $k$ in \code{PixelOutputs.T[i,k]} \\
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+\subsection{Heat, flux, and energy}
+
+\begin{longtable}{@{}p{0.14\linewidth} p{0.22\linewidth} p{0.18\linewidth} p{0.38\linewidth}@{}}
+\toprule
+Symbol & Meaning & Units & Where \\
+\midrule
+\endhead
+$q$ & \textbf{Heat flux} --- thermal power crossing a horizontal plane per unit area &
+  \si{W/m^2} & Fourier: $q=-K\,\partial T/\partial z$ \\
+$Q_b$ & \textbf{Basal / geothermal heat flux} --- steady upward flux from the lunar
+  interior at the column bottom & \si{W/m^2} &
+  \code{SITES[..]['Q\_BASAL']}; A15 $=0.021$, A17 $=0.015$ \\
+$u_{\mathrm{rect}}$ & \textbf{Rectified (eddy) flux} --- extra cycle-mean flux in the
+  diurnal skin from $K(T)$ nonlinearity & \si{W/m^2} &
+  \code{\_rectified\_flux} in \file{equilibrium.py} \\
+$\rho$ & \textbf{Bulk density} of regolith & \si{kg/m^3} &
+  \code{density\_hayne} \\
+$c_p$ & \textbf{Specific heat} --- energy to warm \SI{1}{kg} by \SI{1}{K} &
+  \si{J.kg^{-1}.K^{-1}} & \code{specific\_heat} \\
+$\rho c_p$ & Volumetric heat capacity (thermal inertia per volume) &
+  \si{J.m^{-3}.K^{-1}} & product \code{cap} in \code{\_step} \\
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+\subsection{Thermal conductivity model (Hayne 2017)}
+
+\begin{longtable}{@{}p{0.14\linewidth} p{0.22\linewidth} p{0.18\linewidth} p{0.38\linewidth}@{}}
+\toprule
+Symbol & Meaning & Units & Typical / retrieved value \\
+\midrule
+\endhead
+$K(T,z)$ & Total effective thermal conductivity & \si{W.m^{-1}.K^{-1}} &
+  \code{conductivity\_hayne} \\
+$K_c(z)$ & \textbf{Structural} (contact) part of $K$ & \si{W.m^{-1}.K^{-1}} &
+  rises from $K_s$ to $K_d$ with depth \\
+$K_s$ & Surface contact conductivity & \si{W.m^{-1}.K^{-1}} &
+  $7.4\times10^{-4}$ (\code{K\_SURFACE}) \\
+\Kd & Deep contact conductivity --- \textbf{the retrieved parameter} &
+  \si{W.m^{-1}.K^{-1}} & A15 \Kdstar${}=4.58$, A17 $=8.12$~\mwmk{} \\
+$H$ & Compaction \textbf{scale height} for $K_c(z)$ and $\rho(z)$ & \si{m} &
+  ${\sim}0.06$ (\code{H\_PARAMETER}) \\
+$\chi$ & Radiative conductivity coefficient & --- &
+  $2.7$ (\code{CHI\_RADIATIVE}) \\
+$T_{\mathrm{ref}}$ & Reference temperature in radiative term & \si{K} &
+  350 in code \\
+$\rho_s$, $\rho_d$ & Surface / deep bulk density & \si{kg/m^3} &
+  ${\sim}1100$ / ${\sim}1800$ \\
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+\subsection{Surface radiation, albedo, and orbital forcing}
+
+\begin{longtable}{@{}p{0.14\linewidth} p{0.22\linewidth} p{0.18\linewidth} p{0.38\linewidth}@{}}
+\toprule
+Symbol & Meaning & Units & Typical / code \\
+\midrule
+\endhead
+$S_0$ & Solar constant at 1~AU (flux at top of atmosphere) & \si{W/m^2} &
+  1361 (\code{S0} in \file{config.py}) \\
+$F_\odot(t)$, $S(t)$ & \textbf{Insolation} --- solar irradiance on local horizontal
+  surface & \si{W/m^2} & \code{insolation} array in \code{run\_with} \\
+$\theta_\odot(t)$ & \textbf{Solar zenith angle} --- angle from local vertical to Sun &
+  rad or \si{\degree} & idealised: $\cos\theta_\odot=\cos\phi\cos(2\pi t/P)$ \\
+$\phi$ & Site \textbf{latitude} (north positive) & \si{\degree} &
+  A15 $26.13^\circ$N, A17 $20.19^\circ$N \\
+$P$ & Mean \textbf{synodic lunation} (Sun $\to$ Sun as seen from site) & \si{s} &
+  $2\,551\,443$ (\code{T\_LUNAR}) \\
+$A$ & \textbf{Bond albedo} --- fraction of sunlight reflected & --- &
+  ${\sim}0.13$ per site \\
+$(1-A)$ & Fraction of sunlight \textbf{absorbed} at surface & --- &
+  ${\sim}0.87$ \\
+$\varepsilon$ & \textbf{Emissivity} --- efficiency of thermal radiation & --- &
+  0.95 \\
+$\sigma$ & Stefan--Boltzmann constant & \si{W.m^{-2}.K^{-4}} &
+  $5.6704\times10^{-8}$ (\code{SIGMA\_SB}) \\
+$\varepsilon\sigma T_s^4$ & Outgoing thermal (infrared) radiative flux & \si{W/m^2} &
+  surface energy balance \\
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+\subsection{Boundary conditions and problem setup}
+
+\begin{longtable}{@{}p{0.14\linewidth} p{0.22\linewidth} p{0.18\linewidth} p{0.38\linewidth}@{}}
+\toprule
+Symbol & Meaning & Where \\
+\midrule
+\endhead
+Eq.~\eqref{eq:heat} & Interior \textbf{heat equation} (PDE) & all interior cells \\
+Eq.~\eqref{eq:bc-top-teach} & \textbf{Top BC}: radiative surface energy balance &
+  \code{surface\_energy\_balance\_residual} \\
+Eq.~\eqref{eq:bc-bot-teach} & \textbf{Bottom BC}: prescribed basal flux $Q_b$ &
+  \code{d[-1] += dt*Q\_b/cap[-1]} \\
+$z_{\mathrm{max}}$ & Bottom of model column & 5~\si{m} (\code{GRID['z\_max']}) \\
+$z_{\mathrm{anchor}}$ & Anchor depth for equilibrium method & 0.55~\si{m} \\
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+\subsection{Skin depth, diffusivity, and diurnal damping}
+
+\begin{longtable}{@{}p{0.14\linewidth} p{0.22\linewidth} p{0.18\linewidth} p{0.38\linewidth}@{}}
+\toprule
+Symbol & Meaning & Formula / value \\
+\midrule
+\endhead
+$\alpha$ & Thermal diffusivity & $\alpha = K/(\rho c_p)$ \\
+$\omega$ & Angular frequency of diurnal forcing & $\omega = 2\pi/P$ \\
+$\delta$ & \textbf{Thermal skin depth} & $\delta = \sqrt{2\alpha/\omega}$; few cm \\
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+\subsection{Numerical discretisation}
+
+\begin{longtable}{@{}p{0.14\linewidth} p{0.22\linewidth} p{0.18\linewidth} p{0.38\linewidth}@{}}
+\toprule
+Symbol & Meaning & Production value \\
+\midrule
+\endhead
+$\Delta z_i$, \code{dz} & Thickness of layer $i$ (geometric grid) & \SI{2}{mm} at top, grows ${\sim}8\%$/layer \\
+$\Delta t$ & Timestep & \SI{1}{h} (\code{DT\_STEP}) \\
+$N_z$ & Number of depth cells & ${\sim}69$ for 5~\si{m} column \\
+$N_t$ & Timesteps per lunation & 709 \\
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+\subsection{Retrieval, data, and statistics}
+
+\begin{longtable}{@{}p{0.14\linewidth} p{0.22\linewidth} p{0.18\linewidth} p{0.38\linewidth}@{}}
+\toprule
+Symbol & Meaning & Where \\
+\midrule
+\endhead
+\Kdstar & Retrieved deep conductivity minimising RMSE & \code{kd\_retrieval\_results.json} \\
+$T_{\mathrm{eq},i}$ & Equilibrium temperature at sensor $i$ (stable window mean) &
+  \code{extract\_sensor\_stability} \\
+$R_i$ & Residual $T_{\mathrm{model}} - T_{\mathrm{eq}}$ at sensor $i$ & \code{run\_kd\_sweep\_extended} \\
+RMSE & Root mean square error of residuals & \code{kd\_star\_from\_residuals} \\
+\midrule
+\endhead
+\bottomrule
+\end{longtable}
+
+\begin{keyidea}
+\textbf{Sign conventions used throughout.} Depth $z$ increases \textbf{downward}.
+Heat flux $q$ is positive when flowing \textbf{downward} (Fourier: $q=-K\,\partial T/\partial z$).
+Basal flux $Q_b$ is positive when flowing \textbf{upward} from the interior --- so at
+the bottom boundary $-K\,\partial T/\partial z = Q_b$ implies $\partial T/\partial z > 0$
+(warmer with depth). Temperature is always in \textbf{kelvin} (K), never Celsius, in
+the solver.
+\end{keyidea}

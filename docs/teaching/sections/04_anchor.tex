@@ -1,0 +1,196 @@
+\section{The Anchor Point Method (the centerpiece)}
+\label{sec:anchor}
+
+This is the \textbf{centerpiece} of the project --- the clever idea that makes
+the whole thing fast \emph{and} trustworthy. It lives in
+\file{lunar/equilibrium.py}. Read that file's docstring; it's excellent. This
+section builds on it.
+
+\subsection{The problem: the deep Moon settles agonizingly slowly}
+
+We want the \textbf{periodic steady state}: the repeating day-after-day
+temperature pattern the soil settles into after a long time, when every lunar day
+looks like the last. To get there the obvious approach is ``spin-up'' --- just
+press play and simulate many lunar days until things stop changing.
+
+The catch: the \textbf{deep} column relaxes on the \emph{diffusion timescale of
+the whole 5-metre column}, which is roughly \textbf{1000 lunar days}. Simulating
+1000 lunations per run, for the ${\sim}300$ runs the retrieval needs, is
+hopeless.
+
+Worse, if you stop early (say after 30 lunations), the deep temperature still
+\textbf{secretly remembers your starting guess}. And the deep temperature is
+exactly what the Apollo sensors measure. So your ``measurement'' of \Kd{} would
+be contaminated by an arbitrary guess you typed in. This was a real, critical bug
+caught in the project's own audit --- \textbf{flag F1} in
+\file{docs/FLAG\_REPORT.md}. The original code used hard-coded starting
+temperatures (\SI{250}{\kelvin} for A15, \SI{255}{\kelvin} for A17), and a
+$\pm\SI{5}{\kelvin}$ change in that guess swung the retrieved \Kdstar{} by a
+factor of ${\sim}6$ --- \emph{larger than the very inter-site contrast the paper
+reports!} That had to be fixed before any result could be believed.
+
+\subsection{The key insight: two clocks}
+\label{sec:twoclocks}
+
+The fix comes from realizing the soil has \textbf{two very different ``clocks'':}
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{The shallow skin (top ${\sim}$half metre) is FAST.} It settles
+    into its repeating day/night rhythm within a handful of lunar days, because
+    it is thin and driven hard by the surface.
+  \item \textbf{The deep column is SLOW} to settle by brute force --- \emph{but}
+    in steady state it must obey one dead-simple rule: the same steady interior
+    heat \Qb{} flows through every layer. That single rule,
+    $\mathrm{d}\langle T\rangle/\mathrm{d}z = Q_b/K$, \textbf{fixes the entire
+    deep temperature shape instantly} --- no waiting required. ($\langle T\rangle$
+    means the cycle-averaged temperature; the angle brackets denote ``average
+    over one day.'')
+\end{itemize}
+So instead of waiting 1000 lunations for the deep column, we \textbf{calculate}
+it from the steady-flux rule, and only ever simulate the fast skin.
+
+\subsubsection{Where $\mathrm{d}\langle T\rangle/\mathrm{d}z = Q_b/K$ comes from}
+
+Same physics as \autoref{sec:boundaries} (geothermal gradient), now as the
+anchor shortcut:
+\begin{enumerate}[leftmargin=1.5em,itemsep=2pt]
+  \item Time-average the heat equation over one lunation.
+  \item In periodic steady state: $\partial\langle T\rangle/\partial t=0$.
+  \item Equation collapses to $\partial[K\,\partial\langle T\rangle/\partial z]/\partial z=0$.
+  \item So $K\,\mathrm{d}\langle T\rangle/\mathrm{d}z=Q_b$ everywhere below the skin.
+  \item Integrate downward from the anchor: \code{\_reconstruct\_subskin} in
+    \file{lunar/equilibrium.py}.
+\end{enumerate}
+
+\subsubsection{The rectified flux $u_{\mathrm{rect}}$}
+
+Inside the skin, $\langle K\,\partial T/\partial z\rangle \neq K(\langle T\rangle)\,
+\mathrm{d}\langle T\rangle/\mathrm{d}z$. The extra \textbf{rectification} term
+$u_{\mathrm{rect}}$ is measured from the resolved cycle (\code{\_rectified\_flux})
+and subtracted:
+$\mathrm{d}\langle T\rangle/\mathrm{d}z = (Q_b - u_{\mathrm{rect}})/K$.
+Negligible below \SI{1}{m}; a few percent near \SI{0.3}{m}--\SI{0.5}{m} --- why
+the anchor sits at \SI{0.55}{m}.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm,font=\small]
+  % skin box
+  \fill[coral!12] (0,0) rectangle (5,-1.6);
+  \draw[coral,line width=0.9pt] (0,0) rectangle (5,-1.6);
+  \node[coral,font=\bfseries] at (2.5,-0.45) {FAST skin (top ${\sim}0.5$ m)};
+  \node[char,font=\scriptsize,align=center] at (2.5,-1.15)
+    {settles in a handful of lunations\\ {\itshape step 1: simulate it fully}};
+  % deep box
+  \fill[teal!12] (0,-1.8) rectangle (5,-6.2);
+  \draw[teal,line width=0.9pt] (0,-1.8) rectangle (5,-6.2);
+  \node[teal,font=\bfseries] at (2.5,-2.25) {SLOW deep column};
+  \node[char,font=\scriptsize,align=center] at (2.5,-3.1)
+    {brute force ${\approx}1000$ lunations\\ {\itshape step 2: don't wait --- compute it}};
+  % flux rule
+  \node[teal,font=\small] at (2.5,-4.4) {$\dfrac{\mathrm{d}\langle T\rangle}{\mathrm{d}z}=\dfrac{Q_b-u_{\mathrm{rect}}}{K}$};
+  \draw[-{Latex[length=2.5mm]},teal,line width=1pt] (2.5,-4.95) -- (2.5,-6.0)
+     node[midway,right,font=\scriptsize] {integrate downward};
+  % anchor
+  \draw[dashed,plum,line width=1pt] (-0.4,-1.8) -- (5.4,-1.8);
+  \node[plum,font=\bfseries\scriptsize,anchor=west] at (5.5,-1.8) {anchor depth (0.55 m)};
+  % basal flux arrow
+  \draw[-{Latex[length=3mm]},forest,line width=1.2pt] (2.5,-6.9) -- (2.5,-6.25)
+     node[below,font=\scriptsize,yshift=-8pt,forest] {basal heat flux $Q_b$ (from the deep interior)};
+  % outer loop arrows on the side
+  \draw[-{Latex[length=2mm]},dim,line width=0.8pt]
+     (5.9,-3.5) to[out=60,in=-60] (5.9,-1.0);
+  \node[dim,font=\scriptsize,rotate=90,anchor=south] at (6.25,-2.3) {repeat 3--5$\times$};
+\end{tikzpicture}
+\caption[The two-clock Anchor Point Method]{The Anchor Point Method as ``two
+clocks.'' \textbf{What to notice:} the fast skin is simulated in full (step~1);
+the slow deep column is \emph{reconstructed} from the steady-flux rule
+(step~2) rather than waited out, anchored to the cycle-mean temperature read at
+$0.55$~m. The two steps are repeated a few times until they agree.
+\textbf{Why it matters:} this turns an impossible ${\sim}1000$-lunation wait into
+a handful of cheap iterations, while removing the starting-guess bias.}
+\label{fig:twoclocks}
+\end{figure}
+
+\subsection{The method: alternate ``settle the skin'' and ``rebuild the deep''}
+
+The algorithm (the ``outer iteration'') alternates two cheap steps until they
+agree:
+\begin{enumerate}[leftmargin=1.5em,itemsep=4pt]
+  \item \textbf{Settle the skin.} Run the full solver for just a few lunar days
+    (\code{n\_inner = 12}) starting from the current profile. This locks the fast
+    skin into rhythm against the current deep column.
+  \item \textbf{Rebuild the deep.} Read the cycle-mean temperature at one trusted
+    \textbf{anchor depth} just below the skin (\code{z\_anchor = 0.55} m), then
+    integrate the steady-flux rule
+    $\mathrm{d}\langle T\rangle/\mathrm{d}z = (Q_b - u_{\mathrm{rect}})/K$
+    \emph{downward} from there to reconstruct the entire deep profile exactly.
+\end{enumerate}
+Repeat steps 1--2 a few times (typically 3--5). The result ``locks on'' to the
+true periodic steady state. The actual loop is \code{solve\_periodic\_equilibrium}
+in \file{lunar/equilibrium.py}; the deep rebuild is \code{\_reconstruct\_subskin}.
+
+Two refinements worth knowing:
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{$u_{\mathrm{rect}}$ --- the rectified flux.} Inside the skin, the
+    daily wobble plus the fact that conductivity depends on temperature creates a
+    small extra \emph{day--night-averaged} heat term (an ``eddy'' or
+    ``rectification'' term). The code measures it exactly from the resolved cycle
+    (\code{\_rectified\_flux}) and subtracts it, so the deep rebuild stays
+    accurate. It is negligible below ${\sim}1$~m but matters a few percent right
+    at the anchor --- which is precisely why the anchor is placed at
+    $0.55$~m, \emph{below} the worst of it.
+  \item \textbf{Two-stage anchor schedule.} The code first anchors high
+    ($0.25$~m, relaxes fast) to cheaply kill most of the starting-guess error,
+    then drops to $0.55$~m for the accurate finish. See the \code{stages} tuple
+    in \code{solve\_periodic\_equilibrium}.
+\end{itemize}
+
+\subsection{Why it's both fast \emph{and} unbiased}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{Fast:} it only ever simulates the quick skin (a few lunations per
+    outer step, ${\sim}36$--$60$ lunations total) instead of ${\sim}1000$.
+    Comparable cost to the old broken spin-up, but correct.
+  \item \textbf{Unbiased (this is the crucial part):} the final answer \textbf{no
+    longer depends on the starting guess}. The skin is forced periodic by step~1;
+    the deep is forced to satisfy steady flux by step~2. The only fixed point of
+    that two-step map is the \emph{true} equilibrium. The starting guess just
+    seeds the first iterate and gets erased.
+\end{itemize}
+
+This is \textbf{certified, not assumed.} The regression test
+\code{tests/test\_equilibrium.py::test\_guess\_independence} literally runs the
+solver from two different starting guesses (\SI{242}{\kelvin} and
+\SI{258}{\kelvin}) and asserts the converged profiles agree:
+
+\begin{lstlisting}[caption={The guess-independence regression test.}]
+def test_guess_independence():
+    """Converged profiles from 242 K and 258 K guesses must agree."""
+    grid, t, insol, k_func, cp_func = _setup()
+    profiles = []
+    for guess in (242.0, 258.0):
+        eq = solve_periodic_equilibrium(
+            grid=grid, t=t, insolation=insol, albedo=0.131,
+            emissivity=0.95, Q_b=0.021, K_func=k_func, cp_func=cp_func,
+            T_guess=guess)
+        assert eq.converged
+        profiles.append(eq.T_mean)
+    assert np.max(np.abs(profiles[0] - profiles[1])) < 0.1
+\end{lstlisting}
+
+In the full production setting the guess-dependence is $\le \SI{0.023}{\kelvin}$
+(vs the old \SI{1.6}{}--\SI{4.5}{\kelvin}). That is what ``F1 RESOLVED'' at the
+top of \file{docs/FLAG\_REPORT.md} means, and it's why the retrieved \Kdstar{}
+values can be trusted.
+
+\subsection{``Flux closure'' --- how the code proves it worked}
+
+How do you know the deep profile really satisfies steady heat flow? You check
+whether the cycle-mean conductive flux equals \Qb{} at every depth. The maximum
+relative deviation is the \textbf{flux closure} number (\code{flux\_closure} in
+\code{EquilibriumResult}). The retrieval warns if closure is worse than $3\%$. It
+is deliberately measured \textbf{below the diurnal skin} (where the rule actually
+applies and where every Apollo sensor sits), not at the noisy surface. The test
+\code{test\_flux\_closure} checks this. The
+\code{make\_equilibrium\_certification.py} figure script visualizes the whole
+certification.

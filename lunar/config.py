@@ -1,5 +1,16 @@
 """Single source of truth for run configuration and site parameters.
 
+In plain English
+----------------
+Think of this file as the project's "settings menu." Every knob the
+simulation can turn -- which two Apollo sites we model, how deep the
+soil column goes, how finely we slice it, and how long the simulator
+runs before we trust its answer -- is defined here, in ONE place. Other
+files import these settings instead of re-typing them, so a number can
+never accidentally disagree between two parts of the code. If you ever
+want to change "what the experiment is," you almost always change it
+here and nowhere else.
+
 Everything that used to be copy-pasted across the pipeline and figure
 scripts -- the per-site table (SITES), the depth grid, the Hayne-form
 bundle, the equilibrium-solver settings, the K_d sweep grids, and the
@@ -46,6 +57,14 @@ N_LUN_FAST = 30
 TOL_FAST = 0.05
 
 # --- per-site configuration (THE single definition) --------------------------
+# One entry per Apollo borehole. Field meanings, in plain English:
+#   lat/lon     - where on the Moon the borehole is (degrees)
+#   albedo      - how reflective the surface is (0 = black, 1 = mirror)
+#   emissivity  - how efficiently the surface radiates heat away (~0.95)
+#   Q_BASAL     - heat seeping up from the Moon's deep interior [W m^-2]
+#   T_MEAN_EFF  - only a starting guess for the deep temperature; the
+#                 equilibrium solver erases its influence (see equilibrium.py)
+#   MIN_DEPTH_CM- shallowest sensor depth we trust for the deep-K_d fit
 SITES = {
     "A15": dict(tag="A15", label="Apollo 15", lat=26.13, lon=3.63,
                 albedo=0.131, emissivity=0.95, Q_BASAL=0.021,
@@ -68,3 +87,20 @@ DEPTH_SIGMA_CM = 2.5     # Nagihara (2018) sensor-placement uncertainty
 TL_Z1, TL_Z2 = 0.02, 0.20             # layer boundaries [m]
 TL_RHO_REF = 1800.0                   # Hayne (2017) nominal deep density
 TL_RHO_SITE = {"A15": 2000.0, "A17": 1900.0}  # per-site RMSE-optimal deep rho
+
+# --- optional bedrock layer (OFF by default) ---------------------------------
+# A toggle for FUTURE deep-profile work (e.g. ice-stability studies), where
+# the temperature far below the regolith matters. When ``enabled`` is False
+# (the default) the model is regolith-only and the Apollo K_d retrieval is
+# byte-for-byte unchanged -- every Heat-Flow sensor sits at <= 2.4 m, far
+# above the transition, so enabling bedrock (at z_bedrock_m=10 m) shifts
+# sensor-depth temperatures by only ~0.05 K, well within the measurement
+# scatter. When enabled, conductivity below ``z_bedrock_m`` smoothly
+# ramps from the regolith value to ``K_rock`` (solid-rock conductivity).
+# See :func:`lunar.properties.with_bedrock` and run_with(bedrock=...).
+BEDROCK = dict(
+    enabled=False,      # master toggle -- keep False for the published paper
+    z_bedrock_m=10.0,   # depth where regolith gives way to bedrock [m]
+    width_m=1.5,        # half-width of the smooth transition [m]
+    K_rock=2.0,         # bedrock thermal conductivity [W m^-1 K^-1]
+)

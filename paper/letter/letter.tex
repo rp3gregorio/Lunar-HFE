@@ -507,6 +507,14 @@ flux is imposed,
 -K\,\partial_z T\big|_{z_\mathrm{max}} = Q_b.
 \label{eq:bc-bot}
 \end{equation}
+\new{The domain represents the upper regolith only; following
+\citet{hayne2017} and standard lunar near-surface thermal models, no
+bedrock layer is included. Because every Heat-Flow sensor lies within the
+regolith ($\le 2.4$ m), this choice does not affect the retrieval:
+introducing a deep high-conductivity (bedrock) layer at $\gtrsim 10$ m
+changes the modelled temperature at the sensor depths by $<0.06$ K --- well
+within the measurement scatter --- and leaves $K_d^{*}$ unchanged to the
+reported precision.}
 The PDE is discretised on a geometric grid ($\Delta z_0=2$ mm, growth ratio
 1.08) and integrated with a Crank--Nicolson scheme at $\Delta t = 1$ h\old{,
 with a spin-up of 30 lunations to $\max|\Delta T|<5\times10^{-2}$ K}.
@@ -1508,7 +1516,11 @@ below and A17 above.
 The Diviner GCP is external to the retrieval (it enters neither the
 bootstrap nor the \old{deep-sensor }\new{meter-scale-sensor }RMSE), so it
 provides an independent check on the diurnal forcing chain
-(Fig.~\ref{fig:diviner}). Both parameterizations reproduce the canonical
+(Fig.~\ref{fig:diviner}). \new{These orbital brightness-temperature
+recordings are the only fully independent temperature observations in the
+analysis, so how closely each model tracks the measured diurnal curve is a
+direct, observation-anchored test of the forcing chain.} Both
+parameterizations reproduce the canonical
 lunar diurnal shape, with full-cycle RMSE of \old{5.4\,K at A15 and
 12.3\,K at A17 for the Hayne site fit, and 10.2\,K and 10.7\,K for the
 Martinez forward}\new{4.1\,K at A15 and 7.3\,K at A17 for the Hayne
@@ -1551,12 +1563,15 @@ much.
 \centering
 \includegraphics[width=\linewidth]{figures/fig_diviner_closure.pdf}
 \caption{Surface-$T$ closure against the \citet{williams2017diviner}
-Diviner GCP diurnal composite (grey markers). Teal solid: Hayne form at the
+Diviner GCP diurnal composite. \new{The orbiter measurements (dark edged
+markers, $n=96$ local-solar-time bins per site, with a faint guide line)
+are the observational benchmark; the two model curves are overlaid on
+them.} Teal solid: Hayne form at the
 per-site retrieved $K_d^{*}$; brick-red dashed: \citet{martinez2021} form
 at published coefficients (no fitted knob). The local-solar-time axis is
 shifted so midnight sits at panel centre and noon at the edges; the shaded
-band (LST 18--06) marks the night side. Full-cycle RMSE\,/\,mean bias per
-panel are listed in the inset.}
+band (LST 18--06) marks the night side. Full-cycle RMSE\,/\,mean bias of
+each model \new{relative to the Diviner data} are listed in the inset.}
 \label{fig:diviner}
 \end{figure}
 

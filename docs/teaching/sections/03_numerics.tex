@@ -1,0 +1,212 @@
+\section{The numerical method, gently}
+\label{sec:numerics}
+
+The heat equation (\autoref{sec:heateq}) is a continuous statement about every
+point and every instant. A computer can't handle ``infinitely many points.'' So
+we \textbf{discretize}: chop space into finite slices and time into finite steps,
+and turn the calculus into arithmetic the computer can repeat millions of times.
+
+\subsection{Slicing the depth: why a \emph{geometric} grid}
+\label{sec:grid}
+
+We split the 5-metre soil column into many thin horizontal layers and track one
+temperature per layer. The clever part: the layers are \textbf{not equally
+thick}.
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item Near the surface, temperature swings violently over a few centimetres
+    (the skin). To capture that we need \textbf{very thin} layers
+    (${\sim}\SI{2}{mm}$ at the top).
+  \item Deep down, temperature barely changes over a whole metre. Thin layers
+    there would just waste computer effort.
+\end{itemize}
+So each layer is made ${\sim}8\%$ thicker than the one above it. This is a
+\textbf{geometric grid} (each step multiplied by a constant ratio).
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[x=1cm,y=1cm]
+  % geometric layer boundaries (exaggerated for clarity)
+  \def\xL{0} \def\xR{4}
+  \pgfmathsetmacro{\prev}{0}
+  \foreach \i/\h in {1/0.18, 2/0.26, 3/0.36, 4/0.50, 5/0.70, 6/0.98, 7/1.36, 8/1.86} {
+    \pgfmathsetmacro{\top}{\prev}
+    \pgfmathsetmacro{\bot}{\prev+\h}
+    \fill[teal!\the\numexpr8+\i*8\relax] (\xL,-\top) rectangle (\xR,-\bot);
+    \draw[char,line width=0.4pt] (\xL,-\top) rectangle (\xR,-\bot);
+    \node[char,font=\scriptsize] at (\xR+1.5,{-(\top+\bot)/2}) {layer \i};
+    \global\let\prev\bot
+  }
+  % surface label + sun
+  \node[coral,font=\bfseries\small,anchor=south] at (2,0.15) {surface (sunlight in)};
+  \draw[-{Latex[length=2mm]},coral,line width=1pt] (-0.9,0.9) -- (-0.3,0.15);
+  % depth arrow
+  \draw[-{Latex[length=2.5mm]},char,line width=0.9pt] (-0.7,0) -- (-0.7,-6.0)
+    node[midway,left,rotate=90,anchor=south,font=\small] {increasing depth $z$};
+  % bracket on first thin layer
+  \draw[decorate,decoration={brace,amplitude=4pt},dim]
+    (\xR+0.15,0) -- (\xR+0.15,-0.18) node[midway,right,font=\scriptsize,xshift=2pt] {${\sim}2$ mm};
+\end{tikzpicture}
+\caption[The geometric depth grid]{The geometric depth grid (thicknesses
+exaggerated). \textbf{What to notice:} slices are paper-thin at the top, where
+the daily heat wave is sharp, and grow ${\sim}8\%$ thicker with each step
+downward, so the deep, sleepy soil is covered cheaply. \textbf{Why it matters:}
+this puts the computational effort exactly where the physics is fast-changing
+--- like taking many photos per second of a sprint start but only one per minute
+of a marathon's middle.}
+\label{fig:grid}
+\end{figure}
+
+The grid docstring in \file{lunar/grid.py} puts it perfectly:
+
+\begin{lstlisting}[language={},style=shellstyle,caption={From the \file{lunar/grid.py} docstring.}]
+Near the surface, where temperature swings wildly between lunar day
+and night, we use paper-thin slices (~2 mm) so we capture the fast
+changes. Deeper down, where temperature barely moves, the slices get
+gradually thicker (each ~8% thicker than the one above). This
+"geometric" spacing puts the computational effort where the action is.
+\end{lstlisting}
+
+The grid is built by \code{make\_geometric\_grid}, configured in
+\file{lunar/config.py}:
+
+\begin{lstlisting}[caption={The production grid in \file{lunar/config.py}.}]
+# --- depth grid (geometric) ---
+GRID = dict(z_max=5.0, dz0=0.002, growth=0.08)
+\end{lstlisting}
+
+That reads: total depth \SI{5}{m}, top layer \SI{2}{mm} thick, each next layer
+$8\%$ thicker (growth ratio 1.08). Uniform grids are \emph{deliberately
+forbidden} in this project (the code even raises an error) because they
+under-resolve the skin while wasting effort deep down.
+
+\begin{headsup}
+\file{lunar/constants.py} also defines \emph{fallback} grid defaults
+(\code{Z\_MAX\_DEFAULT = 3.0}, \code{GROWTH\_DEFAULT = 0.15}). Those are only used
+if someone calls \code{make\_geometric\_grid()} with no arguments. The real
+science runs always pass \code{GRID} from \file{config.py} (\SI{5}{m} /
+\SI{2}{mm} / 1.08), so the production grid is the \file{config.py} one. Don't be
+confused by the two different numbers.
+\end{headsup}
+
+\subsection{Stepping through time: what a ``timestep'' is}
+\label{sec:timestep}
+
+We also chop \textbf{time} into steps. Here each step $\Delta t$ is \textbf{one
+hour} (\code{DT\_STEP = 3600.0} seconds in \file{config.py}). Starting from the
+temperatures right now, we apply the heat equation to compute the temperatures
+one hour later, then repeat. One full lunar day (a ``lunation'') is
+${\sim}29.5$ Earth days (\SI{2551443}{s}), so one simulated lunation is
+\textbf{709 hourly samples} (\code{N\_t = int(T\_LUNAR / DT\_STEP) + 1} in
+\code{run\_with}). The test suite samples more coarsely (2-hour steps) to keep
+continuous-integration runs fast.
+
+\begin{headsup}
+\textbf{A handy units gotcha.} Watch out for the number 2551: it looks like a
+timestep count but is really the lunation \emph{length} in thousands of seconds
+(\SI{2551443}{s}). The number of hourly steps is \textbf{709}.
+\end{headsup}
+
+\subsection{Crank--Nicolson: a stable, accurate way to take a step}
+\label{sec:cn}
+
+There are simple ways to step a heat equation forward, but the na\"ive ones
+either blow up (become numerically unstable) unless the timestep is
+microscopically small, or they are inaccurate. \textbf{Crank--Nicolson} is the
+standard professional choice. Intuition:
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item An \textbf{explicit} step computes the future purely from the present.
+    Cheap, but unstable for stiff problems like heat (it can oscillate and
+    explode).
+  \item An \textbf{implicit} step computes the future from the future (you solve
+    a small system of equations). Stable, but slightly less accurate.
+  \item \textbf{Crank--Nicolson averages the two} (``half now, half later,'' the
+    $0.5$ factors you'll see in the code). The result is both \textbf{stable}
+    \emph{and} \textbf{second-order accurate} in time. It is coded in
+    \code{\_step} in \file{lunar/solver.py} (look for the \code{0.5 * alpha\_...}
+    terms --- that $0.5$ \emph{is} the Crank--Nicolson averaging).
+\end{itemize}
+
+\begin{keyidea}
+You don't need to derive it. Just know: Crank--Nicolson is the recipe that lets
+us take comfortable one-hour steps without the simulation exploding.
+\end{keyidea}
+
+\subsection{The tridiagonal (Thomas) solver: the fast inner engine}
+\label{sec:thomas}
+
+An implicit / Crank--Nicolson step requires solving a system of linear
+equations: ``find all the new-layer temperatures at once such that they are
+mutually consistent.'' Normally solving $N$ equations in $N$ unknowns is slow
+(cost grows like $N^3$). But here each layer only talks to its \textbf{immediate
+neighbours above and below} --- so the system is \textbf{tridiagonal} (nonzero
+only on the diagonal and the two adjacent diagonals).
+
+For tridiagonal systems there is a famous shortcut, the \textbf{Thomas
+algorithm}, that solves them in a single sweep down and a single sweep back up
+--- cost grows only like $N$ (linear), which is as fast as it gets. It is
+implemented in \code{\_thomas} in \file{lunar/solver.py}:
+
+\begin{lstlisting}[caption={The Thomas tridiagonal solver, \file{lunar/solver.py}.}]
+@njit(cache=True)
+def _thomas(a, b, c, d):
+    """Thomas algorithm for an (a, b, c) tridiagonal system A x = d."""
+    n = b.size
+    cp = np.empty(n); dp = np.empty(n); x = np.empty(n)
+    cp[0] = c[0] / b[0]
+    dp[0] = d[0] / b[0]
+    for i in range(1, n):                 # forward sweep
+        m = b[i] - a[i] * cp[i - 1]
+        cp[i] = c[i] / m if i < n - 1 else 0.0
+        dp[i] = (d[i] - a[i] * dp[i - 1]) / m
+    x[n - 1] = dp[n - 1]
+    for i in range(n - 2, -1, -1):        # back substitution
+        x[i] = dp[i] - cp[i] * x[i + 1]
+    return x
+\end{lstlisting}
+
+The \code{@njit} decorator is \textbf{Numba}, a tool that compiles this Python
+down to machine code so it runs ${\sim}10$--$100\times$ faster (this inner loop
+runs millions of times). If Numba isn't installed, the code falls back to plain
+Python and still works --- see the \code{try/except} at the top of
+\file{lunar/solver.py}. (\file{docs/} contains \file{NUMBA\_VS\_CPP\_JUSTIFICATION.md}
+explaining why Numba was chosen over writing C++.)
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.82\textwidth]{fig_phase4_njit_vs_cpp.png}
+\caption[Numba speed-up]{Why the \code{@njit} compiler matters: a benchmark of
+the solver's inner loop. \textbf{What to notice:} compiling the hot Python loop
+with Numba closes almost all of the gap to hand-written C++, while keeping the
+code in one readable language. \textbf{Why it matters:} the retrieval runs the
+solver hundreds of times, so this speed-up is what makes the whole study
+practical on a laptop.}
+\label{fig:njit}
+\end{figure}
+
+One more detail: conductivity between two adjacent layers uses the
+\textbf{harmonic mean} (\code{\_face\_harmonic\_mean}), not the simple average.
+For heat flowing \emph{through} two materials in series (like the deep,
+conductive layer feeding the fluffy, insulating layer above), the harmonic mean
+is the physically correct combination --- the poor conductor dominates, just as
+the narrowest pipe dominates a series of pipes.
+
+\subsection{Newton's method for the non-linear surface}
+\label{sec:newton}
+
+Remember the surface radiates as $T_s^4$ (\autoref{sec:boundaries}). That fourth
+power makes the surface energy-balance equation \textbf{non-linear} --- you can't
+just solve for $T_s$ algebraically. Instead we use \textbf{Newton's method}, the
+classic ``guess, check the error, slide toward the answer, repeat'' root-finder:
+\begin{enumerate}[leftmargin=1.5em,itemsep=2pt]
+  \item Guess a surface temperature $T_s$.
+  \item Compute the \textbf{residual} $R(T_s)$ --- how badly the energy balance
+    fails (absorbed $-$ radiated $-$ conducted;
+    \code{surface\_energy\_balance\_residual}).
+  \item Use the slope $\mathrm{d}R/\mathrm{d}T_s$ to jump to a better guess.
+  \item Repeat until $R$ is ${\sim}0$ (a few iterations).
+\end{enumerate}
+This is \code{\_solve\_surface\_newton} in \file{lunar/solver.py}. The code notes
+the derivative is always negative, which guarantees Newton converges from any
+positive starting temperature. So at \textbf{every hourly step}, the solver does
+a tiny Newton solve to pin the surface temperature, then a Thomas sweep to update
+the whole column. That's the complete inner loop.

@@ -1,0 +1,97 @@
+\section{Glossary}
+\label{sec:glossary}
+
+Plain one-liners. Physics, then numerical, then code/project terms.
+
+\subsection*{Physics}
+\begin{description}[leftmargin=0pt,style=nextline,itemsep=2pt]
+  \item[Regolith] The loose broken rock and dust covering the Moon; the ``soil.''
+  \item[Temperature (K, kelvin)] How hot something is; a scale starting at
+    absolute zero ($0$~K $=-273.15\,^\circ$C).
+  \item[Heat flux] Rate of heat energy flow through a unit area (\unit{W/m^2}).
+  \item[Conduction] Heat moving by direct contact, atom to atom.
+  \item[Thermal conductivity $K$] How easily a material conducts heat
+    (\unit{W.m^{-1}.K^{-1}}); high $=$ metal, low $=$ lunar dust.
+  \item[\Kd] The \emph{deep} regolith conductivity; the quantity this project
+    retrieves. \Kdstar{} is the best-fit value.
+  \item[$K_s$] The \emph{surface} regolith conductivity (very low).
+  \item[$H$ (scale height)] Sets how fast conductivity / density transition from
+    surface to deep values (${\sim}\SI{6}{cm}$).
+  \item[$\chi$ (chi, radiative coefficient)] Strength of the
+    temperature-dependent radiative boost to conductivity (the $T^3$ term).
+  \item[Density $\rho$ (rho)] Mass per unit volume (\unit{kg/m^3}).
+  \item[Specific heat $c_p$] Energy to warm \SI{1}{kg} by \SI{1}{\kelvin}
+    (\unit{J.kg^{-1}.K^{-1}}).
+  \item[Thermal diffusivity $\alpha$] $K/(\rho c_p)$; how fast a temperature
+    change spreads through a material.
+  \item[Heat equation] The master PDE:
+    $\rho c_p\,\partial T/\partial t = \partial/\partial z\,(K\,\partial T/\partial z)$.
+    Derived step by step in \autoref{sec:heateq} from energy conservation in a
+    thin soil slice plus Fourier's law.
+  \item[Heat flux $q$] Thermal energy crossing a surface per second per m$^2$
+    (\unit{W/m^2}); $q = -K\,\partial T/\partial z$.
+  \item[Boundary condition] A rule at the domain edge that closes the PDE --- here,
+    radiative balance at the surface and fixed geothermal flux $Q_b$ at depth.
+  \item[Skin depth $\delta$] Depth over which a daily temperature wave fades to
+    ${\sim}1/3$; a few cm on the Moon.
+  \item[Insolation $S$] Incoming solar power per area at the surface
+    (\unit{W/m^2}).
+  \item[Albedo $A$] Fraction of sunlight reflected (${\approx}0.13$ here).
+  \item[Emissivity $\varepsilon$] How efficiently a surface radiates heat
+    (${\approx}0.95$).
+  \item[Stefan--Boltzmann law] Radiated power $\propto T^4$; the $\sigma$ is its
+    constant.
+  \item[Geothermal / basal heat flux \Qb] Steady heat seeping up from the Moon's
+    interior (${\sim}15$--$21$~\unit{mW/m^2}).
+  \item[Periodic steady state / equilibrium] The repeating day-after-day
+    temperature pattern reached after long settling.
+  \item[Diurnal] Daily (here, one lunar day ${\approx}29.5$ Earth days, a
+    ``lunation'').
+\end{description}
+
+\subsection*{Numerical}
+\begin{description}[leftmargin=0pt,style=nextline,itemsep=2pt]
+  \item[Discretize] Replace continuous space/time with finite slices/steps so a
+    computer can solve it.
+  \item[Grid] The set of depth slices; here \emph{geometric} (each slice
+    ${\sim}8\%$ thicker than the one above).
+  \item[Timestep $\Delta t$] The time jump per update (1 hour here).
+  \item[Crank--Nicolson] A stable, accurate ``half-now, half-later''
+    time-stepping scheme.
+  \item[Tridiagonal system] A linear system where each unknown only couples to
+    its two neighbours.
+  \item[Thomas algorithm] The fast (linear-cost) solver for tridiagonal systems.
+  \item[Harmonic mean] The correct way to average conductivity between two layers
+    in series.
+  \item[Newton's method] Iterative root-finder used for the non-linear surface
+    temperature.
+  \item[Residual] How badly an equation fails for a trial value (model $-$ data,
+    or the energy-balance mismatch).
+  \item[RMSE] Root-mean-square error; the average size of the model-vs-data
+    mismatch (K).
+  \item[Bootstrap] Estimate uncertainty by resampling/jittering inputs many times
+    and watching the answer wobble.
+  \item[Confidence interval (CI)] The range that contains the answer with stated
+    probability (e.g.\ $95\%$).
+  \item[Degeneracy] When two parameters trade off so only their combination is
+    constrained (here \Kd{} and \Qb).
+\end{description}
+
+\subsection*{Code / project}
+\begin{description}[leftmargin=0pt,style=nextline,itemsep=2pt]
+  \item[Anchor Point Method] This project's fast, unbiased equilibrium solver
+    (\autoref{sec:anchor}); the ``two clocks'' idea.
+  \item[Flux closure] Diagnostic checking the mean conductive flux equals \Qb{}
+    at depth (proof the solver converged).
+  \item[$u_{\mathrm{rect}}$ (rectified flux)] Small day-night-averaged eddy heat
+    term inside the skin, measured and subtracted.
+  \item[Spin-up] Running many cycles to settle a simulation (the slow approach the
+    Anchor Point Method replaces).
+  \item[F1] The audit flag (in \file{docs/FLAG\_REPORT.md}) for the old
+    starting-guess-bias bug that the Anchor Point Method fixed.
+  \item[HFE] Apollo Heat-Flow Experiment (the buried thermometers).
+  \item[Numba / \code{@njit}] A just-in-time compiler that speeds up the hot inner
+    loops ${\sim}10$--$100\times$.
+  \item[venv] An isolated Python environment for this project.
+  \item[pytest] The tool that runs the test suite.
+\end{description}

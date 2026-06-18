@@ -158,8 +158,16 @@ def main():
         (lst_obs, T_obs, lst_h, T_h, lst_m, T_m,
          rmse_h, bias_h, rmse_m, bias_m) = curves[name]
         x_obs = to_centered(lst_obs)
-        ax.plot(x_obs, T_obs, "o", color=C_DIM, markersize=2.2, alpha=0.5,
-                label="Diviner GCP composite", rasterized=True, zorder=1)
+        # Diviner observations: plotted as the prominent measured benchmark
+        # (a faint guide line through the composite, then bold edged markers)
+        # so the data -- not the models -- read as the reference.
+        obs_order = np.argsort(x_obs)
+        ax.plot(x_obs[obs_order], T_obs[obs_order], "-", color=C_CHAR,
+                lw=0.9, alpha=0.30, zorder=2)
+        ax.plot(x_obs, T_obs, "o", color=C_CHAR, markersize=3.8,
+                markeredgecolor="white", markeredgewidth=0.4, alpha=0.95,
+                label=f"Diviner GCP measurements ($n={len(lst_obs)}$)",
+                rasterized=True, zorder=2.5)
         for lst, T, color, ls, lab in (
                 (lst_h, T_h, C_HAYNE, "-",
                  "Hayne form at per-site $K_d^{*}$"),
@@ -167,10 +175,11 @@ def main():
                  "Martínez & Siegler (2021) forward")):
             x = to_centered(lst)
             order = np.argsort(x)
-            ax.plot(x[order], T[order], ls, color=color, lw=1.8,
+            ax.plot(x[order], T[order], ls, color=color, lw=1.7,
                     label=lab, zorder=3)
         ax.axvspan(6.0, 18.0, color="0.88", alpha=0.45, zorder=0)  # night
         ax.text(0.985, 0.97,
+                "vs Diviner  (RMSE / bias)\n"
                 f"Hayne fit: {rmse_h:.1f} K / {bias_h:+.1f} K\n"
                 f"Martínez:  {rmse_m:.1f} K / {bias_m:+.1f} K",
                 transform=ax.transAxes, ha="right", va="top",

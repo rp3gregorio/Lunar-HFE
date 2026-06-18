@@ -1,0 +1,147 @@
+\section{Code tour: every file, in plain terms}
+\label{sec:codetour}
+
+A file-by-file map. Two layers: the \textbf{\file{lunar/} package} is the
+reusable engine (all the physics and config); the \textbf{\file{scripts/}} are
+thin command-line drivers that call the engine and write results/figures. There
+is exactly one definition of everything --- config never gets copy-pasted.
+
+\subsection{The \file{lunar/} package (the engine)}
+
+\begin{longtable}{@{}p{0.30\textwidth}p{0.62\textwidth}@{}}
+\toprule
+\textbf{File} & \textbf{What it does, in plain terms} \\
+\midrule
+\endhead
+\file{\_\_init\_\_.py} & Marks the folder as a package; sets the version. Nothing to study. \\
+\file{constants.py} & The \textbf{physical numbers}: solar constant, Stefan--Boltzmann, regolith $K_s$/$K_d$/$H$/$\chi$, density / specific-heat coefficients, basal fluxes. Every value is cited to a paper. Project rule: no unsourced numbers. \\
+\file{config.py} & The \textbf{settings menu / single source of truth}: the two-site table (\code{SITES}), the depth grid (\code{GRID}), the Hayne bundle (\code{HAYNE}), equilibrium-solver knobs, the \Kd{} sweep grids, the bedrock toggle. Change ``what the experiment is'' here. \\
+\file{grid.py} & Builds the \textbf{geometric depth grid} (\code{make\_geometric\_grid} $\to$ a \code{DepthGrid} of layer faces, centres, thicknesses). \autoref{sec:grid}. \\
+\file{properties.py} & The \textbf{soil property formulas}: conductivity (\code{conductivity\_hayne}, \code{conductivity\_martinez}, \code{conductivity\_icy}), density (\code{density\_hayne}), specific heat (\code{specific\_heat}), and the optional \code{with\_bedrock} wrapper. \autoref{sec:properties}--\ref{sec:conductivity}. \\
+\file{solver.py} & The \textbf{heat-equation engine}: one Crank--Nicolson step (\code{\_step}), the tridiagonal \code{\_thomas} solver, harmonic-mean faces, the Newton surface solve (\code{\_solve\_surface\_newton}), the driver \code{solve\_pixel}, and the analytical wave used for testing. \autoref{sec:numerics}. \\
+\file{equilibrium.py} & The \textbf{Anchor Point Method}: \code{solve\_periodic\_equilibrium} plus helpers (\code{\_rectified\_flux}, \code{\_reconstruct\_subskin}, \code{\_diurnal\_skin\_index}, \code{\_mean\_flux\_closure}). Returns an \code{EquilibriumResult}. \autoref{sec:anchor}. \textbf{Read this docstring.} \\
+\file{validation.py} & Loads the bundled \textbf{Apollo HFE} \file{.tab} data into numpy arrays (\code{load\_apollo\_hfe\_depth}). \\
+\file{apollo\_helpers.py} & Turns raw HFE records into per-sensor \textbf{equilibrium temperatures}: \code{find\_stable\_window} (detect the settled tail) and \code{extract\_sensor\_stability}. \autoref{sec:data}. \\
+\file{ephem.py} & A \textbf{correct SPICE/DE440 solar-position} helper (sun elevation $\to$ insolation). \emph{Note:} the \Kd{} pipeline uses the simpler idealized cosine forcing, not this. \\
+\file{diviner.py} & Helpers for \textbf{Diviner} orbital surface-temperature data, used for the surface-temperature ``closure'' cross-check. \\
+\file{plotting/style.py} & Shared \textbf{figure styling} (JGR:Planets sizes, colour palette, layout helpers). Importing it gives every figure a consistent look. \\
+\file{\_bootstrap.py} & Small \textbf{environment bootstrap} so standalone scripts can find the package and the data. Plumbing, not physics. \\
+\bottomrule
+\end{longtable}
+
+\subsection{\file{scripts/pipeline/} (compute results \texorpdfstring{$\to$}{->} write \file{output/*.json})}
+
+\begin{longtable}{@{}p{0.36\textwidth}p{0.56\textwidth}@{}}
+\toprule
+\textbf{File} & \textbf{What it produces} \\
+\midrule
+\endhead
+\file{retrieve\_kd.py} & \textbf{The main event.} Loads HFE data, runs the \Kd{} sweep $+$ bootstrap $+$ joint $(K_d,H)$ grid $+$ held-out tests, writes \file{output/kd\_retrieval\_results.json} and the bootstrap/robustness/holdout figures. Start here. \\
+\file{compute\_headline\_rmse.py} & The headline RMSE-vs-\Kd{} numbers (a second grid as a cross-check). \\
+\file{compute\_borestem\_sensitivity.py} & How \Kdstar{} changes if you move the shallow-sensor cutoff (the borestem-contamination test). \\
+\file{compute\_stability\_threshold\_sensitivity.py} & How results depend on the ``flatness'' threshold used to detect equilibrium windows. \\
+\file{compute\_surface\_bias\_test.py} & Tests for systematic surface-temperature bias. \\
+\file{compute\_uniform\_kd\_sensitivity.py} & What you'd get with a single uniform \Kd{} (the ``old way'') for comparison. \\
+\file{compute\_fixed\_input\_sensitivities.py} & How \Kdstar{} responds to fixed inputs (albedo, $H$, etc.) --- feeds the error budget. \\
+\file{compute\_model\_selection.py} & Compares competing conductivity models (AICc model selection). \\
+\file{compute\_error\_budget.py} & Assembles the full systematic error budget (paper Table~4). \\
+\file{bayesian\_crosscheck.py} & An independent \textbf{MCMC/Bayesian} retrieval as a cross-check on the bootstrap. \\
+\file{compute\_diviner\_closure.py} & Checks the model's surface temperature against orbital \textbf{Diviner} data. \\
+\bottomrule
+\end{longtable}
+
+\subsection{\file{scripts/figures/} and \file{scripts/analysis/}}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \file{scripts/make\_all\_figures.py} --- runs \textbf{every} figure
+    generator in order.
+  \item \file{make\_letter\_figures.py}, \file{make\_results\_figures.py},
+    \file{make\_intro\_figures.py} --- the paper's figures.
+  \item \file{make\_equilibrium\_certification.py}, \file{make\_equilibrium\_demo.py},
+    and the animation scripts --- visualize the Anchor Point Method (great for
+    understanding \autoref{sec:anchor}).
+  \item \file{make\_primer\_figures.py}, \file{make\_book\_figures.py},
+    \file{make\_codeguide\_figures.py} --- teaching figures for the
+    manuscript/guidebook.
+  \item \file{scripts/analysis/phase2\_depth\_convergence.py} --- the standalone
+    ``what happens deep down?'' diagnostic (\autoref{sec:skin}). A great first
+    script to \emph{run and read} (see \autoref{fig:phase2}).
+  \item \file{scripts/fetch\_diviner.py} --- one-time download of Diviner data
+    (${\sim}310$~MB).
+  \item \file{scripts/run\_all\_timed.py} --- runs the whole pipeline with timing.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.96\textwidth]{fig_phase2_depth_convergence.png}
+\caption[The phase-2 deep-temperature diagnostic]{The committed \code{phase2}
+diagnostic, reproduced here for reference. \textbf{What to notice:} the left
+panels show every-few-hours temperature curves merging onto a single line within
+${\sim}1$~m; the middle panels show the swing damping toward zero; the right
+panels show the cycle-mean continuing to rise along the geothermal line $Q_b/K$.
+\textbf{Why it matters:} it is the same physics as
+\autoref{fig:skin}--\ref{fig:meanprofile}, shown end to end on one sheet --- a
+superb on-ramp to the project.}
+\label{fig:phase2}
+\end{figure}
+
+\subsection{The end-to-end data flow}
+\label{sec:dataflow}
+
+\autoref{fig:dataflow} traces a single run from cited constants all the way to
+the paper. Read it top-to-bottom: cited constants feed the config; the config
+plus the property/grid modules feed the solver; the solver wrapped in the Anchor
+Point Method produces a steady temperature profile; the retrieval slides \Kd{} to
+match that profile to the processed Apollo data; the results become JSON, figures,
+and ultimately the paper.
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+   font=\scriptsize,
+   node distance=6mm and 8mm,
+   box/.style={draw=char,rounded corners=2pt,align=center,inner sep=4pt,
+               minimum height=8mm,fill=white,line width=0.6pt},
+   eng/.style={box,fill=teal!10,draw=teal},
+   data/.style={box,fill=forest!12,draw=forest},
+   outbox/.style={box,fill=coral!12,draw=coral},
+   ar/.style={-{Latex[length=2mm]},char,line width=0.6pt}]
+
+  \node[box] (const) {\file{constants.py}\\ \itshape cited physical numbers};
+  \node[box,below=of const] (cfg) {\file{config.py}\\ \itshape SITES, GRID, HAYNE, knobs};
+
+  \node[eng,below left=10mm and 2mm of cfg] (grid) {\file{grid.py}\\ depth slices};
+  \node[eng,below=of cfg] (prop) {\file{properties.py}\\ $K,\rho,c_p$ formulas};
+  \node[data,below right=10mm and 2mm of cfg] (tab) {\file{data/apollo/*.tab}};
+
+  \node[eng,below=14mm of prop] (solver) {\file{solver.py}\\ CN step $+$ Thomas $+$ Newton};
+  \node[data,below=of tab] (load) {\file{validation.py}\\ \file{apollo\_helpers.py}\\ settle $\to T_{\mathrm{eq}}$};
+
+  \node[eng,below=of solver] (eq) {\file{equilibrium.py}\\ Anchor Point $\to T(z)$};
+
+  \node[outbox,below=16mm of eq] (retr) {\file{retrieve\_kd.py}\\ sweep \Kd{} $\to$ min RMSE $\to$ bootstrap};
+
+  \node[outbox,below left=10mm and -6mm of retr] (json) {\file{kd\_retrieval\_results.json}\\ \Kdstar{} $=4.58 / 8.12$, contrast 3.3};
+  \node[outbox,below right=10mm and -6mm of retr] (paper) {\file{scripts/figures/*} $\to$\\ \file{paper/letter/letter.tex}};
+
+  \draw[ar] (const) -- (cfg);
+  \draw[ar] (cfg) -- (grid);
+  \draw[ar] (cfg) -- (prop);
+  \draw[ar] (grid) |- (solver);
+  \draw[ar] (prop) -- (solver);
+  \draw[ar] (tab) -- (load);
+  \draw[ar] (solver) -- (eq);
+  \draw[ar] (eq) -- (retr);
+  \draw[ar] (load) |- (retr);
+  \draw[ar] (retr) -- (json);
+  \draw[ar] (retr) -- (paper);
+\end{tikzpicture}
+\caption[The end-to-end data flow]{The end-to-end pipeline. \textcolor{teal}{Teal}
+boxes are the physics engine, \textcolor{forest}{green} boxes are the data path,
+and \textcolor{coral}{coral} boxes are the outputs. \textbf{What to notice:}
+everything funnels through one retrieval driver that compares simulated profiles
+to processed Apollo temperatures. \textbf{Why it matters:} there is exactly one
+path from a cited constant to a published number --- nothing is hand-edited along
+the way.}
+\label{fig:dataflow}
+\end{figure}

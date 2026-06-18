@@ -1,0 +1,359 @@
+\subsection{Orbital mechanics and the top boundary --- full picture with diagrams}
+\label{sec:orbit-top-bc}
+
+The \textbf{top boundary} is where the Moon meets space. Unlike Earth, there is
+no atmosphere to scatter or absorb sunlight, and no wind to carry heat away.
+Everything that heats or cools the surface comes from:
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+  \item \textbf{Direct sunlight} (orbital geometry sets how strong it is at each moment),
+  \item \textbf{Thermal radiation} the surface emits to the cold sky,
+  \item \textbf{Conduction} into the regolith below.
+\end{enumerate}
+This subsection explains the \textbf{orbital part} (where does $F_\odot(t)$ come
+from?) and ties it to the \textbf{surface energy balance} that closes the top BC.
+
+\subsubsection{The Moon in orbit: what ``one day'' means}
+
+The Moon rotates once per orbit around Earth, so the same face always points
+toward Earth. From a point on the lunar surface, ``day'' and ``night'' are set by
+the Sun, not by watching Earth.
+
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+  \item \textbf{Synodic month} $P \approx 29.53$~days: time from one local noon
+    (Sun highest) to the next. This is the period used in the code
+    (\code{T\_LUNAR} $\approx 2.55\times10^6$~\si{s}).
+  \item \textbf{Subsolar point}: the spot on the Moon where the Sun is directly
+    overhead ($\theta_\odot = 0$). It marches around the equator once per synodic month.
+  \item \textbf{Site latitude} $\phi$: Apollo~15 is at $26.1^\circ$N, Apollo~17 at
+    $20.2^\circ$N. The Sun never passes directly overhead there; at local ``noon'' the
+    Sun is lower in the sky than at the equator.
+\end{itemize}
+
+\begin{plainenglish}
+Imagine standing on the Moon at an Apollo site. The Sun rises, tracks across the
+sky at a height that depends on your latitude, sets, and you wait through a long
+night (${\sim}$14 Earth days) until it rises again. The model does not simulate
+every crater shadow or mountain --- it uses a smooth ``average day'' for that latitude.
+\end{plainenglish}
+
+% ---- Figure: Sun--Moon--surface geometry --------------------------------
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  x=1cm, y=1cm,
+  font=\small,
+  sun/.style={circle, fill=yellow!80!orange, draw=orange!70!black, line width=0.6pt, minimum size=1.1cm},
+  moon/.style={circle, fill=softgrey!40, draw=dim, line width=0.8pt},
+  ray/.style={-{Stealth[length=2.5mm]}, line width=0.7pt, color=orange!85!black},
+  dashedline/.style={dashed, color=dim, line width=0.5pt},
+  label/.style={font=\footnotesize, text=char}
+]
+
+% Sun
+\node[sun] (sun) at (-5.5, 2.2) {};
+\node[label, below=2pt of sun] {Sun};
+
+% Moon (cross-section)
+\draw[moon] (0,0) circle (2.2);
+\fill[softgrey!25] (0,0) circle (2.2);
+
+% Local horizontal at site (latitude phi)
+\coordinate (C) at (0,0);
+\coordinate (S) at ({2.2*cos(55)},{2.2*sin(55)});  % site on surface, phi ~ 35 deg from equator visually
+\draw[line width=1.2pt, color=char] (C) -- (S);
+\node[label, anchor=west] at ($(S)+(0.15,0.05)$) {regolith surface};
+
+% Vertical at site (local zenith)
+\draw[dashedline] (S) -- ++(0, 1.8) node[above, label] {local vertical (zenith)};
+
+% Sun ray to site
+\draw[ray] (sun.east) .. controls (-2.5, 2.0) and (-0.8, 1.6) .. (S);
+\node[label, fill=paper, inner sep=1pt] at (-2.2, 2.55) {sunlight};
+
+% Solar zenith angle theta
+\draw[{Stealth[length=2mm]}-, line width=0.6pt, color=teal] (0.35, 0) arc (0:55:0.55);
+\node[label, text=teal] at (0.95, 0.22) {$\theta_\odot$};
+
+% Latitude phi from equator
+\draw[dashedline] (-2.2, 0) -- (2.2, 0);
+\draw[{Stealth[length=2mm]}-, line width=0.6pt, color=forest] (0.7, 0) arc (0:55:0.7);
+\node[label, text=forest] at (1.35, -0.15) {$\phi$};
+
+% Equator hint
+\node[label, text=dim] at (-2.5, -0.35) {lunar equator (plane of subsolar march)};
+
+% Orbit hint
+\draw[-{Stealth[length=2mm]}, line width=0.5pt, color=plum, dashed]
+  (2.5, 0.3) arc (10:350:2.5 and 0.35);
+\node[label, text=plum, anchor=west] at (2.9, 0.3) {Moon orbit (schematic)};
+
+% Annotation box
+\node[draw=teal!60, fill=teal!5, rounded corners=2pt, align=left, font=\footnotesize,
+      text width=4.2cm, anchor=north west] at (-5.8, -2.6) {
+  \textbf{Zenith angle} $\theta_\odot$: angle between\\
+  local vertical and the Sun.\\
+  Smaller $\theta_\odot$ $\Rightarrow$ stronger heating.
+};
+
+\end{tikzpicture}
+\caption{\textbf{Sun--Moon--surface geometry.} At a site at latitude $\phi$, the
+  Sun is not overhead at ``noon'' unless $\phi=0$. The \textbf{solar zenith angle}
+  $\theta_\odot$ sets how much solar power hits each square metre of horizontal
+  ground (cosine law). The retrieval uses an idealised cycle
+  $\cos\theta_\odot(t)=\cos\phi\cos(2\pi t/P)$; full SPICE ephemeris lives in
+  \file{lunar/ephem.py} but is not required for the \Kdstar{} fit.}
+\label{fig:sun-moon-geometry}
+\end{figure}
+
+\subsubsection{From geometry to insolation: the cosine law}
+
+The solar constant $S_0 \approx \SI{1361}{W/m^2}$ is the flux in a beam
+perpendicular to the Sun. On a \textbf{horizontal} patch of ground, only the
+component normal to the beam counts:
+\begin{equation}
+  F_\odot(t) = \max\!\bigl(0,\; S_0 \cos\theta_\odot(t)\bigr).
+  \label{eq:insolation-teach}
+\end{equation}
+When the Sun is low ($\theta_\odot$ large), $\cos\theta_\odot$ is small and
+heating is weak. At night, $\cos\theta_\odot < 0$ and the $\max(0,\cdot)$ clips
+insolation to zero.
+
+\paragraph{Idealised synodic model used in production.}
+For each site latitude $\phi$,
+\begin{equation}
+  \cos\theta_\odot(t) = \cos\phi \,\cos\!\left(\frac{2\pi t}{P}\right),
+  \label{eq:cos-zenith-ideal}
+\end{equation}
+with $P = \code{T\_LUNAR}$. This is the same formula as in the manuscript
+(Eq.~\eqref{eq:insolation-teach}). It assumes:
+\begin{itemize}[leftmargin=1.4em,itemsep=1pt]
+  \item smooth variation over one lunation (no libration jitter at the hour scale),
+  \item no solar \textbf{declination} tilt ($\pm 1.5^\circ$ neglected),
+  \item no orbital \textbf{eccentricity} changing $S_0$ ($<0.1\%$ effect on cycle mean).
+\end{itemize}
+Those corrections matter for \emph{phase-resolved} work; this project compares
+\textbf{time-mean} temperatures over a stability window, so the simplified cycle is
+adequate (see manuscript \S``Surface solar geometry'').
+
+
+% ---- Figure: insolation over one lunation --------------------------------
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=0.42cm, y=0.00035cm, font=\small]
+  % Axes
+  \draw[-{Stealth}, line width=0.6pt] (0,0) -- (52,0) node[right, font=\footnotesize] {$t$ (days)};
+  \draw[-{Stealth}, line width=0.6pt] (0,0) -- (0,4200)
+    node[above, font=\footnotesize] {$F_\odot$ (\si{W/m^2})};
+  \draw[color=dim!60, line width=0.3pt] (0,0) -- (0,4200);
+  \draw[color=dim!60, line width=0.3pt] (7.38,0) -- (7.38,4200);
+  \draw[color=dim!60, line width=0.3pt] (14.76,0) -- (14.76,4200);
+  \draw[color=dim!60, line width=0.3pt] (22.14,0) -- (22.14,4200);
+  \draw[color=dim!60, line width=0.3pt] (29.53,0) -- (29.53,4200);
+  \node[below, font=\tiny, text=dim] at (0,0) {0};
+  \node[below, font=\tiny, text=dim] at (7.38,0) {7.4};
+  \node[below, font=\tiny, text=dim] at (14.76,0) {14.8};
+  \node[below, font=\tiny, text=dim] at (22.14,0) {22.1};
+  \node[below, font=\tiny, text=dim] at (29.53,0) {29.5};
+  \node[below, font=\footnotesize, text=dim] at (26, -28)
+    {one synodic month $P \approx 29.5$~d};
+
+  % cos curve for phi = 26 deg (peak ~ 1223 W/m2); day half only
+  \draw[line width=1.1pt, color=coral, domain=0:14.76, samples=80]
+    plot (\x, {1361*0.899*cos(360*\x/29.53)});
+
+  % Night shading
+  \fill[dim!12] (14.76,0) rectangle (29.53,4200);
+
+  \node[font=\footnotesize, text=dim, rotate=90] at (-3.5, 600) {night ($F_\odot=0$)};
+  \node[font=\footnotesize, text=coral] at (7.5, 1150) {daytime insolation};
+  \node[font=\footnotesize, align=center] at (38, 3500) {Apollo~15-scale\\$\phi=26.1^\circ$N\\peak $\lesssim S_0\cos\phi$};
+
+  % S0 reference
+  \draw[dashed, color=teal, line width=0.6pt] (0,1361) -- (50,1361);
+  \node[font=\tiny, text=teal, anchor=west] at (50.5, 1361) {$S_0$};
+
+\end{tikzpicture}
+\caption{\textbf{Idealised insolation} $F_\odot(t)$ for northern mid-latitude
+  ($\cos\phi \approx 0.90$). Sunlit half of the lunation: flux follows a cosine;
+  night: clipped to zero. Peak is below $S_0$ because the Sun never reaches the
+  zenith at $\phi > 0$. Code: \code{insol = S0 * cos\_lat * np.maximum(0, np.cos(phase))}
+  in \file{retrieve\_kd.py}.}
+\label{fig:insolation-lunation}
+\end{figure}
+
+\subsubsection{Top boundary: surface energy balance (control volume)}
+
+Take a thin control volume \emph{at} the surface --- the top face sees space, the
+bottom face touches the first regolith cell. In steady balance at each instant,
+Eq.~\eqref{eq:bc-top-teach} applies (derived in \autoref{sec:bc-full}), with
+insolation written explicitly as $F_\odot(t)$ instead of $S(t)$:
+\[
+  (1-A)\,F_\odot(t) \;=\; \varepsilon\sigma T_s(t)^4 \;+\; q_{\mathrm{cond}}(t).
+\]
+Here $q_{\mathrm{cond}} = -K\,\partial T/\partial z\big|_{z=0}$ is the downward
+conductive flux (positive when heat enters the ground).
+
+% ---- Figure: surface energy balance --------------------------------------
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  x=1cm, y=1cm, font=\small,
+  arr/.style={-{Stealth[length=2.8mm]}, line width=0.85pt},
+  thinarr/.style={-{Stealth[length=2mm]}, line width=0.6pt}
+]
+
+% Regolith column
+\fill[softgrey!35] (-1.2, -2.8) rectangle (1.2, 0);
+\draw[line width=0.8pt, color=char] (-1.2, -2.8) rectangle (1.2, 0);
+\foreach \y in {-0.5,-1.0,-1.5,-2.0,-2.5} {
+  \draw[dim!40, line width=0.3pt] (-1.2,\y) -- (1.2,\y);
+}
+\node[font=\footnotesize, text=dim] at (0, -1.4) {regolith ($z>0$)};
+
+% Surface line
+\draw[line width=1.4pt, color=char] (-1.5, 0) -- (1.5, 0);
+\node[anchor=west, font=\footnotesize] at (1.55, 0) {$z=0$ (surface)};
+
+% Sun / insolation from upper left
+\draw[arr, color=orange!85!black] (-2.8, 2.2) -- (-0.3, 0.35);
+\node[align=left, font=\footnotesize, fill=paper, inner sep=2pt] at (-3.5, 2.5) {
+  incident solar\\$F_\odot(t)$
+};
+\draw[thinarr, color=orange!60!black] (-1.0, 1.5) -- (-0.2, 0.25);
+\node[align=left, font=\footnotesize, text=orange!70!black] at (-2.2, 1.0) {
+  absorbed\\$(1-A)F_\odot$
+};
+
+% Reflected (small arrow back)
+\draw[thinarr, color=dim, dashed] (-0.1, 0.2) -- (-1.2, 1.0);
+\node[font=\tiny, text=dim] at (-1.5, 1.15) {reflected $AF_\odot$};
+
+% Outgoing IR upward
+\draw[arr, color=coral] (0.2, 0.15) -- (0.2, 2.0);
+\node[align=left, font=\footnotesize, text=coral, anchor=west] at (0.45, 2.0) {
+  emitted thermal radiation\\$\varepsilon\sigma T_s^4$
+};
+
+% Conduction downward
+\draw[arr, color=teal] (0, -0.05) -- (0, -1.2);
+\node[align=center, font=\footnotesize, text=teal, anchor=west] at (0.25, -0.7) {
+  conduction\\$q_{\mathrm{cond}}=-K\partial T/\partial z$
+};
+
+% Sky
+\fill[teal!4] (-3.2, 0.05) rectangle (3.2, 2.8);
+\node[font=\footnotesize, text=dim] at (0, 2.45) {space / sky ($T_{\mathrm{space}}\approx 0$)};
+
+% Ts label
+\node[circle, fill=coral!15, draw=coral, inner sep=1pt, font=\footnotesize\bfseries] at (0, 0) {$T_s$};
+
+% Balance equation box
+\node[draw=char!50, fill=paper, rounded corners=3pt, align=center, font=\footnotesize,
+      text width=5.8cm] at (0, -3.55) {
+  Top BC (each timestep): \quad
+  $(1-A)F_\odot = \varepsilon\sigma T_s^4 + q_{\mathrm{cond}}$\\[3pt]
+  \code{surface\_energy\_balance\_residual(Ts)} = 0
+  \quad$\Rightarrow$\quad Newton finds $T_s$
+};
+
+\end{tikzpicture}
+\caption{\textbf{Top boundary control volume.} Absorbed sunlight (after albedo $A$)
+  must equal the sum of infrared emission and heat conducted into the regolith.
+  $T_s$ is not stored as a fixed number --- it is \textbf{solved} each hour so the
+  balance holds. This is what \code{\_solve\_surface\_newton} does in
+  \file{solver.py}.}
+\label{fig:surface-energy-balance}
+\end{figure}
+
+\begin{analogy}
+The surface is like a pan on a stove that also glows in the dark. Sunlight pours
+in (when it's day), the pan radiates heat to the cold kitchen (space), and the
+handle (regolith) conducts heat downward. At every instant the pan's top temperature
+adjusts until those three flows balance.
+\end{analogy}
+
+\subsubsection{How orbital forcing connects to the heat equation}
+
+The chain from orbit to interior is:
+\begin{center}
+\begin{tikzpicture}[
+  node distance=0.35cm and 0.5cm,
+  box/.style={draw, rounded corners=2pt, fill=paper, align=center,
+              font=\footnotesize, inner sep=5pt, minimum width=2.6cm},
+  arr/.style={-{Stealth[length=2mm]}, line width=0.55pt, color=char}
+]
+\node[box, fill=orange!8] (orbit) {Orbit + latitude $\phi$\\$\Rightarrow\cos\theta_\odot(t)$};
+\node[box, fill=coral!8, right=of orbit] (insol) {$F_\odot(t)=S_0\max(0,\cos\theta_\odot)$};
+\node[box, fill=teal!8, right=of insol] (bc) {Top BC:\\$(1-A)F_\odot=\varepsilon\sigma T_s^4+q_{\mathrm{cond}}$};
+\node[box, fill=forest!8, right=of bc] (pde) {Interior PDE:\\$\rho c_p\partial T/\partial t=\partial(K\partial T/\partial z)/\partial z$};
+\node[box, fill=plum!8, below=of bc] (newton) {Newton $\to T_s$ each step};
+\draw[arr] (orbit) -- (insol);
+\draw[arr] (insol) -- (bc);
+\draw[arr] (bc) -- (pde);
+\draw[arr] (bc) -- (newton);
+\draw[arr] (newton) |- (pde);
+\end{tikzpicture}
+\end{center}
+
+Insolation is \textbf{prescribed} (known input from orbit model). Skin temperature
+$T_s$ is \textbf{unknown} until the top BC is satisfied. Once $T_s$ is known, it
+feeds the first interior cell and Crank--Nicolson advances $T(z,t)$ for all deeper
+layers.
+
+\subsubsection{Bottom boundary (for completeness)}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[x=1cm, y=1cm, font=\small,
+  arr/.style={-{Stealth[length=2.5mm]}, line width=0.75pt}]
+\fill[softgrey!35] (-1.2, 0) rectangle (1.2, 2.5);
+\draw[line width=0.8pt] (-1.2, 0) rectangle (1.2, 2.5);
+\node[font=\footnotesize, text=dim] at (0, 1.2) {regolith};
+\draw[line width=1.2pt] (-1.5, 0) -- (1.5, 0);
+\node[anchor=west, font=\footnotesize] at (1.55, 0) {$z=z_{\mathrm{max}}$ (5~m)};
+\draw[arr, color=coral] (0, -0.1) -- (0, -1.1);
+\node[align=center, font=\footnotesize, text=coral, anchor=west] at (0.2, -0.65) {
+  basal flux $Q_b$\\from lunar interior
+};
+\node[draw=char!40, fill=paper, rounded corners=2pt, font=\footnotesize, align=center,
+      text width=5.5cm] at (0, -2.0) {
+  Bottom BC: \quad $-K\dfrac{\partial T}{\partial z}\Big|_{z_{\mathrm{max}}} = Q_b$\\[2pt]
+  Weak interior heat; ${\sim}0.02$~\si{W/m^2} at Apollo sites
+};
+\end{tikzpicture}
+\caption{\textbf{Bottom boundary.} A small steady flux from the Moon's interior.
+  No orbital variation --- only the top sees the Sun.}
+\label{fig:bottom-bc}
+\end{figure}
+
+\begin{headsup}
+\textbf{What is \emph{not} in the top BC.} No atmosphere, no wind, no latent heat
+(evaporation), no ground heat storage in a separate surface layer. The model is
+deliberately minimal: radiative balance + 1-D conduction. That matches airless-body
+practice for metre-scale regolith (Hayne et al.\ 2017; Vasavada et al.\ 2012).
+\end{headsup}
+
+\subsubsection{Code map: from \code{insolation} to \code{\_step}}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{@{}llp{6.2cm}@{}}
+\toprule
+Step & Function / variable & Role \\
+\midrule
+1 & \code{cos\_lat = np.cos(np.radians(lat))} & latitude factor \\
+2 & \code{phase = 2*np.pi*t/T\_LUNAR} & lunation phase \\
+3 & \code{insol = S0 * cos\_lat * max(0, cos(phase))} & build $F_\odot(t)$ \\
+4 & \code{run\_with(..., insolation=insol)} & pass into solver \\
+5 & \code{\_solve\_surface\_newton(T\_prev, insol\_k, ...)} & top BC $\to T_s$ \\
+6 & \code{\_step(...)} & CN step for interior + bottom $Q_b$ \\
+\bottomrule
+\end{tabular}
+\caption{End-to-end path for orbital forcing and boundary conditions in the retrieval pipeline.}
+\label{tab:orbit-bc-code}
+\end{table}
+
+For full SPICE-based zenith angles (sub-solar latitude, libration, exact timestamps),
+see \file{lunar/ephem.py}. The \Kdstar{} retrieval does not require that path because
+it fits \emph{mean} temperatures, not diurnal phase.

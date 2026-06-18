@@ -1,0 +1,114 @@
+\section{How to run it yourself}
+\label{sec:running}
+
+These commands are cross-checked against \file{docs/REPRODUCING.md} and the
+\file{Makefile}. Run them from the repository root.
+
+\subsection{One-time setup}
+
+\begin{lstlisting}[style=shellstyle,caption={Create an isolated environment and install the package.}]
+# 1. Create an isolated Python environment (so you don't clutter your system)
+python3 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+
+# 2. Install the package + dev tools (pytest, jupyterlab, matplotlib, ...)
+make install                     # same as: pip install -e ".[dev]"
+\end{lstlisting}
+
+A \textbf{virtual environment} (\code{venv}) is just a private sandbox of Python
+packages for this project. \code{pip install -e .} installs the \code{lunar}
+package in ``editable'' mode, meaning Python sees your local \file{lunar/} folder
+directly --- edit a file and the change takes effect immediately.
+
+\subsection{Run the tests first (always do this)}
+
+\begin{lstlisting}[style=shellstyle]
+python3 -m pytest -q
+\end{lstlisting}
+
+This runs the suite in \file{tests/} (grid, properties, solver, equilibrium,
+bedrock, ephem, constants). They finish in under a minute and should
+\textbf{all pass}. Reading a test is often the clearest example of how a function
+is meant to be used.
+
+\subsection{Verify the committed headline numbers (no computation needed)}
+
+The canonical result ships in the repo, so you can check it instantly:
+
+\begin{lstlisting}[caption={Verify the committed headline \Kdstar\ values.}]
+import json, math
+r = json.load(open('output/kd_retrieval_results.json'))
+print('A15 K_d* =', r['A15']['kd_star'] * 1e3, 'mW/m/K')
+print('A17 K_d* =', r['A17']['kd_star'] * 1e3, 'mW/m/K')
+assert math.isclose(r['A15']['kd_star']*1e3, 4.58, abs_tol=0.01)
+assert math.isclose(r['A17']['kd_star']*1e3, 8.12, abs_tol=0.01)
+print('Headline values verified.')
+\end{lstlisting}
+
+\subsection{Reproduce the science (recompute from scratch)}
+
+\begin{lstlisting}[style=shellstyle,caption={The one-word \file{Makefile} targets.}]
+make help          # list every one-word command
+make retrieve      # the core K_d retrieval + bootstrap (~5 min)
+                   #   -> writes output/kd_retrieval_results.json
+make aux           # all auxiliary sweeps, model selection, error budget, MCMC
+make figures       # regenerate every figure
+make paper         # compile the PDFs (needs a LaTeX install)
+make all           # everything end-to-end
+\end{lstlisting}
+
+\code{make retrieve} is the one to run first --- it regenerates the headline JSON.
+The slow auxiliary sweeps (\code{make aux}) are rarely needed because their
+results are already committed.
+
+\subsection{Run a single illuminating script}
+
+To \emph{see} the deep-temperature physics (\autoref{sec:skin}) with your own
+eyes:
+
+\begin{lstlisting}[style=shellstyle]
+python3 scripts/analysis/phase2_depth_convergence.py
+\end{lstlisting}
+
+It prints the skin depth, the deep gradient, and confirms the mean temperature
+keeps rising along $Q_b/K$, then saves
+\file{output/figures/fig\_phase2\_depth\_convergence.png}
+(\autoref{fig:phase2}). Open that image. This is one of the best on-ramps to
+understanding the project.
+
+\begin{tryit}
+Regenerate the five teaching figures in this very handbook. From the repository
+root:
+\begin{lstlisting}[style=shellstyle]
+export MPLCONFIGDIR=/tmp/mpl
+python3 docs/teaching/make_teaching_figures.py
+\end{lstlisting}
+This re-runs the certified equilibrium solver for both sites and re-reads the
+committed results JSON, writing fresh PNG$+$PDF assets into
+\file{docs/teaching/figures/}. Then rebuild this PDF with
+\code{latexmk -pdf beginners\_guide.tex}.
+\end{tryit}
+
+\subsection{The notebooks (guided, in order)}
+
+\begin{lstlisting}[style=shellstyle]
+jupyter lab notebooks/
+\end{lstlisting}
+
+Run them in order: \code{00\_setup} (checks), \code{01\_methods} (figures $+$
+parameter table), \code{02\_retrieval} (the \Kd{} retrieval $+$ bootstrap),
+\code{03\_results}, \code{04\_discussion}, \code{05\_animations}. There's also
+\code{equilibrium\_demo.ipynb}, a standalone demo that a brute-force
+1000-lunation spin-up converges onto the fast Anchor Point solver --- a great way
+to \emph{believe} \autoref{sec:anchor}.
+
+\subsection{Where outputs land}
+
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+  \item \file{output/*.json} --- numerical results (the canonical
+    \file{kd\_retrieval\_results.json} and the auxiliary JSONs).
+  \item \file{output/figures/*.png} / \file{*.pdf} --- diagnostic and appendix
+    figures.
+  \item \file{paper/letter/figures/*.pdf} --- the paper's figures.
+  \item \file{paper/letter/letter.pdf} --- the compiled manuscript.
+\end{itemize}

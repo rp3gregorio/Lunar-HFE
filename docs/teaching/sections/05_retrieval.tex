@@ -1,0 +1,163 @@
+\section{The \texorpdfstring{\Kd}{Kd} retrieval and uncertainty analysis}
+\label{sec:retrieval}
+
+Now we connect the simulator to the real Apollo data and extract \Kd. The driver
+is \file{scripts/pipeline/retrieve\_kd.py}.
+
+\subsection{The data: turning raw HFE records into ``equilibrium temperatures''}
+\label{sec:data}
+
+The bundled Apollo data lives in \file{data/apollo/depth/} as \file{.tab} text
+files (one per mission per probe, e.g.\ \file{a15p1\_depth.tab}). Each row is a
+timestamp, a temperature, a sensor name, and the sensor's depth in cm. The loader
+is \code{load\_apollo\_hfe\_depth} (\file{lunar/validation.py}).
+
+But the raw record drifts for years after the probes were emplaced (the drilling
+disturbed the soil, which slowly re-equilibrated). We only want the final
+\textbf{settled} temperature of each sensor. \code{find\_stable\_window}
+(\file{lunar/apollo\_helpers.py}) scans the late part of each sensor's record and
+picks the earliest window where the temperature has gone \textbf{flat} (trend
+slope below \SI{0.08}{K/year}), then averages it. That average is the sensor's
+\textbf{equilibrium temperature $T_{\mathrm{eq}}$}. \code{extract\_sensor\_stability}
+does this for every sensor and returns depths $+$ $T_{\mathrm{eq}}$ values.
+
+Crucially, only sensors \textbf{deeper than \code{MIN\_DEPTH\_CM = 80 cm}} are
+used for the fit (the \code{deep\_mask}). Shallower sensors are contaminated by
+the borestem (the hardware sticking up) and by the daily skin, so they are
+excluded \emph{a priori}.
+
+\subsection{The retrieval: sweep \texorpdfstring{\Kd}{Kd}, minimize RMSE}
+\label{sec:sweep}
+
+The core idea is a \textbf{sweep} (\code{run\_kd\_sweep\_extended}):
+\begin{enumerate}[leftmargin=1.5em,itemsep=3pt]
+  \item Pick a grid of candidate \Kd{} values (e.g.\ 28 values from 1 to
+    \SI{15}{mW} for A15; see \code{KD\_GRIDS} in \file{config.py}).
+  \item For each candidate \Kd{}, run the equilibrium solver (\code{run\_with},
+    which calls \code{solve\_periodic\_equilibrium}) to get a predicted
+    temperature-vs-depth profile.
+  \item Read the model temperature at each real sensor depth and subtract the
+    measured $T_{\mathrm{eq}}$. That difference is the \textbf{residual}.
+  \item Combine the residuals into one number, the \textbf{RMSE}.
+\end{enumerate}
+
+\begin{plainenglish}
+\textbf{RMSE $=$ Root Mean Square Error.} It is the standard ``how far off, on
+average'' score: square every residual (so positives and negatives don't cancel
+and big misses count extra), average them, take the square root. Smaller $=$
+better fit. Units are kelvin here:
+\[
+  \mathrm{RMSE}(K_d) = \sqrt{\frac{1}{N}\sum_{i=1}^{N}
+    \bigl[\,T_{\mathrm{model}}(z_i; K_d) - T_{\mathrm{eq},i}\,\bigr]^2}.
+\]
+\end{plainenglish}
+
+The best-fit \Kdstar{} is the value that \textbf{minimizes} RMSE. The code even
+fits a little parabola through the three points around the minimum to find the
+bottom precisely (\code{kd\_star\_from\_residuals}). That's the whole retrieval:
+\emph{slide the one knob \Kd{} until the model temperatures best match the
+measured ones.}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.80\textwidth]{fig_kd_retrieval.png}
+\caption[The \Kd\ retrieval as an RMSE sweep]{The retrieval curve, computed from
+the committed results. For each candidate deep conductivity \Kd{} we run the
+simulator and score how far its temperatures land from the Apollo measurements
+(RMSE). \textbf{What to notice:} each site's curve is a clean valley; its lowest
+point is the retrieved \Kdstar{} (filled marker) --- \num{4.58}~\mwmk{} for
+Apollo~15 and \num{8.12}~\mwmk{} for Apollo~17. \textbf{Why it matters:} the two
+valleys sit at clearly different places, which is the visual heart of the
+``the sites differ'' result.}
+\label{fig:retrieval}
+\end{figure}
+
+Result: A15 lands at \Kdstar{}~${\approx}\num{4.58}$, A17 at
+${\approx}\num{8.12}$~\mwmk{}, and switching to per-site values roughly
+\textbf{halves} the Apollo-17 mismatch versus the old global \Kd{}~$=\num{3.4}$.
+
+\subsection{Uncertainty: the bootstrap}
+\label{sec:bootstrap}
+
+A single best-fit number isn't science without an error bar. How sure are we? The
+biggest uncertainty is that the \textbf{sensor depths themselves} are only known
+to about $\pm\SI{2.5}{cm}$ (Nagihara~2018). The repo propagates this with a
+\textbf{bootstrap} (\code{bootstrap\_kd\_with\_depth\_uncertainty}):
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item Repeat 1500 times: randomly \textbf{resample} the sensors (draw with
+    replacement) \emph{and} \textbf{jitter} each depth by a random
+    $\pm\SI{2.5}{cm}$ wiggle, then re-find \Kdstar{}.
+  \item You end up with 1500 slightly different \Kdstar{} values --- a whole
+    distribution.
+  \item The middle $95\%$ of that distribution is the \textbf{95\% confidence
+    interval} (the $+1.33/-0.28$ style error bars).
+\end{itemize}
+
+\begin{analogy}
+A bootstrap is just ``shake the inputs within their uncertainty, many times, and
+watch how much the answer wobbles.'' The wobble \emph{is} the error bar. (The
+bootstrap reuses cached solver outputs, so it is pure fast statistics --- no new
+physics runs. It is ${\sim}65\%$ of the pipeline's runtime purely because of the
+1500 repeats.)
+\end{analogy}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.92\textwidth]{fig_bootstrap.png}
+\caption[Bootstrap distributions of the retrieved \Kdstar]{The bootstrap
+distributions of \Kdstar{} for both sites. Each histogram is the spread of
+answers you get when the sensor depths are jittered within their
+$\pm\SI{2.5}{cm}$ uncertainty and the sensors are resampled, 1500 times. Dashed
+lines mark the medians; shaded bands mark the 95\% confidence intervals.
+\textbf{What to notice:} the two clouds barely overlap. \textbf{Why it matters:}
+that separation is the quantitative statement that Apollo~17 conducts heat better
+than Apollo~15 --- the contrast's confidence interval excludes zero
+($p\approx0.01$).}
+\label{fig:bootstrap}
+\end{figure}
+
+\subsection{Inter-site contrast and the \texorpdfstring{\Kd--\Qb}{Kd-Qb} degeneracy}
+\label{sec:degeneracy}
+
+The headline scientific claim is the \textbf{contrast}: A17~$-$~A15
+${\approx}\num{3.3}$~\mwmk{}. Because we have a bootstrap distribution for
+\emph{each} site, we can subtract them sample-by-sample to get a distribution for
+the \textbf{difference}, and check whether it excludes zero. It does, at the
+published heat fluxes: 95\% CI ${\approx}[0.4, 4.6]$, $p\approx0.01$
+(\code{contrast\_bootstrap} in the results JSON).
+
+The big caveat the paper is honest about: deep temperature depends on the
+\textbf{ratio} $Q_b/K_d$, so \Kd{} and the basal flux \Qb{} are partly
+\textbf{degenerate} --- if you assumed a different \Qb{}, you would retrieve a
+different \Kd{}. That is why every result is stated \emph{``conditional on the
+published basal heat fluxes.''} Propagating the full uncertainty in \Qb{} dilutes
+the significance (the ordering probability drops to ${\sim}83\%$).
+
+\begin{keyidea}
+The honest summary: the sites differ in the combination $T(z)$ they produce;
+attributing that purely to conductivity rather than basal flux rests on the
+published \Qb{} values.
+\end{keyidea}
+
+Several auxiliary scripts probe robustness (held-out tests, model selection,
+borestem cut, an independent Bayesian/MCMC cross-check) --- see
+\autoref{sec:codetour}.
+
+\subsection{The optional bedrock toggle (for future ice work)}
+\label{sec:bedrock}
+
+Recently added: an \textbf{optional bedrock layer} (\code{with\_bedrock} in
+\file{lunar/properties.py}, configured by \code{BEDROCK} in
+\file{lunar/config.py}). The standard model treats the Moon as fluffy regolith
+all the way down. In reality, below ${\sim}\SI{10}{m}$ there is solid rock, which
+conducts far better. \code{with\_bedrock} wraps any conductivity model so that
+below \code{z\_bedrock} (\SI{10}{m}) the conductivity ramps smoothly (via a
+\code{tanh}) up to a rock value (\code{K\_rock = 2.0}).
+
+It is \textbf{OFF by default} and \textbf{does not change the published
+retrieval} --- every Apollo sensor is at $\le\SI{2.4}{m}$, far above the
+\SI{10}{m} transition, where enabling bedrock shifts temperatures by only
+${\sim}\SI{0.05}{\kelvin}$. The tests \file{tests/test\_bedrock.py} lock in both
+guarantees (off by default; sensor-depth temperatures unchanged). It exists for
+\textbf{future deep-profile / ice-stability studies}, where the temperature far
+below the regolith \emph{does} matter.

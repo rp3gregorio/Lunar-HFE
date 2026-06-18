@@ -44,10 +44,31 @@ def test_guess_independence():
 
 
 def test_flux_closure():
-    """Cycle-mean conductive flux must close on Q_b below the anchor."""
+    """Cycle-mean conductive flux must close on Q_b below the diurnal skin."""
     grid, t, insol, k_func, cp_func = _setup()
     eq = solve_periodic_equilibrium(
         grid=grid, t=t, insolation=insol, albedo=0.131,
         emissivity=0.95, Q_b=0.021, K_func=k_func, cp_func=cp_func,
         T_guess=250.0)
     assert eq.flux_closure < 0.10
+
+
+def test_closure_certified_below_skin():
+    """The science-window closure (below the diurnal skin) must be no worse
+    than the raw anchor closure, which includes the rectification skin and
+    therefore overstates the error. Both diagnostics must be populated."""
+    grid, t, insol, k_func, cp_func = _setup()
+    eq = solve_periodic_equilibrium(
+        grid=grid, t=t, insolation=insol, albedo=0.131,
+        emissivity=0.95, Q_b=0.021, K_func=k_func, cp_func=cp_func,
+        T_guess=250.0)
+    assert np.isfinite(eq.flux_closure_anchor)
+    assert np.isfinite(eq.z_closure)
+    # Below the skin the closure is tighter than (or equal to) at the anchor.
+    assert eq.flux_closure <= eq.flux_closure_anchor + 1e-9
+    # An explicit retrieval window is honoured.
+    eq2 = solve_periodic_equilibrium(
+        grid=grid, t=t, insolation=insol, albedo=0.131,
+        emissivity=0.95, Q_b=0.021, K_func=k_func, cp_func=cp_func,
+        T_guess=250.0, z_closure_min=0.8)
+    assert eq2.z_closure >= 0.7

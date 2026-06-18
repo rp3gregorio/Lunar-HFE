@@ -1,0 +1,200 @@
+% =====================================================================
+%  Physics and Code for Beginners -- A Guide to the Lunar-HFE Repository
+%  Self-contained teaching handbook. Compile with:
+%      latexmk -pdf -interaction=nonstopmode beginners_guide.tex
+%  Designed to compile out-of-the-box on Overleaf (no shell-escape).
+% =====================================================================
+\documentclass[11pt,oneside]{article}
+
+% ---- page geometry: generous, textbook-like margins -----------------
+\usepackage[a4paper,margin=1in,headheight=14pt]{geometry}
+
+% ---- fonts & encoding ----------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ---- math ----------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{siunitx}
+\sisetup{per-mode=symbol, inter-unit-product=\ensuremath{\cdot}}
+
+% ---- tables, graphics, lists ---------------------------------------
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{enumitem}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,labelsep=period}
+
+% ---- colour palette (matches the generated figures) ----------------
+\usepackage{xcolor}
+\definecolor{coral}{HTML}{B85B3A}
+\definecolor{teal}{HTML}{2A6478}
+\definecolor{forest}{HTML}{3D6E4A}
+\definecolor{plum}{HTML}{5A4A6A}
+\definecolor{char}{HTML}{2A2520}
+\definecolor{dim}{HTML}{6E6862}
+\definecolor{paper}{HTML}{FAF7F2}
+\definecolor{softgrey}{HTML}{E8E5E0}
+\definecolor{codebg}{HTML}{F6F3EE}
+
+% ---- callout boxes --------------------------------------------------
+\usepackage[most]{tcolorbox}
+\tcbuselibrary{skins,breakable}
+
+\newtcolorbox{plainenglish}[1][]{%
+  enhanced, breakable, colback=teal!6, colframe=teal,
+  boxrule=0.6pt, arc=2pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+  fonttitle=\bfseries, coltitle=teal,
+  title={In plain English}, #1}
+
+\newtcolorbox{analogy}[1][]{%
+  enhanced, breakable, colback=forest!6, colframe=forest,
+  boxrule=0.6pt, arc=2pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+  fonttitle=\bfseries, coltitle=forest,
+  title={Analogy}, #1}
+
+\newtcolorbox{keyidea}[1][]{%
+  enhanced, breakable, colback=coral!7, colframe=coral,
+  boxrule=0.8pt, arc=2pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+  fonttitle=\bfseries, coltitle=coral,
+  title={Key idea}, #1}
+
+\newtcolorbox{tryit}[1][]{%
+  enhanced, breakable, colback=plum!6, colframe=plum,
+  boxrule=0.6pt, arc=2pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+  fonttitle=\bfseries, coltitle=plum,
+  title={Try it yourself}, #1}
+
+\newtcolorbox{headsup}[1][]{%
+  enhanced, breakable, colback=dim!8, colframe=dim,
+  boxrule=0.6pt, arc=2pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+  fonttitle=\bfseries, coltitle=dim,
+  title={Heads-up}, #1}
+
+% ---- code listings (no shell-escape needed) ------------------------
+\usepackage{listings}
+\lstdefinestyle{pystyle}{%
+  language=Python,
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize\color{char},
+  keywordstyle=\color{teal}\bfseries,
+  commentstyle=\color{forest}\itshape,
+  stringstyle=\color{coral},
+  numberstyle=\tiny\color{dim},
+  numbers=left, numbersep=8pt,
+  showstringspaces=false,
+  breaklines=true, breakatwhitespace=true,
+  frame=single, rulecolor=\color{softgrey},
+  framesep=6pt, xleftmargin=14pt, xrightmargin=4pt,
+  tabsize=4, columns=fullflexible, keepspaces=true,
+  literate={~}{{\textasciitilde}}1
+}
+\lstdefinestyle{shellstyle}{%
+  language=bash,
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize\color{char},
+  keywordstyle=\color{teal}\bfseries,
+  commentstyle=\color{dim}\itshape,
+  showstringspaces=false,
+  breaklines=true,
+  frame=single, rulecolor=\color{softgrey},
+  framesep=6pt, xleftmargin=8pt, xrightmargin=4pt,
+  columns=fullflexible, keepspaces=true,
+  literate={~}{{\textasciitilde}}1
+}
+\lstset{style=pystyle}
+
+% ---- TikZ -----------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit,backgrounds,decorations.pathreplacing}
+
+% ---- hyperref (load near last) -------------------------------------
+\usepackage{hyperref}
+\hypersetup{%
+  colorlinks=true, linkcolor=teal, urlcolor=coral, citecolor=plum,
+  pdftitle={Physics and Code for Beginners: A Guide to the Lunar-HFE Repository},
+  pdfauthor={Lunar-HFE project}, bookmarksnumbered=true}
+
+% ---- handy macros ---------------------------------------------------
+\newcommand{\Kd}{\ensuremath{K_d}}
+\newcommand{\Kdstar}{\ensuremath{K_d^{*}}}
+\newcommand{\Ks}{\ensuremath{K_s}}
+\newcommand{\Qb}{\ensuremath{Q_b}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\file}[1]{\texttt{\small #1}}
+\newcommand{\mwmk}{\unit{mW.m^{-1}.K^{-1}}}
+
+% =====================================================================
+\begin{document}
+
+% ---------- TITLE PAGE ----------
+\begin{titlepage}
+\centering
+\vspace*{2.2cm}
+{\color{dim}\large A hands-on companion to the Lunar-HFE research code}\\[1.6cm]
+{\color{char}\Huge\bfseries Physics and Code\\[0.35cm] for Beginners}\\[0.8cm]
+{\color{coral}\LARGE Measuring how the Moon's soil conducts heat}\\[2.0cm]
+
+\begin{tcolorbox}[enhanced, width=0.82\textwidth, colback=paper,
+  colframe=teal, boxrule=0.8pt, arc=3pt, halign=flush left]
+\textbf{Who this is for.} You --- someone who is smart and motivated but has
+\emph{no prior background} in coding, numerical methods, or heat-transfer
+physics, and who wants to understand \emph{this specific project} from the
+ground up.\\[4pt]
+\textbf{The whole project in one sentence.} We take the only two sets of
+underground temperature measurements ever made on the Moon (Apollo~15 and~17),
+build a small physics simulator of how heat moves through Moon soil, and tune
+one number --- the deep thermal conductivity \Kd{} --- until the simulator
+matches the real measurements at each site.
+\end{tcolorbox}
+
+\vfill
+{\color{dim}\small Generated teaching handbook \,\textbullet\, build the PDF with
+\texttt{latexmk -pdf beginners\_guide.tex}}\\[2pt]
+{\color{dim}\small Headline result: \Kdstar{}~$=$~\num{4.58}~\mwmk{} (Apollo~15),
+\num{8.12}~\mwmk{} (Apollo~17).}
+\vspace*{1.2cm}
+\end{titlepage}
+
+% ---------- TABLE OF CONTENTS ----------
+\tableofcontents
+\listoffigures
+\clearpage
+
+% ---------- HOW TO READ ----------
+\section*{How to read this guide}
+\addcontentsline{toc}{section}{How to read this guide}
+Read it top to bottom, once, slowly. Each section builds on the one before.
+Wherever you see a file path like \file{lunar/solver.py} or a function name
+like \code{solve\_periodic\_equilibrium}, that is a \emph{real thing} in the
+repository you can open and look at. The guide is the map; the code is the
+territory. The coloured boxes are signposts:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+  \item \textcolor{teal}{\textbf{In plain English}} --- the jargon-free version.
+  \item \textcolor{forest}{\textbf{Analogy}} --- an everyday picture to lean on.
+  \item \textcolor{coral}{\textbf{Key idea}} --- the one thing to remember.
+  \item \textcolor{plum}{\textbf{Try it yourself}} --- a small action at the keyboard.
+  \item \textcolor{dim}{\textbf{Heads-up}} --- a subtlety or common confusion.
+\end{itemize}
+\clearpage
+
+% ---------- SECTIONS ----------
+\input{sections/01_bigpicture}
+\input{sections/02a_notation}
+\input{sections/02_physics}
+\input{sections/03_numerics}
+\input{sections/04_anchor}
+\input{sections/05_retrieval}
+\input{sections/06_codetour}
+\input{sections/07_running}
+\input{sections/08_glossary}
+\input{sections/09_roadmap}
+
+\end{document}

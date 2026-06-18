@@ -1,0 +1,81 @@
+\section{A learning roadmap: what to study next}
+\label{sec:roadmap}
+
+A suggested order to go from ``I read this guide'' to ``I can change the code.''
+
+\subsection*{Day 1 --- orient and run}
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt]
+  \item Re-read \autoref{sec:bigpicture} and
+    \autoref{sec:physics}.1--\ref{sec:physics}.3 until ``heat $\ne$ temperature''
+    and the heat equation feel natural.
+  \item Do the setup (\autoref{sec:running}.1), run the tests
+    (\autoref{sec:running}.2), verify the headline numbers
+    (\autoref{sec:running}.3).
+  \item Run \file{scripts/analysis/phase2\_depth\_convergence.py}
+    (\autoref{sec:running}.5) and stare at the output figure while re-reading
+    \autoref{sec:skin}. This makes skin depth and the geothermal gradient
+    \emph{concrete}.
+\end{enumerate}
+
+\subsection*{Day 2 --- read the engine}
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt,start=4]
+  \item Read \file{lunar/constants.py} then \file{lunar/config.py} end to end ---
+    they are short and define ``the experiment.''
+  \item Read \file{lunar/properties.py} (\code{conductivity\_hayne},
+    \code{density\_hayne}, \code{specific\_heat}) alongside
+    \autoref{sec:properties}--\ref{sec:conductivity}.
+  \item Read \file{lunar/grid.py} alongside \autoref{sec:grid}.
+  \item Skim \file{lunar/solver.py}: focus on the \emph{docstring},
+    \code{surface\_energy\_balance\_residual}, and \code{\_thomas}. Don't try to
+    absorb every index in \code{\_step} yet.
+\end{enumerate}
+
+\subsection*{Day 3 --- the centerpiece}
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt,start=8]
+  \item Read the full docstring of \file{lunar/equilibrium.py} (it is a teaching
+    text in itself), then \code{solve\_periodic\_equilibrium}, with
+    \autoref{sec:anchor} open beside it.
+  \item Read \file{tests/test\_equilibrium.py} --- the tests \emph{are} the
+    precise statement of what ``correct'' means here.
+  \item Optional: run \code{equilibrium\_demo.ipynb} to watch brute-force
+    converge onto the fast method.
+\end{enumerate}
+
+\subsection*{Day 4 --- the science}
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt,start=11]
+  \item Read \file{scripts/pipeline/retrieve\_kd.py} top to bottom with
+    \autoref{sec:retrieval} open. Follow one \Kd{} value through \code{run\_with}
+    $\to$ \code{run\_kd\_sweep\_extended} $\to$ \code{kd\_star\_from\_residuals}.
+  \item Read \file{lunar/apollo\_helpers.py} to see how raw data becomes
+    $T_{\mathrm{eq}}$.
+  \item Skim the paper abstract, plain-language summary, and \S2 (methods) in
+    \file{paper/letter/letter.tex}.
+\end{enumerate}
+
+\subsection*{Then --- make a change (the real test of understanding)}
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt,start=14]
+  \item Try a tiny experiment: in a scratch script, call
+    \code{run\_with(SITES['A15'], kd=...)} at a couple of \Kd{} values and print
+    the temperature at $1.4$~m. Watch it move toward the data as \Kd{} approaches
+    \num{4.58}.
+  \item Read \file{docs/FLAG\_REPORT.md} to see how the project audits
+    \emph{itself} --- this is how careful computational science is actually done.
+\end{enumerate}
+
+\subsection*{Deeper study, when ready}
+\begin{itemize}[leftmargin=1.4em,itemsep=3pt]
+  \item \textbf{Numerical methods:} the finite-volume method, implicit vs
+    explicit schemes, stability (any intro numerical-PDE text).
+  \item \textbf{Heat transfer:} Fourier's law and the 1-D heat equation (any
+    intro heat-transfer text).
+  \item \textbf{Python scientific stack:} NumPy basics (arrays, broadcasting,
+    \code{np.interp}, \code{np.gradient}) --- used everywhere here.
+  \item \textbf{Statistics:} the bootstrap and confidence intervals.
+\end{itemize}
+
+\begin{keyidea}
+The single most effective habit: keep this guide open on one side and the actual
+code file on the other. Every concept here points at a real function you can
+open, run, and modify. Understanding grows fastest when the words and the code
+are side by side.
+\end{keyidea}

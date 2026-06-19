@@ -323,6 +323,17 @@ sharply over a short distance (steep gradient) and slower when it changes
 gradually (gentle gradient).
 \end{plain}
 
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_fourier.pdf}
+\caption{Reading Fourier's law. (a) Heat flows down the column from the hot
+surface to the cool subsurface. (b) The ``gradient'' $\partial T/\partial z$ in
+the equation is simply the \emph{slope} of the temperature-versus-depth curve:
+where the curve is steep (near the surface) the flux is large; where it is gentle
+(at depth) the flux is small. The conductivity $K$ is the constant of
+proportionality.}
+\label{fig:fourier}
+\end{figure}
+
 \section{The heat equation: conservation of energy in a column}\label{sec:heateq}
 Now demand energy conservation in a thin slab of regolith. The rate at which the
 slab stores heat equals the difference between what flows in through its top face
@@ -346,10 +357,13 @@ than leaving below (or vice versa).'' The three material properties --- $\rho$
 \end{plain}
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.82\linewidth]{figures/fig_book_conduction.pdf}
-\caption{Heat conduction in a column: flux $q=-K\,\partial_z T$ moves heat down
-the temperature gradient; the heat equation is the bookkeeping of what each
-layer stores versus what it passes on.}
+\includegraphics[width=0.9\linewidth]{figures/fig_book_heateq.pdf}
+\caption{Reading the heat equation. Take one thin layer of regolith as a box.
+Heat flows in through its top face and out through its bottom face; whatever does
+not leave is \emph{stored}, warming the layer. ``Stored equals in minus out'' is
+the whole content of the equation: the left side $\rho c_p\,\partial_t T$ is the
+storage rate, the right side $\partial_z(K\,\partial_z T)$ is minus the change in
+flux across the layer.}
 \label{fig:conduction}
 \end{figure}
 

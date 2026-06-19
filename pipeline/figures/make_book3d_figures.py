@@ -283,6 +283,104 @@ def fig_borehole_column_3d():
     print("  ->", out.name)
 
 
+def fig_fourier():
+    """2D interpretation of Fourier's law: the gradient IS a slope; flux follows it."""
+    from lunar.plotting.style import fmt_axis
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(JGR_FULL, 3.6),
+                                   gridspec_kw={"width_ratios": [0.62, 1.0]})
+    # (a) the physical picture: a column hot at the surface, cold below
+    grad = np.linspace(1, 0, 200).reshape(-1, 1)
+    axA.imshow(grad, extent=[0, 1, 0, 1], aspect="auto", cmap=ANTH_DIVERGE,
+               origin="upper")
+    for yc in (0.72, 0.5, 0.28):
+        axA.annotate("", xy=(0.55, yc - 0.1), xytext=(0.55, yc + 0.1),
+                     arrowprops=dict(arrowstyle="-|>", color=C_CHAR, lw=2.2))
+    axA.text(0.5, 1.05, "hot surface", ha="center", color=C_CORAL, fontsize=9,
+             fontweight="bold")
+    axA.text(0.5, -0.05, "cold subsurface", ha="center", va="top", color=C_TEAL,
+             fontsize=9, fontweight="bold")
+    axA.text(0.2, 0.5, "heat\nflux $q$", ha="center", va="center", fontsize=8.5,
+             color=C_CHAR)
+    axA.set_xlim(0, 1); axA.set_ylim(-0.02, 1.02); axA.axis("off")
+
+    # (b) the same thing as the equation: T vs depth -- the slope is dT/dz
+    z = np.linspace(0, 1.6, 200)
+    T = 250 + 110 * np.exp(-z / 0.35)            # hot surface, cooling with depth
+    axB.plot(T, z, color=C_CHAR, lw=2.4, zorder=3)
+    axB.set_ylim(1.6, -0.02)                     # depth downward
+    axB.set_xlim(240, 375)
+    for z0, lab, col, tx in [(0.16, "steep slope\n$\\Rightarrow$ large flux",
+                              C_CORAL, 250),
+                             (0.95, "gentle slope\n$\\Rightarrow$ small flux",
+                              C_TEAL, 300)]:
+        T0 = 250 + 110 * np.exp(-z0 / 0.35)
+        slope = -110 / 0.35 * np.exp(-z0 / 0.35)
+        dz = 0.24
+        axB.plot([T0, T0 + slope * dz], [z0, z0 + dz], color=col, lw=2.4, zorder=4)
+        axB.plot([T0, T0 + slope * dz, T0 + slope * dz], [z0, z0, z0 + dz],
+                 color=col, lw=0.9, ls=(0, (2, 2)), zorder=4)
+        axB.annotate(lab, xy=(T0 + slope * dz, z0 + dz),
+                     xytext=(tx, z0 + 0.42), fontsize=8, color=col,
+                     ha="center", va="center",
+                     arrowprops=dict(arrowstyle="->", color=col, lw=0.8))
+    fmt_axis(axB, xlabel="temperature  $T$  [K]", ylabel="depth  $z$")
+    axB.set_title(r"(b) the slope of this curve is $\partial T/\partial z$",
+                  loc="left", fontsize=9.5, color=C_CHAR)
+    fig.suptitle(r"Fourier's law $q=-K\,\partial T/\partial z$: the flux follows "
+                 "the steepness of the temperature curve", x=0.02, y=1.02,
+                 ha="left", fontsize=11, fontweight="bold", color=C_CHAR)
+    fig.savefig(OUT / "fig_book_fourier.pdf", bbox_inches="tight", pad_inches=0.06)
+    plt.close(fig)
+    print("  -> fig_book_fourier.pdf")
+
+
+def fig_heateq_cv_3d():
+    """3D interpretation of the heat equation: storage = flux in - flux out."""
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+    fig = plt.figure(figsize=(JGR_FULL, 4.2))
+    ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
+
+    def cube(x0, x1, y0, y1, z0, z1, fc, alpha, ec=C_CHAR):
+        f = [
+            [(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0)],
+            [(x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1)],
+            [(x0, y0, z0), (x1, y0, z0), (x1, y0, z1), (x0, y0, z1)],
+            [(x0, y1, z0), (x1, y1, z0), (x1, y1, z1), (x0, y1, z1)],
+            [(x0, y0, z0), (x0, y1, z0), (x0, y1, z1), (x0, y0, z1)],
+            [(x1, y0, z0), (x1, y1, z0), (x1, y1, z1), (x1, y0, z1)],
+        ]
+        ax.add_collection3d(Poly3DCollection(f, facecolor=fc, edgecolor=ec,
+                            lw=0.9, alpha=alpha, zorder=4))
+    cube(0, 1, 0, 1, 0, 1, C_CORAL, 0.22)        # one regolith cell (warming)
+    # flux in (top, large) and flux out (bottom, smaller) -- both downward
+    ax.quiver(0.5, 0.5, 1.75, 0, 0, -0.6, color=C_TEAL, lw=3.0,
+              arrow_length_ratio=0.32, zorder=6)
+    ax.quiver(0.5, 0.5, 0.02, 0, 0, -0.55, color=C_TEAL, lw=2.0,
+              arrow_length_ratio=0.32, zorder=6)
+    ax.text(0.5, 0.5, 1.95, "heat IN  (larger)", color=C_TEAL, fontsize=9.5,
+            ha="center", fontweight="bold")
+    ax.text(0.5, 0.5, -0.78, "heat OUT  (smaller)", color=C_TEAL, fontsize=9.5,
+            ha="center")
+    ax.text2D(0.80, 0.46, "more comes in\nthan leaves\n$\\Rightarrow$ the cell warms",
+              transform=ax.transAxes, color=C_CORAL, fontsize=9, va="center",
+              fontweight="bold")
+    ax.text2D(0.015, 0.78,
+              r"$\rho c_p\,\frac{\partial T}{\partial t}"
+              r"=-\frac{\partial q}{\partial z}"
+              r"=\frac{\partial}{\partial z}\left(K\frac{\partial T}{\partial z}\right)$",
+              transform=ax.transAxes, fontsize=11, color=C_CHAR)
+    ax.set_xlim(0, 1.1); ax.set_ylim(0, 1.1); ax.set_zlim(-0.7, 1.8)
+    ax.view_init(elev=14, azim=-58)
+    ax.set_box_aspect((1, 1, 1.5), zoom=1.18)
+    ax.set_axis_off()
+    fig.suptitle("The heat equation is just bookkeeping: what a layer stores "
+                 "= what comes in minus what leaves", x=0.06, y=0.98, ha="left",
+                 fontsize=11, fontweight="bold", color=C_CHAR)
+    fig.savefig(OUT / "fig_book_heateq.pdf", bbox_inches="tight", pad_inches=0.05)
+    plt.close(fig)
+    print("  -> fig_book_heateq.pdf")
+
+
 def fig_grid_3d():
     """3D illustration of the geometric depth grid: mm at top, decimetres below."""
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -351,6 +449,8 @@ def fig_grid_3d():
 
 def main():
     print("Building high-end 3D book figures:")
+    fig_fourier()               # 2D equation interpretation (gradient = slope)
+    fig_heateq_cv_3d()          # 3D equation interpretation (control volume)
     fig_grid_3d()               # conceptual 3D structural illustration
     fig_thermal_field()         # 2D data heatmap
     fig_skin_wave()             # 2D data lines

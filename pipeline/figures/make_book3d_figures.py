@@ -36,8 +36,13 @@ def _kd_star(tag: str, default: float) -> float:
         return default
 
 
+_FIELD_CACHE: dict = {}
+
+
 def _solve_field(site_tag="A17"):
     """Return (z [m], t_days, T(z,t) [K]) for a site's certified steady state."""
+    if site_tag in _FIELD_CACHE:
+        return _FIELD_CACHE[site_tag]
     site = SITES[site_tag]
     kd = _kd_star(site_tag, 8.117e-3)
     grid = make_geometric_grid(**GRID)
@@ -60,7 +65,9 @@ def _solve_field(site_tag="A17"):
         T_guess=site["T_MEAN_EFF"], z_anchor=EQ_Z_ANCHOR, n_inner=EQ_N_INNER,
         max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL,
     )
-    return grid.z_mid, t / 86400.0, eq.out.T
+    res = (grid.z_mid, t / 86400.0, eq.out.T)
+    _FIELD_CACHE[site_tag] = res
+    return res
 
 
 def _clean_3d(ax):
@@ -244,9 +251,94 @@ def fig_lunar_forcing_3d():
     print("  ->", out.name)
 
 
+def fig_borehole_column_3d():
+    """3D cutaway: the HFE probe in the regolith column, real sensor depths,
+    the skin / borestem / deep zones, and the certified T(z) profile."""
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+    from lunar.apollo_helpers import extract_sensor_stability
+    z, _, T = _solve_field("A17")
+    Tmean = T.mean(axis=1)
+    info = extract_sensor_stability("a17", 80.0)
+    sd = np.asarray(info["depth_cm_all"], float) / 100.0
+    deep = np.asarray(info["deep_mask"], bool)
+
+    ZMAX = 2.45
+    W = 1.0                                   # column footprint width
+    DP = 0.55                                 # 3D depth (y extent)
+
+    def face(x0, x1, z0, z1, y, color, alpha, ec="none"):
+        verts = [[(x0, y, z0), (x1, y, z0), (x1, y, z1), (x0, y, z1)]]
+        p = Poly3DCollection(verts, facecolor=color, alpha=alpha,
+                             edgecolor=ec, linewidths=0.7)
+        ax.add_collection3d(p)
+
+    fig = plt.figure(figsize=(JGR_FULL, 5.4))
+    ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
+
+    # regolith block: back/side faces + a top surface, in pale warm grey
+    face(0, W, 0, ZMAX, DP, "#EFEAE2", 1.0)                  # back wall
+    face(0, 0, 0, ZMAX, DP, "#EFEAE2", 1.0)                  # side wall (x=0 plane via y)
+    top = [[(0, 0, 0), (W, 0, 0), (W, DP, 0), (0, DP, 0)]]
+    ax.add_collection3d(Poly3DCollection(top, facecolor="#D9C7B6",
+                        alpha=1.0, edgecolor="#B9A88E", linewidths=0.8))
+    # depth-zone bands on the front face (y=0)
+    face(0, W, 0.0, 0.40, 0.0, C_CORAL, 0.16)               # skin (daily wave)
+    face(0, W, 0.0, 0.80, 0.0, C_DIM, 0.0, ec=C_DIM)        # borestem outline
+    for zz in np.linspace(0.05, 0.78, 8):                   # borestem hatch
+        ax.plot([0, W], [0, 0], [zz, zz], color=C_DIM, lw=0.4, alpha=0.45)
+    face(0, W, 0.80, ZMAX, 0.0, C_TEAL, 0.13)               # deep retrieval zone
+    face(0, W, 0, ZMAX, 0.0, "#000000", 0.0, ec=C_DIM)      # front frame
+
+    # the probe + sensors at real depths
+    ax.plot([0.5, 0.5], [0, 0], [0, ZMAX], color=C_CHAR, lw=2.6, zorder=8)
+    ax.scatter([0.5] * (~deep).sum(), [0] * (~deep).sum(), sd[~deep],
+               facecolor="white", edgecolor=C_DIM, s=26, lw=1.0, zorder=9)
+    ax.scatter([0.5] * deep.sum(), [0] * deep.sum(), sd[deep],
+               color=C_FOREST, edgecolor="white", s=34, lw=0.8, zorder=10)
+
+    # certified T(z) profile, drawn to the right of the column (T -> x offset)
+    sel = z <= 2.3
+    xT = 1.20 + 0.85 * (Tmean[sel] - Tmean[sel].min()) / np.ptp(Tmean[sel])
+    ax.plot(xT, np.zeros(sel.sum()), z[sel], color=C_CORAL, lw=2.2, zorder=7)
+    ax.text(2.15, 0, 1.1, r"mean $T(z)$", color=C_CORAL, fontsize=8.5,
+            fontweight="bold")
+
+    # labels
+    ax.text(0.5, 0, -0.16, "surface", color=C_CHAR, fontsize=9, ha="center",
+            fontweight="bold")
+    ax.text(1.04, 0, 0.22, "skin: daily wave", color=C_CORAL, fontsize=8.5,
+            ha="left", va="center")
+    ax.text(1.04, 0, 0.62, "borestem excluded\n($z<80$ cm)", color=C_DIM,
+            fontsize=8, ha="left", va="center")
+    ax.text(1.04, 0, 1.7, "deep sensors $\\rightarrow K_d$", color=C_FOREST,
+            fontsize=8.5, ha="left", va="center", fontweight="bold")
+
+    ax.set_zlim(ZMAX + 0.05, -0.25)          # surface at the top
+    ax.set_xlim(-0.05, 2.3); ax.set_ylim(0, DP + 0.1)
+    ax.set_zticks([0, 0.5, 1.0, 1.5, 2.0])
+    ax.set_zlabel("depth  $z$  [m]", labelpad=6)
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.xaxis.line.set_color("none"); ax.yaxis.line.set_color("none")
+    for axis in (ax.xaxis, ax.yaxis, ax.zaxis):
+        axis.pane.set_visible(False)
+    ax.zaxis.line.set_color(C_DIM)
+    ax.zaxis.set_tick_params(colors=C_DIM, labelsize=8)
+    ax.zaxis.label.set_color(C_CHAR)
+    ax.view_init(elev=8, azim=-60)
+    ax.set_box_aspect((1.6, 0.7, 1.7), zoom=1.18)
+    fig.suptitle("Inside the borehole: which sensors become data, and why",
+                 x=0.06, y=0.97, ha="left", fontsize=11.5, fontweight="bold",
+                 color=C_CHAR)
+    out = OUT / "fig_book_borehole3d.pdf"
+    fig.savefig(out, bbox_inches="tight", pad_inches=0.1)
+    plt.close(fig)
+    print("  ->", out.name)
+
+
 def main():
     print("Building high-end 3D book figures:")
     fig_lunar_forcing_3d()
+    fig_borehole_column_3d()
     fig_thermalwave_3d()
     fig_skin_waterfall_3d()
     print("done.")

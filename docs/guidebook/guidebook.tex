@@ -609,6 +609,37 @@ this effect grows with $T^3$:
 K(T,z) &= K_c(z)\,\bigl[\,1+\chi\,(T/T_{\mathrm{ref}})^3\,\bigr].\label{eq:Khayne}
 \end{align}
 
+\subsection{Where the form comes from}\label{sec:hayneform}
+Neither term is arbitrary; each has a clear physical origin.
+
+\textbf{The contact term.} In dry regolith, heat crosses from grain to grain
+through the tiny contact patches where particles touch. Deeper down, the weight of
+the overburden compacts the column: grains pack tighter, contact patches grow, and
+the conductivity climbs from its loose surface value $K_s$ toward a compacted deep
+value $K_d$. The simplest monotonic curve that starts at $K_s$, saturates at
+$K_d$, and shares the \emph{same} compaction scale as the measured density profile
+$\rho(z)$ is the exponential relaxation of Eq.~\eqref{eq:Kc} --- one $e$-folding
+depth $H$ for both. It is a one-parameter (in $K_d$) interpolation, not a
+first-principles law, but it is the right \emph{shape}.
+
+\textbf{The radiative term.} Across a pore of size $d$, heat also crosses as
+thermal radiation. The radiative conductivity of a granular medium scales as
+$K_{\rm rad}\sim 4\,\varepsilon\,\sigma\,d\,T^3$ --- the $T^3$ is the derivative of
+the Stefan--Boltzmann $T^4$ law, i.e.\ how fast radiated power changes with
+temperature. Writing this as a fractional enhancement of the contact term at a
+reference temperature gives the bracket in Eq.~\eqref{eq:Khayne}: $\chi$ is the
+radiative-to-contact ratio at $T_{\mathrm{ref}}=350$~K. At cold lunar night
+($\sim$100~K) the $T^3$ term is negligible; by lunar noon ($\sim$390~K) it can
+more than double the conductivity (Fig.~\ref{fig:models}b).
+
+\begin{plain}
+Two ways heat gets through loose soil: \emph{through the grains} where they touch
+(more contact when packed tighter, hence rising with depth), and \emph{across the
+gaps} as infrared glow (stronger when hotter, hence the $T^3$). Hayne's formula is
+just those two effects added together, with $K_d$ --- the one number we
+re-measure --- setting the deep contact value.
+\end{plain}
+
 \subsection{The published parameters}
 \begin{center}\small
 \begin{tabular}{@{}llrl@{}}
@@ -672,6 +703,44 @@ the radiative $T^3$ term roughly doubles $K$ by midday.}
 \label{fig:models}
 \end{figure}
 
+
+\section{Practice problems}\label{sec:prob-models}
+
+\begin{problembox}[Problem 3.1 — when radiation takes over]
+At what temperature does the radiative term equal the contact term (so that
+$K=2K_c$)? Use $\chi=2.7$, $T_{\mathrm{ref}}=350$~K.
+\end{problembox}
+\begin{solutionbox}
+Set $\chi(T/T_{\mathrm{ref}})^3=1$: $T=T_{\mathrm{ref}}/\chi^{1/3}
+=350/2.7^{1/3}=350/1.39\approx252$~K. Below $\sim$252~K the contact term
+dominates; above it (most of the lunar day) radiation across pores is the larger
+contributor --- which is why $K$ roughly doubles from night to noon.
+\end{solutionbox}
+
+\begin{problembox}[Problem 3.2 — the compaction half-depth]
+With $K_s=0.74$, $K_d=4.58$, and $H=6$~cm, at what depth is the contact
+conductivity halfway between $K_s$ and $K_d$?
+\end{problembox}
+\begin{solutionbox}
+$K_c=K_s+(K_d-K_s)(1-e^{-z/H})$; ``halfway'' means $1-e^{-z/H}=\tfrac12$, i.e.
+$e^{-z/H}=\tfrac12$, so $z=H\ln 2=6\times0.693\approx4.2$~cm. The contact
+conductivity completes most of its rise within the top few centimetres --- the
+same shallow zone where the daily wave lives.
+\end{solutionbox}
+
+\begin{problembox}[Problem 3.3 — why $K$ outruns $\rho$]
+From surface to depth the bulk density rises only $\sim$1.6$\times$ (1100 to
+1800~kg\,m$^{-3}$), yet the contact conductivity rises $\sim$6$\times$
+($K_d/K_s\approx4.58/0.74$). Why does conductivity climb so much faster than
+density?
+\end{problembox}
+\begin{solutionbox}
+Contact conduction depends on the \emph{area} of grain-to-grain contacts, which
+grows super-linearly with packing: as the column compacts, each grain gains more
+and larger contacts, so $K\sim\rho^{\,n}$ with $n>1$. A modest density increase
+therefore produces a much larger conductivity increase --- the physical reason
+$K_d$ is a sensitive, site-specific quantity worth measuring on its own.
+\end{solutionbox}
 
 % =====================================================================
 \chapter{The numerical solver, line by line}\label{ch:solver}
@@ -955,7 +1024,15 @@ timescale}:
 \begin{equation}
 \tau \sim \frac{z_{\max}^2}{\kappa} \approx \frac{(5\ \text{m})^2}{10^{-8}\ \text{m}^2/\text{s}} \approx 2.5\times10^9\ \text{s} \approx \mathbf{1000\ \text{lunations}}.
 \end{equation}
-After 30 lunations, only $\sim$3\% of the relaxation has occurred. The surface
+\emph{Where this comes from:} balance the heat equation by dimensions --- the
+storage term $\partial_t T\sim T/\tau$ on the left against
+$\kappa\,\partial_z^2 T\sim\kappa T/L^2$ on the right --- so the time to diffuse
+across a length $L$ is $\tau\sim L^2/\kappa$. The quadratic $L^2$ is the whole
+story: a thin skin of thickness $\ell\sim20$~cm settles in
+$\tau_{\rm skin}\sim\ell^2/\kappa\sim$ a few lunations, but the full 5-m column
+takes $(\,25/0.04\,)\approx600$ times longer --- of order $10^3$ lunations.
+
+After 30 lunations, only $\sim$3\% of that relaxation has occurred. The surface
 skin (top $\sim$50\,cm) has settled --- it only takes $\sim$10 lunations because
 the skin is thin. But the deep column (below $\sim$50\,cm) still holds the
 starting guess, essentially untouched.
@@ -1220,6 +1297,48 @@ the flux closes on $Q_b$ to $<2\%$ at all depths (right).}
 \label{fig:cert}
 \end{figure}
 
+
+\section{Practice problems}\label{sec:prob-steady}
+
+\begin{problembox}[Problem 5.1 — skin vs column settling time]
+Using $\tau\sim L^2/\kappa$ with $\kappa\approx10^{-8}$~m$^2$\,s$^{-1}$, estimate
+how many lunations it takes to settle the top $0.5$~m versus the full $5$~m
+column. (One lunation $\approx2.55\times10^6$~s.)
+\end{problembox}
+\begin{solutionbox}
+$\tau(0.5)=0.5^2/10^{-8}=2.5\times10^{7}$~s $\approx10$ lunations;
+$\tau(5)=5^2/10^{-8}=2.5\times10^{9}$~s $\approx1000$ lunations. The skin settles
+$\sim$100$\times$ faster than the deep column --- exactly why a 30-lunation
+spin-up looks ``converged'' (the skin has stopped moving) while the deep profile
+is still 97\% controlled by the starting guess.
+\end{solutionbox}
+
+\begin{problembox}[Problem 5.2 — what the shortcut guarantees]
+The flux-anchored method runs $\sim$150 lunations total, versus $10^3{+}$ for
+brute force. Beyond being faster, what does it \emph{guarantee} that a fixed
+30-lunation spin-up cannot?
+\end{problembox}
+\begin{solutionbox}
+A \emph{certified, guess-independent} steady state. The reconstruction imposes
+$d\Tm/dz=Q_b/K$ directly, and the solver returns two checks --- the anchor drift
+(iteration converged, $<0.03$~K) and the flux closure (energy conserved, the mean
+flux equals $Q_b$ to $<2\%$). A 30-lunation run provides neither: its deep profile
+still depends on the arbitrary starting temperature, so the retrieved $K_d$ does too.
+\end{solutionbox}
+
+\begin{problembox}[Problem 5.3 — error propagation in the walk]
+The reconstruction steps downward with $T_{i+1}=T_i+(Q_b/K_i)\,\Delta z$. If the
+conductivity $K_i$ used at one step is 5\% too high, what happens to that step's
+temperature increment, and why does the iteration still converge?
+\end{problembox}
+\begin{solutionbox}
+Since the increment is $\propto Q_b/K$, a $+5\%$ error in $K$ makes that step's
+$\Delta T$ about $5\%$ too small. But $K$ is recomputed from the updated
+temperature at every step and every outer iteration, so a biased profile feeds
+back a corrected $K$ next round; the flux-closure diagnostic ($<2\%$) is what
+certifies the accumulated error has been driven down. This self-correction is why
+the method needs only a handful of outer iterations.
+\end{solutionbox}
 
 % =====================================================================
 \chapter{Retrieving \texorpdfstring{$K_d$}{Kd} from the data}\label{ch:retrieval}\label{sec:retrieval}

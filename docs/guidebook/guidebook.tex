@@ -1397,9 +1397,15 @@ kd_star = parabola_vertex(kd_grid[k-1:k+2],     # sub-grid refinement
                           rmse[k-1:k+2])
 \end{lstlisting}
 
-Each site shows a clean single minimum (Fig.~\ref{fig:sweep}). The curves are
-smooth because the solver is deterministic and the steady state is unique for
-each $K_d$.
+The vertex of a parabola through three equally-spaced points
+$(y_-,\,y_0,\,y_+)$ at grid spacing $\Delta$ sits at
+\begin{equation}
+K_d^{*}=K_d^{(k)}+\frac{\Delta}{2}\,\frac{y_--y_+}{y_--2y_0+y_+},
+\end{equation}
+which pins the minimum to far finer than the grid spacing without any extra
+(expensive) solver runs. Each site shows a clean single minimum
+(Fig.~\ref{fig:sweep}). The curves are smooth because the solver is deterministic
+and the steady state is unique for each $K_d$.
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=0.74\linewidth]{figures/fig_kd_sweep.pdf}
@@ -1428,6 +1434,35 @@ $K_d$ matches the data; the global $K_d=3.4$ does not.}
 \label{fig:profiles}
 \end{figure}
 
+
+\section{Practice problems}\label{sec:prob-retrieval}
+
+\begin{problembox}[Problem 6.1 — why a parabola?]
+Why refine the minimum with a parabola through the three lowest points, rather
+than simply reporting the grid $K_d$ with the smallest RMSE?
+\end{problembox}
+\begin{solutionbox}
+The true minimum almost never lands exactly on a grid node; it lies somewhere
+between them. The RMSE curve is smooth and locally quadratic near its bottom, so a
+parabola through the three lowest points locates the sub-grid vertex --- giving
+$K_d^*$ to much better than the grid spacing --- \emph{without} running the
+(9-second) solver at extra $K_d$ values.
+\end{solutionbox}
+
+\begin{problembox}[Problem 6.2 — the cost of the bootstrap]
+The A15 sweep runs the solver at 28 values of $K_d$ ($\sim$9~s each). The bootstrap
+re-fits $K_d^*$ on 1500 resampled sensor sets. Why is the bootstrap \emph{not}
+$1500\times$ the cost of one sweep?
+\end{problembox}
+\begin{solutionbox}
+Resampling the \emph{sensors} does not change the forward model: the settled
+profile $T(z;K_d)$ for each trial $K_d$ is the same regardless of which sensors we
+compare against. So the 28 profiles are computed \emph{once} (and cached); each
+bootstrap resample only re-selects which residuals enter the RMSE and re-locates
+the minimum --- arithmetic, not solving. The 1500 resamples therefore add seconds,
+not hours. (This is exactly why the code separates \code{run\_with} from
+\code{kd\_star\_from\_residuals}.)
+\end{solutionbox}
 
 % =====================================================================
 \chapter{How sure are we? (uncertainty)}\label{ch:stats}
@@ -1835,6 +1870,39 @@ efficiently --- plausibly denser, more compacted, or more rock-rich material
 \noindent\textit{Reproduce everything:} \code{make retrieve} (the result),
 \code{notebooks/equilibrium\_demo.ipynb} (old vs.\ new), and
 \code{pytest tests/test\_equilibrium.py} (the certification).
+
+% =====================================================================
+\chapter*{References}
+\addcontentsline{toc}{chapter}{References}
+\markboth{References}{References}
+% =====================================================================
+\small
+\begin{list}{}{\setlength{\leftmargin}{1.5em}\setlength{\itemindent}{-1.5em}%
+\setlength{\itemsep}{5pt}\setlength{\parsep}{0pt}}
+\item Hayne, P.~O., et al.\ (2017). Global regolith thermophysical properties of
+the Moon from the Diviner Lunar Radiometer Experiment. \emph{Journal of
+Geophysical Research: Planets} \textbf{122}, 2371--2400.
+\,doi:\href{https://doi.org/10.1002/2017JE005387}{10.1002/2017JE005387}.
+\item Hemingway, B.~S., Robie, R.~A., \& Wilson, W.~H. (1973). Specific heats of
+lunar soils, basalt, and breccias from the Apollo 14, 15, and 16 landing sites,
+between 90 and 350~K. \emph{Proc.\ 4th Lunar Science Conf.} \textbf{4}, 2481.
+\item Langseth, M.~G., Keihm, S.~J., \& Peters, K. (1976). Revised lunar heat-flow
+values. \emph{Proc.\ 7th Lunar Science Conf.} \textbf{7}, 3143--3171.
+\item Mart\'inez, A., \& Siegler, M.~A. (2021). A global thermal conductivity model
+for lunar regolith at low temperatures. \emph{Journal of Geophysical Research:
+Planets} \textbf{126}, e2021JE006829.
+\,doi:\href{https://doi.org/10.1029/2021JE006829}{10.1029/2021JE006829}.
+\item Nagihara, S., et al.\ (2018). Examination of the long-term subsurface warming
+observed at the Apollo 15 and 17 sites utilizing the newly restored Heat Flow
+Experiment data from 1975 to 1977. \emph{Journal of Geophysical Research: Planets}
+\textbf{123}, 1125--1139.
+\,doi:\href{https://doi.org/10.1029/2018JE005579}{10.1029/2018JE005579}.
+\item Vasavada, A.~R., et al.\ (2012). Lunar equatorial surface temperatures and
+regolith properties from the Diviner Lunar Radiometer Experiment. \emph{Journal of
+Geophysical Research: Planets} \textbf{117}, E00H18.
+\,doi:\href{https://doi.org/10.1029/2011JE003987}{10.1029/2011JE003987}.
+\end{list}
+\normalsize
 
 \appendix
 % =====================================================================

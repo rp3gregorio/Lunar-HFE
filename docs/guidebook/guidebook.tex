@@ -239,6 +239,35 @@ lunation (lunar day, $\sim$29.5 Earth days) to the next.
 At Apollo~15 we have 7 deep sensors; at Apollo~17, 16. These are the data points
 our model must match.
 
+\section{From the raw record to a data point}
+Each Apollo site carried \emph{two} probes, each with several sensors of two
+kinds (gradient bridges, TG; and ring/reference thermocouples, TR). The probes
+recorded for years, but the early record is contaminated by the heat of drilling
+and emplacement; only after the borestem and surrounding regolith
+re-equilibrate does a sensor report the true undisturbed temperature.
+
+To turn each sensor's multi-year series into a single equilibrium temperature
+$T_{\rm eq}$, the code (\code{src/lunar/apollo\_helpers.py},
+\code{find\_stable\_window}) scans the trailing 55--85\% of the record and picks
+the earliest window whose linear trend is flatter than $0.08$\,K\,yr$^{-1}$
+($\sim$2$\times10^{-4}$\,K\,day$^{-1}$ --- the criterion stated in the letter,
+about $4.6\times$ stricter than the often-cited $10^{-3}$\,K\,day$^{-1}$). The
+mean of that flat tail is $T_{\rm eq}$; its scatter sets the per-sensor noise.
+Sensors deeper than 80\,cm are flagged ``deep'' and become the retrieval target
+(7 at Apollo~15, 16 at Apollo~17).
+
+\begin{plain}
+In short: we don't trust the first few years (the probe is still cooling off from
+being drilled in). We wait until each sensor's temperature stops drifting, average
+that quiet stretch, and keep only the sensors deep enough to sit below the daily
+wave. Those quiet, deep averages are the dots our model must hit.
+\end{plain}
+
+The restored digital record itself comes from Nagihara et al.\ (2018), who
+recovered and re-digitised the 1971--1977 HFE tapes. Their digitisation carries a
+small depth uncertainty ($\sim$2.5\,cm), which the bootstrap
+(\S\ref{sec:bootstrap}) propagates by jittering each sensor's depth.
+
 \section{The shape of the whole argument}
 In one breath: \emph{(i)} heat conduction is described by one equation;
 \emph{(ii)} two published formulas give $K$ as a function of temperature and
@@ -1414,5 +1443,95 @@ efficiently --- plausibly denser, more compacted, or more rock-rich material
 \noindent\textit{Reproduce everything:} \code{make retrieve} (the result),
 \code{notebooks/equilibrium\_demo.ipynb} (old vs.\ new), and
 \code{pytest tests/test\_equilibrium.py} (the certification).
+
+\appendix
+% =====================================================================
+\chapter{The pre-submission audit (flag report)}\label{app:flags}
+% =====================================================================
+Before submission, the released code and the manuscript were audited against each
+other line by line --- every physics claim, every number, every figure script
+re-run. The findings were logged as numbered ``flags'' in
+\code{docs/notes/FLAG\_REPORT.md} and as \code{\textbackslash note\{\}} markers in
+\code{letter.tex}. This appendix summarises that audit, because the most important
+flag --- F1 --- \emph{is} the methodological contribution of this work.
+
+\section{The two critical flags}
+\textbf{F1 --- the spin-up did not converge.} The original pipeline initialised
+each run at a hard-coded per-site anchor ($\Tm=250$\,K at A15, $255$\,K at A17)
+and spun up for a fixed 30 lunations. Because the deep relaxation time is
+$\sim$10$^{3}$ lunations (\S\ref{sec:f1}), the sensor-depth temperatures retained
+strong memory of that anchor, so the anchor behaved as an undeclared free
+parameter:
+\begin{center}\small
+\begin{tabular}{@{}lc@{}}
+\toprule
+Anchor (A15, production settings) & End-to-end $K_d^{*}$ (mW\,m$^{-1}$\,K$^{-1}$) \\
+\midrule
+245 K & 1.75 \\
+250 K (as released) & 4.86 \\
+255 K & 11.00 \\
+\bottomrule
+\end{tabular}
+\end{center}
+A $\pm5$\,K change in an uncited starting guess swung $K_d^{*}$ by a factor of
+$\sim$6 --- larger than the inter-site contrast itself. The fix is the
+flux-anchored, self-certifying equilibrium solver of Ch.~\ref{ch:steady}: the
+converged result agrees to $\le0.023$\,K across the column regardless of the
+starting guess, and the headline values settled to $K_{d}^{*}=4.58$ / $8.12$.
+(The old A17 value of $11.23$ was inflated by its warm $255$\,K anchor; the
+inter-site ordering survived, with a smaller contrast.)
+
+\textbf{F2 --- forcing description.} An earlier draft described SPICE/DE440
+ephemeris forcing, but the retrieval actually drives the solver with an idealized
+cosine insolation, $S_0\cos(\mathrm{lat})\max(0,\cos 2\pi t/P)$. The methods text
+was rewritten to describe the implemented forcing and to bound the neglected
+terms (solar declination $\pm1.5^{\circ}$, eccentricity $\pm3.3\%$ in flux). A
+correct SPICE implementation (\code{src/lunar/ephem.py}) exists for future
+per-timestamp work but is not on the retrieval path.
+
+\section{Reproducibility repairs}
+The audit also closed several archive gaps: a Diviner hemisphere bug (southern
+GCP bands had been fetched for the northern sites) was fixed and the surface
+closure rebuilt as a committed script (\code{compute\_diviner\_closure.py}); the
+Bayesian posterior outputs and the error-budget JSON were committed; and stale
+methods numbers (sweep grids, the $H$ range, stability thresholds) were corrected.
+
+\section{What the audit confirmed clean}
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item The \textbf{Crank--Nicolson} assembly, harmonic-mean face conductivities,
+  Newton surface balance (residual and analytic derivative), and the
+  geothermal-flux Neumann bottom boundary --- all mathematically correct.
+\item The geometric grid ($\Delta z_0=2$\,mm, ratio $1.08$, $z_{\max}=5$\,m).
+\item The Hayne (2017) $K(T,z)$, $\rho(z)$, $c_p(T)$ and the Mart\'inez \&
+  Siegler (2021) $K(T,\rho)$ coefficients, verified against the cited sources.
+\item Every committed headline number matches the manuscript, and the full unit
+  test suite passes.
+\end{itemize}
+
+% =====================================================================
+\chapter{Reproducing the result}\label{app:repro}
+% =====================================================================
+From a fresh clone (the full recipe, with timings and troubleshooting, is in
+\code{docs/notes/REPRODUCING.md}):
+\begin{lstlisting}[style=py]
+git clone https://github.com/rp3gregorio/Lunar-HFE.git
+cd Lunar-HFE
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"            # editable install + dev extras
+python pipeline/fetch_diviner.py   # ~310 MB PDS data (surface closure only)
+make test                          # unit + equilibrium-certification tests
+make all                           # retrieve + aux + figures + PDFs
+\end{lstlisting}
+
+The canonical results ship with the repository. To check a fresh run against
+them:
+\begin{lstlisting}[style=py]
+import json
+d = json.load(open("results/kd_retrieval_results.json"))
+print(d["A15"]["kd_star"]*1e3, d["A17"]["kd_star"]*1e3)   # -> 4.58, 8.12
+\end{lstlisting}
+The fast path (using the committed auxiliary JSONs and skipping the $\sim$60-min
+sensitivity sweeps) runs end to end in $\sim$15 minutes; a full reproduction is
+about an hour.
 
 \end{document}

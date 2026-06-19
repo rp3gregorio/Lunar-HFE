@@ -106,8 +106,8 @@ import json, math
 shipped = json.loads(open('results/kd_retrieval_results.json').read())
 print('A15 K_d* =', shipped['A15']['kd_star'] * 1e3, 'mW m^-1 K^-1')
 print('A17 K_d* =', shipped['A17']['kd_star'] * 1e3, 'mW m^-1 K^-1')
-assert math.isclose(shipped['A15']['kd_star'] * 1e3, 4.86, abs_tol=0.01)
-assert math.isclose(shipped['A17']['kd_star'] * 1e3, 11.23, abs_tol=0.01)
+assert math.isclose(shipped['A15']['kd_star'] * 1e3, 4.58, abs_tol=0.01)
+assert math.isclose(shipped['A17']['kd_star'] * 1e3, 8.12, abs_tol=0.01)
 print('Headline values verified.')
 "
 ```
@@ -118,7 +118,7 @@ print('Headline values verified.')
 `pip install --only-binary=:all: -e .[dev]` to force the prebuilt wheels.
 
 **SPICE kernel download fails**: the SPICE ephemeris files are fetched
-on demand by `lunar/ephem.py`. If your network blocks the JPL/NAIF
+on demand by `src/lunar/ephem.py`. If your network blocks the JPL/NAIF
 mirror, set `SPICE_KERNEL_DIR` to a local directory containing the
 DE440 kernel and the NAIF lunar/earth PCK.
 

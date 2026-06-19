@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Concept figures for the study guidebook (paper/guidebook/guidebook.tex).
+"""Concept figures for the study guidebook (docs/guidebook/guidebook.tex).
 
 These teach ideas, not results. Every figure is built so that NO text
 label sits on top of the graphics -- annotations live in dedicated
 whitespace, titles, or legends, and the longer explanation goes in the
 LaTeX caption.
 
-Outputs (paper/guidebook/figures/):
+Outputs (results/figures/):
   fig_book_conduction.pdf  -- Fourier's law: heat flows down a gradient
   fig_book_numerical.pdf   -- how a continuous equation is computed
   fig_book_bootstrap.pdf   -- resampling, from scratch

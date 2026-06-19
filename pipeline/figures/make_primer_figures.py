@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Teaching figures for the study guidebook (paper/guidebook/guidebook.tex).
+"""Teaching figures for the study guidebook (docs/guidebook/guidebook.tex).
 
 Produces three conceptual figures that do not appear in the letter:
 

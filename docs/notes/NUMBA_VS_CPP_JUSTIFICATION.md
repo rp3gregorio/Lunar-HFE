@@ -409,7 +409,7 @@ f << std::setw(2) << results << std::endl;
 Run `retrieve_kd.py` with profiling:
 
 ```bash
-python -m cProfile -s cumtime scripts/pipeline/retrieve_kd.py > profile.txt
+python -m cProfile -s cumtime pipeline/compute/retrieve_kd.py > profile.txt
 ```
 
 **Top functions by cumulative time:**

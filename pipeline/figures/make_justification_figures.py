@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Two figures for the justification write-up (docs/method_equivalence/):
+"""Two figures for the justification write-up (docs/guidebook/):
 
   fig_models.pdf      -- Hayne (2017) and Martinez (2021) K(T,z): replicate
                          both forms; show where the global K_d sits and how
@@ -8,7 +8,7 @@
                          lunation count increases ("the increasing-lunations
                          graph"): error at 1 m vs lunations, two guesses.
 
-Saves into docs/method_equivalence/figures/. Run from the repo root.
+Saves into results/figures/. Run from the repo root.
 """
 from __future__ import annotations
 import sys, pathlib

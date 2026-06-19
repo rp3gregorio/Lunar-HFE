@@ -54,7 +54,7 @@ reproducibility gaps that must be resolved before submission.
 > (≤0.023 K). See the top banner. The original finding is kept below for
 > the record.
 
-`scripts/pipeline/retrieve_kd.py` initialises every solver run at
+`pipeline/compute/retrieve_kd.py` initialises every solver run at
 `T(z) = T_MEAN_EFF + Q_b * cumsum(dz / K)` with hard-coded, uncited
 anchors `T_MEAN_EFF = 250.0` (A15) and `255.0` (A17), then spins up for
 30 lunations to a 5e-2 K/cycle tolerance. With a 5-m column under a flux
@@ -128,7 +128,7 @@ claimed. The qualitative borestem conclusion survives.
 > committed JSON); χ and H now reported as conditionality of the held-fixed
 > Hayne form. Totals 1.75 / 4.61 mW m⁻¹ K⁻¹.
 
-`output/kd_error_budget.json` vs the manuscript: σ_Qb 1.27/3.00 vs
+`results/kd_error_budget.json` vs the manuscript: σ_Qb 1.27/3.00 vs
 1.47/3.45; σ_A 0.56/0.95 (±0.04 albedo sweep) vs 0.07/0.54 (stated
 ±0.01); σ_χ 0.73/1.73 vs 0.69/2.03; σ_zb at A17 3.81 vs <0.05 (the
 script includes the 60-cm outlier the text excludes); σ_ρ 0.02/0.06 vs

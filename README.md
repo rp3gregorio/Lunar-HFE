@@ -22,7 +22,7 @@ and sweeping $K_d$ against the deep-sensor RMSE. The retrieval yields
 (1σ non-parametric bootstrap, $N_\text{boot}=1500$, conditional on the
 published basal heat fluxes; inter-site contrast 3.31, 95% CI [0.37, 4.58],
 p ≈ 0.011). The forward model is solved to a certified periodic steady
-state (see `lunar/equilibrium.py` and `docs/FLAG_REPORT.md`).
+state (see `src/lunar/equilibrium.py` and `docs/notes/FLAG_REPORT.md`).
 
 These per-site values reduce the meter-scale-sensor RMSE relative to the
 published global $K_d = 3.4$ (halving it at Apollo 17) and supply the
@@ -40,39 +40,39 @@ git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd Lunar-HFE
 python3 -m venv .venv && source .venv/bin/activate
 make install                 # editable install of the `lunar` package + dev deps
-python scripts/fetch_diviner.py   # ~310 MB from PDS-Geosciences (one-time)
+python pipeline/fetch_diviner.py  # ~310 MB from PDS-Geosciences (one-time)
 
-make retrieve                # core retrieval + bootstrap  -> output/*.json
+make retrieve                # core retrieval + bootstrap  -> results/*.json
 make aux                     # all sensitivity sweeps, model selection, MCMC, closure
-make figures                 # regenerate every figure (paper + appendix + guidebook)
+make figures                 # regenerate every figure (paper + guidebook) -> results/figures/
 make paper                   # compile all PDFs
 # or simply:  make all
 ```
 
 Prefer notebooks? `jupyter lab notebooks/` and run the five in order
 (they call the same pipeline). Prefer scripts? Each file under
-`scripts/pipeline/` and `scripts/figures/` runs standalone.
+`pipeline/compute/` and `pipeline/figures/` runs standalone.
 
 ### How the code is organised (start here)
 
-All configuration and the physics engine live in the **`lunar/` package**;
-the **`scripts/`** are thin command-line drivers that call it. There is
+All configuration and the physics engine live in the **`src/lunar/` package**;
+the **`pipeline/`** scripts are thin command-line drivers that call it. There is
 exactly one definition of everything:
 
 | Where | What |
 |---|---|
-| `lunar/config.py` | **single source of truth** — site table (`SITES`), grid, Hayne bundle, solver + sweep settings |
-| `lunar/constants.py` | cited physical constants |
-| `lunar/properties.py` | conductivity / density / specific-heat models |
-| `lunar/grid.py`, `solver.py`, `equilibrium.py` | the 1-D heat-equation engine |
-| `lunar/plotting/style.py` | shared figure palette + layout helpers |
-| `scripts/pipeline/` | retrieval, bootstrap, sensitivity sweeps, MCMC (write `output/*.json`) |
-| `scripts/figures/` | figure generators; `scripts/make_all_figures.py` runs them all |
+| `src/lunar/config.py` | **single source of truth** — site table (`SITES`), grid, Hayne bundle, solver + sweep settings |
+| `src/lunar/constants.py` | cited physical constants |
+| `src/lunar/properties.py` | conductivity / density / specific-heat models |
+| `src/lunar/grid.py`, `solver.py`, `equilibrium.py` | the 1-D heat-equation engine |
+| `src/lunar/plotting/style.py` | shared figure palette + layout helpers |
+| `pipeline/compute/` | retrieval, bootstrap, sensitivity sweeps, MCMC (write `results/*.json`) |
+| `pipeline/figures/` | figure generators; `pipeline/make_all_figures.py` runs them all |
 
-New to the code? Read [`docs/CODE_MANUAL.md`](docs/CODE_MANUAL.md) for a
-one-page map, then the full developer guidebook
-[`docs/code_guide/code_guide.pdf`](docs/code_guide/code_guide.pdf) (module
-reference, data flow, and worked recipes).
+New to the code? Read the full developer guidebook in
+[`docs/guidebook/`](docs/guidebook/) (`guidebook.tex`; build the PDF with
+`make paper`) — physics derivations from first principles, module reference,
+data flow, and worked recipes.
 
 Then run the 5 notebooks in order:
 
@@ -90,29 +90,31 @@ brute-force spin-up converges onto the fast flux-anchored solver — it
 parallelises the independent runs across CPU cores.
 
 Each notebook is idempotent: re-running it overwrites the corresponding
-figures and any JSON it produces in `output/`. The canonical retrieval JSON
-([`output/kd_retrieval_results.json`](output/kd_retrieval_results.json)) is committed for
+figures and any JSON it produces in `results/`. The canonical retrieval JSON
+([`results/kd_retrieval_results.json`](results/kd_retrieval_results.json)) is committed for
 direct verification.
 
 ## Repository layout
 
 ```
 Lunar-HFE/
-├── lunar/                  # 1-D heat solver + conductivity models
-├── scripts/
-│   ├── pipeline/           # batch retrieval + sensitivity sweeps
-│   └── figures/            # matplotlib figure generators (callable from CLI)
+├── src/lunar/              # 1-D heat solver + conductivity models (the engine)
+├── pipeline/
+│   ├── compute/            # batch retrieval + sensitivity sweeps (write results/*.json)
+│   └── figures/            # matplotlib figure generators (write results/figures/)
 ├── notebooks/              # 5 reproduction notebooks (run in order)
 ├── data/
 │   ├── apollo/             # HFE 1971–1977 record (Nagihara 2018, bundled)
 │   ├── diviner/            # GCP cache (fetched on demand)
 │   └── spice/              # SPICE kernels (DE440, lunar frames)
-├── output/                 # canonical JSON results
+├── results/                # canonical JSON results + figures/ (single source of truth)
 ├── paper/
-│   └── letter/             # LaTeX source + figures + compiled PDF
+│   └── letter/             # the manuscript: LaTeX source + compiled PDF (figures/ -> results/figures)
 ├── tests/                  # pytest suite (run with `pytest`)
-└── docs/                   # REPRODUCING.md, FLAG_REPORT.md, CODE_MANUAL.md,
-    └── code_guide/         #   code_guide.tex/pdf — full developer guidebook
+└── docs/
+    ├── guidebook/          # guidebook.tex/pdf — full teaching + developer guide
+    ├── notes/              # REPRODUCING.md, FLAG_REPORT.md, NUMBA_VS_CPP_*.md
+    └── slides/             # progress deck + assets
 ```
 
 ## Citing this work
@@ -134,9 +136,9 @@ If you use this code or data, please cite both the paper and the repository:
 
 ## Licenses
 
-- **Code** (`lunar/`, `scripts/`, `tests/`, `notebooks/`): MIT License
+- **Code** (`src/lunar/`, `pipeline/`, `tests/`, `notebooks/`): MIT License
   (see [`LICENSE`](LICENSE))
-- **Paper text, figures, and tabular results** (`paper/`, `output/figures/`):
+- **Paper text, figures, and tabular results** (`paper/`, `results/figures/`):
   Creative Commons Attribution 4.0 International (CC-BY-4.0)
   (see [`LICENSE-CC-BY-4.0`](LICENSE-CC-BY-4.0))
 - **Bundled HFE data** (`data/apollo/`): public domain via NASA PDS-Geosciences

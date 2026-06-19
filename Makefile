@@ -15,31 +15,31 @@ install:             ## editable install of the lunar package + dev extras
 test:                ## run the unit-test suite
 	$(PY) -m pytest -q
 
-retrieve:            ## core retrieval + bootstrap (writes output/kd_retrieval_results.json)
-	$(PY) scripts/pipeline/retrieve_kd.py
+retrieve:            ## core retrieval + bootstrap (writes results/kd_retrieval_results.json)
+	$(PY) pipeline/compute/retrieve_kd.py
 
 aux:                 ## all auxiliary sensitivity sweeps + model selection + error budget + MCMC
-	$(PY) scripts/pipeline/compute_headline_rmse.py
-	$(PY) scripts/pipeline/compute_borestem_sensitivity.py
-	$(PY) scripts/pipeline/compute_stability_threshold_sensitivity.py
-	$(PY) scripts/pipeline/compute_surface_bias_test.py
-	$(PY) scripts/pipeline/compute_uniform_kd_sensitivity.py
-	$(PY) scripts/pipeline/compute_fixed_input_sensitivities.py
-	$(PY) scripts/pipeline/compute_model_selection.py
-	$(PY) scripts/pipeline/compute_error_budget.py
-	$(PY) scripts/pipeline/bayesian_crosscheck.py
-	$(PY) scripts/pipeline/compute_diviner_closure.py
+	$(PY) pipeline/compute/compute_headline_rmse.py
+	$(PY) pipeline/compute/compute_borestem_sensitivity.py
+	$(PY) pipeline/compute/compute_stability_threshold_sensitivity.py
+	$(PY) pipeline/compute/compute_surface_bias_test.py
+	$(PY) pipeline/compute/compute_uniform_kd_sensitivity.py
+	$(PY) pipeline/compute/compute_fixed_input_sensitivities.py
+	$(PY) pipeline/compute/compute_model_selection.py
+	$(PY) pipeline/compute/compute_error_budget.py
+	$(PY) pipeline/compute/bayesian_crosscheck.py
+	$(PY) pipeline/compute/compute_diviner_closure.py
 
-figures:             ## regenerate every figure (paper + manuscript)
-	$(PY) scripts/make_all_figures.py
+figures:             ## regenerate every figure (writes results/figures/) for the paper + guidebook
+	$(PY) pipeline/make_all_figures.py
 
-paper:               ## compile the letter and the teaching manuscript
+paper:               ## compile the letter and the teaching guidebook
 	cd paper/letter        && latexmk -pdf -interaction=nonstopmode letter.tex
 	cd paper/letter        && latexmk -pdf -interaction=nonstopmode letter_clean.tex
-	cd docs/manuscript     && latexmk -pdf -interaction=nonstopmode manuscript.tex
+	cd docs/guidebook      && latexmk -pdf -interaction=nonstopmode guidebook.tex
 
 all: retrieve aux figures paper  ## full reproduction from scratch
 
 clean:               ## remove LaTeX build artifacts
 	cd paper/letter        && latexmk -C 2>/dev/null || true
-	cd docs/manuscript     && latexmk -C 2>/dev/null || true
+	cd docs/guidebook      && latexmk -C 2>/dev/null || true

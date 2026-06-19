@@ -40,7 +40,7 @@ pip install -e .
 ## Step 3 — Fetch Diviner GCP data
 
 ```bash
-python scripts/fetch_diviner.py
+python pipeline/fetch_diviner.py
 ```
 
 This downloads ~310 MB of public PDS data (only the two lat-bands needed
@@ -71,7 +71,7 @@ jupyter lab notebooks/
 |---|---|---|
 | `00_setup.ipynb` | <1 min | sanity check, data integrity |
 | `01_methods.ipynb` | 2-3 min | Figs 1-4, Table 1 |
-| `02_retrieval.ipynb` | ~5 min (fast); ~60 min full | per-site K_d sweep + bootstrap + Q_b sensitivity; writes `output/kd_retrieval_results.json`. Heavy auxiliary sweeps for Table 3 are opt-in (`RUN_AUXILIARY = True`). |
+| `02_retrieval.ipynb` | ~5 min (fast); ~60 min full | per-site K_d sweep + bootstrap + Q_b sensitivity; writes `results/kd_retrieval_results.json`. Heavy auxiliary sweeps for Table 3 are opt-in (`RUN_AUXILIARY = True`). |
 | `03_results.ipynb` | 3-5 min | Figs 5-9, Tables 2-3 |
 | `04_discussion.ipynb` | 2-3 min | Figs 10-11, Table 4 |
 
@@ -81,7 +81,7 @@ sweeps (~60 min) are rarely needed unless you change inputs.
 
 Each notebook is **idempotent**: re-running it overwrites the same
 output files. Notebooks read the canonical JSON results from
-`output/`, so once `02_retrieval.ipynb` has run once, subsequent
+`results/`, so once `02_retrieval.ipynb` has run once, subsequent
 notebooks can be re-run independently for figure tuning.
 
 ## Step 6 — Compile the manuscript
@@ -97,13 +97,13 @@ byte-for-byte modulo figure regeneration timestamps.
 ## Verification
 
 The repository ships with the canonical JSON results
-([`output/kd_retrieval_results.json`](../output/kd_retrieval_results.json)). To
+([`results/kd_retrieval_results.json`](../results/kd_retrieval_results.json)). To
 verify that your run reproduces them:
 
 ```bash
 python -c "
 import json, math
-shipped = json.loads(open('output/kd_retrieval_results.json').read())
+shipped = json.loads(open('results/kd_retrieval_results.json').read())
 print('A15 K_d* =', shipped['A15']['kd_star'] * 1e3, 'mW m^-1 K^-1')
 print('A17 K_d* =', shipped['A17']['kd_star'] * 1e3, 'mW m^-1 K^-1')
 assert math.isclose(shipped['A15']['kd_star'] * 1e3, 4.86, abs_tol=0.01)
@@ -122,7 +122,7 @@ on demand by `lunar/ephem.py`. If your network blocks the JPL/NAIF
 mirror, set `SPICE_KERNEL_DIR` to a local directory containing the
 DE440 kernel and the NAIF lunar/earth PCK.
 
-**Diviner download SSL error**: `scripts/fetch_diviner.py` retries with
+**Diviner download SSL error**: `pipeline/fetch_diviner.py` retries with
 SSL verification disabled (PDS data is public, this is safe).
 
 **LaTeX missing font / package**: install a complete TeX distribution

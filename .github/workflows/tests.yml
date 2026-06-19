@@ -34,7 +34,7 @@ jobs:
       run: |
         python -c "
         import json
-        d = json.loads(open('output/phase_a_results.json').read())
+        d = json.loads(open('results/kd_retrieval_results.json').read())
         for s in ('A15', 'A17'):
             assert 'kd_star' in d[s], f'missing kd_star for {s}'
         print('canonical results JSON OK')

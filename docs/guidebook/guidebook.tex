@@ -1443,6 +1443,16 @@ model. The procedure:
   $K_d^*$ values give the 95\% confidence interval.
 \end{enumerate}
 
+\emph{Why resampling works.} We do not know the true distribution of the sensor
+noise --- but the observed sensors \emph{are} a sample drawn from it. The
+bootstrap's plug-in principle treats that sample as a stand-in for the
+population: drawing $N$ sensors with replacement mimics ``going back and
+collecting another $N$ sensors'' without assuming any noise shape. Re-fitting
+$K_d^*$ on each resample maps the sensor scatter into scatter in $K_d^*$, and the
+percentiles of the $1500$ fits are then a distribution-free confidence interval.
+Jittering each depth by $\mathcal{N}(0,2.5\,\mathrm{cm})$ folds the positional
+uncertainty (Nagihara 2018) into the very same loop.
+
 \begin{figure}[htbp]\centering
 \includegraphics[width=0.92\linewidth]{figures/fig_bootstrap.pdf}
 \caption{Bootstrap distributions of $K_d^{*}$ (1500 resamples). The two site
@@ -1528,9 +1538,19 @@ We compare three models:
 \item $M_3$: one shared $K_d$, different $Q_b$ per site (3 free parameters).
 \end{itemize}
 AICc (Akaike Information Criterion, corrected for small samples) penalises models
-for using more parameters. $M_1$ wins: $\Delta\text{AICc}(M_2-M_1) = 3.99$,
-$\Delta\text{AICc}(M_3-M_1) = 2.71$. The data favour a \emph{conductivity}
-contrast, not a flux artefact.
+for using more parameters. For $N$ data points, $k$ free parameters, and Gaussian
+residuals,
+\begin{equation}
+\mathrm{AICc}=N\ln\big(\widehat{\mathrm{RMSE}}^{\,2}\big)+2k
+              +\frac{2k(k+1)}{N-k-1},
+\end{equation}
+where the first term rewards fit, the $2k$ term penalises complexity, and the last
+is the small-sample correction (it matters here, with $N=23$ sensors). Only
+\emph{differences} between models are meaningful: a gap $\Delta\mathrm{AICc}\gtrsim2$
+is notable, $\gtrsim4$ strong. The per-site model $M_1$ beats the shared-$K_d$
+model $M_2$ by $\Delta\text{AICc}=3.99$ and the shared-$K_d$/free-$Q_b$ model
+$M_3$ by $2.71$ --- the data favour a genuine \emph{conductivity} contrast, not a
+flux artefact, even after paying for the extra parameter.
 
 \begin{figure}[htbp]\centering
 \begin{minipage}{0.49\linewidth}\centering
@@ -1542,6 +1562,46 @@ trades fit quality against the number of free parameters.}
 \label{fig:mcmc}\label{fig:aicc}
 \end{figure}
 
+
+\section{Practice problems}\label{sec:prob-stats}
+
+\begin{problembox}[Problem 7.1 — reading a $p$-value]
+The inter-site contrast has $p\approx0.011$. State precisely what that number
+means --- and what it does \emph{not} mean.
+\end{problembox}
+\begin{solutionbox}
+It means: \emph{if} the two sites truly had the same $K_d$, the probability of
+seeing a contrast at least as large as the observed one, from sensor noise alone,
+is about $1.1\%$. It is \emph{not} the probability that the sites are the same, and
+not the probability that our result is correct --- it is a statement about how
+surprising the data would be under the ``no difference'' hypothesis.
+\end{solutionbox}
+
+\begin{problembox}[Problem 7.2 — why not just minimise RMSE?]
+Model $M_1$ (per-site $K_d$, 2 parameters) always fits at least as well as $M_2$
+(shared $K_d$, 1 parameter). So why can't we just pick the model with the lower
+RMSE?
+\end{problembox}
+\begin{solutionbox}
+Because adding parameters can only \emph{lower} RMSE (a free parameter can always
+be tuned to fit noise), so RMSE alone would always favour the more complex model
+--- that is overfitting. AICc adds a complexity penalty ($+2k$); $M_1$ wins only
+because its RMSE gain \emph{exceeds} the cost of its extra parameter
+($\Delta\mathrm{AICc}=3.99$). That is the whole point of model selection.
+\end{solutionbox}
+
+\begin{problembox}[Problem 7.3 — an asymmetric interval]
+The A15 bootstrap CI is $[4.12,\,7.45]$ around $K_d^*=4.58$ --- much longer on the
+high side. What feature of the retrieval produces this skew?
+\end{problembox}
+\begin{solutionbox}
+The misfit ``bowl'' RMSE$(K_d)$ is asymmetric: it rises steeply on the low-$K_d$
+side but is flatter on the high-$K_d$ side (Fig.~\ref{fig:sweep}). A resampled
+sensor set can therefore push the minimum to higher $K_d$ more easily than to
+lower, so the mapping from symmetric sensor noise to $K_d^*$ is skewed --- giving a
+longer upper tail. The point estimate is well-constrained from below, less so from
+above.
+\end{solutionbox}
 
 % =====================================================================
 \chapter{The role of the basal flux \texorpdfstring{$Q_b$}{Qb}}\label{ch:qb}\label{sec:qb}

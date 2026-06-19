@@ -189,7 +189,7 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
     # ──────────────────────────────────────────────────────────────────────────
     # Flux-anchored equilibrium solver (lunar/equilibrium.py) runs 12 inner
     # lunations per outer iteration, typically converging in 3-5 outer cycles
-    # (36-60 total lunations per call). Each lunation requires 2551 hourly
+    # (36-60 total lunations per call). Each lunation requires 709 hourly
     # timesteps; each timestep invokes Thomas tridiagonal solver plus Newton
     # iteration for the radiative surface boundary condition.
     #
@@ -410,7 +410,7 @@ def main():
     # PERFORMANCE: Extended K_d sweep accounts for ~20% of total runtime
     # ──────────────────────────────────────────────────────────────────────────
     # Run equilibrium solver at 28 (A15) + 30 (A17) = 58 K_d values to map out
-    # RMSE(K_d) curves. Each solver call runs ~40 lunations × 2551 timesteps.
+    # RMSE(K_d) curves. Each solver call runs ~40 lunations × 709 timesteps.
     # This establishes the baseline residual matrix R[sensor, K_d] used for
     # optimal K_d* retrieval and subsequent bootstrap resampling.
     # ──────────────────────────────────────────────────────────────────────────
@@ -418,7 +418,7 @@ def main():
     for name, cfg in SITES.items():
         print(f"\n=== A1: extended K_d sweep — {name} ===", flush=True)
         # This loop calls the thermal solver 28 (A15) or 30 (A17) times.
-        # Each call runs ~40 lunations × 2551 timesteps = ~100k timesteps.
+        # Each call runs ~40 lunations × 709 timesteps = ~28k timesteps.
         # Total: 58 solver runs × 40 lunations = 2320 simulated lunations.
         z_obs, T_obs, R, stype = run_kd_sweep_extended(cfg, kd_grids[name])
         cache[name] = dict(z_obs=z_obs, T_obs=T_obs, R=R,

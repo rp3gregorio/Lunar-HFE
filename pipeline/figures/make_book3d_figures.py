@@ -351,8 +351,7 @@ def fig_grid_3d():
 
 def main():
     print("Building high-end 3D book figures:")
-    fig_lunar_forcing_3d()      # conceptual 3D illustration
-    fig_grid_3d()               # conceptual 3D illustration
+    fig_grid_3d()               # conceptual 3D structural illustration
     fig_thermal_field()         # 2D data heatmap
     fig_skin_wave()             # 2D data lines
     print("done.")

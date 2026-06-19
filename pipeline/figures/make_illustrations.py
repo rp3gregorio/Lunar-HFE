@@ -113,9 +113,87 @@ def fig_probe_layout():
     print("  -> fig_book_probelayout.pdf")
 
 
+def fig_sun_moon():
+    """Modern schematic: the Sun heats the rotating Moon (Sun-Earth-Moon geometry)."""
+    from matplotlib.patches import Wedge
+    C_SUN = "#E3A12C"
+    C_EARTH = "#3A6B8A"
+    fig, ax = plt.subplots(figsize=(JGR_FULL, 3.9))
+    ax.set_xlim(0, 13); ax.set_ylim(0, 6.4); ax.axis("off"); ax.set_aspect("equal")
+
+    # Sun (left) with rays
+    sx0, sy0 = 1.0, 3.3
+    ax.add_patch(Circle((sx0, sy0), 0.95, facecolor=C_SUN, ec="none", zorder=3))
+    for a in np.linspace(0, 2 * np.pi, 16, endpoint=False):
+        ax.plot([sx0 + 0.95 * np.cos(a), sx0 + 1.3 * np.cos(a)],
+                [sy0 + 0.95 * np.sin(a), sy0 + 1.3 * np.sin(a)],
+                color=C_SUN, lw=1.2, zorder=2)
+    ax.text(sx0, sy0 - 1.7, "Sun", ha="center", fontsize=9, color=C_CHAR,
+            fontweight="bold")
+
+    # Earth + the Moon's orbit
+    ex, ey = 6.4, 3.3
+    ax.add_patch(Circle((ex, ey), 3.0, fill=False, edgecolor=C_DIM, lw=0.8,
+                        ls=(0, (5, 4)), zorder=1))
+    ax.add_patch(Circle((ex, ey), 0.5, facecolor=C_EARTH, edgecolor="white",
+                        lw=0.8, zorder=4))
+    ax.text(ex, ey - 0.8, "Earth", ha="center", fontsize=8.5, color=C_CHAR)
+    ax.text(ex, ey + 3.18, "the Moon's orbit", ha="center", fontsize=7.5,
+            color=C_DIM)
+
+    # Moon on the orbit; left (sun-facing) half lit, right half night
+    mx, my, mr = 9.4, 3.3, 0.85
+    ax.add_patch(Wedge((mx, my), mr, 90, 270, facecolor=C_CORAL, edgecolor=C_CHAR,
+                       lw=0.8, zorder=5))
+    ax.add_patch(Wedge((mx, my), mr, -90, 90, facecolor=C_TEAL, edgecolor=C_CHAR,
+                       lw=0.8, zorder=5))
+    ax.plot([mx, mx], [my - mr, my + mr], color=C_CHAR, lw=0.8, ls=(0, (3, 2)),
+            zorder=6)
+    ax.text(mx, my - mr - 0.32, "Moon", ha="center", fontsize=9, color=C_CHAR,
+            fontweight="bold")
+
+    # sunlight rays striking the lit side
+    for yy in (2.55, 3.3, 4.05):
+        ax.add_patch(FancyArrowPatch((2.2, yy), (mx - mr - 0.05, yy),
+                     arrowstyle="-|>", mutation_scale=10, color=C_SUN, lw=1.4,
+                     zorder=2))
+
+    # the borehole site on the lit side + rotation arrow
+    sa = np.deg2rad(133)
+    px, py = mx + mr * np.cos(sa), my + mr * np.sin(sa)
+    ax.add_patch(Circle((px, py), 0.085, facecolor=C_FOREST, edgecolor="white",
+                        lw=0.6, zorder=8))
+    ax.plot([px, px + 0.2 * np.cos(sa)], [py, py + 0.2 * np.sin(sa)],
+            color=C_CHAR, lw=1.6, zorder=8)
+    ax.add_patch(FancyArrowPatch((mx - 0.15, my + mr + 0.28),
+                 (mx + 0.55, my + mr + 0.05), connectionstyle="arc3,rad=-0.5",
+                 arrowstyle="-|>", mutation_scale=9, color=C_DIM, lw=1.1, zorder=6))
+    ax.text(mx + 0.05, my + mr + 0.6, "rotation", fontsize=7.5, color=C_DIM,
+            ha="center")
+
+    # day / night labels (above & below, clear of rays and disc)
+    ax.text(mx - mr - 0.1, my + 1.15, "day side\n$\\sim$390 K", ha="center",
+            va="center", fontsize=8, color=C_CORAL, fontweight="bold")
+    ax.text(mx + mr + 0.55, my - 1.05, "night side\n$\\sim$100 K", ha="center",
+            va="center", fontsize=8, color=C_TEAL, fontweight="bold")
+    ax.annotate("borehole site", xy=(px, py), xytext=(mx - 2.4, my + 1.5),
+                fontsize=7.5, color=C_FOREST, ha="center",
+                arrowprops=dict(arrowstyle="->", color=C_DIM, lw=0.7))
+
+    ax.text(6.5, 0.45, "The site turns to face the Sun, then away, once per "
+            "synodic month (29.5 days) — one lunar day.", ha="center",
+            fontsize=8.5, color=C_CHAR)
+    ax.set_title("How the Sun heats the rotating Moon", fontsize=11.5,
+                 fontweight="bold", loc="left", color=C_CHAR)
+    fig.savefig(OUT / "fig_book_sunmoon.pdf", bbox_inches="tight", pad_inches=0.06)
+    plt.close(fig)
+    print("  -> fig_book_sunmoon.pdf")
+
+
 def main():
     print("Building schematic illustrations:")
     fig_probe_layout()
+    fig_sun_moon()
     print("done.")
 
 

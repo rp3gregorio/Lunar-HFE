@@ -3,8 +3,8 @@
 %  Per-site retrieval of lunar regolith thermal conductivity K_d at the
 %  Apollo 15 & 17 heat-flow boreholes.
 %
-%  Self-contained for Overleaf: upload this folder (manuscript.tex + figures/).
-%  Compile:  latexmk -pdf manuscript.tex
+%  Self-contained for Overleaf: upload this folder (guidebook.tex + figures/).
+%  Compile:  latexmk -pdf guidebook.tex
 % =====================================================================
 \documentclass[11pt]{report}
 
@@ -149,6 +149,49 @@ document is structured as a single logical argument:
 \end{enumerate}
 
 \tableofcontents
+\clearpage
+
+% ================= NOTATION =================
+\chapter*{Notation}
+\addcontentsline{toc}{chapter}{Notation}
+\markboth{Notation}{Notation}
+\noindent Symbols used throughout, with units and representative values. Each is
+introduced where it first appears in the text.
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Meaning & Units / value \\
+\midrule
+$T$ & temperature & K \\
+$z$ & depth below surface & m \\
+$t$ & time & s \\
+$q$ & conductive heat flux & W\,m$^{-2}$ \\
+$K(T,z)$ & thermal conductivity & W\,m$^{-1}$\,K$^{-1}$ \\
+$K_c(z)$ & contact (non-radiative) conductivity & W\,m$^{-1}$\,K$^{-1}$ \\
+$K_s,\ K_d$ & surface / deep contact conductivity & $7.4\times10^{-4}$ / retrieved \\
+$H$ & compaction $e$-folding depth & 0.06 m \\
+$\chi$ & radiative enhancement coefficient & 2.7 \\
+$T_{\mathrm{ref}}$ & radiative reference temperature & 350 K \\
+$\rho(z)$ & bulk density ($\rho_s\!\to\!\rho_d$) & 1100--1800 kg\,m$^{-3}$ \\
+$c_p(T)$ & specific heat capacity & J\,kg$^{-1}$\,K$^{-1}$ \\
+$\kappa$ & thermal diffusivity $K/(\rho c_p)$ & m$^2$\,s$^{-1}$ \\
+$\delta$ & thermal skin depth $\sqrt{2\kappa/\omega}$ & $\sim$0.1--0.2 m \\
+$P,\ \omega$ & lunation period; angular frequency $2\pi/P$ & $\sim$29.5 d \\
+$A$ & Bond albedo & 0.131 / 0.137 \\
+$\varepsilon$ & emissivity & $\sim$0.95 \\
+$\sigma$ & Stefan--Boltzmann constant & $5.67\times10^{-8}$ W\,m$^{-2}$\,K$^{-4}$ \\
+$S(t)$ & incident solar flux & W\,m$^{-2}$ \\
+$T_s$ & surface temperature & K \\
+$Q_b$ & basal (geothermal) heat flux & 21 / 15 mW\,m$^{-2}$ \\
+$\Tm$ & cycle-mean temperature & K \\
+$z_0$ & reconstruction anchor depth & 0.55 m \\
+$u_{\rm rect}$ & rectified (eddy) flux correction & W\,m$^{-2}$ \\
+$\mathrm{RMSE}$ & deep-sensor root-mean-square misfit & K \\
+$N$ & number of deep sensors & 7 (A15), 16 (A17) \\
+$N_{\mathrm{boot}}$ & bootstrap resamples & 1500 \\
+\bottomrule
+\end{tabular}
+\end{center}
 \clearpage
 
 % =====================================================================
@@ -432,7 +475,7 @@ $T_{\mathrm{ref}}$ & reference temperature & 350 K & Hayne (2017) \\
 \end{center}
 
 \subsection{What the code looks like}
-In \code{lunar/properties.py}:
+In \code{src/lunar/properties.py}:
 \begin{lstlisting}[style=py]
 def conductivity_hayne(T, z, Ks=7.4e-4, Kd=3.4e-3, H=0.06, chi=2.7):
     Kc = Kd - (Kd - Ks) * np.exp(-z / H)          # contact part: K_s -> K_d
@@ -486,8 +529,8 @@ the radiative $T^3$ term roughly doubles $K$ by midday.}
 We cannot solve Eq.~\eqref{eq:heat} with pencil and paper, because $K$
 depends on $T$ and $z$ in complicated ways. So we \textbf{discretise}: chop the
 column into cells and time into steps, and advance the temperature numerically.
-This chapter walks through the solver in \code{lunar/solver.py} and
-\code{lunar/grid.py}, piece by piece.
+This chapter walks through the solver in \code{src/lunar/solver.py} and
+\code{src/lunar/grid.py}, piece by piece.
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=0.82\linewidth]{figures/fig_book_numerical.pdf}
@@ -502,7 +545,7 @@ changes rapidly over a few centimetres), but the deep column can be coarse
 (because the temperature there barely changes). So the cells grow geometrically
 --- each $\sim$8\% thicker than the one above.
 
-In \code{lunar/grid.py}:
+In \code{src/lunar/grid.py}:
 \begin{lstlisting}[style=py]
 def make_geometric_grid(z_max=5.0, dz0=0.002, growth=0.08):
     faces, dz = [0.0], dz0
@@ -527,7 +570,7 @@ $T^{n+1}$ from the old one $T^n$. We use the \textbf{Crank--Nicolson} scheme,
 which averages the heat fluxes at the old and new time levels. This produces a
 tridiagonal linear system $A\,T^{n+1}=d$:
 
-In \code{lunar/solver.py}, function \code{\_step}:
+In \code{src/lunar/solver.py}, function \code{\_step}:
 \begin{lstlisting}[style=py]
 K   = K_func(T_prev, z_mid)              # conductivity at current T, each cell
 Kf  = harmonic_mean(K)                   # conductivity at cell faces
@@ -570,7 +613,7 @@ for i in range(n-2, -1, -1):
 \end{lstlisting}
 
 This is already JIT-compiled with Numba in the code (\code{\_thomas} in
-\code{lunar/solver.py}), so it runs at near-C speed.
+\code{src/lunar/solver.py}), so it runs at near-C speed.
 
 \section{The non-linear surface: Newton's method}\label{sec:newton}
 The surface energy balance (Eq.~\ref{eq:surfbc}) has a $T_s^4$ term, so we
@@ -791,7 +834,7 @@ steady state (dashed).}
 \label{fig:reconstruct}
 \end{figure}
 
-In code (\code{lunar/equilibrium.py}, function \code{\_reconstruct\_subskin}):
+In code (\code{src/lunar/equilibrium.py}, function \code{\_reconstruct\_subskin}):
 \begin{lstlisting}[style=py]
 T_new = T_mean.copy()                    # keep the skin as-is from Step A
 for i in range(i0, N-1):                 # walk downward from the anchor
@@ -838,7 +881,7 @@ Steps A and B are repeated a few times. Why? Because:
 But each round the changes are smaller. After 3--5 rounds, the anchor temperature
 moves by less than 0.005\,K between iterations --- we declare convergence.
 
-In code (\code{lunar/equilibrium.py}, function \code{solve\_periodic\_equilibrium}):
+In code (\code{src/lunar/equilibrium.py}, function \code{solve\_periodic\_equilibrium}):
 \begin{lstlisting}[style=py]
 stages = [
     dict(z0=0.25, n_in=4,  max_it=4,  tol=0.10),   # coarse, fast
@@ -1081,6 +1124,43 @@ re-fit each time, read the spread.}
 \label{fig:bootschem}
 \end{figure}
 
+\section{The full error budget}\label{sec:errorbudget}
+The bootstrap captures the \emph{statistical} scatter from the finite, noisy
+sensor set. Several \emph{systematic} inputs also carry uncertainty. We perturb
+each one in turn, re-retrieve $K_d$, and record the induced shift; combining the
+independent contributions in quadrature gives the total 1$\sigma$ budget
+(\code{pipeline/compute/compute\_error\_budget.py}, written to
+\code{results/kd\_error\_budget.json}).
+
+\begin{center}\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Contribution to $\sigma_{K_d}$ (mW\,m$^{-1}$\,K$^{-1}$) & Apollo 15 & Apollo 17 \\
+\midrule
+Statistical (bootstrap)        & 0.80 & 0.55 \\
+Basal flux $Q_b$               & 1.20 & 2.16 \\
+Albedo $A$                     & 0.80 & 3.49 \\
+Surface conductivity $K_s$     & 0.53 & 1.96 \\
+Density $\rho$                 & 0.01 & 0.42 \\
+Sensor depth (borestem)        & 0.15 & 0.00 \\
+Stability threshold            & 0.01 & 0.03 \\
+Solver / numerical             & 0.15 & 0.15 \\
+\midrule
+\textbf{Total (in quadrature)} & \textbf{1.75} & \textbf{4.61} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Two lessons. First, the basal flux $Q_b$ and the albedo $A$ dominate the
+systematic budget --- $Q_b$ is the single largest term, consistent with the
+$K_d$--$Q_b$ degeneracy of Ch.~\ref{ch:qb}. Second, Apollo~17's budget is about
+$2.6\times$ wider than Apollo~15's, chiefly through albedo and $K_s$, because its
+higher retrieved $K_d$ amplifies the same fractional input uncertainties. The
+conditional sensitivities to the radiative coefficient $\chi$ and the compaction
+depth $H$ are larger still ($\sim$3 and $\sim$14 for $\chi$ at A15/A17), which is
+why $K_d$ is reported conditional on the published Hayne shape parameters as well
+as on $Q_b$.
+
 \section{Bayesian cross-check (MCMC)}\label{sec:mcmc}
 An independent check: instead of sweeping $K_d$ on a grid, we run a Markov-chain
 Monte Carlo (MCMC) sampler that explores the full joint posterior in $(K_d, Q_b)$
@@ -1250,19 +1330,19 @@ $K_d^*$ to input perturbations.}
 The code is layered (Fig.~\ref{fig:arch}):
 
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
-\item \textbf{\code{lunar/}} --- the physics package. Contains the models
+\item \textbf{\code{src/lunar/}} --- the physics package. Contains the models
   (\code{properties.py}), the depth grid (\code{grid.py}), the time-stepping
   solver (\code{solver.py}), and the equilibrium driver (\code{equilibrium.py}).
   All constants live in \code{constants.py}; all run configuration in
   \code{config.py}.
-\item \textbf{\code{scripts/}} --- thin drivers that call \code{run\_with} and
+\item \textbf{\code{pipeline/}} --- thin drivers that call \code{run\_with} and
   produce figures or output files.
 \item \textbf{\code{notebooks/}} --- interactive exploration (the equivalence
   demo, the retrieval, the figures).
 \item \textbf{\code{tests/}} --- 37 tests including equilibrium certification.
 \end{itemize}
 
-One function, \code{run\_with} (in \code{scripts/pipeline/run\_retrieval.py}), is
+One function, \code{run\_with} (in \code{pipeline/compute/retrieve\_kd.py}), is
 the hub: it wires together the grid, the conductivity model, and the solver, and
 returns a settled profile. Everything else --- the sweep, the bootstrap, the
 cross-checks --- calls \code{run\_with} in a loop.

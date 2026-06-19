@@ -26,6 +26,7 @@ JOBS = [
     ("make_alpha_sweep_figure", ["main"]),
     ("compute_diviner_closure", ["main"]),    # surface-T closure figure
     ("make_book_figures",       ["main"]),
+    ("make_book3d_figures",     ["main"]),    # 3D thermal-wave + waterfall
     ("make_primer_figures",     ["main"]),
     ("make_equilibrium_certification", ["main"]),
     ("make_codeguide_figures",  ["main"]),    # docs/guidebook diagrams

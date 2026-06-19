@@ -89,6 +89,12 @@
 \newtcolorbox{stepbox}[2][]{colback=forest!5,colframe=forest!40,boxrule=0.6pt,arc=2pt,
   left=6pt,right=6pt,top=3pt,bottom=3pt,before skip=4pt,after skip=4pt,
   title={\sffamily\bfseries #2},coltitle=forest,fonttitle=\small,#1}
+\newtcolorbox{problembox}[1][]{colback=teal!4,colframe=teal!35,boxrule=0.7pt,arc=2pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,before skip=6pt,after skip=0pt,
+  title={\sffamily\bfseries #1},coltitle=teal,fonttitle=\small}
+\newtcolorbox{solutionbox}{colback=forest!4,colframe=forest!28,boxrule=0.5pt,arc=2pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,before skip=2pt,after skip=8pt,
+  title={\sffamily\bfseries\itshape Solution},coltitle=forest,fonttitle=\small}
 
 \begin{document}
 
@@ -342,6 +348,16 @@ sits in darkness for $\sim$14.75 days. Surface temperatures swing from
 $\sim$100\,K at night ($-173\,$\textdegree C) to $\sim$390\,K at noon
 ($+117\,$\textdegree C). This is the ``forcing'' that drives everything.
 
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_thermalwave3d.pdf}
+\caption{The temperature field $T(z,t)$ over one lunation at Apollo~17, from the
+certified steady-state solver. The surface (front edge) swings by $\sim$250\,K;
+just a few tens of centimetres down, the swing has vanished and the column sits
+at the slowly-rising deep mean. This single surface contains the whole physical
+picture of the study.}
+\label{fig:wave3d}
+\end{figure}
+
 \section{The skin depth: why only the top matters for the daily cycle}\label{sec:skin}
 This ``thermal wave'' travels downward, but it \emph{dies out} exponentially. Its
 amplitude falls by a factor of $e\approx2.72$ over the \textbf{skin depth}:
@@ -351,9 +367,51 @@ amplitude falls by a factor of $e\approx2.72$ over the \textbf{skin depth}:
 \end{equation}
 where $\kappa=K/(\rho c_p)$ is the thermal diffusivity (how fast heat spreads)
 and $\omega=2\pi/P$ is the angular frequency of the forcing ($P$ = one lunation).
-For lunar regolith, $\delta\approx10$--$20$\,cm. Below a few skin depths ---
-roughly 50\,cm --- the regolith barely feels day or night. It responds only to
-the \emph{average} heating over the whole lunation.
+
+\subsection{Where the skin depth comes from}\label{sec:skinderiv}
+The formula is not a guess; it falls out of the heat equation in one short
+derivation. Take Eq.~\eqref{eq:heat} with constant properties,
+$\partial_t T=\kappa\,\partial_z^2 T$, and force the surface sinusoidally,
+$T(0,t)=\Tm+A\sin\omega t$, with $T\to\Tm$ far below. Look for a travelling-wave
+solution
+\begin{equation}
+T(z,t)=\Tm+\operatorname{Im}\!\big[A\,e^{\,i(\omega t-kz)}\big],
+\end{equation}
+where the wavenumber $k$ is allowed to be \emph{complex}. Substituting into the
+heat equation, $\partial_t\!\to i\omega$ and $\partial_z^2\!\to -k^2$, so
+$i\omega=-\kappa k^{2}$ and
+\begin{equation}
+k=\sqrt{-\,i\omega/\kappa}=\frac{1-i}{\delta},
+\qquad \delta\equiv\sqrt{\frac{2\kappa}{\omega}} .
+\end{equation}
+Because $k$ has equal real and imaginary parts, $e^{-ikz}$ splits cleanly into a
+\emph{decay} and a \emph{phase lag}:
+\begin{equation}
+\boxed{\;T(z,t)=\Tm+A\,e^{-z/\delta}\,
+\sin\!\Big(\omega t-\frac{z}{\delta}\Big)\;}
+\label{eq:wave}
+\end{equation}
+The amplitude drops by a factor $e$ every skin depth, and the wave arrives later
+with depth (the phase lag $z/\delta$). Equation~\eqref{eq:wave} is \emph{exactly}
+the closed form returned by \code{analytical\_thermal\_wave} in
+\code{src/lunar/solver.py}; the solver's unit test checks the numerical scheme
+against it in the constant-property regime.
+
+Putting in lunar numbers ($\kappa\sim1$--$1.3\times10^{-8}$~m$^2$\,s$^{-1}$ in the
+upper regolith, $\omega=2\pi/P=2.46\times10^{-6}$~s$^{-1}$) gives $\delta\approx4$~cm
+at the loose surface, growing to $\approx10$~cm by 20~cm depth as the conductivity
+rises. After a few skin depths --- roughly 30--50~cm --- the daily wave is
+negligible and the regolith feels only the \emph{average} heating over the whole
+lunation (Fig.~\ref{fig:waterfall}).
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_skinwaterfall3d.pdf}
+\caption{The same wave sampled at fixed depths. The full $\sim$250\,K surface
+swing is already halved a few centimetres down and is essentially flat by
+$\sim$40\,cm; the deep lines sit on the gently-rising mean profile. The collapse
+is the $e^{-z/\delta}$ envelope of Eq.~\eqref{eq:wave} in action.}
+\label{fig:waterfall}
+\end{figure}
 
 \begin{keypt}
 This split --- a fast, shallow daily wave on top of a slow, deep mean temperature
@@ -461,6 +519,46 @@ $Q_b$ of heat; where $K$ is large (better conductor, like the compacted deep
 regolith), the gradient is gentle.
 \end{plain}
 
+
+\section{Practice problems}\label{sec:prob-physics}
+Work these before moving on; full solutions follow each. They use only the
+results of this chapter.
+
+\begin{problembox}[Problem 2.1 — skin depth and conductivity]
+Apollo~17's deep regolith conducts heat about $1.8\times$ better than Apollo~15's.
+Assuming the same $\rho c_p$, by what factor is its diurnal skin depth larger?
+\end{problembox}
+\begin{solutionbox}
+Skin depth $\delta=\sqrt{2\kappa/\omega}$ with $\kappa=K/\rho c_p$, so
+$\delta\propto\sqrt{K}$. A factor $1.8$ in $K$ gives
+$\sqrt{1.8}\approx1.34$ --- the wave reaches about a third deeper at A17 than at
+A15 for the same forcing.
+\end{solutionbox}
+
+\begin{problembox}[Problem 2.2 — the deep gradient]
+Using the steady-state closure $d\Tm/dz=Q_b/K$, estimate the deep temperature
+gradient at Apollo~15 ($Q_b=21$~mW\,m$^{-2}$, $K_d=4.58$~mW\,m$^{-1}$\,K$^{-1}$).
+Why is it so gentle?
+\end{problembox}
+\begin{solutionbox}
+$d\Tm/dz = Q_b/K_d = (21\times10^{-3})/(4.58\times10^{-3}) \approx 4.6$~K\,m$^{-1}$:
+the temperature rises only about $4.6$~K per metre. It is gentle because the
+basal flux is tiny ($\sim$10$^{5}\times$ smaller than noon sunlight); below the
+skin, that faint trickle is the \emph{only} signal, and it is exactly the
+fingerprint we use to read $K_d$.
+\end{solutionbox}
+
+\begin{problembox}[Problem 2.3 — phase lag]
+At what depth does the daily wave lag the surface by half a lunation
+(a phase of $\pi$)? Take $\delta\approx8$~cm.
+\end{problembox}
+\begin{solutionbox}
+From Eq.~\eqref{eq:wave} the phase lag is $z/\delta$. Setting $z/\delta=\pi$ gives
+$z=\pi\delta\approx 25$~cm. At that depth the wave is also attenuated by
+$e^{-\pi}\approx0.04$ --- only $\sim$4\% of the surface amplitude survives, so the
+``half-lunation-late'' wave is already almost undetectable. This is why only the
+top few tens of centimetres carry any diurnal information.
+\end{solutionbox}
 
 % =====================================================================
 \chapter{The two conductivity models}\label{ch:models}

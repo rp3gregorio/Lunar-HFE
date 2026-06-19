@@ -697,6 +697,48 @@ $T^{n+1}$ from the old one $T^n$. We use the \textbf{Crank--Nicolson} scheme,
 which averages the heat fluxes at the old and new time levels. This produces a
 tridiagonal linear system $A\,T^{n+1}=d$:
 
+\subsection{Deriving the update}\label{sec:cnderiv}
+Integrate the heat equation (Eq.~\ref{eq:heat}) over cell $i$ (width
+$\Delta z_i$, heat capacity $C_i=\rho c_p\,\Delta z_i$) and over one step
+$\Delta t$. The storage term becomes $C_i(T^{n+1}_i-T^{n}_i)/\Delta t$, and the
+right-hand side becomes the difference of the two face fluxes
+$q_{i\pm1/2}=-K_{i\pm1/2}\,(T_{i\pm1}-T_i)/\Delta z_{i\pm1/2}$, where $K_{i\pm1/2}$
+is the \emph{harmonic} mean of the neighbouring conductivities --- the correct
+average for heat passing through two layers in series. Crank--Nicolson evaluates
+that flux divergence as the \emph{average} of the old ($n$) and new ($n{+}1$)
+levels (the $\theta=\tfrac12$ rule). Collecting terms gives, for each interior
+cell,
+\begin{equation}
+-\tfrac12\alpha^L_i T^{n+1}_{i-1}
++\big(1+\tfrac12(\alpha^L_i+\alpha^R_i)\big)T^{n+1}_i
+-\tfrac12\alpha^R_i T^{n+1}_{i+1}
+=\tfrac12\alpha^L_i T^{n}_{i-1}
++\big(1-\tfrac12(\alpha^L_i+\alpha^R_i)\big)T^{n}_i
++\tfrac12\alpha^R_i T^{n}_{i+1},
+\label{eq:cnrow}
+\end{equation}
+with face couplings $\alpha^{L/R}_i=\Delta t\,K_{i\mp1/2}/(C_i\,\Delta z_{i\mp1/2})$.
+The left side is the matrix $A$, the right side the vector $d$. Read off the three
+bands: sub-diagonal $a_i=-\tfrac12\alpha^L_i$, diagonal
+$b_i=1+\tfrac12(\alpha^L_i+\alpha^R_i)$, super-diagonal $c_i=-\tfrac12\alpha^R_i$ ---
+\emph{exactly} the \code{a}, \code{b}, \code{c} arrays built in the code below.
+
+\begin{keypt}
+\textbf{Why it is unconditionally stable.} Put a Fourier mode
+$T^n_i=g^{\,n}e^{\,i\phi i}$ into the constant-coefficient form of
+Eq.~\eqref{eq:cnrow}. The per-step amplification factor is
+\[
+g=\frac{1-2\alpha\sin^2(\phi/2)}{1+2\alpha\sin^2(\phi/2)},\qquad
+\alpha=\frac{K\,\Delta t}{C\,\Delta z}\ge0,
+\]
+and since the numerator never exceeds the denominator in magnitude, $|g|\le1$ for
+\emph{every} step size $\Delta t$ and every mode $\phi$. Crank--Nicolson therefore
+never blows up --- unlike explicit Euler, which demands
+$\Delta t<\tfrac12\Delta z^2/\kappa$. That is why the solver can take comfortable
+1-hour steps even with 2-mm surface cells. (The code is Crank--Nicolson, not
+explicit Euler --- a point worth stating because it is occasionally mis-described.)
+\end{keypt}
+
 In \code{src/lunar/solver.py}, function \code{\_step}:
 \begin{lstlisting}[style=py]
 K   = K_func(T_prev, z_mid)              # conductivity at current T, each cell
@@ -794,6 +836,47 @@ This brute-force approach works \emph{in principle}: given enough lunations, the
 profile converges to the true steady state. But \emph{how many} lunations is the
 whole problem of the next chapter.
 
+
+\section{Practice problems}\label{sec:prob-solver}
+
+\begin{problembox}[Problem 4.1 — why an implicit scheme?]
+The surface cells are $\Delta z_0=2$~mm thick and the near-surface diffusivity is
+$\kappa\approx1\times10^{-8}$~m$^2$\,s$^{-1}$. What is the largest stable time step
+for \emph{explicit} Euler, and how does it compare with the solver's 1-hour
+Crank--Nicolson step?
+\end{problembox}
+\begin{solutionbox}
+Explicit Euler needs $\Delta t<\tfrac12\Delta z_0^2/\kappa
+=\tfrac12(2\times10^{-3})^2/10^{-8}=200$~s. The solver uses $3600$~s --- already
+$18\times$ larger --- and Crank--Nicolson has \emph{no} such limit
+(\S\ref{sec:cnderiv}). With explicit Euler the 2-mm cells alone would force
+$>$10$\times$ more steps; this is the practical payoff of the implicit scheme.
+\end{solutionbox}
+
+\begin{problembox}[Problem 4.2 — harmonic vs arithmetic mean]
+Two adjacent cells have conductivities $K=1$ and $K=9$ (same width). What face
+conductivity does the harmonic mean give, and why is it the physically correct
+choice for conduction in series?
+\end{problembox}
+\begin{solutionbox}
+Harmonic mean $=2/(1/1+1/9)=2/(10/9)=1.8$. For layers in series the
+\emph{resistances} ($\propto1/K$) add, so the effective conductivity is the
+harmonic --- not arithmetic ($5$) --- mean. Using the arithmetic mean would let
+heat through the poorly-conducting layer far too easily and bias the deep
+gradient that sets $K_d$.
+\end{solutionbox}
+
+\begin{problembox}[Problem 4.3 — cost of the grid]
+The geometric grid has $\sim$69 cells; a uniform 2-mm grid to 5~m would have
+2500. Crank--Nicolson cost is $O(N)$ per step (Thomas algorithm). By what factor
+is one time step cheaper on the geometric grid?
+\end{problembox}
+\begin{solutionbox}
+Thomas is linear in $N$, so the per-step cost ratio is just $2500/69\approx36\times$.
+Add that the uniform grid would also need a smaller step for accuracy near the
+surface, and the geometric grid is well over an order of magnitude cheaper for
+the same fidelity --- the reason it is used.
+\end{solutionbox}
 
 % =====================================================================
 \chapter{Reaching steady state: the old method, the bug, and the fix}\label{ch:steady}

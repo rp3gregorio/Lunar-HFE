@@ -243,11 +243,67 @@ def fig_flux_closure():
     print("  -> fig_book_fluxclosure.pdf")
 
 
+def fig_sites_compare():
+    """Modern side-by-side comparison of the two sites and their retrieved K_d."""
+    fig, ax = plt.subplots(figsize=(JGR_FULL, 4.6))
+    ax.set_xlim(0, 12); ax.set_ylim(0, 8); ax.axis("off")
+    ys, cw = 5.0, 5.2
+    cards = [
+        dict(x=0.3, name="Apollo 15", place="Hadley Rille",
+             sub="mare basalt regolith", kd=4.58, qb=21, deep=1.39, alb=0.131,
+             reg="#D9B48A", mtn="#BcC8C6",
+             ridge=[(0.3, ys), (1.6, 6.3), (2.6, 5.7), (3.4, 6.0), (5.5, ys)]),
+        dict(x=6.5, name="Apollo 17", place="Taurus--Littrow",
+             sub="highland massif + dark mantle", kd=8.12, qb=15, deep=2.34,
+             alb=0.137, reg="#A9774B", mtn="#A9B4B2",
+             ridge=[(6.5, ys), (7.6, 6.7), (8.8, 5.9), (10.1, 6.8), (11.7, ys)]),
+    ]
+    for c in cards:
+        x0 = c["x"]
+        ax.add_patch(Rectangle((x0, ys), cw, 8 - ys, facecolor=SKY, ec="none"))
+        ax.add_patch(Polygon(c["ridge"], closed=True, facecolor=c["mtn"],
+                             ec="none", alpha=0.9))
+        ax.add_patch(Rectangle((x0, 0.6), cw, ys - 0.6, facecolor=c["reg"],
+                               ec=C_DIM, lw=0.8))
+        ax.plot([x0, x0 + cw], [ys, ys], color=C_CHAR, lw=1.3)
+        # probe to its deepest sensor (depth scaled into the card)
+        px = x0 + cw * 0.5
+        zbot = ys - (c["deep"] / 2.34) * (ys - 0.9)
+        ax.plot([px, px], [ys, zbot], color=C_CHAR, lw=2.6)
+        ax.add_patch(Circle((px, zbot), 0.09, facecolor=C_FOREST,
+                            edgecolor="white", lw=0.7, zorder=5))
+        ax.text(px + 0.2, (ys + zbot) / 2, f"{c['deep']:.2f} m", fontsize=7.5,
+                color=C_CHAR, va="center")
+        # title + facts block, all in clear space below the card
+        ax.text(x0 + cw / 2, 8.05, c["name"], ha="center", fontsize=11,
+                fontweight="bold", color=C_CHAR)
+        ax.text(x0 + cw / 2, 7.55, c["place"], ha="center", fontsize=8.5,
+                color=C_DIM, style="italic")
+        kcol = C_FOREST if c["name"].endswith("15") else C_CORAL
+        ax.text(x0 + cw / 2, 0.18, f"$K_d^*$ = {c['kd']:.2f} mW m$^{{-1}}$ K$^{{-1}}$",
+                ha="center", fontsize=10, fontweight="bold", color=kcol)
+        ax.text(x0 + 0.2, 4.4, f"$Q_b$ = {c['qb']} mW m$^{{-2}}$\nalbedo {c['alb']}\n"
+                f"{c['sub']}", fontsize=8, color=C_CHAR, va="top")
+
+    # centre comparison
+    ax.annotate("", xy=(6.4, 2.7), xytext=(5.6, 2.7),
+                arrowprops=dict(arrowstyle="-|>", color=C_CORAL, lw=2.2))
+    ax.text(6.0, 3.25, "$\\approx$2$\\times$\nbetter", ha="center", fontsize=9,
+            color=C_CORAL, fontweight="bold")
+    fig.suptitle("Two sites, two regoliths: Apollo 17's deep layer conducts heat "
+                 "about twice as well as Apollo 15's", x=0.02, y=1.0, ha="left",
+                 fontsize=10.5, fontweight="bold", color=C_CHAR)
+    fig.savefig(OUT / "fig_book_sites.pdf", bbox_inches="tight", pad_inches=0.06)
+    plt.close(fig)
+    print("  -> fig_book_sites.pdf")
+
+
 def main():
     print("Building schematic illustrations:")
     fig_probe_layout()
     fig_sun_moon()
     fig_flux_closure()
+    fig_sites_compare()
     print("done.")
 
 

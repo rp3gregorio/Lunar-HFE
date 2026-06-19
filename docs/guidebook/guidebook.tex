@@ -10,7 +10,7 @@
 
 \usepackage[a4paper,margin=2.2cm]{geometry}
 \setlength{\emergencystretch}{3em}
-\raggedbottom
+\flushbottom
 \setlength{\parskip}{2pt plus 1pt minus 0.5pt}
 \setlength{\intextsep}{6pt plus 2pt minus 2pt}
 \setlength{\floatsep}{6pt plus 2pt minus 2pt}
@@ -1287,7 +1287,7 @@ error is still $\sim$13\,K. The deep column's thermal timescale is $\tau \sim
 method imposes the answer directly via $dT/dz = Q_b/K$.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.66\linewidth]{figures/fig_convergence.pdf}
+\includegraphics[width=0.82\linewidth]{figures/fig_convergence.pdf}
 \caption{Brute-force error at sensor depths (0.8--2.4\,m) vs.\ lunation count.
 At 30 lunations (red dashed line) the old method still carries $>$12\,K of error.
 The shaded band marks the $<$30\,mK tolerance that the shortcut achieves in
@@ -1704,7 +1704,7 @@ the MCMC). $Q_b$ is one of the largest terms in the error budget --- a direct
 fingerprint of this coupling.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.6\linewidth]{figures/fig_kd_qb_posterior.pdf}
+\includegraphics[width=0.82\linewidth]{figures/fig_kd_qb_posterior.pdf}
 \caption{The $K_d$--$Q_b$ trade-off: many combinations along a diagonal fit
 almost equally well, so $K_d$ is conditional on $Q_b$. The contrast between sites
 is more robust than either absolute value.}
@@ -1725,6 +1725,16 @@ of reasonable $Q_b$ assumptions.''
 % =====================================================================
 A factor-of-two contrast is large but physically reasonable: the two boreholes
 sample genuinely different regolith.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_sites.pdf}
+\caption{The two sites side by side. Apollo~15 sits on Hadley Rille mare basalt;
+Apollo~17 in the Taurus--Littrow highland valley among massifs and dark-mantle
+pyroclastics. The retrieved deep conductivity is about twice as high at
+Apollo~17 ($8.12$ vs $4.58$ mW\,m$^{-1}$\,K$^{-1}$) --- consistent with a denser,
+more compacted, or more rock-rich deep column there.}
+\label{fig:sites}
+\end{figure}
 
 \begin{center}\small
 \begin{tabular}{@{}lcc@{}}
@@ -2019,5 +2029,57 @@ print(d["A15"]["kd_star"]*1e3, d["A17"]["kd_star"]*1e3)   # -> 4.58, 8.12
 The fast path (using the committed auxiliary JSONs and skipping the $\sim$60-min
 sensitivity sweeps) runs end to end in $\sim$15 minutes; a full reproduction is
 about an hour.
+
+\section{What each command does}
+The \code{Makefile} exposes one-word entry points; \code{make help} lists them.
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Target & What it runs & Writes \\
+\midrule
+\code{install} & editable install + dev extras & --- \\
+\code{test} & unit + equilibrium-certification suite & --- \\
+\code{retrieve} & per-site $K_d$ sweep + bootstrap & \code{results/kd\_retrieval\_results.json} \\
+\code{aux} & sensitivity sweeps, model selection, MCMC, closure & \code{results/*.json} \\
+\code{figures} & every figure generator & \code{results/figures/*.pdf} \\
+\code{paper} & compile the letter and this guidebook & the PDFs \\
+\code{all} & \code{retrieve} $\to$ \code{aux} $\to$ \code{figures} $\to$ \code{paper} & everything \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{The notebook path}
+Prefer an interactive walk-through? The five notebooks call the same pipeline and
+can be run in order. Each is idempotent (re-running overwrites its own outputs),
+and after \code{02\_retrieval} has run once the later notebooks can be re-run
+independently for figure tuning.
+
+\begin{center}\small
+\begin{tabular}{@{}llp{5.6cm}@{}}
+\toprule
+Notebook & Wall time & Produces \\
+\midrule
+\code{00\_setup} & $<$1 min & dependency + data-integrity check \\
+\code{01\_methods} & 2--3 min & Figs 1--4, Table 1 (parameters) \\
+\code{02\_retrieval} & $\sim$5 min (fast) & per-site $K_d^*$, bootstrap CIs, error budget \\
+\code{03\_results} & 3--5 min & Figs 5--9, Tables 2--3 \\
+\code{04\_discussion} & 2--3 min & Figs 10--11, Table 4 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Troubleshooting}
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{SciPy build error on macOS:} force prebuilt wheels with
+  \code{pip install --only-binary=:all: -e ".[dev]"}.
+\item \textbf{SPICE kernel download blocked:} the kernels are fetched on demand by
+  \code{src/lunar/ephem.py}; set \code{SPICE\_KERNEL\_DIR} to a local directory
+  holding the DE440 kernel and the NAIF lunar/earth PCK.
+\item \textbf{Diviner SSL error:} \code{pipeline/fetch\_diviner.py} retries with
+  verification disabled --- the PDS data is public, so this is safe.
+\item \textbf{Missing LaTeX font/package:} install a complete distribution
+  (TeX~Live or MacTeX); minimal installs lack Times + \code{microtype}.
+\end{itemize}
 
 \end{document}

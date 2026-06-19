@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
 from lunar.properties import conductivity_hayne, conductivity_martinez, density_hayne
 from lunar.constants import K_SURFACE, K_DEEP, H_PARAMETER
-from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM
+from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM, C_GRID, fmt_axis
 
 OUT = _REPO / "results" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
@@ -36,35 +36,43 @@ def fig_models():
     def kc(kd):                                    # contact conductivity K_c(z); asymptote = K_d
         return (kd - (kd - Ks) * np.exp(-z / H)) * 1e3
 
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.0, 4.5))
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.0, 4.6))
     # (a) contact conductivity vs depth -> the deep asymptote IS K_d
-    axA.plot(kc(3.4e-3), z, color=C_HAYNE, lw=2.4, label="Hayne, global $K_d$ = 3.4")
-    axA.plot(kc(4.58e-3), z, color=C_A15, lw=2.0, ls="--", label="A15 retrieved $K_d^*$ = 4.58")
-    axA.plot(kc(8.12e-3), z, color=C_A17, lw=2.0, ls="--", label="A17 retrieved $K_d^*$ = 8.12")
-    axA.invert_yaxis(); axA.set_xlim(0, 9)
-    axA.set_xlabel("contact conductivity  $K_c(z)$  [mW m$^{-1}$ K$^{-1}$]")
-    axA.set_ylabel("depth  $z$  [m]")
-    axA.set_title(r"(a)  where $K_d$ lives: $K_c(z)=K_d-(K_d-K_s)e^{-z/H}$",
+    axA.plot(kc(3.4e-3), z, color=C_HAYNE, lw=2.4, label="Hayne: $K_d=3.4$")
+    axA.plot(kc(4.58e-3), z, color=C_A15, lw=2.2, ls="--", label="A15: $K_d^*=4.58$")
+    axA.plot(kc(8.12e-3), z, color=C_A17, lw=2.2, ls="--", label="A17: $K_d^*=8.12$")
+    axA.set_xlim(0, 9); axA.set_ylim(2.0, -0.05)        # surface (z=0) at top
+    fmt_axis(axA, xlabel="contact conductivity  $K_c(z)$  [mW m$^{-1}$ K$^{-1}$]",
+             ylabel="depth  $z$  [m]")
+    axA.set_title(r"(a)  the deep asymptote is $K_d$:  $K_c=K_d-(K_d-K_s)e^{-z/H}$",
                   loc="left", fontsize=9.5, color=C_CHAR)
-    axA.legend(fontsize=8, frameon=False, loc="lower right")
-    axA.grid(alpha=0.25)
-    axA.annotate("surface $K_s$ = 0.74", xy=(0.74, 0.0), xytext=(2.1, 0.30),
-                 fontsize=8, color=C_DIM, arrowprops=dict(arrowstyle="->", color=C_DIM, lw=0.8))
-    axA.annotate("deep asymptote = $K_d$\n(global 3.4 to per-site 4.58 / 8.12)",
-                 xy=(8.12, 1.7), xytext=(0.6, 1.35),
-                 fontsize=8, color=C_DIM, arrowprops=dict(arrowstyle="->", color=C_DIM, lw=0.8))
+    # legend tucked into the open gap between the A15 and A17 verticals
+    axA.legend(fontsize=8.2, frameon=True, edgecolor=C_GRID, framealpha=0.97,
+               loc="center", bbox_to_anchor=(0.72, 0.42), handlelength=1.5,
+               borderpad=0.5, labelspacing=0.35)
+    # surface annotation: left of every curve, clear space
+    axA.annotate("surface\n$K_s=0.74$", xy=(0.80, 0.06), xytext=(1.7, 0.52),
+                 fontsize=8, color=C_DIM, ha="left", va="center",
+                 arrowprops=dict(arrowstyle="->", color=C_DIM, lw=0.8))
+    # 'global -> per-site' shift: arrow in the open gap, text above it
+    axA.text(6.35, 1.66, r"global $\rightarrow$ per-site", fontsize=8,
+             color=C_DIM, ha="center", va="center")
+    axA.annotate("", xy=(8.02, 1.85), xytext=(4.66, 1.85),
+                 arrowprops=dict(arrowstyle="->", color=C_DIM, lw=0.8))
 
     # (b) K vs T at fixed depth (radiative term)
     T = np.linspace(100, 400, 300)
     axB.plot(T, conductivity_hayne(T, np.full_like(T, 1.0), Kd=3.4e-3) * 1e3,
-             color=C_HAYNE, lw=2.2, label="Hayne, global $K_d$ (z = 1 m)")
+             color=C_HAYNE, lw=2.2, label="Hayne  ($z=1$ m)")
     axB.plot(T, conductivity_martinez(T, z=np.full_like(T, 1.0)) * 1e3,
-             color=C_DIM, lw=2.0, ls=":", label="Martínez (z = 1 m)")
-    axB.set_xlabel("temperature  $T$  [K]")
-    axB.set_ylabel("thermal conductivity  $K$  [mW m$^{-1}$ K$^{-1}$]")
-    axB.set_title(r"(b)  radiative rise  $\propto\,\chi\,(T/350)^3$", loc="left", fontsize=10, color=C_CHAR)
-    axB.legend(fontsize=8, frameon=False, loc="upper left")
-    axB.grid(alpha=0.25)
+             color=C_DIM, lw=2.0, ls=":", label="Martínez  ($z=1$ m)")
+    axB.set_xlim(100, 400)
+    fmt_axis(axB, xlabel="temperature  $T$  [K]",
+             ylabel="thermal conductivity  $K$  [mW m$^{-1}$ K$^{-1}$]")
+    axB.set_title(r"(b)  radiative rise  $\propto\,\chi\,(T/350)^3$", loc="left",
+                  fontsize=10, color=C_CHAR)
+    axB.legend(fontsize=8.5, frameon=True, edgecolor=C_GRID, framealpha=0.97,
+               loc="upper left")
 
     fig.tight_layout()
     fig.savefig(OUT / "fig_models.pdf", bbox_inches="tight")

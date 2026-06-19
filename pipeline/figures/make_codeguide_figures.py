@@ -36,7 +36,7 @@ def fig_architecture():
     ax.set_xlim(0, 12); ax.set_ylim(0, 12); ax.axis("off")
 
     # band tags (kept short + lifted clear of the boxes below them)
-    for y, lab in [(11.55, "paper/"), (7.05, "pipeline/"), (3.45, "lunar/")]:
+    for y, lab in [(11.55, "paper/ + docs/"), (7.05, "pipeline/"), (3.45, "src/lunar/")]:
         ax.text(0.2, y, lab, fontsize=11, color=C_DIM, fontweight="bold")
 
     # paper layer
@@ -71,7 +71,7 @@ def fig_architecture():
     ax.text(3.55, 8.4, "consume", rotation=90, fontsize=8, color=C_DIM, va="center")
     ax.text(3.55, 4.2, "import", rotation=90, fontsize=8, color=C_DIM, va="center")
 
-    ax.text(6.0, 0.15, "Dependencies point only DOWNWARD — nothing in lunar/ imports a script.",
+    ax.text(6.0, 0.15, "Dependencies point only DOWNWARD — nothing in src/lunar/ imports a script.",
             ha="center", fontsize=8.5, color=C_CHAR, style="italic")
     ax.set_title("The three-layer architecture", fontsize=12, fontweight="bold",
                  loc="left", color=C_CHAR)
@@ -90,7 +90,7 @@ def fig_dataflow():
         (5.4, "retrieve_kd.run_with()", "one profile per trial K_d", C_A17),
         (3.9, "sweep + bootstrap + hold-outs", "results/kd_retrieval_results.json", C_A17),
         (2.4, "pipeline/figures/*", "read JSON, draw with plotting.style", C_A17),
-        (0.9, "paper/letter/figures/*.pdf", "-> letter.tex", C_HAYNE),
+        (0.9, "results/figures/*.pdf", "-> letter.tex / guidebook.tex", C_HAYNE),
     ]
     for y, title, sub, col in steps:
         _box(ax, 2.3, y, 7.4, 1.05, "", "#F6F4F1", col)

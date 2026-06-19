@@ -190,10 +190,64 @@ def fig_sun_moon():
     print("  -> fig_book_sunmoon.pdf")
 
 
+def fig_flux_closure():
+    """Interpret d<T>/dz = Q_b/K: same heat through every layer, so the gradient
+    steepens where K is small (the river-through-a-pipe analogy)."""
+    from lunar.plotting.style import fmt_axis
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(JGR_FULL, 3.9),
+                                   gridspec_kw={"width_ratios": [1.0, 1.05]})
+
+    # (a) the analogy: a widening pipe; same water/s, so fast where narrow
+    axA.add_patch(Polygon([(0.6, 0.6), (5.6, 1.0), (5.6, 0.0), (0.6, 0.4)],
+                          closed=True, facecolor="#DCE7EA", edgecolor=C_TEAL,
+                          lw=1.5))
+    for x0, ln, lw in [(1.0, 1.5, 3.0), (3.3, 0.85, 2.2), (4.85, 0.45, 1.6)]:
+        axA.annotate("", xy=(x0 + ln, 0.5), xytext=(x0, 0.5),
+                     arrowprops=dict(arrowstyle="-|>", color=C_TEAL, lw=lw))
+    axA.text(1.7, 1.2, "narrow (small $K$)\nwater is fast", color=C_CORAL,
+             fontsize=8.5, ha="center", fontweight="bold")
+    axA.text(4.7, -0.5, "wide (large $K$)\nwater is slow", color=C_FOREST,
+             fontsize=8.5, ha="center", fontweight="bold")
+    axA.text(3.1, -1.15, "the same water per second crosses every slice\n"
+             "(conservation) --- exactly like the same heat $Q_b$", color=C_DIM,
+             fontsize=8, ha="center")
+    axA.set_xlim(0, 6); axA.set_ylim(-1.5, 1.6); axA.axis("off")
+    axA.set_title("(a) a river through a widening pipe", loc="left",
+                  fontsize=9.5, color=C_CHAR)
+
+    # (b) the regolith: two segments -- steep where K small, gentle where K large
+    zk = 0.30
+    Tk = 250 + 8.0 * zk
+    Tb = Tk + 1.5 * (1.2 - zk)
+    axB.axhspan(0, zk, color=C_CORAL, alpha=0.09)
+    axB.axhspan(zk, 1.2, color=C_FOREST, alpha=0.09)
+    axB.plot([250, Tk], [0, zk], color=C_CORAL, lw=2.8, zorder=3)
+    axB.plot([Tk, Tb], [zk, 1.2], color=C_FOREST, lw=2.8, zorder=3)
+    axB.plot([Tk], [zk], "o", color=C_CHAR, ms=4, zorder=4)
+    axB.set_ylim(1.2, -0.02); axB.set_xlim(249.4, Tb + 0.6)
+    axB.text(250.2, 0.15, "small $K$:\nsteep slope", color=C_CORAL, fontsize=8,
+             va="center", fontweight="bold")
+    axB.text(Tb + 0.2, 0.85, "large $K$:\ngentle slope", color=C_FOREST,
+             fontsize=8, va="center", ha="right", fontweight="bold")
+    fmt_axis(axB, xlabel=r"mean temperature  $\langle T\rangle$  [K]",
+             ylabel="depth  $z$  [m]")
+    axB.set_title(r"(b) so the profile bends at the kink:  $d\langle T\rangle/dz=Q_b/K$",
+                  loc="left", fontsize=9, color=C_CHAR)
+    fig.suptitle("Flux closure: the same geothermal heat $Q_b$ crosses every "
+                 "layer, so the gradient steepens where $K$ is small",
+                 x=0.02, y=1.02, ha="left", fontsize=10.5, fontweight="bold",
+                 color=C_CHAR)
+    fig.savefig(OUT / "fig_book_fluxclosure.pdf", bbox_inches="tight",
+                pad_inches=0.06)
+    plt.close(fig)
+    print("  -> fig_book_fluxclosure.pdf")
+
+
 def main():
     print("Building schematic illustrations:")
     fig_probe_layout()
     fig_sun_moon()
+    fig_flux_closure()
     print("done.")
 
 

@@ -352,30 +352,30 @@ def fig_heateq_cv_3d():
         ax.add_collection3d(Poly3DCollection(f, facecolor=fc, edgecolor=ec,
                             lw=0.9, alpha=alpha, zorder=4))
     cube(0, 1, 0, 1, 0, 1, C_CORAL, 0.22)        # one regolith cell (warming)
-    # flux in (top, large) and flux out (bottom, smaller) -- both downward
-    ax.quiver(0.5, 0.5, 1.75, 0, 0, -0.6, color=C_TEAL, lw=3.0,
-              arrow_length_ratio=0.32, zorder=6)
-    ax.quiver(0.5, 0.5, 0.02, 0, 0, -0.55, color=C_TEAL, lw=2.0,
-              arrow_length_ratio=0.32, zorder=6)
-    ax.text(0.5, 0.5, 1.95, "heat IN  (larger)", color=C_TEAL, fontsize=9.5,
-            ha="center", fontweight="bold")
-    ax.text(0.5, 0.5, -0.78, "heat OUT  (smaller)", color=C_TEAL, fontsize=9.5,
-            ha="center")
-    ax.text2D(0.80, 0.46, "more comes in\nthan leaves\n$\\Rightarrow$ the cell warms",
-              transform=ax.transAxes, color=C_CORAL, fontsize=9, va="center",
+    # short flux arrows sitting ON the faces (in on top, out at the base)
+    ax.quiver(0.5, 0.5, 1.5, 0, 0, -0.44, color=C_TEAL, lw=3.0,
+              arrow_length_ratio=0.4, zorder=6)
+    ax.quiver(0.5, 0.5, -0.04, 0, 0, -0.4, color=C_TEAL, lw=2.0,
+              arrow_length_ratio=0.4, zorder=6)
+    # labels tie each arrow to a q-term in the equation
+    ax.text2D(0.5, 0.95, r"heat in:  $q\left(z-\frac{\Delta z}{2}\right)$  (larger)",
+              transform=ax.transAxes, ha="center", color=C_TEAL, fontsize=9.5,
               fontweight="bold")
-    ax.text2D(0.015, 0.78,
-              r"$\rho c_p\,\frac{\partial T}{\partial t}"
-              r"=-\frac{\partial q}{\partial z}"
-              r"=\frac{\partial}{\partial z}\left(K\frac{\partial T}{\partial z}\right)$",
-              transform=ax.transAxes, fontsize=11, color=C_CHAR)
-    ax.set_xlim(0, 1.1); ax.set_ylim(0, 1.1); ax.set_zlim(-0.7, 1.8)
-    ax.view_init(elev=14, azim=-58)
-    ax.set_box_aspect((1, 1, 1.5), zoom=1.18)
+    ax.text2D(0.5, 0.135, r"heat out:  $q\left(z+\frac{\Delta z}{2}\right)$  (smaller)",
+              transform=ax.transAxes, ha="center", color=C_TEAL, fontsize=9.5)
+    # the equation gets its own clear footer band, centred and well clear of the cube
+    fig.text(0.5, 0.02,
+             r"$\rho c_p\,\frac{\partial T}{\partial t}"
+             r"=-\frac{\partial q}{\partial z}"
+             r"=\frac{\partial}{\partial z}\left(K\frac{\partial T}{\partial z}\right)$",
+             ha="center", fontsize=13, color=C_CHAR)
+    ax.set_xlim(0, 1.0); ax.set_ylim(0, 1.0); ax.set_zlim(-0.5, 1.5)
+    ax.view_init(elev=13, azim=-56)
+    ax.set_box_aspect((1, 1, 1.4), zoom=1.05)
     ax.set_axis_off()
-    fig.suptitle("The heat equation is just bookkeeping: what a layer stores "
-                 "= what comes in minus what leaves", x=0.06, y=0.98, ha="left",
-                 fontsize=11, fontweight="bold", color=C_CHAR)
+    fig.suptitle(r"The heat equation is bookkeeping:  stored = in $-$ out",
+                 x=0.5, y=1.0, ha="center", fontsize=11.5, fontweight="bold",
+                 color=C_CHAR)
     fig.savefig(OUT / "fig_book_heateq.pdf", bbox_inches="tight", pad_inches=0.05)
     plt.close(fig)
     print("  -> fig_book_heateq.pdf")

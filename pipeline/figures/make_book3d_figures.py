@@ -184,8 +184,69 @@ def fig_skin_waterfall_3d():
     print("  ->", out.name)
 
 
+def fig_lunar_forcing_3d():
+    """3D illustration: the Sun drives a day/night cycle at the HFE borehole."""
+    C_SUN = "#D9952B"
+    fig = plt.figure(figsize=(JGR_FULL, 4.7))
+    ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
+
+    # the Moon (unit sphere); subsolar direction is +x
+    u = np.linspace(0, 2 * np.pi, 160)
+    v = np.linspace(0, np.pi, 90)
+    x = np.outer(np.cos(u), np.sin(v))
+    y = np.outer(np.sin(u), np.sin(v))
+    z = np.outer(np.ones_like(u), np.cos(v))
+    tcol = (x + 1.0) / 2.0                          # night(-x)=0 cold, day(+x)=1 hot
+    ax.plot_surface(x, y, z, facecolors=ANTH_DIVERGE(tcol),
+                    rstride=1, cstride=1, linewidth=0, antialiased=True,
+                    shade=False, zorder=1)
+
+    # terminator (the x=0 great circle: day/night boundary)
+    th = np.linspace(0, 2 * np.pi, 160)
+    ax.plot(np.zeros_like(th), np.cos(th), np.sin(th),
+            color=C_CHAR, lw=1.1, ls=(0, (4, 3)), zorder=6)
+
+    # incoming sunlight: parallel rays striking the day side
+    for yy, zz in [(-0.55, 0.55), (0.0, 0.75), (0.55, 0.45),
+                   (0.0, -0.45), (-0.5, -0.15), (0.5, 0.0)]:
+        ax.quiver(1.85, yy, zz, -1.0, 0.0, 0.0, color=C_SUN, lw=1.7,
+                  arrow_length_ratio=0.16, length=0.62, zorder=8)
+    ax.text(1.55, 0.15, 1.18, "sunlight  $S_0$", color=C_SUN, fontsize=10,
+            fontweight="bold", ha="center")
+
+    # the HFE borehole site (lat 26 N, on the day side) + a probe stick inward
+    lat, lon = np.deg2rad(26.0), np.deg2rad(38.0)
+    sx = np.cos(lat) * np.cos(lon)
+    sy = np.cos(lat) * np.sin(lon)
+    sz = np.sin(lat)
+    ax.plot([sx, sx * 0.8], [sy, sy * 0.8], [sz, sz * 0.8],
+            color=C_CHAR, lw=2.4, zorder=10)
+    ax.scatter([sx], [sy], [sz], color=C_FOREST, s=44, depthshade=False,
+               edgecolor="white", linewidth=0.8, zorder=11)
+    ax.text(sx * 1.25, sy * 1.25, sz * 1.35, "HFE\nborehole", color=C_FOREST,
+            fontsize=9, fontweight="bold", ha="center", va="bottom")
+
+    # day / night annotations
+    ax.text(0.75, 0.55, 1.18, "day side  (~390 K)", color=C_CORAL, fontsize=9,
+            fontweight="bold")
+    ax.text(-1.25, -0.2, 0.95, "night side  (~100 K)", color=C_TEAL, fontsize=9,
+            fontweight="bold")
+    ax.set_box_aspect((1, 1, 1), zoom=1.25)
+    ax.set_xlim(-1.1, 1.5); ax.set_ylim(-1.25, 1.25); ax.set_zlim(-1.1, 1.2)
+    ax.view_init(elev=16, azim=-52)
+    ax.set_axis_off()
+    fig.suptitle("The lunar forcing: one hot day, one cold night, every "
+                 "lunation", x=0.06, y=0.97, ha="left",
+                 fontsize=11.5, fontweight="bold", color=C_CHAR)
+    out = OUT / "fig_book_lunarforcing3d.pdf"
+    fig.savefig(out, bbox_inches="tight", pad_inches=0.05)
+    plt.close(fig)
+    print("  ->", out.name)
+
+
 def main():
     print("Building high-end 3D book figures:")
+    fig_lunar_forcing_3d()
     fig_thermalwave_3d()
     fig_skin_waterfall_3d()
     print("done.")

@@ -335,9 +335,76 @@ def fig_borehole_column_3d():
     print("  ->", out.name)
 
 
+def fig_grid_3d():
+    """3D illustration of the geometric depth grid: mm at top, decimetres below."""
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+    from lunar.plotting.style import ANTH_SEQ
+    grid = make_geometric_grid(**GRID)
+    zf = np.asarray(grid.z_face, float)
+    dz = np.asarray(grid.dz, float)
+    ZMAX = 2.5
+    nshow = int(np.searchsorted(zf, ZMAX))
+    W, DP = 1.0, 0.5
+    norm = plt.Normalize(np.log10(dz[:nshow].min()), np.log10(dz[:nshow].max()))
+
+    fig = plt.figure(figsize=(JGR_FULL, 5.2))
+    ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
+    for i in range(nshow):
+        z0, z1 = zf[i], zf[i + 1]
+        c = ANTH_SEQ(norm(np.log10(dz[i])))
+        ax.add_collection3d(Poly3DCollection(   # front face (y=0)
+            [[(0, 0, z0), (W, 0, z0), (W, 0, z1), (0, 0, z1)]],
+            facecolor=c, edgecolor="white", linewidths=0.35, alpha=0.98))
+        ax.add_collection3d(Poly3DCollection(   # side face (x=W) for 3D depth
+            [[(W, 0, z0), (W, DP, z0), (W, DP, z1), (W, 0, z1)]],
+            facecolor=c, edgecolor="white", linewidths=0.25, alpha=0.7))
+    ax.add_collection3d(Poly3DCollection(       # top surface
+        [[(0, 0, 0), (W, 0, 0), (W, DP, 0), (0, DP, 0)]],
+        facecolor="#D9C7B6", edgecolor="#B9A88E", linewidths=0.6))
+
+    # short value callouts just right of the column (kept clear of the depth axis)
+    i1 = int(np.searchsorted(zf, 1.0))
+    i2 = int(np.searchsorted(zf, 2.0))
+    def callout(z, txt):
+        ax.text(1.12, 0, z, txt, color=C_CHAR, fontsize=8.5, ha="left", va="center")
+        ax.plot([1.08, 1.01], [0, 0], [z, z], color=C_DIM, lw=0.7)
+    callout(0.0, f"{dz[0]*1000:.0f} mm")
+    callout(1.0, f"$\\sim${dz[i1]*100:.0f} cm")
+    callout(2.0, f"$\\sim${dz[i2]*100:.0f} cm")
+    # descriptive notes to the LEFT of the column (empty space; no overlap)
+    ax.text(-0.12, 0, 0.16, "fine: resolves\nthe daily wave", color=C_CORAL,
+            fontsize=8, ha="right", va="center")
+    ax.text(-0.12, 0, 1.9, "coarse: cheap\nwhere $T$ is flat", color=C_TEAL,
+            fontsize=8, ha="right", va="center")
+    ax.text(-0.12, 0, 1.0, r"each cell $\sim$8% thicker", color=C_DIM,
+            fontsize=8, ha="right", va="center", style="italic")
+
+    ax.set_zlim(ZMAX + 0.05, -0.22)             # surface at the top
+    ax.set_xlim(-1.35, 1.9); ax.set_ylim(0, DP + 0.1)
+    ax.set_zticks([0, 0.5, 1.0, 1.5, 2.0, 2.5])
+    ax.set_zlabel("depth  $z$  [m]", labelpad=6)
+    ax.set_xticks([]); ax.set_yticks([])
+    ax.xaxis.line.set_color("none"); ax.yaxis.line.set_color("none")
+    for axis in (ax.xaxis, ax.yaxis, ax.zaxis):
+        axis.pane.set_visible(False)
+    ax.zaxis.line.set_color(C_DIM)
+    ax.zaxis.set_tick_params(colors=C_DIM, labelsize=8)
+    ax.zaxis.label.set_color(C_CHAR)
+    ax.view_init(elev=10, azim=-62)
+    ax.set_box_aspect((1.7, 0.7, 1.7), zoom=1.16)
+    fig.suptitle("The geometric grid: millimetres at the surface, decimetres "
+                 "below ($\\sim$69 cells to 5 m)", x=0.06, y=0.97, ha="left",
+                 fontsize=11.5, fontweight="bold", color=C_CHAR)
+    out = OUT / "fig_book_grid3d.pdf"
+    fig.savefig(out, bbox_inches="tight", pad_inches=0.22)
+    plt.close(fig)
+    print("  ->", out.name)
+
+
 def main():
     print("Building high-end 3D book figures:")
     fig_lunar_forcing_3d()
+    fig_grid_3d()
     fig_borehole_column_3d()
     fig_thermalwave_3d()
     fig_skin_waterfall_3d()

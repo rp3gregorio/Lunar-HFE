@@ -762,7 +762,16 @@ solves a small linear system that couples each cell to its neighbours.}
 The daily wave needs millimetre resolution at the top (because the temperature
 changes rapidly over a few centimetres), but the deep column can be coarse
 (because the temperature there barely changes). So the cells grow geometrically
---- each $\sim$8\% thicker than the one above.
+--- each $\sim$8\% thicker than the one above (Fig.~\ref{fig:grid}).
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.86\linewidth]{figures/fig_book_grid3d.pdf}
+\caption{The geometric depth grid. Cells are 2\,mm at the surface --- fine enough
+to resolve the daily wave --- and grow by $\sim$8\% each layer, reaching tens of
+centimetres at depth where the temperature is nearly flat. Just $\sim$69 cells
+span the full 5\,m column; a uniform 2\,mm grid would need $\sim$2500.}
+\label{fig:grid}
+\end{figure}
 
 In \code{src/lunar/grid.py}:
 \begin{lstlisting}[style=py]

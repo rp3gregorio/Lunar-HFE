@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-_DATA = Path(__file__).resolve().parent.parent / "data"
+_DATA = Path(__file__).resolve().parents[2] / "data"  # src/lunar/ -> repo root
 
 
 def load_apollo_hfe_depth(mission: str, probe_num: int) -> np.ndarray:

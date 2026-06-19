@@ -61,6 +61,7 @@ dev = [
 Repository = "https://github.com/rp3gregorio/Lunar-HFE"
 
 [tool.setuptools]
+package-dir = {"" = "src"}
 packages = ["lunar", "lunar.plotting"]
 
 [tool.pytest.ini_options]

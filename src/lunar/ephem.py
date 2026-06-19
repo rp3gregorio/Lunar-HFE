@@ -25,7 +25,7 @@ from typing import Iterable, Sequence
 
 import numpy as np
 
-_SPICE_DIR = Path(__file__).resolve().parent.parent / "data" / "spice"
+_SPICE_DIR = Path(__file__).resolve().parents[2] / "data" / "spice"  # src/lunar/ -> repo root
 
 _KERNELS = (
     "naif0012.tls",               # leap seconds

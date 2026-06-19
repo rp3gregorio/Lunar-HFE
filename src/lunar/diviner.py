@@ -44,7 +44,7 @@ GCP_COLUMNS: tuple[str, ...] = (
 GCP_NO_OBS = -9999.0   # bin contained no observations
 GCP_INVALID = -9998.0  # bin contained only invalid radiances
 
-_REPO_ROOT = Path(__file__).resolve().parents[1]
+_REPO_ROOT = Path(__file__).resolve().parents[2]  # src/lunar/diviner.py -> repo root
 _DEFAULT_CACHE = _REPO_ROOT / "data" / "diviner" / "gcp"
 
 

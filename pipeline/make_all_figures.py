@@ -31,6 +31,7 @@ JOBS = [
     ("make_primer_figures",     ["main"]),
     ("make_equilibrium_certification", ["main"]),
     ("make_codeguide_figures",  ["main"]),    # docs/guidebook diagrams
+    ("make_svg_figures",        ["main"]),    # hand-authored SVG illustrations (run last: wins)
 ]
 
 

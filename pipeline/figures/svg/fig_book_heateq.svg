@@ -1,0 +1,34 @@
+<svg viewBox="0 0 760 450" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <title>Heat-equation control volume</title>
+  <desc>A 3D box of regolith: a large heat-flux arrow enters the top face, a smaller arrow leaves the base, so the layer stores the difference and warms.</desc>
+
+  <text x="40" y="42" font-size="22" font-weight="700" fill="#2A2520">Heat equation:  stored = heat in - heat out</text>
+
+  <!-- box: top, right, front faces (light to dark for a flat 3D read) -->
+  <polygon points="290,200 520,200 590,145 360,145" fill="#ECD4C0" stroke="#2A2520" stroke-width="1.6"/>
+  <polygon points="520,200 590,145 590,305 520,360" fill="#CB9E82" stroke="#2A2520" stroke-width="1.6"/>
+  <polygon points="290,200 520,200 520,360 290,360" fill="#E1BCA2" stroke="#2A2520" stroke-width="1.6"/>
+
+  <!-- cell-thickness bracket -->
+  <path d="M278,200 L271,200 M271,200 L271,360 M278,360 L271,360" stroke="#6E6862" stroke-width="1.2" fill="none"/>
+  <text x="265" y="285" font-size="14" fill="#6E6862" text-anchor="end" font-style="italic">one cell</text>
+
+  <!-- heat IN (large arrow onto the top face) -->
+  <g fill="#2A6478">
+    <rect x="431" y="85" width="18" height="63"/>
+    <polygon points="421,147 459,147 440,173"/>
+  </g>
+  <text x="440" y="73" font-size="16" font-weight="700" fill="#2A6478" text-anchor="middle">heat in (larger)</text>
+
+  <!-- heat OUT (smaller arrow off the base) -->
+  <g fill="#2A6478">
+    <rect x="399" y="362" width="12" height="46"/>
+    <polygon points="393,407 417,407 405,425"/>
+  </g>
+  <text x="405" y="444" font-size="15" font-weight="700" fill="#2A6478" text-anchor="middle">heat out (smaller)</text>
+
+  <!-- takeaway, in the reserved left margin -->
+  <text x="40" y="240" font-size="16" font-weight="700" fill="#B85B3A">More heat enters the top</text>
+  <text x="40" y="264" font-size="16" font-weight="700" fill="#B85B3A">than leaves the bottom,</text>
+  <text x="40" y="292" font-size="16" fill="#B85B3A">so the layer warms.</text>
+</svg>

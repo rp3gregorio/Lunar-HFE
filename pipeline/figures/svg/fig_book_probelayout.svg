@@ -1,0 +1,65 @@
+<svg viewBox="0 0 820 480" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <title>The two Apollo 15 heat-flow probes at Hadley Rille</title>
+  <desc>Cutaway of two boreholes in lunar regolith: each probe has an epoxy borestem in the top 30 cm and deep sensors below, linked at the surface to the HFE electronics; a depth scale runs down the left.</desc>
+
+  <text x="40" y="40" font-size="21" font-weight="700" fill="#2A2520">The two Apollo 15 heat-flow probes at Hadley Rille</text>
+
+  <!-- sky + distant massif -->
+  <rect x="0" y="58" width="820" height="177" fill="#EAF1F3"/>
+  <polygon points="360,235 470,120 560,170 660,100 760,160 820,120 820,235" fill="#C7D2D0"/>
+  <polygon points="40,235 150,150 240,185 320,150 380,235" fill="#D4DEDB"/>
+
+  <!-- regolith -->
+  <rect x="0" y="235" width="820" height="245" fill="#ECE2D2"/>
+  <rect x="0" y="360" width="820" height="120" fill="#DCCBB2" opacity="0.5"/>
+  <path d="M0,235 L120,233 L260,237 L400,234 L540,237 L680,233 L820,236" stroke="#2A2520" stroke-width="1.6" fill="none"/>
+
+  <!-- depth ruler -->
+  <line x1="48" y1="235" x2="48" y2="437" stroke="#6E6862" stroke-width="1.2"/>
+  <g font-size="11" fill="#6E6862" text-anchor="end" font-family="Helvetica, Arial, sans-serif">
+    <line x1="43" y1="235" x2="53" y2="235" stroke="#6E6862" stroke-width="1.2"/><text x="40" y="239">0</text>
+    <line x1="43" y1="302" x2="53" y2="302" stroke="#6E6862" stroke-width="1.2"/><text x="40" y="306">50</text>
+    <line x1="43" y1="368" x2="53" y2="368" stroke="#6E6862" stroke-width="1.2"/><text x="40" y="372">100</text>
+    <line x1="43" y1="422" x2="53" y2="422" stroke="#6E6862" stroke-width="1.2"/><text x="40" y="426">140</text>
+    <text x="40" y="452">cm</text>
+  </g>
+
+  <!-- HFE electronics + cables -->
+  <path d="M410,237 C320,255 270,250 235,247" stroke="#6E6862" stroke-width="1.4" fill="none"/>
+  <path d="M450,237 C540,255 575,250 600,247" stroke="#6E6862" stroke-width="1.4" fill="none"/>
+  <rect x="398" y="206" width="64" height="30" rx="4" fill="#E6DFD1" stroke="#2A2520" stroke-width="1.2"/>
+  <text x="430" y="219" font-size="9" fill="#2A2520" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">HFE</text>
+  <text x="430" y="230" font-size="9" fill="#2A2520" text-anchor="middle" font-family="Helvetica, Arial, sans-serif">electronics</text>
+
+  <!-- Probe 1 (right): to 140 cm -->
+  <rect x="593" y="235" width="14" height="40" fill="#B85B3A" stroke="#2A2520" stroke-width="1"/>
+  <rect x="593" y="275" width="14" height="147" fill="#2A6478" stroke="#2A2520" stroke-width="1"/>
+  <circle cx="600" cy="352" r="5.5" fill="#3D6E4A" stroke="#fff" stroke-width="1.2"/>
+  <circle cx="600" cy="388" r="5.5" fill="#3D6E4A" stroke="#fff" stroke-width="1.2"/>
+  <circle cx="600" cy="416" r="5.5" fill="#3D6E4A" stroke="#fff" stroke-width="1.2"/>
+
+  <!-- Probe 2 (left): to 100 cm -->
+  <rect x="228" y="235" width="14" height="40" fill="#B85B3A" stroke="#2A2520" stroke-width="1"/>
+  <rect x="228" y="275" width="14" height="93" fill="#2A6478" stroke="#2A2520" stroke-width="1"/>
+  <circle cx="235" cy="350" r="5.5" fill="#3D6E4A" stroke="#fff" stroke-width="1.2"/>
+
+  <!-- labels (clear margins) -->
+  <g font-size="13" fill="#2A2520">
+    <line x1="660" y1="408" x2="612" y2="408" stroke="#6E6862" stroke-width="0.9"/>
+    <text x="665" y="404">heat-flow probe 1</text><text x="665" y="420">(to 140 cm)</text>
+  </g>
+  <g font-size="12.5">
+    <line x1="660" y1="258" x2="610" y2="258" stroke="#6E6862" stroke-width="0.9"/>
+    <text x="665" y="254" fill="#B85B3A" font-weight="700">epoxy borestem</text>
+    <text x="665" y="270" fill="#B85B3A">(top 30 cm, excluded)</text>
+  </g>
+  <g font-size="12.5">
+    <line x1="660" y1="352" x2="608" y2="352" stroke="#6E6862" stroke-width="0.9"/>
+    <text x="665" y="349" fill="#3D6E4A" font-weight="700">deep sensors -&gt; K_d</text>
+  </g>
+  <g font-size="13" fill="#2A2520" text-anchor="end">
+    <line x1="175" y1="330" x2="226" y2="330" stroke="#6E6862" stroke-width="0.9"/>
+    <text x="170" y="326">heat-flow probe 2</text><text x="170" y="342">(to 100 cm)</text>
+  </g>
+  <text x="235" y="386" font-size="12" fill="#6E6862" text-anchor="middle" font-style="italic">obstruction</text>
+</svg>

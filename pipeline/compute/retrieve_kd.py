@@ -40,7 +40,7 @@ Core thermal computation: solve_periodic_equilibrium runs ~40 lunations per
 call, invoked ~300 times. Bootstrap reuses cached results - no new physics.
 
 Run with:
-    python scripts/pipeline/retrieve_kd.py
+    python pipeline/compute/retrieve_kd.py
 """
 from __future__ import annotations
 import json, sys, pathlib, time
@@ -89,9 +89,9 @@ from lunar.config import (   # noqa: E402
     GRID, HAYNE, SITES, DEPTH_SIGMA_CM,
     TL_Z1, TL_Z2, TL_RHO_REF, TL_RHO_SITE,
 )
-# scripts/figures kept on path for the end-of-run figure helpers
+# pipeline/figures kept on path for the end-of-run figure helpers
 # (fig_bootstrap, fig_robustness) imported inside main().
-sys.path.insert(0, str(_REPO / 'scripts' / 'figures'))
+sys.path.insert(0, str(_REPO / 'pipeline' / 'figures'))
 
 # In-process memo cache for converged mean profiles, keyed on every input
 # that can change the forward model (speeds the repeated sweeps).

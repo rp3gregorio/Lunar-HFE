@@ -8,7 +8,7 @@ exclusion depth swept over 60, 70, 80, 90, 100 cm and reports how
 K_d^A15, K_d^A17, and the contrast change.
 
 Run from the repo root:
-  python scripts/pipeline/compute_borestem_sensitivity.py
+  python pipeline/compute/compute_borestem_sensitivity.py
 """
 from __future__ import annotations
 import json
@@ -19,10 +19,10 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "scripts" / "figures"))
+sys.path.insert(0, str(ROOT / "pipeline" / "figures"))
 
 from lunar.apollo_helpers import extract_sensor_stability        # noqa: E402
-from scripts.pipeline.retrieve_kd import (                  # noqa: E402
+from pipeline.compute.retrieve_kd import (                  # noqa: E402
     SITES, run_with, kd_star_from_residuals,
 )
 

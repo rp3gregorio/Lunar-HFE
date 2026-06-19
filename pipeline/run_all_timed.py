@@ -10,7 +10,7 @@ regenerated in the repo as a side effect.
 Writes a timing report to docs/RUNTIME.md (updated after each notebook,
 so partial results survive an interruption).
 
-Run:  python scripts/run_all_timed.py
+Run:  python pipeline/run_all_timed.py
 """
 from __future__ import annotations
 import time, datetime, pathlib, re
@@ -57,7 +57,7 @@ def write_report(results, aux, started, finished=None):
     L = []
     L.append("# Runtime report — full pipeline reproduction\n")
     L.append(f"Run started: {started}  ")
-    L.append(f"\nMachine: executed via `scripts/run_all_timed.py` "
+    L.append(f"\nMachine: executed via `pipeline/run_all_timed.py` "
              "(notebooks in order, all toggles ON).\n")
     L.append("\n## Per-notebook (each 'part')\n")
     L.append("| Part | What it does | Time | Status |")

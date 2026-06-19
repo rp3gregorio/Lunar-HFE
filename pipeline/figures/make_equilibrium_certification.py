@@ -15,15 +15,15 @@ Writes output/figures/fig_equilibrium_certification.pdf and
 output/equilibrium_certification.json.
 
 Run with:
-    python scripts/figures/make_equilibrium_certification.py
+    python pipeline/figures/make_equilibrium_certification.py
 """
 from __future__ import annotations
 import json, sys, pathlib
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
-sys.path.insert(0, str(_REPO / "scripts" / "figures"))
-sys.path.insert(0, str(_REPO / "scripts" / "pipeline"))
+sys.path.insert(0, str(_REPO / "pipeline" / "figures"))
+sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 
 import numpy as np
 import matplotlib
@@ -34,7 +34,7 @@ from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.grid import make_geometric_grid
 from lunar.solver import PixelInputs, solve_pixel
 from lunar.properties import conductivity_hayne, specific_heat
-from scripts.pipeline.retrieve_kd import SITES, HAYNE, GRID, S0, T_LUNAR, DT_STEP
+from pipeline.compute.retrieve_kd import SITES, HAYNE, GRID, S0, T_LUNAR, DT_STEP
 
 from lunar.plotting.style import (   # type: ignore
     JGR_FULL, FS_TICK, FS_LEGEND, FS_LABEL,

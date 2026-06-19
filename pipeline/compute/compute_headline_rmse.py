@@ -18,7 +18,7 @@ single script:
 Writes output/headline_rmse.json and prints an ASCII summary.
 
 Run from the repo root:
-  python scripts/pipeline/compute_headline_rmse.py
+  python pipeline/compute/compute_headline_rmse.py
 """
 from __future__ import annotations
 import json, sys
@@ -28,10 +28,10 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "scripts" / "figures"))
+sys.path.insert(0, str(ROOT / "pipeline" / "figures"))
 
 from lunar.apollo_helpers import extract_sensor_stability   # noqa: E402
-from scripts.pipeline import retrieve_kd as pap        # noqa: E402
+from pipeline.compute import retrieve_kd as pap        # noqa: E402
 
 KD_GRID = {"A15": np.linspace(1.5e-3, 15.0e-3, 28),
            "A17": np.linspace(3.0e-3, 22.0e-3, 30)}

@@ -15,7 +15,7 @@ needs the previous one) and cannot be split across cores. What we
 parallelise here are the many *independent* runs -- the two initial
 guesses x several lunation counts.
 
-CLI:  python scripts/figures/make_equilibrium_demo.py
+CLI:  python pipeline/figures/make_equilibrium_demo.py
 """
 from __future__ import annotations
 import os, sys, time, functools, pathlib
@@ -97,7 +97,7 @@ def compute_curves(n_workers=None, n_grid=(50, 100, 200, 400, 800),
     if parallel and len(tasks) > 1:
         # let 'spawn' workers import this module + lunar
         os.environ["PYTHONPATH"] = os.pathsep.join(
-            [str(_REPO), str(_REPO / "scripts" / "figures"),
+            [str(_REPO), str(_REPO / "pipeline" / "figures"),
              os.environ.get("PYTHONPATH", "")])
         from concurrent.futures import ProcessPoolExecutor
         nw = int(n_workers or os.cpu_count() or 1)
@@ -175,7 +175,7 @@ def converged_profiles(n_lun=3000, guesses=(240.0, 260.0), kd=KD,
     tasks = [(float(g_), int(n_lun), kd, site_key) for g_ in guesses]
     if parallel and len(tasks) > 1:
         os.environ["PYTHONPATH"] = os.pathsep.join(
-            [str(_REPO), str(_REPO / "scripts" / "figures"),
+            [str(_REPO), str(_REPO / "pipeline" / "figures"),
              os.environ.get("PYTHONPATH", "")])
         from concurrent.futures import ProcessPoolExecutor
         with ProcessPoolExecutor(max_workers=int(n_workers or len(tasks))) as ex:

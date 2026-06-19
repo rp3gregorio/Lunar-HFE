@@ -4,7 +4,7 @@
 Two clean box-and-arrow diagrams (no label overlaps): the three-layer
 architecture and the physics->number->figure data flow.
 
-Run:  python scripts/figures/make_codeguide_figures.py
+Run:  python pipeline/figures/make_codeguide_figures.py
 """
 from __future__ import annotations
 import sys, pathlib
@@ -36,7 +36,7 @@ def fig_architecture():
     ax.set_xlim(0, 12); ax.set_ylim(0, 12); ax.axis("off")
 
     # band tags (kept short + lifted clear of the boxes below them)
-    for y, lab in [(11.55, "paper/"), (7.05, "scripts/"), (3.45, "lunar/")]:
+    for y, lab in [(11.55, "paper/"), (7.05, "pipeline/"), (3.45, "lunar/")]:
         ax.text(0.2, y, lab, fontsize=11, color=C_DIM, fontweight="bold")
 
     # paper layer
@@ -45,10 +45,10 @@ def fig_architecture():
 
     # scripts layer
     _box(ax, 0.8, 5.4, 5.0, 1.5,
-         "scripts/pipeline/\nretrieve_kd.py  +  compute_*.py\n(compute -> output/*.json)",
+         "pipeline/compute/\nretrieve_kd.py  +  compute_*.py\n(compute -> output/*.json)",
          "#FdEee7", C_A17)
     _box(ax, 6.4, 5.4, 4.8, 1.5,
-         "scripts/figures/\nmake_*_figures.py\n(JSON -> PDFs)", "#FdEee7", C_A17)
+         "pipeline/figures/\nmake_*_figures.py\n(JSON -> PDFs)", "#FdEee7", C_A17)
 
     # lunar layer (two rows)
     mods1 = [("config.py", 0.6), ("constants.py", 3.0), ("grid.py", 5.6),
@@ -89,7 +89,7 @@ def fig_dataflow():
         (6.9, "lunar.solver + lunar.equilibrium", "settled temperature profile", C_A15),
         (5.4, "retrieve_kd.run_with()", "one profile per trial K_d", C_A17),
         (3.9, "sweep + bootstrap + hold-outs", "output/kd_retrieval_results.json", C_A17),
-        (2.4, "scripts/figures/*", "read JSON, draw with plotting.style", C_A17),
+        (2.4, "pipeline/figures/*", "read JSON, draw with plotting.style", C_A17),
         (0.9, "paper/letter/figures/*.pdf", "-> letter.tex", C_HAYNE),
     ]
     for y, title, sub, col in steps:

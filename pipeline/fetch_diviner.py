@@ -14,8 +14,8 @@ Source: NASA PDS-Geosciences
 
 Usage
 -----
-    python scripts/fetch_diviner.py             # download both tiles
-    python scripts/fetch_diviner.py --force     # overwrite existing
+    python pipeline/fetch_diviner.py             # download both tiles
+    python pipeline/fetch_diviner.py --force     # overwrite existing
 """
 from __future__ import annotations
 

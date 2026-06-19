@@ -19,24 +19,24 @@ forcing chain only.
 Inputs (fetch first if missing):
     data/diviner/gcp/global_cumul_avg_cyl_20n30n_002.tab   (A15, 26.13 N)
     data/diviner/gcp/global_cumul_avg_cyl_10n20n_002.tab   (A17, 20.19 N)
-    -> python scripts/fetch_diviner.py
+    -> python pipeline/fetch_diviner.py
     output/kd_retrieval_results.json
-    -> python scripts/pipeline/retrieve_kd.py
+    -> python pipeline/compute/retrieve_kd.py
 
 Writes:
     output/diviner_closure.json
     paper/letter/figures/fig_diviner_closure.pdf
 
 Run with:
-    python scripts/pipeline/compute_diviner_closure.py
+    python pipeline/compute/compute_diviner_closure.py
 """
 from __future__ import annotations
 import json, sys, pathlib
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
-sys.path.insert(0, str(_REPO / "scripts" / "figures"))
-sys.path.insert(0, str(_REPO / "scripts" / "pipeline"))
+sys.path.insert(0, str(_REPO / "pipeline" / "figures"))
+sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 
 import numpy as np
 import matplotlib
@@ -51,7 +51,7 @@ from lunar.solver import PixelInputs, solve_pixel
 from lunar.properties import (conductivity_hayne, conductivity_martinez,
                               specific_heat)
 
-from scripts.pipeline.retrieve_kd import SITES, HAYNE, S0, T_LUNAR, GRID
+from pipeline.compute.retrieve_kd import SITES, HAYNE, S0, T_LUNAR, GRID
 
 from lunar.plotting.style import (   # type: ignore
     C_A15, C_A17, C_HAYNE, C_MS, C_CHAR, C_DIM, C_GRID,

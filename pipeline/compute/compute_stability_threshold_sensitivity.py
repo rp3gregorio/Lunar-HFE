@@ -17,7 +17,7 @@ For thresholds in {0.04, 0.06, 0.08, 0.12, 0.16} K/yr we:
 Output: a small JSON + a summary table showing how K_d* moves.
 
 Run from the repo root:
-  python scripts/pipeline/compute_stability_threshold_sensitivity.py
+  python pipeline/compute/compute_stability_threshold_sensitivity.py
 """
 from __future__ import annotations
 import json
@@ -29,13 +29,13 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "scripts" / "figures"))
+sys.path.insert(0, str(ROOT / "pipeline" / "figures"))
 
 from lunar.apollo_helpers import (                                  # noqa: E402
     extract_sensor_stability, find_stable_window,
     load_apollo_hfe_depth, iso_to_seconds,
 )
-from scripts.pipeline.retrieve_kd import (                     # noqa: E402
+from pipeline.compute.retrieve_kd import (                     # noqa: E402
     SITES, run_with, kd_star_from_residuals,
 )
 

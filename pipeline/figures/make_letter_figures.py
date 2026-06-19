@@ -23,7 +23,7 @@ from copy import deepcopy
 # SAME checkout or the published PDFs silently go stale.
 _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
-sys.path.insert(0, str(_REPO / "scripts"))
+sys.path.insert(0, str(_REPO / "pipeline"))
 
 from lunar import _bootstrap as boot
 boot.ensure_lunar(extra=("spiceypy", "scipy"))
@@ -485,7 +485,7 @@ def fig_kd_sweep():
     # converged minima (4.6 / 8.1) with clearly rising high-K_d tails,
     # so no extension runs are needed; the axis is trimmed to the
     # populated range below.
-    from scripts.pipeline.retrieve_kd import SITES  # noqa: F401 (parity)
+    from pipeline.compute.retrieve_kd import SITES  # noqa: F401 (parity)
     ext_curve = {"A15": (np.empty(0), np.empty(0)),
                  "A17": (np.empty(0), np.empty(0))}
 

@@ -16,7 +16,7 @@ import numpy as np
 
 _REPO = pathlib.Path(__file__).resolve().parents[1].parent
 sys.path.insert(0, str(_REPO))
-sys.path.insert(0, str(_REPO / "scripts" / "figures"))
+sys.path.insert(0, str(_REPO / "pipeline" / "figures"))
 
 import matplotlib
 matplotlib.use("Agg")

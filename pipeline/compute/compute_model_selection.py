@@ -14,7 +14,7 @@ with k = number of free parameters (0 for the Hayne global fixed row,
 sigma_i come from output/kd_retrieval_results.json and the restored HFE
 record respectively.
 
-Run from the repo root:  python scripts/pipeline/compute_model_selection.py
+Run from the repo root:  python pipeline/compute/compute_model_selection.py
 """
 from __future__ import annotations
 import json
@@ -25,10 +25,10 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / 'scripts' / 'figures'))   # make_results_figures
+sys.path.insert(0, str(ROOT / 'pipeline' / 'figures'))   # make_results_figures
 
 from lunar.apollo_helpers import extract_sensor_stability        # noqa: E402
-from scripts.pipeline.retrieve_kd import (                  # noqa: E402
+from pipeline.compute.retrieve_kd import (                  # noqa: E402
     SITES, run_with, HAYNE,
 )
 

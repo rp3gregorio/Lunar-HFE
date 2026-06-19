@@ -20,7 +20,7 @@ stable while the surface temperature shifts by several K, the deep
 retrieval is decoupled from the surface-closure mismatch.
 
 Run from the repo root:
-  python scripts/pipeline/compute_surface_bias_test.py
+  python pipeline/compute/compute_surface_bias_test.py
 """
 from __future__ import annotations
 import json
@@ -32,10 +32,10 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "scripts" / "figures"))
+sys.path.insert(0, str(ROOT / "pipeline" / "figures"))
 
 from lunar.apollo_helpers import extract_sensor_stability        # noqa: E402
-from scripts.pipeline.retrieve_kd import (                  # noqa: E402
+from pipeline.compute.retrieve_kd import (                  # noqa: E402
     SITES, run_with, kd_star_from_residuals,
 )
 

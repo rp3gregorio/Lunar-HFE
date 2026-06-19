@@ -43,20 +43,22 @@ _USER_AGENT = (
 
 
 def find_repo_root(start: pathlib.Path | None = None) -> pathlib.Path:
-    """Walk upward from ``start`` until we find the Lunar-V2 repo root.
+    """Walk upward from ``start`` until we find the repo root.
 
-    The repo root is identified by the presence of both ``pyproject.toml``
-    and a ``lunar/`` package directory.
+    The repo root is identified by the presence of ``pyproject.toml`` and the
+    ``lunar`` package, accepting either the src-layout (``src/lunar/``) or a
+    flat top-level ``lunar/``.
     """
     here = (start or pathlib.Path.cwd()).resolve()
     for candidate in (here, *here.parents):
         if (candidate / "pyproject.toml").is_file() and (
-            candidate / "lunar" / "__init__.py"
-        ).is_file():
+            (candidate / "src" / "lunar" / "__init__.py").is_file()
+            or (candidate / "lunar" / "__init__.py").is_file()
+        ):
             return candidate
     raise RuntimeError(
-        f"Could not locate Lunar-V2 repo root starting from {here}. "
-        "Run this notebook from inside a cloned Lunar-V2 checkout."
+        f"Could not locate the Lunar-HFE repo root starting from {here}. "
+        "Run this from inside a cloned checkout."
     )
 
 

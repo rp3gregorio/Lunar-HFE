@@ -4,17 +4,17 @@
 One command to "draw out the figures." Each generator is run in turn,
 timed, and reported; a failure in one does not stop the others. Assumes
 the result JSONs already exist in output/ (run the retrieval first:
-`python scripts/pipeline/retrieve_kd.py`, or `make retrieve`).
+`python pipeline/compute/retrieve_kd.py`, or `make retrieve`).
 
-Run:  python scripts/make_all_figures.py    (or: make figures)
+Run:  python pipeline/make_all_figures.py    (or: make figures)
 """
 from __future__ import annotations
 import importlib, sys, time, pathlib
 
 _REPO = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO))
-sys.path.insert(0, str(_REPO / "scripts" / "figures"))
-sys.path.insert(0, str(_REPO / "scripts" / "pipeline"))
+sys.path.insert(0, str(_REPO / "pipeline" / "figures"))
+sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 
 # (module, callables) — each module's figure entry point(s), in run order.
 JOBS = [

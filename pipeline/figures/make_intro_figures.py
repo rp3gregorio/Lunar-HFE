@@ -13,7 +13,7 @@ the shared warm palette of the other letter figures. Self-contained:
 no pipeline data required.
 
 Run from the repo root:
-  python scripts/figures/make_intro_figures.py
+  python pipeline/figures/make_intro_figures.py
 """
 from __future__ import annotations
 import pathlib

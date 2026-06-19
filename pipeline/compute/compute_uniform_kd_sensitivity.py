@@ -22,7 +22,7 @@ free parameters honestly: M1 has 2 (K_d^A15, K_d^A17); M2 has 3
 (K_d shared, Q_b^A15, Q_b^A17); M3 has 1 (K_d shared).
 
 Run from the repo root:
-  python scripts/pipeline/compute_uniform_kd_sensitivity.py
+  python pipeline/compute/compute_uniform_kd_sensitivity.py
 """
 from __future__ import annotations
 import json
@@ -33,10 +33,10 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "scripts" / "figures"))
+sys.path.insert(0, str(ROOT / "pipeline" / "figures"))
 
 from lunar.apollo_helpers import extract_sensor_stability        # noqa: E402
-from scripts.pipeline.retrieve_kd import SITES, run_with    # noqa: E402
+from pipeline.compute.retrieve_kd import SITES, run_with    # noqa: E402
 
 # Published basal-flux envelopes (Langseth 1976 nominal; Saito 2007 /
 # Nagihara 2018 reanalysis range), in W m^-2.

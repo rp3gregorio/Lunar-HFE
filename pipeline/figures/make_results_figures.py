@@ -801,7 +801,7 @@ def fig_thermal_profiles(d, out_path):
     # coefficients in lunar.properties). The local run_profile /
     # make_k_* helpers above are retained for reference only; they used
     # the superseded fixed-length spin-up and an unverified B1 variant.
-    from scripts.pipeline.retrieve_kd import (SITES as _PIPE_SITES,
+    from pipeline.compute.retrieve_kd import (SITES as _PIPE_SITES,
                                               run_with as _pipe_run_with)
     site_data = {}
     for name, site_cfg in SITE_CFGS.items():

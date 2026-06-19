@@ -26,8 +26,8 @@ import matplotlib.pyplot as plt
 import emcee
 import corner
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts"))
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "scripts" / "figures"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "pipeline"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "pipeline" / "figures"))
 from lunar.plotting.style import (   # type: ignore
     JGR_FULL,
     FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,

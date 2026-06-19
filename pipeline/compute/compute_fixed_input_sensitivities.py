@@ -22,14 +22,14 @@ Writes output/fixed_input_sensitivities.json, consumed by
 compute_error_budget.py.
 
 Run with:
-    python scripts/pipeline/compute_fixed_input_sensitivities.py
+    python pipeline/compute/compute_fixed_input_sensitivities.py
 """
 from __future__ import annotations
 import json, sys, pathlib
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
-sys.path.insert(0, str(_REPO / "scripts" / "figures"))
+sys.path.insert(0, str(_REPO / "pipeline" / "figures"))
 
 import numpy as np
 
@@ -37,7 +37,7 @@ from lunar.apollo_helpers import extract_sensor_stability
 from lunar.properties import conductivity_hayne, specific_heat, density_hayne
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.grid import make_geometric_grid
-from scripts.pipeline.retrieve_kd import (
+from pipeline.compute.retrieve_kd import (
     SITES, HAYNE, GRID, S0, T_LUNAR, DT_STEP,
     kd_star_from_residuals,
     EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL,

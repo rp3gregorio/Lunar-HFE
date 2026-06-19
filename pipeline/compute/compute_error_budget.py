@@ -34,7 +34,7 @@ Output schema (kd_error_budget.json):
     }
 
 Run with:
-    python scripts/pipeline/compute_error_budget.py
+    python pipeline/compute/compute_error_budget.py
 """
 from __future__ import annotations
 import json

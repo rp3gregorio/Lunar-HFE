@@ -14,15 +14,15 @@ Produces three conceptual figures that do not appear in the letter:
                               does not.
 
 Run with:
-    python scripts/figures/make_primer_figures.py
+    python pipeline/figures/make_primer_figures.py
 """
 from __future__ import annotations
 import json, sys, pathlib
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
-sys.path.insert(0, str(_REPO / "scripts" / "figures"))
-sys.path.insert(0, str(_REPO / "scripts" / "pipeline"))
+sys.path.insert(0, str(_REPO / "pipeline" / "figures"))
+sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 
 import numpy as np
 import matplotlib
@@ -213,7 +213,7 @@ def fig_retrieval():
 # Figure P3 -- the bug and the fix, from the real solver
 # ══════════════════════════════════════════════════════════════════════════
 def fig_anchorfix():
-    import scripts.pipeline.retrieve_kd as pap
+    import pipeline.compute.retrieve_kd as pap
     from lunar.equilibrium import solve_periodic_equilibrium
     from lunar.grid import make_geometric_grid
     from lunar.solver import PixelInputs, solve_pixel

@@ -20,7 +20,7 @@ A15-Probe2, A17-Probe1, A17-Probe2):
 
 Run with::
 
-  python3 scripts/figures/make_apollo_timeline.py
+  python3 pipeline/figures/make_apollo_timeline.py
 
 The function reads Apollo HFE traces via ``lunar.apollo_helpers``;
 no JSON outputs are required.
@@ -42,8 +42,8 @@ ROOT          = pathlib.Path(__file__).resolve().parents[2]
 LETTER_FIGS   = ROOT / "paper" / "letter" / "figures"
 LETTER_FIGS.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "scripts"))
-sys.path.insert(0, str(ROOT / "scripts" / "figures"))
+sys.path.insert(0, str(ROOT / "pipeline"))
+sys.path.insert(0, str(ROOT / "pipeline" / "figures"))
 
 from lunar import _bootstrap as boot
 boot.ensure_lunar(extra=("spiceypy", "scipy"))

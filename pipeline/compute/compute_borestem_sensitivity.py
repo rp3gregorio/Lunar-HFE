@@ -74,9 +74,9 @@ def main():
               f"{kd17*1e3:>9.2f} ({n17}) | {contrast:>9.2f}")
     out["cut_cm"] = used_cuts
 
-    json.dump(out, open(ROOT / "output" / "borestem_sensitivity.json",
+    json.dump(out, open(ROOT / "results" / "borestem_sensitivity.json",
                         "w"), indent=2)
-    print("\nwrote output/borestem_sensitivity.json")
+    print("\nwrote results/borestem_sensitivity.json")
     # quick verdict
     c = np.array(out["contrast"])
     print(f"\ncontrast across 60-100 cm cuts: "

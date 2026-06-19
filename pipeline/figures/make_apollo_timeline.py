@@ -39,7 +39,7 @@ from matplotlib.patches import Patch, Rectangle
 from matplotlib.colors import LinearSegmentedColormap
 
 ROOT          = pathlib.Path(__file__).resolve().parents[2]
-LETTER_FIGS   = ROOT / "paper" / "letter" / "figures"
+LETTER_FIGS   = ROOT / "results" / "figures"
 LETTER_FIGS.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "pipeline"))

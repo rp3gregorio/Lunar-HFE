@@ -101,9 +101,9 @@ def main():
               f"K_d* swing = {dkd:.3f} mW/m/K "
               f"({100*dkd/kd0:.1f}% of K_d*)")
 
-    json.dump(out, open(ROOT / "output" / "surface_bias_test.json", "w"),
+    json.dump(out, open(ROOT / "results" / "surface_bias_test.json", "w"),
               indent=2)
-    print("\nwrote output/surface_bias_test.json")
+    print("\nwrote results/surface_bias_test.json")
 
 
 if __name__ == "__main__":

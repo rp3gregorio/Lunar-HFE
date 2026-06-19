@@ -3,7 +3,7 @@
 
 One command to "draw out the figures." Each generator is run in turn,
 timed, and reported; a failure in one does not stop the others. Assumes
-the result JSONs already exist in output/ (run the retrieval first:
+the result JSONs already exist in results/ (run the retrieval first:
 `python pipeline/compute/retrieve_kd.py`, or `make retrieve`).
 
 Run:  python pipeline/make_all_figures.py    (or: make figures)

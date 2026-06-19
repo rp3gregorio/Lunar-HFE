@@ -33,7 +33,7 @@ from lunar.plotting.style import (   # type: ignore
     FS_TICK, FS_LABEL, FS_LEGEND, fmt_axis,
 )
 
-OUT = _REPO / "paper" / "guidebook" / "figures"
+OUT = _REPO / "results" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 C_HOT = "#C0573B"
 C_COLD = "#2A6F8E"
@@ -152,7 +152,7 @@ def fig_bootstrap():
              ha="center", fontsize=FS_TICK - 1.5, color=C_DIM, style="italic")
 
     # (c) the resulting spread, from the REAL bootstrap
-    d = json.loads((_REPO / "output" / "kd_retrieval_results.json").read_text())
+    d = json.loads((_REPO / "results" / "kd_retrieval_results.json").read_text())
     boot = np.array(d["A15"]["bootstrap"]["samples"]) * 1e3
     lo, hi = np.percentile(boot, [2.5, 97.5])
     axC.hist(boot, bins=np.linspace(boot.min(), boot.max(), 30),
@@ -252,7 +252,7 @@ def fig_aicc():
 
     # (b) real model comparison bars
     axB = fig.add_subplot(gs[1])
-    m = json.loads((_REPO / "output" / "uniform_kd_test.json").read_text())
+    m = json.loads((_REPO / "results" / "uniform_kd_test.json").read_text())
     labels = ["M1\nper-site $K_d$", "M3\nshared $K_d$", "M2\nshared, free $Q_b$"]
     vals = [m["M1_variable_kd"]["delta_aicc"],
             m["M3_uniform_kd_fixed_qb"]["delta_aicc"],

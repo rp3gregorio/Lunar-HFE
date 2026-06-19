@@ -53,7 +53,7 @@ plt.rcParams.update({
     "axes.linewidth": 0.8,
 })
 
-OUT = pathlib.Path(__file__).resolve().parents[2] / "paper" / "letter" / "figures"
+OUT = pathlib.Path(__file__).resolve().parents[2] / "results" / "figures"
 
 # ── regolith model parameters (Hayne 2017; this-work 3-layer) ────────────────
 RHO_S, RHO_D = 1100.0, 1800.0      # Hayne surface / deep bulk density

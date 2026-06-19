@@ -232,7 +232,7 @@ def plot_overlay(result):
 def run(**kw):
     import matplotlib; matplotlib.use("Agg")
     res = compute_curves(**kw)
-    plot_curves(res, save=_REPO / "output" / "figures" / "fig_equilibrium_demo.pdf")
+    plot_curves(res, save=_REPO / "results" / "figures" / "fig_equilibrium_demo.pdf")
     sc = res["shortcut"]
     print(f"\nshortcut: {sc['wall']:.1f} s (drift {sc['drift']*1e3:.1f} mK, "
           f"closure {sc['closure']:.2%})")

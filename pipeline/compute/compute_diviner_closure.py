@@ -6,7 +6,7 @@ against the Diviner Global Cumulative Product diurnal composite at the
 site latitude:
 
   * Hayne (2017) form at the per-site retrieved K_d*
-    (read from output/kd_retrieval_results.json), and
+    (read from results/kd_retrieval_results.json), and
   * Martinez & Siegler (2021) K(T, rho) forward at published
     coefficients (no fitted knob).
 
@@ -20,11 +20,11 @@ Inputs (fetch first if missing):
     data/diviner/gcp/global_cumul_avg_cyl_20n30n_002.tab   (A15, 26.13 N)
     data/diviner/gcp/global_cumul_avg_cyl_10n20n_002.tab   (A17, 20.19 N)
     -> python pipeline/fetch_diviner.py
-    output/kd_retrieval_results.json
+    results/kd_retrieval_results.json
     -> python pipeline/compute/retrieve_kd.py
 
 Writes:
-    output/diviner_closure.json
+    results/diviner_closure.json
     paper/letter/figures/fig_diviner_closure.pdf
 
 Run with:
@@ -111,7 +111,7 @@ def closure_stats(lst_obs, T_obs, lst_mod, T_mod):
 
 
 def main():
-    kd = json.loads((_REPO / "output" / "kd_retrieval_results.json").read_text())
+    kd = json.loads((_REPO / "results" / "kd_retrieval_results.json").read_text())
     results = {}
     curves = {}
     for name in ("A15", "A17"):
@@ -141,7 +141,7 @@ def main():
         curves[name] = (lst_obs, T_obs, lst_h, T_h, lst_m, T_m,
                         rmse_h, bias_h, rmse_m, bias_m)
 
-    out_path = _REPO / "output" / "diviner_closure.json"
+    out_path = _REPO / "results" / "diviner_closure.json"
     out_path.write_text(json.dumps(results, indent=2))
     print(f"wrote {out_path}", flush=True)
 
@@ -189,7 +189,7 @@ def main():
                ncols=3, frameon=True, edgecolor=C_GRID, framealpha=0.97,
                fontsize=FS_LEGEND, handlelength=2.0, borderpad=0.5)
 
-    fig_path = _REPO / "paper" / "letter" / "figures" / "fig_diviner_closure.pdf"
+    fig_path = _REPO / "results" / "figures" / "fig_diviner_closure.pdf"
     fig.savefig(fig_path, dpi=300)
     plt.close(fig)
     print(f"wrote {fig_path}", flush=True)

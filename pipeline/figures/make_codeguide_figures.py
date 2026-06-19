@@ -19,7 +19,7 @@ from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CORAL, C_CHAR, C_DIM, C_GRID
 
-OUT = _REPO / "docs" / "code_guide" / "figures"
+OUT = _REPO / "results" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 
 
@@ -45,7 +45,7 @@ def fig_architecture():
 
     # scripts layer
     _box(ax, 0.8, 5.4, 5.0, 1.5,
-         "pipeline/compute/\nretrieve_kd.py  +  compute_*.py\n(compute -> output/*.json)",
+         "pipeline/compute/\nretrieve_kd.py  +  compute_*.py\n(compute -> results/*.json)",
          "#FdEee7", C_A17)
     _box(ax, 6.4, 5.4, 4.8, 1.5,
          "pipeline/figures/\nmake_*_figures.py\n(JSON -> PDFs)", "#FdEee7", C_A17)
@@ -88,7 +88,7 @@ def fig_dataflow():
         (8.4, "lunar.grid + lunar.properties", "K(T,z), rho(z), c_p(T)", C_A15),
         (6.9, "lunar.solver + lunar.equilibrium", "settled temperature profile", C_A15),
         (5.4, "retrieve_kd.run_with()", "one profile per trial K_d", C_A17),
-        (3.9, "sweep + bootstrap + hold-outs", "output/kd_retrieval_results.json", C_A17),
+        (3.9, "sweep + bootstrap + hold-outs", "results/kd_retrieval_results.json", C_A17),
         (2.4, "pipeline/figures/*", "read JSON, draw with plotting.style", C_A17),
         (0.9, "paper/letter/figures/*.pdf", "-> letter.tex", C_HAYNE),
     ]

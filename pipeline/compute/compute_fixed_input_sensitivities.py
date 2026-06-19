@@ -18,7 +18,7 @@ reports the half-range (or one-sided shift) of K_d*:
               rho*c_p only (the Hayne K(T,z) has no explicit rho),
               half-range.
 
-Writes output/fixed_input_sensitivities.json, consumed by
+Writes results/fixed_input_sensitivities.json, consumed by
 compute_error_budget.py.
 
 Run with:
@@ -105,7 +105,7 @@ def sigma_h_from_joint(site_results):
 
 
 def main():
-    res = json.loads((_REPO / "output" / "kd_retrieval_results.json").read_text())
+    res = json.loads((_REPO / "results" / "kd_retrieval_results.json").read_text())
     out = {}
     for s in ("A15", "A17"):
         cfg = SITES[s]
@@ -138,7 +138,7 @@ def main():
               f"H={sigma_h:.3f} Ks={out[s]['sigma_Ks']:.3f} "
               f"rho={out[s]['sigma_rho']:.3f}", flush=True)
 
-    path = _REPO / "output" / "fixed_input_sensitivities.json"
+    path = _REPO / "results" / "fixed_input_sensitivities.json"
     path.write_text(json.dumps(out, indent=2))
     print(f"wrote {path}", flush=True)
 

@@ -35,7 +35,7 @@ from lunar.plotting.style import (   # type: ignore
     FS_TICK, FS_LABEL, FS_LEGEND, fmt_axis,
 )
 
-OUT = _REPO / "paper" / "guidebook" / "figures"
+OUT = _REPO / "results" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 
 C_SUN = "#E8A33D"
@@ -185,7 +185,7 @@ def fig_retrieval():
 
     # ---- right: real RMSE bowl --------------------------------------------
     ax = axR
-    d = json.loads((_REPO / "output" / "kd_retrieval_results.json").read_text())
+    d = json.loads((_REPO / "results" / "kd_retrieval_results.json").read_text())
     for name, col in (("A15", C_A15), ("A17", C_A17)):
         kd = np.array(d[name]["kd_grid"]) * 1e3
         rmse = np.array(d[name]["rmse_curve"])

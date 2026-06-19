@@ -12,10 +12,10 @@ sweeps K_d against the deep-sensor RMSE, and reports:
     - hold-out tests (TG vs TR, leave-one-deepest-out)
 
 Writes:
-    output/kd_retrieval_results.json     # canonical numerical results
+    results/kd_retrieval_results.json     # canonical numerical results
     paper/letter/figures/fig_bootstrap.pdf
     paper/letter/figures/fig_robustness.pdf
-    output/figures/fig_holdout.pdf
+    results/figures/fig_holdout.pdf
 
 Table of contents (jump to the section you need):
     line  ~80  : Hayne / 3-layer conductivity model wrappers
@@ -394,9 +394,9 @@ def loo_deepest(R, kd_grid, z_obs_deep):
 # ══════════════════════════════════════════════════════════════════════════════
 def main():
     t0 = time.time()
-    out_dir = _REPO / 'output'
+    out_dir = _REPO / 'results'
     fig_letter = _REPO / 'paper' / 'letter' / 'figures'
-    fig_appendix = _REPO / 'output' / 'figures'
+    fig_appendix = _REPO / 'results' / 'figures'
     results = {}
 
     # ── A1: extended K_d grids ────────────────────────────────────────────

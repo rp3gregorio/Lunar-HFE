@@ -11,7 +11,7 @@ apollo_helpers, and compute
 
 with k = number of free parameters (0 for the Hayne global fixed row,
 1 for each K_d* retrieval).  No values are fabricated: K_d* and the
-sigma_i come from output/kd_retrieval_results.json and the restored HFE
+sigma_i come from results/kd_retrieval_results.json and the restored HFE
 record respectively.
 
 Run from the repo root:  python pipeline/compute/compute_model_selection.py
@@ -69,7 +69,7 @@ def stats(z_obs, T_obs, sigma, kd, k_model, site_cfg, n_free):
 
 
 def main():
-    res = json.load(open(ROOT / 'output' / 'kd_retrieval_results.json'))
+    res = json.load(open(ROOT / 'results' / 'kd_retrieval_results.json'))
     out = {}
     for tag, cfg in SITES.items():
         z_obs, T_obs, sigma = deep_obs(cfg)
@@ -93,9 +93,9 @@ def main():
                   f'chi2_red={r["chi2_red"]:.2f}  '
                   f'AICc={r["aicc"]:7.2f}  dAICc={d_aicc:+6.2f}')
 
-    json.dump(out, open(ROOT / 'output' / 'model_selection.json', 'w'),
+    json.dump(out, open(ROOT / 'results' / 'model_selection.json', 'w'),
               indent=2)
-    print('\nwrote output/model_selection.json')
+    print('\nwrote results/model_selection.json')
 
 
 if __name__ == '__main__':

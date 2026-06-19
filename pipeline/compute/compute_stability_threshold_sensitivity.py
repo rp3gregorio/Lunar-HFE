@@ -115,10 +115,10 @@ def main():
                   f"(range {spread:.2f}; "
                   f"{100*spread/np.mean(vals):.1f}% of mean)")
 
-    json.dump(out, open(ROOT / "output" /
+    json.dump(out, open(ROOT / "results" /
                         "stability_threshold_sensitivity.json", "w"),
               indent=2)
-    print("\nwrote output/stability_threshold_sensitivity.json")
+    print("\nwrote results/stability_threshold_sensitivity.json")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ Phase-2 figure regeneration with publication-grade aesthetic
 (Anthropic-aligned: warm coral, deep teal, restrained palette,
 clean serif typography, generous whitespace).
 
-Reads the numerical results from output/phase2_results.json and
+Reads the numerical results from results/phase2_results.json and
 regenerates the new letter/appendix figures.
 """
 from __future__ import annotations
@@ -131,7 +131,7 @@ _ROOT         = pathlib.Path(__file__).parents[2]   # Lunar-V2/
 # here, which held a *different* bootstrap run (N_boot = 2000, contrast
 # CI [3.8,13.3] instead of [-3.2,16.6]) -- so the figures disagreed
 # with the text. Do not point this back at phase2_results.json.
-RESULTS       = _ROOT / "output" / "kd_retrieval_results.json"
+RESULTS       = _ROOT / "results" / "kd_retrieval_results.json"
 LETTER_FIGS   = _ROOT / "paper" / "letter"     / "figures"
 APPENDIX_FIGS = _ROOT / "paper" / "appendix"   / "figures"
 
@@ -386,7 +386,7 @@ def fig_robustness(d, out_path):
     # coarse 3×3 grid from phase2_results.json and quadratically
     # extrapolated it; the two files disagreed, so we now use the dense
     # grid as the single source of truth.)
-    _pa = json.loads((_ROOT / "output" / "kd_retrieval_results.json").read_text())
+    _pa = json.loads((_ROOT / "results" / "kd_retrieval_results.json").read_text())
 
     # Pre-load both joint grids to share colorbar levels
     site_ext = {}
@@ -793,7 +793,7 @@ def fig_thermal_profiles(d, out_path):
     # Use kd_retrieval_results.json as the single authoritative source for the
     # Hayne K_d* -- this is the same file the manuscript text and Table 1
     # are built from, so the figure and the text cannot drift apart.
-    _pa_path = _ROOT / "output" / "kd_retrieval_results.json"
+    _pa_path = _ROOT / "results" / "kd_retrieval_results.json"
     d_auth = json.loads(_pa_path.read_text())
 
     # Forward profiles come from the SAME pipeline driver as the

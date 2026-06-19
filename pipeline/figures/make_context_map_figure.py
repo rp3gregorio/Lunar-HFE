@@ -60,7 +60,7 @@ plt.rcParams.update({
 })
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-OUT  = ROOT / "paper" / "letter" / "figures"
+OUT  = ROOT / "results" / "figures"
 MOON_PNG = OUT / "moon_global.png"
 
 # ALSEP gazetteer coordinates (match retrieve_kd.py)

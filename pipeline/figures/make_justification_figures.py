@@ -26,7 +26,7 @@ from lunar.properties import conductivity_hayne, conductivity_martinez, density_
 from lunar.constants import K_SURFACE, K_DEEP, H_PARAMETER
 from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM
 
-OUT = _REPO / "docs" / "method_equivalence" / "figures"
+OUT = _REPO / "results" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 
 

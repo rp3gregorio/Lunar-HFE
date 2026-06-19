@@ -4,7 +4,7 @@
 Two panels (A15, A17): RMSE vs alpha curve from the per-site Martinez
 retrieval, with the physically admissible Apollo-core density band
 shaded, the published Martinez baseline (alpha=1) marked, and the
-retrieved alpha* highlighted. Reads output/headline_rmse.json.
+retrieved alpha* highlighted. Reads results/headline_rmse.json.
 
 Writes paper/letter/figures/fig_alpha_sweep.pdf.
 """
@@ -43,7 +43,7 @@ plt.rcParams.update({
 })
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-OUT  = ROOT / "paper" / "letter" / "figures"
+OUT  = ROOT / "results" / "figures"
 
 # Apollo-core admissible deep bulk density envelope (Mitchell 1973;
 # Carrier 1991). 1700-2000 kg/m^3 maps to alpha = [1700/1800, 2000/1800].
@@ -55,7 +55,7 @@ ALPHA_BASALT = 3000.0 / 1800.0   # solid lunar basalt absolute upper bound
 
 
 def main():
-    data = json.loads((ROOT / "output" / "headline_rmse.json").read_text())
+    data = json.loads((ROOT / "results" / "headline_rmse.json").read_text())
 
     # Single-panel overlay -- both sites on shared axes so the
     # contrast between the two minima is immediate visually.

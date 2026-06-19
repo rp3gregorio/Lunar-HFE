@@ -10,8 +10,8 @@ percentiles. The output figure is a 2-site corner plot with marginal
 KDEs and joint contours.
 
 Output:
-  output/figures/fig_kd_qb_posterior.pdf
-  output/bayesian_crosscheck_samples.json (posterior summary statistics)
+  results/figures/fig_kd_qb_posterior.pdf
+  results/bayesian_crosscheck_samples.json (posterior summary statistics)
 
 Runtime: ~30 s with 32 walkers × 4000 steps × 2 sites (likelihood is
 analytical via the cached RMSE-vs-K_d spline from kd_retrieval_results.json).
@@ -35,9 +35,9 @@ from lunar.plotting.style import (   # type: ignore
     fmt_axis,
 )
 
-PHASE_A = pathlib.Path(__file__).resolve().parents[2] / "output/kd_retrieval_results.json"
-OUT_FIG = pathlib.Path(__file__).resolve().parents[2] / "output/figures/fig_kd_qb_posterior.pdf"
-OUT_JSON = pathlib.Path(__file__).resolve().parents[2] / "output/bayesian_crosscheck_samples.json"
+PHASE_A = pathlib.Path(__file__).resolve().parents[2] / "results/kd_retrieval_results.json"
+OUT_FIG = pathlib.Path(__file__).resolve().parents[2] / "results/figures/fig_kd_qb_posterior.pdf"
+OUT_JSON = pathlib.Path(__file__).resolve().parents[2] / "results/bayesian_crosscheck_samples.json"
 
 # ── Site parameters ──────────────────────────────────────────────────────────
 from lunar.config import SITES  # single source of truth
@@ -379,7 +379,7 @@ def make_comparison_figure(samples, summary):
                labelspacing=0.3,
                title=contrast_stats, title_fontsize=8.5)
 
-    out = pathlib.Path(__file__).resolve().parents[2] / "output/figures/fig_posterior_compare.pdf"
+    out = pathlib.Path(__file__).resolve().parents[2] / "results/figures/fig_posterior_compare.pdf"
     fig.savefig(out)
     plt.close(fig)
     print(f"Saved: {out}", flush=True)

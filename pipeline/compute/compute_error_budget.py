@@ -2,13 +2,13 @@
 
 Reads the canonical retrieval JSON and all five auxiliary-sensitivity
 JSONs, combines them in quadrature, and writes the result to
-output/kd_error_budget.json.
+results/kd_error_budget.json.
 
 Required inputs (run their generating scripts first if missing):
-    output/kd_retrieval_results.json            -- retrieve_kd.py
-    output/borestem_sensitivity.json            -- compute_borestem_sensitivity.py
-    output/stability_threshold_sensitivity.json -- compute_stability_threshold_sensitivity.py
-    output/surface_bias_test.json               -- compute_surface_bias_test.py
+    results/kd_retrieval_results.json            -- retrieve_kd.py
+    results/borestem_sensitivity.json            -- compute_borestem_sensitivity.py
+    results/stability_threshold_sensitivity.json -- compute_stability_threshold_sensitivity.py
+    results/surface_bias_test.json               -- compute_surface_bias_test.py
     (no input file needed for sigma_Qb -- it is analytical from the
      K_d/Q_b degeneracy, with the published Q_b envelopes hard-coded
      below from Langseth (1976), Saito (2007), and Nagihara (2018).)
@@ -43,7 +43,7 @@ import pathlib
 import numpy as np
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-OUT = ROOT / "output"
+OUT = ROOT / "results"
 
 # Published Q_b envelopes in mW m^-2 (Langseth 1976 / Saito 2007 / Nagihara 2018)
 QB_ENVELOPES = {

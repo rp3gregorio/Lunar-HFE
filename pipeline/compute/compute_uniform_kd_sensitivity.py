@@ -199,9 +199,9 @@ def main():
     print("VERDICT:", verdict)
     print("-" * 70)
 
-    json.dump(out, open(ROOT / "output" / "uniform_kd_test.json", "w"),
+    json.dump(out, open(ROOT / "results" / "uniform_kd_test.json", "w"),
               indent=2)
-    print("\nwrote output/uniform_kd_test.json")
+    print("\nwrote results/uniform_kd_test.json")
 
 
 if __name__ == "__main__":

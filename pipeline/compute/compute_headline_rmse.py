@@ -15,7 +15,7 @@ single script:
      the deep-sensor RMSE.  alpha=1 reproduces row 3.  This is the
      apples-to-apples per-site retrieval under the Martinez form.
 
-Writes output/headline_rmse.json and prints an ASCII summary.
+Writes results/headline_rmse.json and prints an ASCII summary.
 
 Run from the repo root:
   python pipeline/compute/compute_headline_rmse.py
@@ -126,7 +126,7 @@ def main():
                                   "alpha_grid": alpha_grid_list,
                                   "rmse_curve": rmse_alpha_curve},
         }
-    out_path = ROOT / "output" / "headline_rmse.json"
+    out_path = ROOT / "results" / "headline_rmse.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, open(out_path, "w"), indent=2)
     print(f"\nwrote {out_path}")

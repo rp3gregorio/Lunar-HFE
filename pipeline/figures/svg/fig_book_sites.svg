@@ -1,0 +1,40 @@
+<svg viewBox="0 0 820 470" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <title>The two Apollo sites compared</title>
+  <desc>Side-by-side cards for Apollo 15 (Hadley Rille mare) and Apollo 17 (Taurus-Littrow highland); the darker, denser Apollo 17 regolith has about twice the deep conductivity.</desc>
+
+  <text x="40" y="36" font-size="19" font-weight="700" fill="#2A2520">Two sites, two regoliths: Apollo 17 conducts heat about twice as well</text>
+
+  <!-- ===== Apollo 15 card ===== -->
+  <text x="205" y="66" font-size="15" font-weight="700" fill="#2A2520" text-anchor="middle">Apollo 15</text>
+  <rect x="40" y="80" width="330" height="170" fill="#EAF1F3"/>
+  <polygon points="40,250 120,165 205,200 290,160 370,250" fill="#C7D2D0"/>
+  <text x="205" y="108" font-size="12.5" font-style="italic" fill="#6E6862" text-anchor="middle">Hadley Rille (mare)</text>
+  <rect x="40" y="250" width="330" height="185" fill="#D9B48A" stroke="#6E6862" stroke-width="1"/>
+  <line x1="252" y1="250" x2="252" y2="360" stroke="#2A2520" stroke-width="2.6"/>
+  <circle cx="252" cy="360" r="6" fill="#3D6E4A" stroke="#fff" stroke-width="1.2"/>
+  <text x="262" y="352" font-size="11" fill="#2A2520">1.39 m</text>
+  <g font-size="11.5" fill="#2A2520">
+    <text x="54" y="288">Q_b = 21 mW/m2</text><text x="54" y="306">albedo 0.131</text><text x="54" y="324">mare basalt</text>
+  </g>
+  <text x="205" y="458" font-size="13.5" font-weight="700" fill="#3D6E4A" text-anchor="middle">Kd* = 4.58 mW/m/K</text>
+
+  <!-- ===== Apollo 17 card ===== -->
+  <text x="615" y="66" font-size="15" font-weight="700" fill="#2A2520" text-anchor="middle">Apollo 17</text>
+  <rect x="450" y="80" width="330" height="170" fill="#EAF1F3"/>
+  <polygon points="450,250 545,140 635,185 725,135 780,180 780,250" fill="#A9B4B2"/>
+  <text x="615" y="108" font-size="12.5" font-style="italic" fill="#6E6862" text-anchor="middle">Taurus-Littrow (highland)</text>
+  <rect x="450" y="250" width="330" height="185" fill="#A9774B" stroke="#6E6862" stroke-width="1"/>
+  <line x1="662" y1="250" x2="662" y2="435" stroke="#2A2520" stroke-width="2.6"/>
+  <circle cx="662" cy="435" r="6" fill="#3D6E4A" stroke="#fff" stroke-width="1.2"/>
+  <text x="672" y="426" font-size="11" fill="#2A2520">2.34 m</text>
+  <g font-size="11.5" fill="#F4ECE0">
+    <text x="464" y="288">Q_b = 15 mW/m2</text><text x="464" y="306">albedo 0.137</text><text x="464" y="324">highland + dark mantle</text>
+  </g>
+  <text x="615" y="458" font-size="13.5" font-weight="700" fill="#B85B3A" text-anchor="middle">Kd* = 8.12 mW/m/K</text>
+
+  <!-- ===== centre comparison ===== -->
+  <text x="410" y="318" font-size="14" font-weight="700" fill="#B85B3A" text-anchor="middle">~2x</text>
+  <text x="410" y="334" font-size="11.5" fill="#B85B3A" text-anchor="middle">better</text>
+  <line x1="384" y1="352" x2="436" y2="352" stroke="#B85B3A" stroke-width="2.4" marker-end="url(#a)"/>
+  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#B85B3A"/></marker></defs>
+</svg>

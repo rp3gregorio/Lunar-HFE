@@ -300,10 +300,10 @@ def fig_sites_compare():
 
 def main():
     print("Building schematic illustrations:")
-    fig_probe_layout()
-    fig_sun_moon()
+    # probe_layout, sun_moon, sites_compare were re-authored as SVG
+    # (pipeline/figures/svg/*.svg -> make_svg_figures); flux_closure stays here
+    # because it contains a real T(z) plot.
     fig_flux_closure()
-    fig_sites_compare()
     print("done.")
 
 

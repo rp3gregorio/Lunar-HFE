@@ -449,9 +449,8 @@ def fig_grid_3d():
 
 def main():
     print("Building high-end 3D book figures:")
-    fig_fourier()               # 2D equation interpretation (gradient = slope)
-    fig_heateq_cv_3d()          # 3D equation interpretation (control volume)
-    fig_grid_3d()               # conceptual 3D structural illustration
+    # heateq + grid were re-authored as SVG (pipeline/figures/svg -> make_svg_figures).
+    fig_fourier()               # 2D equation interpretation (contains a T(z) plot)
     fig_thermal_field()         # 2D data heatmap
     fig_skin_wave()             # 2D data lines
     print("done.")

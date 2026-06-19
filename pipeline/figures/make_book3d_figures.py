@@ -83,112 +83,60 @@ def _clean_3d(ax):
         axis.set_tick_params(colors=C_DIM, labelsize=8)
 
 
-def fig_thermalwave_3d():
-    """3D surface T(z,t): the daily wave on top of the slow deep mean."""
+def fig_thermal_field():
+    """2D heatmap of the field T(z,t): a fierce surface swing fading with depth."""
     z, t_days, T = _solve_field("A17")
-    zmax = 0.9                                   # show the wave-bearing layer
-    sel = z <= zmax
-    z_s = z[sel]
-    Ts = T[sel]
-    # downsample time for a smooth, light surface
-    step = 6
-    t_d = t_days[::step]
-    Ts = Ts[:, ::step]
-    TT, ZZ = np.meshgrid(t_d, z_s)               # (N_z, N_t)
-
-    fig = plt.figure(figsize=(JGR_FULL, 5.0))
-    ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
-
-    norm = plt.Normalize(Ts.min(), Ts.max())
-    ax.plot_surface(
-        TT, ZZ, Ts, cmap=ANTH_DIVERGE, norm=norm,
-        rcount=len(z_s), ccount=len(t_d),
-        linewidth=0, antialiased=True, alpha=0.98, shade=True)
-
-    ax.set_xlabel("time over one lunation  [days]", labelpad=10)
-    ax.set_ylabel("depth  $z$  [m]", labelpad=10)
-    ax.set_ylim(z_s.max(), z_s.min())            # surface at the front
-    ax.set_zlim(Ts.min() - 5, Ts.max() + 5)
-    ax.set_xticks([0, 10, 20, 29])
-    ax.set_yticks([0.0, 0.3, 0.6, 0.9])
-    ax.set_zticks([])                            # temperature read from colorbar
-    ax.view_init(elev=18, azim=-62)
-    ax.set_box_aspect((1.55, 1.0, 0.72), zoom=1.04)
-    _clean_3d(ax)
-    # teaching annotations (2D overlay, never overlap the surface)
-    ax.text2D(0.015, 0.93, "surface: ~250 K swing every lunation",
-              transform=ax.transAxes, fontsize=9, color=C_CORAL,
-              fontweight="bold")
-    ax.text2D(0.015, 0.87, "below ~0.5 m: nearly constant (the deep mean)",
-              transform=ax.transAxes, fontsize=9, color=C_TEAL)
-
-    fig.suptitle("The thermal wave: a fierce daily swing at the surface that "
-                 "dies out with depth", x=0.06, y=0.98, ha="left",
-                 fontsize=11.5, fontweight="bold", color=C_CHAR)
-
-    cb = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=ANTH_DIVERGE),
-                      ax=ax, shrink=0.5, aspect=18, pad=0.0, location="right")
-    cb.set_label("temperature  [K]", fontsize=9, color=C_CHAR)
+    sel = z <= 0.9
+    fig, ax = plt.subplots(figsize=(JGR_FULL, 3.4))
+    im = ax.pcolormesh(t_days, z[sel], T[sel], cmap=ANTH_DIVERGE,
+                       shading="gouraud", rasterized=True)
+    ax.contour(t_days, z[sel], T[sel], levels=9, colors="white",
+               linewidths=0.4, alpha=0.5)
+    ax.invert_yaxis()
+    ax.set_xlim(0, t_days[-1])
+    ax.set_xlabel("time over one lunation  [days]")
+    ax.set_ylabel("depth  $z$  [m]")
+    ax.set_title("The thermal field $T(z,t)$: a fierce surface swing that fades "
+                 "within tens of centimetres", loc="left", fontsize=10.5,
+                 color=C_CHAR)
+    for s in ax.spines.values():
+        s.set_color(C_CHAR)
+    cb = fig.colorbar(im, ax=ax, pad=0.015, aspect=20)
+    cb.set_label("temperature  [K]", fontsize=9)
     cb.ax.tick_params(labelsize=8, colors=C_DIM)
     cb.outline.set_edgecolor(C_GRID)
-
-    out = OUT / "fig_book_thermalwave3d.pdf"
-    fig.savefig(out, bbox_inches="tight", pad_inches=0.12)
+    fig.savefig(OUT / "fig_book_thermalfield.pdf", bbox_inches="tight",
+                pad_inches=0.06)
     plt.close(fig)
-    print("  ->", out.name)
+    print("  -> fig_book_thermalfield.pdf")
 
 
-def fig_skin_waterfall_3d():
-    """3D waterfall: T(t) at increasing depths — the daily swing shrinks."""
+def fig_skin_wave():
+    """2D lines: T(t) at increasing depths — the daily swing collapses."""
     z, t_days, T = _solve_field("A17")
     depths = [0.0, 0.025, 0.05, 0.10, 0.20, 0.40, 0.80]
     idx = [int(np.argmin(np.abs(z - d))) for d in depths]
-    cmap = ANTH_DIVERGE
-    cols = [cmap(v) for v in np.linspace(0.85, 0.15, len(idx))]
-
-    fig = plt.figure(figsize=(JGR_FULL, 4.8))
-    ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
-    from matplotlib.lines import Line2D
-    handles = []
-    for k, (i, d, c) in enumerate(zip(idx, depths, cols)):
-        y = np.full_like(t_days, d)
-        Ti = T[i]
-        ax.plot(t_days, y, Ti, color=c, lw=2.0, zorder=10 - k)
-        # faint vertical ribbon down to the floor for a depth cue
-        ax.add_collection3d(
-            plt.matplotlib.collections.PolyCollection(
-                [np.column_stack([np.r_[t_days, t_days[::-1]],
-                                  np.r_[Ti, np.full_like(Ti, Ti.min())]])],
-                facecolors=[c], alpha=0.09),
-            zs=d, zdir="y")
-        label = "surface" if d == 0 else f"{int(round(d*100))} cm deep"
-        handles.append(Line2D([0], [0], color=c, lw=2.4, label=label))
-    leg = ax.legend(handles=handles, loc="upper left",
-                    bbox_to_anchor=(0.0, 0.93), frameon=True, fontsize=8.5,
-                    title="depth", title_fontsize=9, borderpad=0.6,
-                    handlelength=1.6, labelspacing=0.35)
-    leg.get_frame().set_edgecolor(C_GRID)
+    cols = [ANTH_DIVERGE(v) for v in np.linspace(0.85, 0.15, len(depths))]
+    fig, ax = plt.subplots(figsize=(JGR_FULL, 3.7))
+    for i, d, c in zip(idx, depths, cols):
+        lab = "surface" if d == 0 else f"{int(round(d*100))} cm"
+        ax.plot(t_days, T[i], color=c, lw=2.0, label=lab)
+    ax.set_xlim(0, t_days[-1])
+    ax.set_xlabel("time over one lunation  [days]")
+    ax.set_ylabel("temperature  [K]")
+    ax.set_title("Same wave, deeper down: the daily swing collapses within the "
+                 "first half-metre", loc="left", fontsize=10.5, color=C_CHAR)
+    ax.grid(color=C_GRID, lw=0.5); ax.set_axisbelow(True)
+    for s in ax.spines.values():
+        s.set_color(C_CHAR)
+    leg = ax.legend(title="depth", loc="center left", bbox_to_anchor=(1.01, 0.5),
+                    frameon=True, edgecolor=C_GRID, framealpha=0.97, fontsize=8.5,
+                    title_fontsize=9, handlelength=1.5, labelspacing=0.4)
     leg.get_title().set_color(C_CHAR)
-
-    ax.set_xlabel("time over one lunation  [days]", labelpad=10)
-    ax.set_ylabel("depth  $z$  [m]", labelpad=10)
-    ax.set_zlabel("temperature  [K]", labelpad=8)
-    ax.set_xticks([0, 10, 20, 29])
-    ax.set_yticks([0.0, 0.4, 0.8])
-    ax.set_zticks([150, 250, 350])
-    ax.set_ylim(0.85, -0.03)
-    ax.view_init(elev=20, azim=-66)
-    ax.set_box_aspect((1.5, 1.0, 0.7), zoom=1.03)
-    ax.zaxis.set_rotate_label(False)
-    ax.zaxis.label.set_rotation(90)
-    _clean_3d(ax)
-    fig.suptitle("Same wave, deeper down: the daily swing collapses within "
-                 "the first half-metre", x=0.06, y=0.98, ha="left",
-                 fontsize=11.5, fontweight="bold", color=C_CHAR)
-    out = OUT / "fig_book_skinwaterfall3d.pdf"
-    fig.savefig(out, bbox_inches="tight", pad_inches=0.12)
+    fig.savefig(OUT / "fig_book_skinwave.pdf", bbox_inches="tight",
+                pad_inches=0.06)
     plt.close(fig)
-    print("  ->", out.name)
+    print("  -> fig_book_skinwave.pdf")
 
 
 def fig_lunar_forcing_3d():
@@ -403,11 +351,10 @@ def fig_grid_3d():
 
 def main():
     print("Building high-end 3D book figures:")
-    fig_lunar_forcing_3d()
-    fig_grid_3d()
-    fig_borehole_column_3d()
-    fig_thermalwave_3d()
-    fig_skin_waterfall_3d()
+    fig_lunar_forcing_3d()      # conceptual 3D illustration
+    fig_grid_3d()               # conceptual 3D illustration
+    fig_thermal_field()         # 2D data heatmap
+    fig_skin_wave()             # 2D data lines
     print("done.")
 
 

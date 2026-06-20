@@ -1,0 +1,67 @@
+<svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <title>HFE thermal sensor — gradient bridge construction</title>
+  <desc>Standalone schematic of one Apollo heat-flow gradient sensor: two ~50 cm probe-tube sections joined by an upper and a lower bridge of platinum-resistance thermometers. The bridge pair measures the small temperature difference between the two depths; the difference divided by their separation is the thermal gradient, which times the conductivity gives the heat flux.</desc>
+  <defs>
+    <pattern id="tube" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(0)">
+      <line x1="0" y1="0" x2="0" y2="4" stroke="#000" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <text x="40" y="32" font-size="14" font-style="italic" fill="#000">One sensor — a gradient bridge</text>
+  <line x1="40" y1="42" x2="240" y2="42" stroke="#000" stroke-width="0.7"/>
+
+  <!-- ============ LEFT: the construction ============ -->
+  <!-- upper probe-tube section -->
+  <rect x="120" y="80" width="60" height="105" fill="url(#tube)" stroke="#000" stroke-width="1.3"/>
+  <!-- lower probe-tube section -->
+  <rect x="120" y="220" width="60" height="105" fill="url(#tube)" stroke="#000" stroke-width="1.3"/>
+
+  <!-- upper bridge: pair of thin wires near the top, on the spine -->
+  <line x1="150" y1="180" x2="150" y2="225" stroke="#000" stroke-width="2.2"/>
+  <line x1="138" y1="190" x2="162" y2="190" stroke="#000" stroke-width="1.5"/>
+  <line x1="138" y1="200" x2="162" y2="200" stroke="#000" stroke-width="1.5"/>
+  <text x="195" y="198" font-size="12" font-style="italic" fill="#000">upper bridge</text>
+
+  <!-- lower bridge (deeper inside the lower section): same pattern -->
+  <line x1="150" y1="260" x2="150" y2="290" stroke="#000" stroke-width="2.2"/>
+  <line x1="138" y1="270" x2="162" y2="270" stroke="#000" stroke-width="1.5"/>
+  <line x1="138" y1="280" x2="162" y2="280" stroke="#000" stroke-width="1.5"/>
+  <line x1="135" y1="280" x2="282" y2="280" stroke="#000" stroke-width="0.7"/>
+  <text x="287" y="284" font-size="12" font-style="italic" fill="#000">lower bridge</text>
+
+  <!-- 50 cm vertical separation marker -->
+  <line x1="98" y1="195" x2="98" y2="275" stroke="#000" stroke-width="0.9"/>
+  <line x1="93" y1="195" x2="103" y2="195" stroke="#000" stroke-width="0.9"/>
+  <line x1="93" y1="275" x2="103" y2="275" stroke="#000" stroke-width="0.9"/>
+  <text x="92" y="240" font-size="12" font-style="italic" fill="#000" text-anchor="end">50 cm</text>
+
+  <!-- probe-tube labels -->
+  <line x1="180" y1="130" x2="210" y2="130" stroke="#000" stroke-width="0.7"/>
+  <text x="215" y="134" font-size="12" font-style="italic" fill="#000">probe tube</text>
+  <line x1="180" y1="270" x2="210" y2="270" stroke="#000" stroke-width="0.7"/>
+  <text x="215" y="274" font-size="12" font-style="italic" fill="#000">probe tube</text>
+
+  <!-- temperature labels at top of each bridge -->
+  <text x="150" y="71" font-size="13" font-style="italic" fill="#000" text-anchor="middle">T_upper</text>
+  <text x="150" y="349" font-size="13" font-style="italic" fill="#000" text-anchor="middle">T_lower</text>
+
+  <!-- ============ RIGHT: how it produces a heat flux ============ -->
+  <line x1="345" y1="60" x2="345" y2="340" stroke="#000" stroke-width="0.7"/>
+
+  <text x="375" y="80" font-size="14" font-style="italic" fill="#000">What the bridge measures</text>
+  <line x1="375" y1="90" x2="595" y2="90" stroke="#000" stroke-width="0.6"/>
+
+  <!-- equation 1: temperature gradient -->
+  <text x="375" y="130" font-size="13" fill="#000">temperature gradient:</text>
+  <text x="385" y="160" font-size="16" font-style="italic" fill="#000">dT / dz  ≈  (T_lower − T_upper) / Δz</text>
+
+  <!-- equation 2: Fourier's law application -->
+  <text x="375" y="210" font-size="13" fill="#000">heat flux (Fourier's law):</text>
+  <text x="385" y="240" font-size="16" font-style="italic" fill="#000">q  =  − K · dT / dz</text>
+
+  <!-- footer note -->
+  <line x1="375" y1="278" x2="595" y2="278" stroke="#000" stroke-width="0.4"/>
+  <text x="375" y="298" font-size="11" font-style="italic" fill="#555">Each Apollo probe carries several such</text>
+  <text x="375" y="313" font-size="11" font-style="italic" fill="#555">bridges at different depths. The deep ones</text>
+  <text x="375" y="328" font-size="11" font-style="italic" fill="#555">give the steady gradient that sets K_d.</text>
+</svg>

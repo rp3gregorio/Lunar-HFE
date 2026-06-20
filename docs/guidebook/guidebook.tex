@@ -276,14 +276,27 @@ small depth uncertainty ($\sim$2.5\,cm), which the bootstrap
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_book_probelayout.pdf}
-\caption{How the heat-flow probes are deployed, shown for Apollo~15 at Hadley
-Rille: two boreholes linked to the HFE electronics, each probe's top $\sim$30\,cm
-held in an epoxy borestem. Sensors in that top zone sit in the daily skin and the
-drilling-disturbed region, so they are excluded; the deeper sensors (green) lie
-below the daily wave and carry the steady geothermal signal that fixes $K_d$. The
-same selection is applied at both sites (7 deep sensors at Apollo~15, 16 at
-Apollo~17).}
+\caption{Geometry of the two Apollo~15 heat-flow boreholes at Hadley Rille,
+with sensor depths from the restored Nagihara~(2018) record. Probe~1 carries 8
+sensors to 139\,cm (three shallow, five deep); Probe~2 carries 4 to 97\,cm
+(two and two). Open circles mark shallow sensors --- those lying in the daily
+skin and the drilling-disturbed top 30\,cm of the borestem (hatched) --- which
+are excluded. Filled circles mark the deep sensors below the dashed
+$z=80$\,cm cut; together (7 at Apollo~15, 16 at Apollo~17) they carry the steady
+geothermal signal that fixes $K_d$.}
 \label{fig:borehole}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.96\linewidth]{figures/fig_book_sensor.pdf}
+\caption{What an HFE sensor actually \emph{is}. Two probe-tube sections,
+separated by $\sim$50\,cm, are joined by a pair of platinum-resistance
+bridges. Each bridge reports the temperature at its level; their difference,
+divided by the separation, is the local temperature gradient $\partial T/\partial
+z$. Multiplied by the conductivity $K$ it gives the heat flux via Fourier's law.
+Each Apollo probe carries several such bridges at different depths;
+the deep ones supply the steady gradient that sets $K_d$.}
+\label{fig:sensor}
 \end{figure}
 
 \section{The shape of the whole argument}
@@ -346,7 +359,8 @@ and what flows out through its bottom face. This bookkeeping gives the
 \end{equation}
 where $\rho$ is the density (kg\,m$^{-3}$), $c_p$ is the specific heat capacity
 (J\,kg$^{-1}$\,K$^{-1}$, how much energy it takes to warm a kilogram by one
-Kelvin), and $t$ is time (seconds).
+Kelvin; for lunar regolith the code uses the Hemingway et al.~(1973) polynomial),
+and $t$ is time (seconds).
 
 \begin{plain}
 The left side says ``this layer is warming (or cooling) at such-and-such a
@@ -497,8 +511,9 @@ between these processes sets $T_s$ at every moment.
 From far below, the Moon's interior supplies a small, steady heat flux $Q_b$
 (``basal flux''). This heat comes from radioactive decay in the Moon's interior.
 At Apollo~15, the measured value is $Q_b=21$\,mW\,m$^{-2}$; at Apollo~17,
-$Q_b=15$\,mW\,m$^{-2}$. These are tiny compared to the $\sim$1361\,W\,m$^{-2}$
-noon sunlight, but they set the \emph{deep} temperature gradient.
+$Q_b=15$\,mW\,m$^{-2}$ (Langseth et al.\ 1976). These are tiny compared to the
+$\sim$1361\,W\,m$^{-2}$ noon sunlight, but they set the \emph{deep} temperature
+gradient.
 
 At the base of our model column, the boundary condition is:
 \begin{equation}
@@ -1589,9 +1604,10 @@ $K_d$--$Q_b$ degeneracy of Ch.~\ref{ch:qb}. Second, Apollo~17's budget is about
 $2.6\times$ wider than Apollo~15's, chiefly through albedo and $K_s$, because its
 higher retrieved $K_d$ amplifies the same fractional input uncertainties. The
 conditional sensitivities to the radiative coefficient $\chi$ and the compaction
-depth $H$ are larger still ($\sim$3 and $\sim$14 for $\chi$ at A15/A17), which is
-why $K_d$ is reported conditional on the published Hayne shape parameters as well
-as on $Q_b$.
+depth $H$ are larger still ($\sim$3 and $\sim$14 for $\chi$ at A15/A17, evaluated
+against the alternative Vasavada et al.\ (2012) normalisation $\chi=1.48$), which
+is why $K_d$ is reported conditional on the published Hayne shape parameters as
+well as on $Q_b$.
 
 \section{Bayesian cross-check (MCMC)}\label{sec:mcmc}
 An independent check: instead of sweeping $K_d$ on a grid, we run a Markov-chain

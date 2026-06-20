@@ -1,40 +1,116 @@
-<svg viewBox="0 0 820 470" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
-  <title>The two Apollo sites compared</title>
-  <desc>Side-by-side cards for Apollo 15 (Hadley Rille mare) and Apollo 17 (Taurus-Littrow highland); the darker, denser Apollo 17 regolith has about twice the deep conductivity.</desc>
+<svg viewBox="0 0 920 600" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <title>Comparing the two Apollo HFE sites</title>
+  <desc>Two editorial cards side by side: Apollo 15 at Hadley Rille (mare basalt, cooler tones) and Apollo 17 at Taurus-Littrow (highland + dark mantle, warmer tones); each card carries the site's basal flux, albedo, deepest sensor and retrieved K_d.</desc>
+  <defs>
+    <linearGradient id="sky15" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D8E3E6"/><stop offset="1" stop-color="#EBE5DA"/>
+    </linearGradient>
+    <linearGradient id="sky17" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E5DACB"/><stop offset="1" stop-color="#EFDCBD"/>
+    </linearGradient>
+    <linearGradient id="reg15" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D6BB94"/><stop offset="1" stop-color="#A88E63"/>
+    </linearGradient>
+    <linearGradient id="reg17" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#A87E55"/><stop offset="1" stop-color="#5E4426"/>
+    </linearGradient>
+    <linearGradient id="mtn15" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9BAFB3"/><stop offset="1" stop-color="#B7C5C8"/>
+    </linearGradient>
+    <linearGradient id="mtn17" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9AA09A"/><stop offset="1" stop-color="#B5B8B0"/>
+    </linearGradient>
+    <linearGradient id="probe" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1F4B5B"/><stop offset="0.5" stop-color="#3E7E92"/>
+      <stop offset="1" stop-color="#1F4B5B"/>
+    </linearGradient>
+    <radialGradient id="bead" cx="0.35" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#79B391"/><stop offset="1" stop-color="#1F3F26"/>
+    </radialGradient>
+  </defs>
 
-  <text x="40" y="36" font-size="19" font-weight="700" fill="#2A2520">Two sites, two regoliths: Apollo 17 conducts heat about twice as well</text>
+  <text x="50" y="44" font-size="13" letter-spacing="2" fill="#8C8378">FIELD COMPARISON</text>
+  <text x="50" y="76" font-size="24" font-weight="700" fill="#2A2520">Two sites, two regoliths</text>
+  <line x1="50" y1="90" x2="180" y2="90" stroke="#B85B3A" stroke-width="3"/>
+  <text x="50" y="116" font-size="13.5" fill="#5E574E" font-style="italic">Apollo 17's deep layer conducts heat about twice as well as Apollo 15's.</text>
 
-  <!-- ===== Apollo 15 card ===== -->
-  <text x="205" y="66" font-size="15" font-weight="700" fill="#2A2520" text-anchor="middle">Apollo 15</text>
-  <rect x="40" y="80" width="330" height="170" fill="#EAF1F3"/>
-  <polygon points="40,250 120,165 205,200 290,160 370,250" fill="#C7D2D0"/>
-  <text x="205" y="108" font-size="12.5" font-style="italic" fill="#6E6862" text-anchor="middle">Hadley Rille (mare)</text>
-  <rect x="40" y="250" width="330" height="185" fill="#D9B48A" stroke="#6E6862" stroke-width="1"/>
-  <line x1="252" y1="250" x2="252" y2="360" stroke="#2A2520" stroke-width="2.6"/>
-  <circle cx="252" cy="360" r="6" fill="#3D6E4A" stroke="#fff" stroke-width="1.2"/>
-  <text x="262" y="352" font-size="11" fill="#2A2520">1.39 m</text>
-  <g font-size="11.5" fill="#2A2520">
-    <text x="54" y="288">Q_b = 21 mW/m2</text><text x="54" y="306">albedo 0.131</text><text x="54" y="324">mare basalt</text>
+  <rect x="40" y="140" width="400" height="430" rx="10" fill="#FFFFFF" stroke="#D6CFC0" stroke-width="1.2"/>
+  <rect x="40" y="140" width="400" height="44" rx="10" fill="#3D6E4A"/>
+  <rect x="40" y="170" width="400" height="14" fill="#3D6E4A"/>
+  <text x="60" y="170" font-size="17" font-weight="700" fill="#FFFFFF">Apollo 15</text>
+  <text x="420" y="170" font-size="12" fill="#FFFFFF" text-anchor="end" font-style="italic">Hadley Rille</text>
+
+  <rect x="56" y="200" width="368" height="100" fill="url(#sky15)"/>
+  <polygon points="56,300 130,225 195,255 268,210 340,250 410,225 424,300" fill="url(#mtn15)" opacity="0.95"/>
+  <polygon points="56,300 110,260 175,290 245,275 310,300" fill="#7A8A8E" opacity="0.55"/>
+  <rect x="56" y="300" width="368" height="170" fill="url(#reg15)"/>
+  <g stroke="#7E6A40" stroke-width="0.4" opacity="0.4">
+    <line x1="56" y1="335" x2="424" y2="335"/><line x1="56" y1="380" x2="424" y2="380"/>
+    <line x1="56" y1="430" x2="424" y2="430"/>
   </g>
-  <text x="205" y="458" font-size="13.5" font-weight="700" fill="#3D6E4A" text-anchor="middle">Kd* = 4.58 mW/m/K</text>
-
-  <!-- ===== Apollo 17 card ===== -->
-  <text x="615" y="66" font-size="15" font-weight="700" fill="#2A2520" text-anchor="middle">Apollo 17</text>
-  <rect x="450" y="80" width="330" height="170" fill="#EAF1F3"/>
-  <polygon points="450,250 545,140 635,185 725,135 780,180 780,250" fill="#A9B4B2"/>
-  <text x="615" y="108" font-size="12.5" font-style="italic" fill="#6E6862" text-anchor="middle">Taurus-Littrow (highland)</text>
-  <rect x="450" y="250" width="330" height="185" fill="#A9774B" stroke="#6E6862" stroke-width="1"/>
-  <line x1="662" y1="250" x2="662" y2="435" stroke="#2A2520" stroke-width="2.6"/>
-  <circle cx="662" cy="435" r="6" fill="#3D6E4A" stroke="#fff" stroke-width="1.2"/>
-  <text x="672" y="426" font-size="11" fill="#2A2520">2.34 m</text>
-  <g font-size="11.5" fill="#F4ECE0">
-    <text x="464" y="288">Q_b = 15 mW/m2</text><text x="464" y="306">albedo 0.137</text><text x="464" y="324">highland + dark mantle</text>
+  <rect x="244" y="300" width="6" height="22" fill="#8C3A22"/>
+  <rect x="244" y="322" width="6" height="100" fill="url(#probe)"/>
+  <circle cx="247" cy="400" r="4.5" fill="url(#bead)" stroke="#FFFFFF" stroke-width="0.8"/>
+  <g font-size="10.5" fill="#FFFFFF" font-family="Helvetica, Arial, sans-serif">
+    <text x="258" y="378">deepest sensor</text>
+    <text x="258" y="394" font-style="italic">1.39 m below surface</text>
   </g>
-  <text x="615" y="458" font-size="13.5" font-weight="700" fill="#B85B3A" text-anchor="middle">Kd* = 8.12 mW/m/K</text>
 
-  <!-- ===== centre comparison ===== -->
-  <text x="410" y="318" font-size="14" font-weight="700" fill="#B85B3A" text-anchor="middle">~2x</text>
-  <text x="410" y="334" font-size="11.5" fill="#B85B3A" text-anchor="middle">better</text>
-  <line x1="384" y1="352" x2="436" y2="352" stroke="#B85B3A" stroke-width="2.4" marker-end="url(#a)"/>
-  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#B85B3A"/></marker></defs>
+  <rect x="56" y="488" width="368" height="68" rx="6" fill="#F4ECD9"/>
+  <text x="68" y="510" font-size="11" letter-spacing="2" fill="#5E574E">RETRIEVED DEEP CONDUCTIVITY</text>
+  <text x="68" y="546" font-size="30" font-weight="700" fill="#3D6E4A">K_d* = 4.58</text>
+  <text x="420" y="546" font-size="13" fill="#5E574E" text-anchor="end" font-style="italic">mW / (m K)</text>
+
+  <g font-size="12" fill="#2A2520">
+    <text x="60" y="328" font-weight="700" fill="#3D6E4A">Q_b</text>
+    <text x="92" y="328">21 mW/m²</text>
+    <text x="60" y="346" font-weight="700" fill="#3D6E4A">Albedo</text>
+    <text x="112" y="346">0.131</text>
+    <text x="60" y="364" font-weight="700" fill="#3D6E4A">Setting</text>
+    <text x="112" y="364">mare basalt regolith</text>
+  </g>
+
+  <rect x="480" y="140" width="400" height="430" rx="10" fill="#FFFFFF" stroke="#D6CFC0" stroke-width="1.2"/>
+  <rect x="480" y="140" width="400" height="44" rx="10" fill="#B85B3A"/>
+  <rect x="480" y="170" width="400" height="14" fill="#B85B3A"/>
+  <text x="500" y="170" font-size="17" font-weight="700" fill="#FFFFFF">Apollo 17</text>
+  <text x="860" y="170" font-size="12" fill="#FFFFFF" text-anchor="end" font-style="italic">Taurus-Littrow</text>
+
+  <rect x="496" y="200" width="368" height="100" fill="url(#sky17)"/>
+  <polygon points="496,300 575,180 645,230 720,170 795,225 864,210 864,300" fill="url(#mtn17)"/>
+  <polygon points="496,300 555,230 625,275 700,250 770,295" fill="#7A6B5A" opacity="0.45"/>
+  <rect x="496" y="300" width="368" height="170" fill="url(#reg17)"/>
+  <rect x="496" y="380" width="368" height="90" fill="#3F2C18" opacity="0.25"/>
+  <g stroke="#FFE6B8" stroke-width="0.4" opacity="0.3">
+    <line x1="496" y1="335" x2="864" y2="335"/><line x1="496" y1="380" x2="864" y2="380"/>
+    <line x1="496" y1="445" x2="864" y2="445"/>
+  </g>
+  <rect x="684" y="300" width="6" height="22" fill="#8C3A22"/>
+  <rect x="684" y="322" width="6" height="148" fill="url(#probe)"/>
+  <circle cx="687" cy="455" r="4.5" fill="url(#bead)" stroke="#FFFFFF" stroke-width="0.8"/>
+  <g font-size="10.5" fill="#FFFFFF" font-family="Helvetica, Arial, sans-serif">
+    <text x="697" y="425">deepest sensor</text>
+    <text x="697" y="441" font-style="italic">2.34 m below surface</text>
+  </g>
+
+  <rect x="496" y="488" width="368" height="68" rx="6" fill="#FFE7CC"/>
+  <text x="508" y="510" font-size="11" letter-spacing="2" fill="#5E574E">RETRIEVED DEEP CONDUCTIVITY</text>
+  <text x="508" y="546" font-size="30" font-weight="700" fill="#B85B3A">K_d* = 8.12</text>
+  <text x="860" y="546" font-size="13" fill="#5E574E" text-anchor="end" font-style="italic">mW / (m K)</text>
+
+  <rect x="496" y="312" width="200" height="68" fill="#2A2520" opacity="0.55"/>
+  <g font-size="12" fill="#FFFFFF">
+    <text x="506" y="330" font-weight="700" fill="#FFCB99">Q_b</text>
+    <text x="540" y="330">15 mW/m²</text>
+    <text x="506" y="350" font-weight="700" fill="#FFCB99">Albedo</text>
+    <text x="560" y="350">0.137</text>
+    <text x="506" y="370" font-weight="700" fill="#FFCB99">Setting</text>
+    <text x="560" y="370">highland + dark mantle</text>
+  </g>
+
+  <g transform="translate(460,355)">
+    <circle r="20" fill="#FFFFFF" stroke="#B85B3A" stroke-width="2"/>
+    <text x="0" y="-2" font-size="15" font-weight="700" fill="#B85B3A" text-anchor="middle">×2</text>
+    <text x="0" y="14" font-size="9" fill="#B85B3A" text-anchor="middle">better</text>
+  </g>
 </svg>

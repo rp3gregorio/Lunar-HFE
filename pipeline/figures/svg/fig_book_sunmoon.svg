@@ -1,89 +1,46 @@
-<svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
-  <title>The Sun heats the rotating Moon — celestial diagram</title>
-  <desc>Deep-space diagram: a glowing Sun on the left sends rays past Earth to the orbiting Moon, whose day side faces the Sun and night side faces away; the borehole site rotates through both once per lunar day.</desc>
+<svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <title>Sun–Moon orbital geometry</title>
+  <desc>Schematic: Sun on the left (filled), Earth at centre, Moon on its dashed orbit; parallel arrows show sunlight striking the day side; a dashed vertical line marks the terminator; a small marker shows the borehole site on the lit half.</desc>
   <defs>
-    <linearGradient id="space" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#1F2A3A"/><stop offset="1" stop-color="#0E1622"/>
-    </linearGradient>
-    <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#FFD27A"/><stop offset="0.55" stop-color="#E3A12C"/>
-      <stop offset="1" stop-color="#A86918"/>
-    </radialGradient>
-    <linearGradient id="day" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#E48355"/><stop offset="1" stop-color="#B85B3A"/>
-    </linearGradient>
-    <linearGradient id="night" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#3F6F82"/><stop offset="1" stop-color="#1A3A4A"/>
-    </linearGradient>
-    <linearGradient id="earthDay" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#5994B8"/><stop offset="1" stop-color="#2F5E80"/>
-    </linearGradient>
-    <linearGradient id="ray" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#FFD680" stop-opacity="0"/>
-      <stop offset="0.2" stop-color="#FFD680" stop-opacity="0.55"/>
-      <stop offset="1" stop-color="#FFD680" stop-opacity="0.95"/>
-    </linearGradient>
+    <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#000"/>
+    </marker>
+    <pattern id="lit" patternUnits="userSpaceOnUse" width="5" height="5">
+      <line x1="0" y1="0" x2="5" y2="5" stroke="#000" stroke-width="0.5"/>
+    </pattern>
   </defs>
 
-  <text x="50" y="46" font-size="13" letter-spacing="2" fill="#8C8378">THE LUNAR FORCING</text>
-  <text x="50" y="78" font-size="24" font-weight="700" fill="#2A2520">How the Sun heats the rotating Moon</text>
-  <line x1="50" y1="92" x2="180" y2="92" stroke="#B85B3A" stroke-width="3"/>
+  <ellipse cx="370" cy="170" rx="180" ry="68" fill="none" stroke="#000" stroke-width="0.9" stroke-dasharray="5 4"/>
 
-  <rect x="40" y="118" width="820" height="320" rx="14" fill="url(#space)"/>
-  <g fill="#FFFFFF" opacity="0.7">
-    <circle cx="120" cy="160" r="0.8"/><circle cx="220" cy="430" r="0.6"/>
-    <circle cx="380" cy="190" r="0.7"/><circle cx="510" cy="410" r="0.9"/>
-    <circle cx="640" cy="160" r="0.6"/><circle cx="770" cy="395" r="0.7"/>
-    <circle cx="820" cy="170" r="0.5"/><circle cx="290" cy="340" r="0.5"/>
-    <circle cx="450" cy="135" r="0.6"/><circle cx="180" cy="260" r="0.5"/>
-    <circle cx="720" cy="230" r="0.7"/><circle cx="600" cy="305" r="0.5"/>
+  <circle cx="80" cy="170" r="30" fill="#000"/>
+  <text x="80" y="222" font-size="14" font-style="italic" fill="#000" text-anchor="middle">Sun</text>
+
+  <circle cx="370" cy="170" r="9" fill="none" stroke="#000" stroke-width="1.2"/>
+  <text x="370" y="200" font-size="13" font-style="italic" fill="#000" text-anchor="middle">Earth</text>
+
+  <g stroke="#000" stroke-width="1.2" fill="none">
+    <line x1="120.0" y1="135.0" x2="513.0" y2="135.0" /><polygon points="520.0,135.0 513.0,139.0 513.0,131.0" fill="#000"/>
+    <line x1="120.0" y1="170.0" x2="513.0" y2="170.0" /><polygon points="520.0,170.0 513.0,174.0 513.0,166.0" fill="#000"/>
+    <line x1="120.0" y1="205.0" x2="513.0" y2="205.0" /><polygon points="520.0,205.0 513.0,209.0 513.0,201.0" fill="#000"/>
   </g>
 
-  <ellipse cx="500" cy="278" rx="200" ry="80" fill="none" stroke="#9AAAB4" stroke-width="1" stroke-dasharray="5 5" opacity="0.7"/>
+  <g transform="translate(550,170)">
+    <circle cx="0" cy="0" r="32" fill="none" stroke="#000" stroke-width="1.4"/>
+    <path d="M0,-32 a32,32 0 0 0 0,64 Z" fill="url(#lit)" stroke="none"/>
+    <line x1="0" y1="-32" x2="0" y2="32" stroke="#000" stroke-width="1.1"/>
 
-  <g>
-    <circle cx="135" cy="278" r="58" fill="#A86918" opacity="0.18"/>
-    <circle cx="135" cy="278" r="48" fill="#C7811E" opacity="0.28"/>
-    <circle cx="135" cy="278" r="40" fill="url(#sunGlow)"/>
+    <line x1="-22" y1="-23" x2="-12" y2="-13" stroke="#000" stroke-width="1.4"/>
+    <circle cx="-22" cy="-23" r="2.5" fill="#000"/>
+
+    <text x="-22" y="-58" font-size="12" font-style="italic" fill="#000" text-anchor="middle">borehole site</text>
+    <line x1="-22" y1="-52" x2="-22" y2="-30" stroke="#000" stroke-width="0.8"/>
   </g>
-  <text x="135" y="370" font-size="14" fill="#FBE6CE" text-anchor="middle" font-weight="700">SUN</text>
+  <text x="550" y="222" font-size="14" font-style="italic" fill="#000" text-anchor="middle">Moon</text>
 
-  <g>
-    <rect x="200" y="263" width="490" height="3" fill="url(#ray)"/>
-    <rect x="200" y="291" width="490" height="2.6" fill="url(#ray)"/>
-    <rect x="200" y="234" width="490" height="2.3" fill="url(#ray)" opacity="0.7"/>
-    <rect x="200" y="322" width="490" height="2.3" fill="url(#ray)" opacity="0.7"/>
-  </g>
+  <text x="520" y="135" font-size="13" font-style="italic" fill="#000" text-anchor="end" dy="-8">S(t)</text>
 
-  <circle cx="500" cy="278" r="13" fill="url(#earthDay)" stroke="#FFFFFF" stroke-width="1"/>
-  <path d="M500,265 A13,13 0 0 1 500,291 Z" fill="#0E1622" opacity="0.55"/>
-  <text x="500" y="316" font-size="12" fill="#D7DDE2" text-anchor="middle">Earth</text>
+  <text x="540" y="105" font-size="12" font-style="italic" fill="#555" text-anchor="end">day side</text>
+  <text x="560" y="105" font-size="12" font-style="italic" fill="#555">night side</text>
 
-  <g transform="translate(700,278)">
-    <circle cx="0" cy="0" r="46" fill="url(#night)"/>
-    <path d="M0,-46 A46,46 0 0 0 0,46 Z" fill="url(#day)"/>
-    <line x1="0" y1="-46" x2="0" y2="46" stroke="#2A2520" stroke-width="1" stroke-dasharray="4 3"/>
-    <g transform="rotate(-32)">
-      <line x1="0" y1="-46" x2="0" y2="-66" stroke="#FBE6CE" stroke-width="2"/>
-      <circle cx="0" cy="-46" r="4.5" fill="#3D6E4A" stroke="#FFFFFF" stroke-width="1.2"/>
-    </g>
-    <path d="M-14,-58 a22,22 0 0 1 28,0" fill="none" stroke="#FBE6CE" stroke-width="1.4"/>
-    <polygon points="14,-58 22,-58 18,-50" fill="#FBE6CE"/>
-    <text x="42" y="-50" font-size="11" fill="#FBE6CE" font-style="italic">spin</text>
-  </g>
-  <text x="700" y="358" font-size="14" fill="#FBE6CE" text-anchor="middle" font-weight="700">MOON</text>
-
-  <rect x="540" y="138" width="170" height="48" rx="6" fill="#FFF3E6" stroke="#B85B3A" stroke-width="1.2"/>
-  <text x="555" y="158" font-size="13" font-weight="700" fill="#B85B3A">Day side</text>
-  <text x="555" y="176" font-size="12" fill="#3A2C1F" font-style="italic">surface near 390 K</text>
-  <line x1="540" y1="162" x2="678" y2="245" stroke="#B85B3A" stroke-width="1.1" stroke-dasharray="3 2"/>
-
-  <rect x="750" y="380" width="125" height="48" rx="6" fill="#E8EFF2" stroke="#2A6478" stroke-width="1.2"/>
-  <text x="765" y="400" font-size="13" font-weight="700" fill="#2A6478">Night side</text>
-  <text x="765" y="418" font-size="12" fill="#1B4A5A" font-style="italic">near 100 K</text>
-  <line x1="752" y1="402" x2="725" y2="312" stroke="#2A6478" stroke-width="1.1" stroke-dasharray="3 2"/>
-
-  <rect x="365" y="380" width="270" height="48" rx="6" fill="#FAF6EF" stroke="#D6CFC0" stroke-width="1"/>
-  <text x="500" y="400" font-size="12" font-weight="700" fill="#2A2520" text-anchor="middle">The borehole site rotates through</text>
-  <text x="500" y="418" font-size="12" fill="#5E574E" text-anchor="middle" font-style="italic">day, then night — one lunar day = 29.5 Earth days</text>
+  <text x="370" y="275" font-size="12" font-style="italic" fill="#000" text-anchor="middle">orbit period: one lunar day  (P = 29.5 days)</text>
 </svg>

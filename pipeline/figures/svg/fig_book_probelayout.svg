@@ -1,109 +1,65 @@
-<svg viewBox="0 0 900 540" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
-  <title>Apollo 15 heat-flow probes — cutaway scene</title>
-  <desc>Atmospheric side-view cutaway of two Apollo 15 boreholes at Hadley Rille: distant massif silhouettes, layered regolith, two probes with epoxy borestems and deep sensors, linked to the HFE electronics box at the surface; depth ruler at left.</desc>
+<svg viewBox="0 0 640 380" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <title>Apollo 15 HFE probe geometry</title>
+  <desc>Side-view schematic: ground surface (horizontal line); two vertical boreholes; the upper 30 cm of each probe is a borestem (shown with hatched lines); deep sensors below 80 cm are filled circles, shallow excluded sensors are open. Depth ruler on the left.</desc>
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#DEE9EC"/><stop offset="1" stop-color="#F2EFE8"/>
-    </linearGradient>
-    <linearGradient id="mtnFar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#A2B5BB"/><stop offset="1" stop-color="#BDC9CD"/>
-    </linearGradient>
-    <linearGradient id="mtnNear" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#8FA0A7"/><stop offset="1" stop-color="#A8B7BC"/>
-    </linearGradient>
-    <linearGradient id="reg0" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#EEDEC3"/><stop offset="1" stop-color="#D8C09E"/>
-    </linearGradient>
-    <linearGradient id="reg1" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#D8BD96"/><stop offset="1" stop-color="#B8995E"/>
-    </linearGradient>
-    <linearGradient id="reg2" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#A88556"/><stop offset="1" stop-color="#7F613A"/>
-    </linearGradient>
-    <linearGradient id="probeBody" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#1F4B5B"/><stop offset="0.5" stop-color="#3E7E92"/>
-      <stop offset="1" stop-color="#1F4B5B"/>
-    </linearGradient>
-    <linearGradient id="probeCap" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#8C3A22"/><stop offset="0.5" stop-color="#CC6442"/>
-      <stop offset="1" stop-color="#8C3A22"/>
-    </linearGradient>
-    <radialGradient id="bead" cx="0.35" cy="0.35" r="0.7">
-      <stop offset="0" stop-color="#79B391"/><stop offset="0.7" stop-color="#3D6E4A"/>
-      <stop offset="1" stop-color="#1F3F26"/>
-    </radialGradient>
-    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#2A2520" stop-opacity="0.28"/>
-      <stop offset="1" stop-color="#2A2520" stop-opacity="0"/>
-    </radialGradient>
+    <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#000"/>
+    </marker>
+    <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#000" stroke-width="0.7"/>
+    </pattern>
   </defs>
 
-  <text x="50" y="46" font-size="13" letter-spacing="2" fill="#8C8378">APOLLO 15 — HADLEY RILLE</text>
-  <text x="50" y="78" font-size="24" font-weight="700" fill="#2A2520">How the heat-flow probes are placed</text>
-  <line x1="50" y1="92" x2="180" y2="92" stroke="#B85B3A" stroke-width="3"/>
+  <line x1="80" y1="80" x2="600" y2="80" stroke="#000" stroke-width="1.4"/>
+  <text x="608" y="84" font-size="14" font-style="italic" fill="#000">surface</text>
 
-  <rect x="0" y="110" width="900" height="170" fill="url(#sky)"/>
-  <polygon points="380,280 500,160 595,205 690,140 790,195 900,160 900,280" fill="url(#mtnFar)" opacity="0.95"/>
-  <polygon points="60,280 170,200 240,235 320,190 390,230 470,280" fill="url(#mtnNear)"/>
-  <polygon points="0,280 60,250 70,280" fill="url(#mtnNear)"/>
-
-  <rect x="0" y="280" width="900" height="60" fill="url(#reg0)"/>
-  <rect x="0" y="340" width="900" height="80" fill="url(#reg1)"/>
-  <rect x="0" y="420" width="900" height="120" fill="url(#reg2)"/>
-  <line x1="0" y1="280" x2="900" y2="280" stroke="#2A2520" stroke-width="1.5"/>
-  <g stroke="#9B7E55" stroke-width="0.6" opacity="0.5">
-    <line x1="0" y1="312" x2="900" y2="312"/><line x1="0" y1="376" x2="900" y2="376"/>
-    <line x1="0" y1="468" x2="900" y2="468"/>
+  <line x1="78" y1="80" x2="78" y2="350" stroke="#000" stroke-width="1"/>
+  <g font-size="12" fill="#000" text-anchor="end">
+    <line x1="73" y1="80"  x2="83" y2="80"  stroke="#000" stroke-width="1"/><text x="70" y="84">0</text>
+    <line x1="73" y1="134" x2="83" y2="134" stroke="#000" stroke-width="1"/><text x="70" y="138">50</text>
+    <line x1="73" y1="188" x2="83" y2="188" stroke="#000" stroke-width="1"/><text x="70" y="192">100</text>
+    <line x1="73" y1="244" x2="83" y2="244" stroke="#000" stroke-width="1"/><text x="70" y="248">150</text>
+    <line x1="73" y1="298" x2="83" y2="298" stroke="#000" stroke-width="1"/><text x="70" y="302">200</text>
+    <text x="70" y="338" font-style="italic">z (cm)</text>
   </g>
 
+  <line x1="80" y1="166" x2="600" y2="166" stroke="#000" stroke-width="0.8" stroke-dasharray="3 3"/>
+  <text x="100" y="162" font-size="12" font-style="italic" fill="#555">z = 80 cm  (borestem cut)</text>
 
   <g>
-    <line x1="62" y1="280" x2="62" y2="492" stroke="#5E574E" stroke-width="1.2"/>
-    <g font-size="11" fill="#5E574E" text-anchor="end" font-family="Helvetica, Arial, sans-serif">
-      <line x1="56" y1="280" x2="68" y2="280" stroke="#5E574E" stroke-width="1.2"/><text x="54" y="284">0</text>
-      <line x1="56" y1="350" x2="68" y2="350" stroke="#5E574E" stroke-width="1.2"/><text x="54" y="354">50</text>
-      <line x1="56" y1="420" x2="68" y2="420" stroke="#5E574E" stroke-width="1.2"/><text x="54" y="424">100</text>
-      <line x1="56" y1="478" x2="68" y2="478" stroke="#5E574E" stroke-width="1.2"/><text x="54" y="482">140</text>
-      <text x="54" y="506" font-style="italic" fill="#7A7062">cm</text>
-    </g>
+    <line x1="220" y1="80" x2="220" y2="280" stroke="#000" stroke-width="1.4"/>
+    <rect x="216" y="80" width="8" height="36" fill="url(#hatch)" stroke="#000" stroke-width="0.6"/>
+    <circle cx="220" cy="151" r="3.5" fill="none" stroke="#000" stroke-width="1"/>
+    <circle cx="220" cy="160" r="3.5" fill="none" stroke="#000" stroke-width="1"/>
+    <circle cx="220" cy="220" r="4" fill="#000"/>
+    <circle cx="220" cy="230" r="4" fill="#000"/>
+    <circle cx="220" cy="278" r="4" fill="#000"/>
+    <text x="232" y="282" font-size="13" font-style="italic" fill="#000">probe 1  (140 cm)</text>
   </g>
 
-  <path d="M450,283 C360,310 290,308 250,303" stroke="#5E574E" stroke-width="1.5" fill="none"/>
-  <path d="M510,283 C595,308 625,308 660,303" stroke="#5E574E" stroke-width="1.5" fill="none"/>
-  <rect x="438" y="252" width="84" height="34" rx="5" fill="#E6DFD1" stroke="#3A2C1F" stroke-width="1.1"/>
-  <rect x="438" y="252" width="84" height="10" fill="#B85B3A"/>
-  <text x="480" y="276" font-size="12" fill="#2A2520" text-anchor="middle" font-weight="700">HFE electronics</text>
-
-  <rect x="654" y="280" width="14" height="44" fill="url(#probeCap)" stroke="#3A2C1F" stroke-width="1"/>
-  <rect x="654" y="324" width="14" height="160" fill="url(#probeBody)" stroke="#3A2C1F" stroke-width="1"/>
-  <line x1="654" y1="490" x2="668" y2="490" stroke="#1A3441" stroke-width="3"/>
   <g>
-    <circle cx="661" cy="390" r="6" fill="url(#bead)" stroke="#fff" stroke-width="1"/>
-    <circle cx="661" cy="425" r="6" fill="url(#bead)" stroke="#fff" stroke-width="1"/>
-    <circle cx="661" cy="455" r="6" fill="url(#bead)" stroke="#fff" stroke-width="1"/>
-    <circle cx="661" cy="480" r="6" fill="url(#bead)" stroke="#fff" stroke-width="1"/>
+    <line x1="440" y1="80" x2="440" y2="338" stroke="#000" stroke-width="1.4"/>
+    <rect x="436" y="80" width="8" height="36" fill="url(#hatch)" stroke="#000" stroke-width="0.6"/>
+    <circle cx="440" cy="151" r="3.5" fill="none" stroke="#000" stroke-width="1"/>
+    <circle cx="440" cy="160" r="3.5" fill="none" stroke="#000" stroke-width="1"/>
+    <circle cx="440" cy="220" r="4" fill="#000"/>
+    <circle cx="440" cy="230" r="4" fill="#000"/>
+    <circle cx="440" cy="265" r="4" fill="#000"/>
+    <circle cx="440" cy="275" r="4" fill="#000"/>
+    <circle cx="440" cy="300" r="4" fill="#000"/>
+    <circle cx="440" cy="310" r="4" fill="#000"/>
+    <circle cx="440" cy="335" r="4" fill="#000"/>
+    <text x="452" y="339" font-size="13" font-style="italic" fill="#000">probe 2  (234 cm)</text>
   </g>
 
-  <rect x="238" y="280" width="14" height="44" fill="url(#probeCap)" stroke="#3A2C1F" stroke-width="1"/>
-  <rect x="238" y="324" width="14" height="93" fill="url(#probeBody)" stroke="#3A2C1F" stroke-width="1"/>
-  <line x1="238" y1="423" x2="252" y2="423" stroke="#1A3441" stroke-width="3"/>
-  <circle cx="245" cy="395" r="6" fill="url(#bead)" stroke="#fff" stroke-width="1"/>
-  <text x="245" y="445" font-size="11" fill="#5E574E" text-anchor="middle" font-style="italic">obstruction</text>
+  <g font-size="13" fill="#000">
+    <line x1="350" y1="98" x2="232" y2="98" stroke="#000" stroke-width="0.9"/>
+    <text x="355" y="102" font-style="italic">epoxy borestem (top 30 cm)</text>
 
-  <rect x="720" y="282" width="155" height="46" rx="6" fill="#FFF3E6" stroke="#B85B3A" stroke-width="1.2"/>
-  <text x="730" y="302" font-size="12" font-weight="700" fill="#B85B3A">EPOXY BORESTEM</text>
-  <text x="730" y="320" font-size="12" fill="#3A2C1F" font-style="italic">top 30 cm, excluded</text>
-  <line x1="720" y1="305" x2="676" y2="302" stroke="#B85B3A" stroke-width="1.2"/>
+    <line x1="350" y1="225" x2="232" y2="225" stroke="#000" stroke-width="0.9"/>
+    <text x="355" y="229" font-style="italic">deep sensors — these set Kd</text>
 
-  <rect x="720" y="410" width="155" height="46" rx="6" fill="#E8F1EB" stroke="#3D6E4A" stroke-width="1.2"/>
-  <text x="730" y="430" font-size="12" font-weight="700" fill="#3D6E4A">DEEP SENSORS</text>
-  <text x="730" y="448" font-size="12" fill="#1F3F26" font-style="italic">below 80 cm — feed Kd</text>
-  <line x1="720" y1="433" x2="668" y2="425" stroke="#3D6E4A" stroke-width="1.2"/>
-
-  <rect x="25" y="442" width="172" height="46" rx="6" fill="#FAF6EF" stroke="#D6CFC0" stroke-width="1"/>
-  <text x="40" y="462" font-size="12" font-weight="700" fill="#2A2520">PROBE 2 — 100 cm</text>
-  <text x="40" y="480" font-size="12" fill="#5E574E" font-style="italic">shallow, 1 deep sensor</text>
-
-  <rect x="703" y="503" width="172" height="32" rx="6" fill="#FAF6EF" stroke="#D6CFC0" stroke-width="1"/>
-  <text x="789" y="523" font-size="12" font-weight="700" fill="#2A2520" text-anchor="middle">PROBE 1 — 140 cm,  4 deep sensors</text>
+    <line x1="305" y1="156" x2="232" y2="156" stroke="#000" stroke-width="0.9"/>
+    <text x="310" y="160" font-style="italic" fill="#555">shallow sensors (excluded)</text>
+  </g>
 </svg>

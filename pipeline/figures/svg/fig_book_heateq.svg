@@ -1,66 +1,32 @@
-<svg viewBox="0 0 820 600" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
-  <title>Heat-equation control volume</title>
-  <desc>An isometric slab of regolith with subtle face gradients and grain texture; a thick warm arrow enters the top face, a thinner cool arrow leaves the base; a side panel says "the difference is stored".</desc>
+<svg viewBox="0 0 560 360" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <title>Control volume — heat balance on a thin slab</title>
+  <desc>Wireframe slab in oblique projection: q(z) enters the top, q(z+Δz) leaves the base; Δz marks the cell thickness, A the cross-sectional area. Black-line textbook style.</desc>
   <defs>
-    <linearGradient id="gTop" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F4DEC8"/><stop offset="1" stop-color="#E7C9AE"/>
-    </linearGradient>
-    <linearGradient id="gFront" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#E0BFA1"/><stop offset="1" stop-color="#BC9576"/>
-    </linearGradient>
-    <linearGradient id="gSide" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#C49A77"/><stop offset="1" stop-color="#9E7752"/>
-    </linearGradient>
-    <pattern id="grains" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
-      <circle cx="3" cy="4" r="0.9" fill="#4A331E" opacity="0.18"/>
-      <circle cx="9" cy="10" r="0.7" fill="#4A331E" opacity="0.14"/>
-      <circle cx="11" cy="2" r="0.5" fill="#4A331E" opacity="0.10"/>
-    </pattern>
-    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#2A2520" stop-opacity="0.32"/>
-      <stop offset="1" stop-color="#2A2520" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="hot" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#E07A4A"/><stop offset="1" stop-color="#B85B3A"/>
-    </linearGradient>
-    <linearGradient id="cool" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#3D8AA0"/><stop offset="1" stop-color="#2A6478"/>
-    </linearGradient>
+    <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#000"/>
+    </marker>
   </defs>
 
-  <text x="50" y="50" font-size="14" letter-spacing="2" fill="#8C8378">CONSERVATION OF ENERGY</text>
-  <text x="50" y="84" font-size="26" font-weight="700" fill="#2A2520">Reading the heat equation</text>
-  <line x1="50" y1="98" x2="180" y2="98" stroke="#B85B3A" stroke-width="3"/>
+  <rect x="160" y="170" width="200" height="110" fill="none" stroke="#000" stroke-width="1.4"/>
+  <line x1="220" y1="130" x2="420" y2="130" stroke="#000" stroke-width="1.1"/>
+  <line x1="420" y1="130" x2="420" y2="240" stroke="#000" stroke-width="1.1"/>
+  <line x1="160" y1="170" x2="220" y2="130" stroke="#000" stroke-width="1.1"/>
+  <line x1="360" y1="170" x2="420" y2="130" stroke="#000" stroke-width="1.1"/>
+  <line x1="360" y1="280" x2="420" y2="240" stroke="#000" stroke-width="1.1"/>
+  <line x1="160" y1="280" x2="220" y2="240" stroke="#000" stroke-width="1" stroke-dasharray="4 3"/>
+  <line x1="220" y1="240" x2="420" y2="240" stroke="#000" stroke-width="1" stroke-dasharray="4 3"/>
+  <line x1="220" y1="130" x2="220" y2="240" stroke="#000" stroke-width="1" stroke-dasharray="4 3"/>
 
-  <ellipse cx="430" cy="475" rx="180" ry="22" fill="url(#shadow)"/>
+  <line x1="260.0" y1="80.0" x2="260.0" y2="148.0" stroke="#000" stroke-width="1.4" /><polygon points="260.0,155.0 256.0,148.0 264.0,148.0" fill="#000"/>
+  <line x1="260.0" y1="285.0" x2="260.0" y2="328.0" stroke="#000" stroke-width="1.4" /><polygon points="260.0,335.0 256.0,328.0 264.0,328.0" fill="#000"/>
 
-  <polygon points="290,300 540,300 620,250 370,250" fill="url(#gTop)" stroke="#3A2C1F" stroke-width="1.6" stroke-linejoin="round"/>
-  <polygon points="290,300 540,300 620,250 370,250" fill="url(#grains)"/>
-  <polygon points="540,300 620,250 620,440 540,470" fill="url(#gSide)" stroke="#3A2C1F" stroke-width="1.6" stroke-linejoin="round"/>
-  <polygon points="540,300 620,250 620,440 540,470" fill="url(#grains)"/>
-  <polygon points="290,300 540,300 540,470 290,470" fill="url(#gFront)" stroke="#3A2C1F" stroke-width="1.6" stroke-linejoin="round"/>
-  <polygon points="290,300 540,300 540,470 290,470" fill="url(#grains)"/>
-  <line x1="290" y1="300" x2="540" y2="300" stroke="#FBE6CE" stroke-width="1.6" opacity="0.85"/>
+  <text x="270" y="118" font-size="16" font-style="italic" fill="#000">q(z)</text>
+  <text x="270" y="333" font-size="16" font-style="italic" fill="#000">q(z + Δz)</text>
 
-  <path d="M412,140 L412,220 L398,220 L420,256 L442,220 L428,220 L428,140 Z" fill="url(#hot)" stroke="#7A3A22" stroke-width="0.8"/>
-  <path d="M390,475 L390,520 L380,520 L398,548 L416,520 L406,520 L406,475 Z" fill="url(#cool)" stroke="#1B4A5A" stroke-width="0.8"/>
+  <line x1="438" y1="130" x2="448" y2="130" stroke="#000" stroke-width="1"/>
+  <line x1="438" y1="240" x2="448" y2="240" stroke="#000" stroke-width="1"/>
+  <line x1="443" y1="130" x2="443" y2="240" stroke="#000" stroke-width="1"/>
+  <text x="453" y="188" font-size="16" font-style="italic" fill="#000">Δz</text>
 
-  <rect x="466" y="148" width="232" height="58" rx="8" fill="#FFF4E8" stroke="#B85B3A" stroke-width="1.2"/>
-  <text x="482" y="174" font-size="14" font-weight="700" fill="#B85B3A">HEAT IN  (larger flux)</text>
-  <text x="482" y="196" font-size="14" fill="#3A2C1F" font-style="italic">q at the top face</text>
-  <line x1="466" y1="177" x2="438" y2="180" stroke="#B85B3A" stroke-width="1.3" fill="none"/>
-
-  <rect x="448" y="510" width="232" height="58" rx="8" fill="#EAF1F3" stroke="#2A6478" stroke-width="1.2"/>
-  <text x="464" y="536" font-size="14" font-weight="700" fill="#2A6478">HEAT OUT  (smaller flux)</text>
-  <text x="464" y="558" font-size="14" fill="#1B4A5A" font-style="italic">q at the base</text>
-  <line x1="448" y1="539" x2="416" y2="538" stroke="#2A6478" stroke-width="1.3" fill="none"/>
-
-  <rect x="60" y="318" width="220" height="118" rx="8" fill="#FAF6EF" stroke="#D6CFC0" stroke-width="1"/>
-  <text x="80" y="346" font-size="15" font-weight="700" fill="#B85B3A">The difference is stored</text>
-  <text x="80" y="366" font-size="13" fill="#3A2C1F">More energy enters than leaves,</text>
-  <text x="80" y="384" font-size="13" fill="#3A2C1F">so the layer warms — the rate</text>
-  <text x="80" y="402" font-size="13" fill="#3A2C1F">of warming is the left side of</text>
-  <text x="80" y="420" font-size="13" fill="#3A2C1F">the heat equation.</text>
-
-  <text x="410" y="595" font-size="13" fill="#6E6862" text-anchor="middle" font-style="italic">stored = in − out  (Eq. 2.2 in the text)</text>
+  <text x="290" y="158" font-size="14" font-style="italic" fill="#555">A</text>
 </svg>

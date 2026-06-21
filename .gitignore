@@ -64,6 +64,9 @@ docs/**/*.out
 docs/**/*.toc
 docs/**/*.synctex.gz
 
+# Reference papers (copyrighted, local use only)
+references/*.pdf
+
 # Working scratch
 .scratch/
 *.tmp

@@ -380,6 +380,25 @@ rest is bookkeeping around it.}
 \label{fig:pipeline}
 \end{figure}
 
+Figure~\ref{fig:pipeline} shows the \emph{processes}. Figure~\ref{fig:eqnflow}
+shows the \emph{equations}: every formula in the study laid out in the order
+each one is used, with arrows tracing what produces which variable and what
+feeds the next equation. If you ever wonder ``where does this expression come
+from and what does it feed?'', this is the map.
+
+\begin{figure}[p]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_eqnflow.pdf}
+\caption{Equation flow from inputs to the final $K_d^{*}$. Six raw inputs feed
+the conductivity formulas (Eqs.~\ref{eq:Kc}--\ref{eq:Khayne}), which together
+with the boundary conditions (Eqs.~\ref{eq:surfbc}, \ref{eq:bottombc}) define
+the heat equation~(Eq.~\ref{eq:heat}). The forward solve produces $T(z,t;K_d)$,
+whose cycle mean is compared against the Apollo data through the deep-sensor
+RMSE; the parabolic vertex picks the sub-grid minimum giving $K_d^{*}$.
+Uncertainty propagates downward: bootstrap percentile CI, quadrature error
+budget, and the inter-site contrast with its $p$-value.}
+\label{fig:eqnflow}
+\end{figure}
+
 \begin{stepbox}{Step A — from sensor record to $T_{\rm eq}$ (data preparation)}
 \textbf{Inputs:} multi-year HFE temperature record at every probe sensor (Nagihara
 2018; \code{src/lunar/apollo\_helpers.py}). \\
@@ -1866,22 +1885,25 @@ not a guess. Specifically:
   over a 120-lunation honest run, times the measured $dK_d^{*}/dT$ response of
   $\sim$1.5--2~mW\,m$^{-1}$\,K$^{-1}$ per K.
 \end{itemize}
-Each is recomputed end-to-end by \code{make aux}; the totals in the table are
-$\sqrt{\sum_i \sigma_i^2}$. The $\chi$ and $H$ sensitivities are reported
-separately as \emph{conditional} terms (\S\ref{sec:chi-conditionality}), not in
-the quadrature, because they parametrise the Hayne form we adopted.
+\noindent Each is recomputed end-to-end by \code{make aux}; the totals in the
+table are $\sqrt{\sum_i \sigma_i^2}$. The $\chi$ and $H$ sensitivities are
+reported separately as \emph{conditional} terms
+(\S\ref{sec:chi-conditionality}), not in the quadrature, because they
+parametrise the Hayne form we adopted.
 
-Two lessons. First, the basal flux $Q_b$ and the albedo $A$ dominate the
-systematic budget --- $Q_b$ is the single largest term, consistent with the
-$K_d$--$Q_b$ degeneracy of Ch.~\ref{ch:qb}. Second, Apollo~17's budget is about
-$2.6\times$ wider than Apollo~15's, chiefly through albedo and $K_s$, because its
-higher retrieved $K_d$ amplifies the same fractional input uncertainties.
+\smallskip
+\noindent\textbf{Two lessons.} First, the basal flux $Q_b$ and the albedo $A$
+dominate the systematic budget --- $Q_b$ is the single largest term, consistent
+with the $K_d$--$Q_b$ degeneracy of Ch.~\ref{ch:qb}. Second, Apollo~17's budget
+is about $2.6\times$ wider than Apollo~15's, chiefly through albedo and $K_s$,
+because its higher retrieved $K_d$ amplifies the same fractional input
+uncertainties.
 
 \section{The largest weakness: conditionality on \texorpdfstring{$\chi$}{chi}}\label{sec:chi-conditionality}
-The error budget above is honest about what \emph{varies} in the published
-sources. But the largest single sensitivity in the analysis is not in that
-budget at all --- it is the dependence on the radiative coefficient $\chi$ in
-Hayne's $K(T,z)$ (Eq.~\ref{eq:Khayne}).
+\noindent The error budget above is honest about what \emph{varies} in the
+published sources. But the largest single sensitivity in the analysis is not in
+that budget at all --- it is the dependence on the radiative coefficient $\chi$
+in Hayne's $K(T,z)$ (Eq.~\ref{eq:Khayne}).
 
 \begin{warn}
 $\chi$ is held fixed at $2.7$ throughout this work because Hayne~(2017) reports

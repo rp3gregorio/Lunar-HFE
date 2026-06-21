@@ -1,4 +1,4 @@
-<svg viewBox="0 0 560 360" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+<svg viewBox="60 0 500 360" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
   <title>Control volume — heat balance on a thin slab</title>
   <desc>Wireframe slab in oblique projection: q(z) enters the top, q(z+Δz) leaves the base; Δz marks the cell thickness, A the cross-sectional area. Black-line textbook style.</desc>
   <defs>

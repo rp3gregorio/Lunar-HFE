@@ -1,35 +1,69 @@
-<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+<svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
   <title>Comparison of the two Apollo HFE sites</title>
-  <desc>Two simple side-by-side schematics: each shows the local surface line, a vertical probe with its deepest sensor as a filled circle at the correct fractional depth, the basal flux arrow rising from below, and the retrieved K_d underneath. Black on white.</desc>
-  <defs>
-    <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L10,4 L0,8 Z" fill="#000"/>
-    </marker>
-  </defs>
+  <desc>Two simple side-by-side schematics, with the surface line, vertical probe to deepest sensor, basal flux arrow, and retrieved K_d shown under each. Black on white textbook style.</desc>
 
-  <line x1="320" y1="20" x2="320" y2="300" stroke="#000" stroke-width="0.6" stroke-dasharray="3 3"/>
+  <!-- vertical divider between the two cards -->
+  <line x1="380" y1="20" x2="380" y2="300" stroke="#000" stroke-width="0.6" stroke-dasharray="3 3"/>
 
-  <g>
-    <text x="160" y="40" font-size="15" font-weight="700" fill="#000" text-anchor="middle">Apollo 15  —  Hadley Rille</text>
-    <line x1="50" y1="80" x2="270" y2="80" stroke="#000" stroke-width="1.4"/>
-    <line x1="160" y1="80" x2="160" y2="180" stroke="#000" stroke-width="1.4"/>
-    <circle cx="160" cy="180" r="4" fill="#000"/>
-    <text x="170" y="184" font-size="12" font-style="italic" fill="#000">1.39 m</text>
-    <line x1="160.0" y1="280.0" x2="160.0" y2="227.0" stroke="#000" stroke-width="1.2" /><polygon points="160.0,220.0 164.0,227.0 156.0,227.0" fill="#000"/>
-    <text x="170" y="252" font-size="13" font-style="italic" fill="#000">Q<tspan dy="3" font-size="10">b</tspan> = 21 mW/m²</text>
-    <text x="160" y="306" font-size="16" font-style="italic" fill="#000" text-anchor="middle">Kd* = 4.58</text>
-    <text x="160" y="322" font-size="12" fill="#000" text-anchor="middle">mW / (m · K)</text>
+  <!-- =========== Apollo 15 card =========== -->
+  <text x="190" y="32" font-size="15" font-weight="700" fill="#000" text-anchor="middle">Apollo 15 — Hadley Rille (mare)</text>
+
+  <!-- ground surface, hatched -->
+  <line x1="50" y1="78" x2="330" y2="78" stroke="#000" stroke-width="1.6"/>
+  <g stroke="#000" stroke-width="0.55" opacity="0.45">
+    <line x1="62"  y1="78" x2="50"  y2="92"/><line x1="82"  y1="78" x2="68"  y2="94"/>
+    <line x1="102" y1="78" x2="88"  y2="94"/><line x1="122" y1="78" x2="108" y2="94"/>
+    <line x1="142" y1="78" x2="128" y2="94"/><line x1="162" y1="78" x2="148" y2="94"/>
+    <line x1="182" y1="78" x2="168" y2="94"/><line x1="202" y1="78" x2="188" y2="94"/>
+    <line x1="222" y1="78" x2="208" y2="94"/><line x1="242" y1="78" x2="228" y2="94"/>
+    <line x1="262" y1="78" x2="248" y2="94"/><line x1="282" y1="78" x2="268" y2="94"/>
+    <line x1="302" y1="78" x2="288" y2="94"/><line x1="322" y1="78" x2="308" y2="94"/>
+    <line x1="330" y1="86" x2="320" y2="96"/>
   </g>
 
-  <g>
-    <text x="480" y="40" font-size="15" font-weight="700" fill="#000" text-anchor="middle">Apollo 17  —  Taurus–Littrow</text>
-    <line x1="370" y1="80" x2="590" y2="80" stroke="#000" stroke-width="1.4"/>
-    <line x1="480" y1="80" x2="480" y2="220" stroke="#000" stroke-width="1.4"/>
-    <circle cx="480" cy="220" r="4" fill="#000"/>
-    <text x="490" y="224" font-size="12" font-style="italic" fill="#000">2.34 m</text>
-    <line x1="480.0" y1="280.0" x2="480.0" y2="247.0" stroke="#000" stroke-width="1.2" /><polygon points="480.0,240.0 484.0,247.0 476.0,247.0" fill="#000"/>
-    <text x="490" y="262" font-size="13" font-style="italic" fill="#000">Q<tspan dy="3" font-size="10">b</tspan> = 15 mW/m²</text>
-    <text x="480" y="306" font-size="16" font-style="italic" fill="#000" text-anchor="middle">Kd* = 8.12</text>
-    <text x="480" y="322" font-size="12" fill="#000" text-anchor="middle">mW / (m · K)</text>
+  <!-- probe (centered) -->
+  <line x1="190" y1="78" x2="190" y2="200" stroke="#000" stroke-width="2.4"/>
+  <circle cx="190" cy="200" r="6" fill="#000" stroke="#fff" stroke-width="1.2"/>
+  <text x="200" y="204" font-size="13" font-style="italic" fill="#000">1.39 m</text>
+
+  <!-- basal flux arrow rising from below -->
+  <line x1="190" y1="270" x2="190" y2="225" stroke="#000" stroke-width="1.6"/>
+  <polygon points="186,225 194,225 190,213" fill="#000"/>
+  <text x="200" y="252" font-size="13" font-style="italic" fill="#000">Q_b = 21 mW/m²</text>
+
+  <!-- retrieved K_d* readout -->
+  <text x="190" y="286" font-size="17" font-style="italic" fill="#000" text-anchor="middle">Kd* = 4.58</text>
+  <text x="190" y="302" font-size="12" fill="#000" text-anchor="middle">mW / (m·K)</text>
+
+  <!-- =========== Apollo 17 card =========== -->
+  <text x="570" y="32" font-size="15" font-weight="700" fill="#000" text-anchor="middle">Apollo 17 — Taurus–Littrow (highland)</text>
+
+  <line x1="430" y1="78" x2="710" y2="78" stroke="#000" stroke-width="1.6"/>
+  <g stroke="#000" stroke-width="0.55" opacity="0.45">
+    <line x1="442" y1="78" x2="430" y2="92"/><line x1="462" y1="78" x2="448" y2="94"/>
+    <line x1="482" y1="78" x2="468" y2="94"/><line x1="502" y1="78" x2="488" y2="94"/>
+    <line x1="522" y1="78" x2="508" y2="94"/><line x1="542" y1="78" x2="528" y2="94"/>
+    <line x1="562" y1="78" x2="548" y2="94"/><line x1="582" y1="78" x2="568" y2="94"/>
+    <line x1="602" y1="78" x2="588" y2="94"/><line x1="622" y1="78" x2="608" y2="94"/>
+    <line x1="642" y1="78" x2="628" y2="94"/><line x1="662" y1="78" x2="648" y2="94"/>
+    <line x1="682" y1="78" x2="668" y2="94"/><line x1="702" y1="78" x2="688" y2="94"/>
+    <line x1="710" y1="86" x2="700" y2="96"/>
   </g>
+
+  <!-- probe (centered, drawn deeper to 234 cm) -->
+  <line x1="570" y1="78" x2="570" y2="232" stroke="#000" stroke-width="2.4"/>
+  <circle cx="570" cy="232" r="6" fill="#000" stroke="#fff" stroke-width="1.2"/>
+  <text x="580" y="236" font-size="13" font-style="italic" fill="#000">2.34 m</text>
+
+  <line x1="570" y1="270" x2="570" y2="252" stroke="#000" stroke-width="1.6"/>
+  <polygon points="566,252 574,252 570,242" fill="#000"/>
+  <text x="580" y="266" font-size="13" font-style="italic" fill="#000">Q_b = 15 mW/m²</text>
+
+  <text x="570" y="286" font-size="17" font-style="italic" fill="#000" text-anchor="middle">Kd* = 8.12</text>
+  <text x="570" y="302" font-size="12" fill="#000" text-anchor="middle">mW / (m·K)</text>
+
+  <!-- centred "2x better" marker -->
+  <line x1="335" y1="180" x2="425" y2="180" stroke="#000" stroke-width="1.4"/>
+  <polygon points="425,180 419,176 419,184" fill="#000"/>
+  <text x="380" y="174" font-size="13" font-style="italic" fill="#000" text-anchor="middle">×2 better</text>
 </svg>

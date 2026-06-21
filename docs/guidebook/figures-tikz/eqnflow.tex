@@ -1,0 +1,132 @@
+% Fig 1.5 — equation flow from inputs to the final K_d*.
+% This file contains only the tikzpicture body.  Iterate via:
+%   pdflatex eqnflow_standalone.tex
+% In the book it is consumed via \input{figures-tikz/eqnflow} inside a
+% figure environment that supplies its own \caption and \label.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=left},
+  box/.style={rectangle, draw=black, line width=0.5pt, inner sep=4pt,
+              text width=46mm, minimum height=14mm, fill=white},
+  wide/.style={text width=152mm},
+  half/.style={text width=72mm},
+  bandlabel/.style={font=\sffamily\bfseries\scriptsize\color{forest},
+                    anchor=west},
+  arr/.style={-{Stealth[length=2mm]}, line width=0.6pt}
+]
+% ---------- LEVEL 1: INPUTS ----------
+\node[bandlabel] (L1) at (-78mm, 0) {INPUTS \;\textnormal{\color{dim}\itshape (knobs and data)}};
+\node[box, below=2mm of L1.south west, anchor=north west] (in1)
+  {\textbf{Apollo HFE record}\\[1pt]
+   $T_{\rm obs}(z,t)$ per sensor\\
+   {\color{dim}Nagihara (2018)}};
+\node[box, right=3mm of in1] (in2)
+  {\textbf{Hayne (2017) params}\\[1pt]
+   $K_s,\,H,\,\chi,\,T_{\rm ref}$\\
+   {\color{dim}fixed at published values}};
+\node[box, right=3mm of in2] (in3)
+  {\textbf{Trial conductivity}\\[1pt]
+   $K_d$ (the one free knob)\\
+   {\color{dim}swept over a grid}};
+\node[box, below=2mm of in1] (in4)
+  {\textbf{Basal flux $Q_b$}\\
+   {\color{dim}Langseth et al.\ (1976) -- fixed}};
+\node[box, below=2mm of in2] (in5)
+  {\textbf{Surface forcing $S(t),A,\varepsilon$}\\
+   {\color{dim}cosine model + Hayne albedo}};
+\node[box, below=2mm of in3] (in6)
+  {\textbf{$\rho(z),\;c_p(T)$}\\
+   {\color{dim}Hayne $\rho$ + Hemingway $c_p$}};
+
+% ---------- LEVEL 2: DATA PREP ----------
+\node[bandlabel, below=4mm of in4.south west, anchor=north west] (L2)
+  {DATA PREP};
+\node[box, half, below=2mm of L2.south west, anchor=north west] (dp)
+  {\textbf{Stable-window selection}\\[1pt]
+   $T_{\rm eq,i}=$ mean of trailing flat tail of $T_{\rm obs}$\\
+   {\color{dim}\texttt{apollo\_helpers.find\_stable\_window} $\to$ $N$ deep points}};
+\draw[arr] (in1.south) -- ++(0,-2mm) -| (dp.north);
+
+% ---------- LEVEL 3: CONSTITUTIVE + BC ----------
+\node[bandlabel, below=4mm of dp.south west, anchor=north west] (L3)
+  {CONSTITUTIVE\ \ +\ \ BOUNDARY CONDITIONS};
+\node[box, half, below=2mm of L3.south west, anchor=north west] (eqKc)
+  {\textbf{Eq.~\ref{eq:Kc} -- contact conductivity}\\[1pt]
+   $K_c(z)=K_d-(K_d-K_s)\,e^{-z/H}$\\
+   {\color{dim}depends on $K_d,K_s,H$}};
+\node[box, half, right=3mm of eqKc] (eqK)
+  {\textbf{Eq.~\ref{eq:Khayne} -- full $K(T,z)$}\\[1pt]
+   $K(T,z)=K_c(z)\,[\,1+\chi\,(T/T_{\rm ref})^3\,]$\\
+   {\color{dim}adds the radiative correction}};
+\node[box, half, below=2mm of eqKc] (bcS)
+  {\textbf{Eq.~\ref{eq:surfbc} -- surface BC}\\[1pt]
+   $(1-A)\,S(t)=\varepsilon\sigma T_s^4+K\,\partial_z T|_{z=0}$\\
+   {\color{dim}non-linear in $T_s\to$ Newton}};
+\node[box, half, right=3mm of bcS] (bcB)
+  {\textbf{Eq.~\ref{eq:bottombc} -- basal BC}\\[1pt]
+   $K\,\partial_z T|_{z=z_{\max}}=Q_b$\\
+   {\color{dim}$Q_b$ from Langseth (1976)}};
+\draw[arr] (eqKc.east) -- (eqK.west);
+
+% ---------- LEVEL 4: PDE ----------
+\node[bandlabel, below=4mm of bcS.south west, anchor=north west] (L4)
+  {FORWARD SOLVE \;\textnormal{\color{dim}\itshape (the heat equation)}};
+\node[box, wide, below=2mm of L4.south west, anchor=north west,
+      minimum height=20mm, line width=0.8pt] (pde) {%
+  \textbf{Eq.~\ref{eq:heat} -- heat equation}\\[1pt]
+  \hfill$\displaystyle \rho(z)\,c_p(T)\,\partial_t T=\partial_z\bigl[\,K(T,z)\,\partial_z T\,\bigr]$\hfill\null\\[2pt]
+  {\color{dim}\small discretised: Crank--Nicolson tridiagonal $\to$ Thomas $\to$ Newton (surface)}\\
+  {\color{dim}\small iterated to a certified periodic steady state (flux-anchored, \S\ref{sec:cert})}\\
+  \textbf{output:} $T(z,t;K_d)\to$ cycle mean $\langle T\rangle(z;K_d)$};
+\draw[arr] (eqK.south) -- ++(0,-2mm) -| (pde.north);
+\draw[arr] (bcS.south) -- ++(0,-2mm) -| ($(pde.north)+(-30mm,0)$);
+\draw[arr] (bcB.south) -- ++(0,-2mm) -| ($(pde.north)+(30mm,0)$);
+
+% ---------- LEVEL 5: RETRIEVAL ----------
+\node[bandlabel, below=4mm of pde.south west, anchor=north west] (L5)
+  {RETRIEVAL \;\textnormal{\color{dim}\itshape (compare prediction with data)}};
+\node[box, half, below=2mm of L5.south west, anchor=north west] (rmse)
+  {\textbf{Eq.~\ref{eq:rmse} -- deep-sensor RMSE}\\[1pt]
+   $\mathrm{RMSE}(K_d)=\sqrt{\tfrac{1}{N}\sum_i\bigl(\langle T\rangle(z_i;K_d)-T_{\rm eq,i}\bigr)^2}$\\
+   {\color{dim}evaluated for every trial $K_d$}};
+\node[box, half, right=3mm of rmse] (vertex)
+  {\textbf{Eq.~\ref{eq:vertex} -- parabolic vertex}\\[1pt]
+   $K_d^{*}=K_d^{(k)}+\tfrac{d}{2}\,\tfrac{y_--y_+}{y_--2y_0+y_+}$\\
+   {\color{dim}picks the sub-grid minimum of RMSE}};
+\draw[arr] (pde.south) -- ++(0,-2mm) -| (rmse.north);
+\draw[arr] (rmse.east) -- (vertex.west);
+
+% ---------- LEVEL 6: UNCERTAINTY ----------
+\node[bandlabel, below=4mm of rmse.south west, anchor=north west] (L6)
+  {UNCERTAINTY};
+\node[box, below=2mm of L6.south west, anchor=north west] (boot)
+  {\textbf{Bootstrap}\\[1pt]
+   resample $\{z_i,T_{\rm eq,i}\}\!\times\!1500$\\
+   re-fit $K_d^{*}$ on each draw\\
+   {\color{dim}$\to$ 95\% percentile CI}};
+\node[box, right=3mm of boot] (budg)
+  {\textbf{Error budget}\\[1pt]
+   $\sigma_{\rm tot}=\sqrt{\sum_i\sigma_i^2}$\\
+   over $Q_b,A,K_s,\rho,z_b,\ldots$\\
+   {\color{dim}$\chi,H$ as conditional terms}};
+\node[box, right=3mm of budg, line width=0.8pt] (contr)
+  {\textbf{Contrast \,$+$\, $p$-value}\\[1pt]
+   $\Delta K_d=K_d^{*}({\rm A17})-K_d^{*}({\rm A15})$\\
+   bootstrap distribution of $\Delta K_d$\\
+   $\to p\approx 0.011$};
+\draw[arr] (vertex.south) -- ++(0,-2mm) -| (contr.north);
+\draw[arr] (rmse.south) -- ++(0,-3mm) -| (boot.north);
+\draw[arr] (rmse.south) -- ++(0,-3mm) -| (budg.north);
+
+% ---------- RESULT STRIP ----------
+\node[draw=black, line width=1pt, fill=forest!8,
+      text width=152mm, minimum height=8mm,
+      below=5mm of budg.south, anchor=north,
+      align=center, inner sep=4pt] (out)
+  {\textbf{Headline:}\;
+   $K_d^{*}({\rm A15})=4.58\,[4.12,7.45]$\quad
+   $K_d^{*}({\rm A17})=8.12\,[6.85,9.04]$\;\;mW\,m$^{-1}$K$^{-1}$};
+\draw[arr] (boot.south)  -- ($(out.north)+(-50mm,0)$);
+\draw[arr] (budg.south)  -- (out.north);
+\draw[arr] (contr.south) -- ($(out.north)+(50mm,0)$);
+\end{tikzpicture}

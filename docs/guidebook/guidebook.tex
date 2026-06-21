@@ -1952,10 +1952,29 @@ numbers ride on which radiative calibration you trust.
 
 \section{Bayesian cross-check (MCMC)}\label{sec:mcmc}
 An independent check: instead of sweeping $K_d$ on a grid, we run a Markov-chain
-Monte Carlo (MCMC) sampler that explores the full joint posterior in $(K_d, Q_b)$
---- allowing both parameters to vary, not just $K_d$. Even when $Q_b$ is
-uncertain, the posterior shows Apollo~17 is more conductive than Apollo~15 about
-83\% of the time.
+Monte Carlo (MCMC) sampler that explores the full joint posterior in
+$(K_d, Q_b)$ --- allowing \emph{both} parameters to vary, not just $K_d$. The
+prior is uniform on $K_d\in[1,30]$\;mW\,m$^{-1}$\,K$^{-1}$ and Gaussian on
+$Q_b$ at the Langseth value with width $\sigma_{Q_b}$ from §\ref{sec:errorbudget}.
+The likelihood is the Gaussian misfit between $\langle T\rangle(z;K_d,Q_b)$ and
+the deep-sensor data. The intuition is just Bayes' rule (Fig.~\ref{fig:mcmc}):
+prior beliefs times what the data say, normalised.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.7\linewidth]{figures/fig_book_mcmc.pdf}
+\caption{Bayesian updating. The dashed curve is the \emph{prior} (what we
+believed about $K_d$ before this experiment --- here a broad Hayne-centered
+hump). The teal curve is the \emph{likelihood} that the Apollo deep-sensor data
+imply through the forward model. Multiplying them gives the (coral)
+\emph{posterior}: a sharper, data-anchored belief. MCMC samples this posterior
+in the full $(K_d, Q_b)$ plane; see Fig.~\ref{fig:qb} for the joint shape.}
+\label{fig:mcmc}
+\end{figure}
+
+\noindent Even when $Q_b$ is allowed to vary jointly with $K_d$, the marginal
+posterior shows Apollo~17 is more conductive than Apollo~15 about $83\%$ of the
+time --- the contrast survives the degeneracy that gives Ch.~\ref{ch:qb} its
+title.
 
 \section{Model selection (AICc)}\label{sec:aicc}
 We compare three models:
@@ -1980,13 +1999,16 @@ $M_3$ by $2.71$ --- the data favour a genuine \emph{conductivity} contrast, not 
 flux artefact, even after paying for the extra parameter.
 
 \begin{figure}[htbp]\centering
-\begin{minipage}{0.49\linewidth}\centering
-\includegraphics[width=\linewidth]{figures/fig_book_mcmc.pdf}\end{minipage}\hfill
-\begin{minipage}{0.49\linewidth}\centering
-\includegraphics[width=\linewidth]{figures/fig_book_aicc.pdf}\end{minipage}
-\caption{Left: the idea of MCMC posterior sampling. Right: AICc model selection
-trades fit quality against the number of free parameters.}
-\label{fig:mcmc}\label{fig:aicc}
+\includegraphics[width=\linewidth]{figures/fig_book_aicc.pdf}
+\caption{AICc model selection trades fit quality against the number of free
+parameters. \emph{Left:} the same data fit at three model complexities ---
+underfit (a constant), just right (linear), overfit (high-order polynomial).
+The wiggliest curve hits every dot but chases noise. \emph{Right:} AICc score
+gap for the three candidate models on the Apollo deep-sensor data. $M_1$
+(per-site $K_d$) wins by $\Delta\mathrm{AICc}=3.99$ over $M_2$ (shared $K_d$,
+free $Q_b$) and $2.71$ over $M_3$ (shared $K_d$). The data \emph{want} a
+genuine conductivity contrast, not a flux artefact.}
+\label{fig:aicc}
 \end{figure}
 
 

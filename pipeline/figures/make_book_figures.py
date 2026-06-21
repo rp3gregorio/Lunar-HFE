@@ -132,7 +132,7 @@ def fig_bootstrap():
                                  alpha=0.85))
         axA.text(2, 6.6 - i * 0.85, lab, ha="center", va="center",
                  color="white", fontsize=FS_TICK - 1, fontweight="bold")
-    axA.set_title("(a)  Your 7\nreal sensors", fontsize=FS_LABEL)
+    axA.set_title("(a)  The 7 Apollo 15\ndeep sensors", fontsize=FS_LABEL)
 
     # (b) three example resamples (draw with replacement)
     axB.axis("off")
@@ -148,8 +148,13 @@ def fig_bootstrap():
                  color=C_CHAR)
     axB.set_title("(b)  Redraw 1,500 times\n(repeats allowed)",
                   fontsize=FS_LABEL)
-    axB.text(3.0, 0.1, "some sensors appear twice,\nothers not at all",
+    axB.text(3.0, 0.6, "some sensors appear twice,\nothers not at all",
              ha="center", fontsize=FS_TICK - 1.5, color=C_DIM, style="italic")
+    # connection cue: each redraw -> one K_d*
+    axB.annotate("each redraw\n$\\to$ one $K_d^*$",
+                 xy=(5.6, 4.0), xytext=(5.6, 4.0),
+                 ha="center", va="center", fontsize=FS_TICK - 1.5,
+                 color=C_CHAR, style="italic")
 
     # (c) the resulting spread, from the REAL bootstrap
     d = json.loads((_REPO / "results" / "kd_retrieval_results.json").read_text())
@@ -159,14 +164,18 @@ def fig_bootstrap():
              color=C_A15, alpha=0.6, edgecolor=C_A15, lw=0.4)
     axC.axvspan(lo, hi, color=C_A15, alpha=0.12)
     axC.axvline(np.median(boot), color=C_CHAR, lw=1.6)
-    fmt_axis(axC, xlabel="answer for $K_d$ (each redraw)",
-             ylabel="how often", title="(c)  The spread = the error bar")
+    fmt_axis(axC, xlabel="recovered $K_d^*$ (mW m$^{-1}$ K$^{-1}$)",
+             ylabel="how often",
+             title="(c)  Distribution of $K_d^*$ over 1,500 redraws")
     axC.set_yticks([])
-    axC.text(0.97, 0.95, f"95% of answers\nfall in [{lo:.1f}, {hi:.1f}]",
+    # CI annotation sits inside the axes, top-right, below the title.
+    axC.text(0.97, 0.93,
+             "95% bootstrap CI:\n"
+             f"$K_d^* \\in [{lo:.2f},\\,{hi:.2f}]$",
              transform=axC.transAxes, ha="right", va="top",
-             fontsize=FS_TICK - 1, color=C_CHAR,
+             fontsize=FS_TICK - 0.5, color=C_CHAR,
              bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
-                       edgecolor=C_GRID))
+                       edgecolor=C_GRID, alpha=0.92))
     fig.savefig(OUT / "fig_book_bootstrap.pdf", bbox_inches="tight")
     plt.close(fig)
     print("  -> fig_book_bootstrap.pdf")
@@ -174,11 +183,14 @@ def fig_bootstrap():
 
 # ══════════════════════════════════════════════════════════════════════════
 def fig_mcmc():
-    """Bayesian updating (prior x likelihood) + the K_d/Q_b ridge."""
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(9.6, 4.2),
-                                   gridspec_kw={"wspace": 0.30})
+    """Bayes' rule: prior x likelihood = posterior, illustrated on K_d.
 
-    # (a) prior x likelihood = posterior
+    Single-panel figure.  The K_d-Q_b degeneracy panel that used to sit
+    next to this one is now Fig 8.1; keeping two copies confused readers
+    about which chapter owned the idea.
+    """
+    fig, axA = plt.subplots(figsize=(6.4, 3.6))
+
     x = np.linspace(0, 20, 400)
     def g(mu, s): return np.exp(-0.5 * ((x - mu) / s) ** 2)
     prior = 0.6 * g(11, 5)
@@ -193,33 +205,10 @@ def fig_mcmc():
     axA.plot(x, post, color=C_CORAL, lw=2.4,
              label="posterior (updated belief)")
     fmt_axis(axA, xlabel="value of $K_d$", ylabel="plausibility",
-             title="(a)  Bayes' rule: update with data")
+             title="Bayes' rule: prior $\\times$ likelihood $=$ posterior")
     axA.set_yticks([])
     axA.legend(fontsize=FS_LEGEND - 1, loc="upper right", framealpha=0.95)
 
-    # (b) the ridge: K_d and Q_b trade off
-    kd = np.linspace(2, 16, 200)
-    qb = np.linspace(8, 26, 200)
-    KD, QB = np.meshgrid(kd, qb)
-    # likelihood high along QB/KD = const (the measured gradient)
-    ratio = QB / KD
-    L = np.exp(-0.5 * ((ratio - 15 / 8.1) / 0.18) ** 2)
-    axB.contourf(KD, QB, L, levels=12, cmap="BuPu", alpha=0.9)
-    rng = np.random.default_rng(1)
-    # sample points scattered along the ridge
-    kds = rng.uniform(4, 13, 220)
-    qbs = (15 / 8.1) * kds + rng.normal(0, 0.7, 220)
-    m = (qbs > 8) & (qbs < 26)
-    axB.plot(kds[m], qbs[m], "o", color=C_CHAR, ms=2.2, alpha=0.5)
-    axB.plot(8.1, 15, "*", color=C_CORAL, ms=20, mec="white", mew=1.3)
-    fmt_axis(axB, xlabel="conductivity $K_d$",
-             ylabel="heat flux $Q_b$",
-             title="(b)  Why one borehole can't separate them")
-    axB.text(0.04, 0.95, "data fix the ratio\n$Q_b/K_d$, not each one",
-             transform=axB.transAxes, ha="left", va="top",
-             fontsize=FS_TICK - 1, color=C_CHAR,
-             bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
-                       edgecolor=C_GRID, alpha=0.9))
     fig.savefig(OUT / "fig_book_mcmc.pdf", bbox_inches="tight")
     plt.close(fig)
     print("  -> fig_book_mcmc.pdf")

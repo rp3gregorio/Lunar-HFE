@@ -111,6 +111,50 @@ def fig_thermal_field():
     print("  -> fig_book_thermalfield.pdf")
 
 
+def fig_kTz_heatmap():
+    """K(T, z) heatmap from the actual Hayne function at the retrieved K_d* = 4.58.
+    Shows the deep asymptote K -> K_d and the T^3 radiative rise."""
+    from lunar.properties import conductivity_hayne
+    from lunar.config import HAYNE
+    Kd = 4.58e-3              # A15 retrieved
+    T_grid = np.linspace(100, 390, 240)
+    z_grid = np.linspace(0.0, 2.0, 200)
+    TT, ZZ = np.meshgrid(T_grid, z_grid)
+    K = conductivity_hayne(TT, ZZ, Ks=HAYNE['K_S'], Kd=Kd, H=HAYNE['H'],
+                           chi=HAYNE['CHI']) * 1e3            # mW/(m K)
+
+    fig, ax = plt.subplots(figsize=(JGR_FULL, 3.8))
+    im = ax.pcolormesh(T_grid, z_grid, K, cmap=ANTH_DIVERGE,
+                       shading="gouraud", rasterized=True)
+    cs = ax.contour(T_grid, z_grid, K, levels=[1, 2, 3, 4, 5, 7, 10, 15],
+                    colors="white", linewidths=0.5, alpha=0.7)
+    ax.clabel(cs, inline=True, fontsize=7, fmt="%.0f", colors="#FFFFFF")
+    ax.invert_yaxis()
+    ax.set_xlabel("temperature  $T$  [K]")
+    ax.set_ylabel("depth  $z$  [m]")
+    ax.set_title(r"$K(T,z)$ at the retrieved Apollo 15 $K_d^*=4.58$ "
+                 r"mW m$^{-1}$ K$^{-1}$ — Hayne (2017) form",
+                 loc="left", fontsize=10.5, color=C_CHAR)
+
+    # mark the deep asymptote K -> K_d
+    ax.axhline(0.30, color=C_TEAL, lw=0.9, ls="--")
+    ax.text(108, 0.28, r"below the $H$-folding ($z \sim 5H \approx 30$ cm):  $K \to K_d$",
+            color=C_TEAL, fontsize=8, va="bottom")
+    # mark the radiative rise
+    ax.annotate(r"radiative $T^3$ rise", xy=(380, 1.7), xytext=(220, 1.7),
+                fontsize=8, color=C_CORAL, ha="left", va="center",
+                arrowprops=dict(arrowstyle="->", color=C_CORAL, lw=0.8))
+    for s in ax.spines.values():
+        s.set_color(C_CHAR)
+    cb = fig.colorbar(im, ax=ax, pad=0.015, aspect=20)
+    cb.set_label(r"$K$  [mW m$^{-1}$ K$^{-1}$]", fontsize=9)
+    cb.ax.tick_params(labelsize=8, colors=C_DIM)
+    cb.outline.set_edgecolor(C_GRID)
+    fig.savefig(OUT / "fig_book_kTz.pdf", bbox_inches="tight", pad_inches=0.06)
+    plt.close(fig)
+    print("  -> fig_book_kTz.pdf")
+
+
 def fig_skin_wave():
     """2D lines: T(t) at increasing depths — the daily swing collapses."""
     z, t_days, T = _solve_field("A17")
@@ -453,6 +497,7 @@ def main():
     fig_fourier()               # 2D equation interpretation (contains a T(z) plot)
     fig_thermal_field()         # 2D data heatmap
     fig_skin_wave()             # 2D data lines
+    fig_kTz_heatmap()           # 2D Hayne K(T,z) heatmap
     print("done.")
 
 

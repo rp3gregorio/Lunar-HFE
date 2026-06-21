@@ -881,6 +881,17 @@ the radiative $T^3$ term roughly doubles $K$ by midday.}
 \label{fig:models}
 \end{figure}
 
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_kTz.pdf}
+\caption{The full $K(T,z)$ field at the retrieved Apollo~15 $K_d^{*}=4.58$
+mW\,m$^{-1}$\,K$^{-1}$, plotted from the actual code (\code{conductivity\_hayne}
+in \code{src/lunar/properties.py}). Read horizontally to see the radiative $T^3$
+rise at fixed depth; read vertically to see $K\to K_d$ once you drop below a few
+compaction lengths $H$. The contour at $K=4.58$ is roughly where the column
+becomes thermally ``deep''.}
+\label{fig:kTz}
+\end{figure}
+
 
 \section{Practice problems}\label{sec:prob-models}
 
@@ -1739,12 +1750,54 @@ Two lessons. First, the basal flux $Q_b$ and the albedo $A$ dominate the
 systematic budget --- $Q_b$ is the single largest term, consistent with the
 $K_d$--$Q_b$ degeneracy of Ch.~\ref{ch:qb}. Second, Apollo~17's budget is about
 $2.6\times$ wider than Apollo~15's, chiefly through albedo and $K_s$, because its
-higher retrieved $K_d$ amplifies the same fractional input uncertainties. The
-conditional sensitivities to the radiative coefficient $\chi$ and the compaction
-depth $H$ are larger still ($\sim$3 and $\sim$14 for $\chi$ at A15/A17, evaluated
-against the alternative Vasavada et al.\ (2012) normalisation $\chi=1.48$), which
-is why $K_d$ is reported conditional on the published Hayne shape parameters as
-well as on $Q_b$.
+higher retrieved $K_d$ amplifies the same fractional input uncertainties.
+
+\section{The largest weakness: conditionality on \texorpdfstring{$\chi$}{chi}}\label{sec:chi-conditionality}
+The error budget above is honest about what \emph{varies} in the published
+sources. But the largest single sensitivity in the analysis is not in that
+budget at all --- it is the dependence on the radiative coefficient $\chi$ in
+Hayne's $K(T,z)$ (Eq.~\ref{eq:Khayne}).
+
+\begin{warn}
+$\chi$ is held fixed at $2.7$ throughout this work because Hayne~(2017) reports
+that value as the best global Diviner fit. \emph{But} an alternative published
+calibration of the same radiative term --- Vasavada et al.~(2012) --- prefers
+$\chi=1.48$. The two numbers describe the same physical effect, evaluated against
+different orbital data. Plugging $\chi=1.48$ into our retrieval (with everything
+else held fixed) drives the minimum to:
+\begin{center}\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & At Hayne's $\chi=2.7$ & At Vasavada's $\chi=1.48$ \\
+\midrule
+$K_d^{*}$ (Apollo 15) & 4.58 & $\approx 1.5$ \\
+$K_d^{*}$ (Apollo 17) & 8.12 & $\approx 22.0$ \\
+implied $\sigma_\chi$ (A15 / A17) & \multicolumn{2}{c}{$3.1$ / $13.9$} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent\textbf{This is a far larger swing than the quadrature totals
+($1.75$ and $4.61$).} The absolute $K_d^{*}$ values are \emph{conditional} on
+which radiative calibration the reader accepts.
+\end{warn}
+
+\emph{Why we still report them as headline numbers.} Three reasons. \emph{First},
+$\chi$ is not a free parameter we are entitled to vary --- it is one knob of the
+published Hayne form we adopted, and that form is what makes Hayne's $K_d=3.4$
+directly comparable to our per-site retrievals. \emph{Second}, the direction of
+the inter-site contrast survives: Apollo~17 ends up \emph{more} conductive than
+Apollo~15 at \emph{both} $\chi$ choices (the contrast is $+3.5$ at Hayne and
+$+20$ at Vasavada). And \emph{third}, the same conditionality applies to every
+$K_d$ in the literature: Hayne's global $3.4$ assumes $\chi=2.7$ too. Quoting
+$K_d$ along with $\chi$ is the only honest convention.
+
+\begin{plain}
+Bottom line. If a reviewer asks ``what is the real $K_d$ at Apollo 15?'', the
+honest answer is: ``$4.58$ mW\,m$^{-1}$\,K$^{-1}$ \emph{if you accept Hayne's
+$\chi=2.7$}; closer to $1.5$ if you accept Vasavada's $\chi=1.48$''. The
+contrast between sites is robust, and is the headline finding; the absolute
+numbers ride on which radiative calibration you trust.
+\end{plain}
 
 \section{Bayesian cross-check (MCMC)}\label{sec:mcmc}
 An independent check: instead of sweeping $K_d$ on a grid, we run a Markov-chain
@@ -1849,6 +1902,28 @@ A17) and report $K_d$ \emph{conditional} on them. This is honest: we are not
 claiming to have measured $K_d$ independently of $Q_b$. The headline number
 $K_d^*=4.58$ means ``the $K_d$ that best fits the data \emph{given} $Q_b=21$.''
 
+\section{An honest concern: where do the $Q_b$ values come from?}\label{sec:qb-circularity}
+The published values we hold fixed --- $21$ and $15$ mW\,m$^{-2}$ from Langseth
+et al.~(1976) --- were themselves derived from the \emph{same} HFE thermometers
+we are now fitting. Doesn't this make the whole exercise circular?
+
+It would be, if Langseth used the same model we do. He didn't. Langseth's deep-flux
+analysis used a \emph{constant} (depth- and temperature-independent) conductivity
+fitted to long-term-mean temperature differences at adjacent deep sensors, not a
+forward model of the whole profile. The two procedures are sensitive to different
+slices of the data: Langseth's $Q_b$ comes from local gradient differences
+between bracketing deep sensors; our $K_d^{*}$ comes from matching the
+\emph{absolute} temperatures across all deep sensors against a temperature-
+and depth-dependent $K(T,z)$. They share data but not formulation. Still:
+
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item It would be cleaner to re-derive $Q_b$ self-consistently with our $K(T,z)$
+  --- a future project, and the point of the joint MCMC (\S\ref{sec:mcmc}).
+\item The fact that the bootstrap CIs envelope the Saito (2007) and Nagihara
+  (2018) re-analyses, which used different methods, is reassuring but not
+  decisive.
+\end{itemize}
+
 \section{The robust claim}
 Even though the absolute $K_d$ values shift when $Q_b$ changes, the
 \emph{direction} of the contrast survives: Apollo~17 remains more conductive than
@@ -1905,39 +1980,136 @@ Basal flux $Q_b$ (fixed) & 21\,mW\,m$^{-2}$ & 15\,mW\,m$^{-2}$ \\
 
 Heat moves through dry regolith mainly by grain-to-grain contact, so a higher
 $K_d$ points to \emph{denser, more compacted, or more rock-rich} deep regolith.
-Three plausible contributors at Apollo~17:
+The two sites genuinely sample different geology, and the contrast we observe is
+consistent with their independently-known properties.
 
+\section{Apollo 15 --- Hadley Rille (mare basalt)}
+The HFE at Apollo~15 was deployed on the \emph{mare} side of the
+mare/highland boundary at Hadley Rille, on the floor of Mare Imbrium. The
+underlying bedrock is mare basalt --- the iron-rich lavas that filled the
+Imbrium basin between $\sim$3.85 and $\sim$3.2 Ga ago. Surface samples from the
+Apollo~15 traverses are dominated by mare-basalt fragments mixed with anorthositic
+debris that fell back from the Apennine front. The regolith here is relatively
+\emph{mature} --- well-comminuted by billions of years of impact gardening, with
+a substantial agglutinate component.
+
+Three relevant consequences:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{Grain size:} fine, well-mixed; few large blocks at depth.
+\item \textbf{Density:} the Hayne (2017) density profile saturates at
+  $\rho_d\approx1800$~kg\,m$^{-3}$, consistent with mature mare regolith.
+\item \textbf{Contact area:} the well-comminuted grain population packs to
+  modest deep contact area --- a modest $K_d$.
+\end{itemize}
+
+\section{Apollo 17 --- Taurus-Littrow (highland + dark mantle)}
+Apollo~17 sits in the Taurus-Littrow valley, a narrow embayment in the
+highland terrain east of Mare Serenitatis. The valley floor sits between
+$\sim$2000-m high massifs (North and South Massifs) of \emph{anorthositic
+norite} --- ejecta and uplifted material from the Serenitatis basin.
+
+What makes this site special for our purposes is the \emph{dark-mantle deposit}
+that drapes much of the valley floor, identified at Shorty Crater and elsewhere.
+The dark mantle is interpreted as pyroclastic \emph{orange and black glass beads}
+($\sim$3.5 Ga eruption from a deep, primitive source), deposited as a fire-fountain
+spray. Three properties matter:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{Less mature:} relatively young, less agglutinate development.
+\item \textbf{Denser grains:} the glass beads are
+  $\sim$2.8--3.0~g\,cm$^{-3}$ vs. $\sim$2.9 for mare basalt --- comparable
+  intrinsic density but very different packing geometry.
+\item \textbf{Buried block component:} the Taurus-Littrow regolith carries a
+  larger fraction of buried ejecta blocks (highland breccias and basalts shed
+  from the surrounding massifs); blocks couple thermally far better than dust.
+\end{itemize}
+
+\section{Three plausible contributors to the factor-of-two contrast}
 \begin{enumerate}[leftmargin=1.5em,itemsep=3pt]
-\item \textbf{Material:} highland massif debris plus dense pyroclastic dark-mantle
-  deposits, versus Hadley's mare-basalt regolith.
-\item \textbf{Independent support:} the density-based Mart\'inez model prefers a
-  higher effective deep density at Apollo~17 (Ch.~\ref{ch:crosschecks}).
-\item \textbf{Compaction:} more buried rock fragments or a more mature, sintered
-  column at Taurus--Littrow.
+\item \textbf{Material:} highland breccia + pyroclastic glass + buried massif
+  blocks at A17, versus comminuted mare basalt at A15. Greater compositional
+  diversity raises the chance of well-conducting components in the deep mix.
+\item \textbf{Independent support from Martínez:} re-running the retrieval with
+  the density-based Martínez \& Siegler (2021) form prefers an effective deep
+  density scaling $\alpha\approx 1.83$ at A17 vs $\alpha\approx 1.12$ at A15
+  (Ch.~\ref{ch:crosschecks}) --- the same direction as the $K_d$ contrast, from
+  a completely different parameterisation.
+\item \textbf{Compaction history:} the Taurus-Littrow regolith is thinner and
+  less mature; the deep column likely contains a larger fraction of in-situ
+  highland blocks, which contact more grain-to-grain area per unit volume than
+  mature comminuted dust.
 \end{enumerate}
 
-The honest framing: \emph{Apollo~17's deep regolith conducts heat about twice as
-efficiently as Apollo~15's, conditional on the published basal fluxes.}
+\section{What this is not}
+It is \emph{not} a temperature effect: the deep mean temperatures at A15 and A17
+differ by less than a few K, far too little to explain a factor-of-two via the
+$T^3$ radiative term alone. It is \emph{not} a basal flux effect: $Q_b$ is
+\emph{lower} at A17 ($15$ vs $21$~mW\,m$^{-2}$), so the inter-site contrast in
+$K_d$ is, if anything, \emph{enhanced} when you correct for $Q_b$ (the deep
+gradient is smaller at A17 \emph{despite} the bigger conductivity --- because
+the heat going through is smaller too). It is \emph{not} a measurement artefact:
+the contrast survives every robustness check (Ch.~\ref{ch:crosschecks}).
+
+\begin{plain}
+Honest framing. Apollo~17's deep regolith conducts heat about twice as
+efficiently as Apollo~15's, conditional on the published basal fluxes and the
+Hayne shape parameters. The most likely physical explanation: Taurus-Littrow's
+deeper layers contain a larger fraction of buried ejecta blocks and dark-mantle
+pyroclastics, both of which couple thermally better than Hadley Rille's mature
+mare-basalt fines.
+\end{plain}
 
 
 % =====================================================================
 \chapter{Independent cross-checks}\label{ch:crosschecks}
 % =====================================================================
 
-We test the result against two independent data sources.
+A retrieved $K_d$ that fits seven deep thermometers could still be wrong if
+the surrounding physics is mis-specified. We therefore test the result against
+\emph{two} entirely independent data sources, then add a battery of robustness
+checks against our own assumptions.
 
 \section{Diviner surface closure}
-Run the model forward with the retrieved $K_d$ and compare its predicted
-\emph{surface} day--night curve to orbital Diviner data. This is a check that
-uses \emph{no heat-flow data} --- it only asks whether the deep-sensor-derived
-$K_d$ also produces a reasonable surface signature. They agree
-(Fig.~\ref{fig:diviner}), so the deep fit and the surface are self-consistent.
+\subsubsection*{What it tests}
+Whether the same conductivity that explains the \emph{deep, steady} HFE
+temperatures also produces a sensible \emph{surface, daily} temperature swing.
+The deep sensors and the surface diurnal wave are sensitive to disjoint physics
+(deep gradient $\propto Q_b/K$; surface swing $\propto K$ via skin depth), so a
+$K_d$ tuned to one need not fit the other.
 
-\section{Mart\'inez $\alpha$-sweep}
-Repeat the retrieval with the entirely different density-based conductivity model
-(Eq.~\ref{eq:Kmartinez}). Each site prefers a different effective deep density ---
-telling the same story of inter-site contrast through an independent set of
-physical assumptions (Fig.~\ref{fig:alpha}).
+\subsubsection*{How it works}
+LRO's Diviner radiometer (Vasavada et al.\ 2012) has measured the bolometric
+brightness temperature of the lunar surface continuously since 2009. Its
+near-global cumulative product (GCP) bins the record by local solar time and
+latitude. For each site we extract Diviner's mean diurnal curve in the
+corresponding lat-band and compare it against the surface temperature $T_s(t)$
+returned by our forward solver at the retrieved $K_d^{*}$
+(\code{pipeline/compute/compute\_diviner\_closure.py}).
+
+\subsubsection*{What we find}
+The model surface diurnal curves agree with Diviner to within $\sim$5--8~K
+across the lunation at both sites (Fig.~\ref{fig:diviner}). The deep-sensor
+retrieval and the orbital surface measurement are mutually consistent.
+
+\section{Mart\'inez density-based model}
+\subsubsection*{What it tests}
+Whether the inter-site contrast comes from a peculiarity of Hayne's
+parameterisation (where $K_d$ is the free knob) or whether an entirely different
+conductivity form gives the same story.
+
+\subsubsection*{How it works}
+The Martínez \& Siegler (2021) form (Eq.~\ref{eq:Kmartinez}) writes $K$ directly
+in terms of density $\rho$ rather than depth, with no explicit $K_d$
+parameter. Instead we vary a density scaling $\alpha$ that multiplies the deep
+asymptote of $\rho(z)$, and find the $\alpha^{*}$ that minimises the
+deep-sensor RMSE. A higher $\alpha^{*}$ means the model needs a denser deep
+column to fit the data.
+
+\subsubsection*{What we find}
+Apollo~15 prefers $\alpha^{*}\approx 1.12$ ($\rho_d\approx 2010$~kg\,m$^{-3}$).
+Apollo~17 prefers $\alpha^{*}\approx 1.83$ ($\rho_d\approx 3300$~kg\,m$^{-3}$).
+Apollo~17 wants a substantially denser deep column --- exactly the direction the
+Hayne retrieval reports through a higher $K_d$. \emph{Two independent
+parameterisations of the same physics yield the same inter-site direction.}
 
 \begin{figure}[htbp]\centering
 \begin{minipage}{0.49\linewidth}\centering
@@ -1950,14 +2122,33 @@ different deep densities at the two sites.}
 \label{fig:diviner}\label{fig:alpha}
 \end{figure}
 
-\section{Robustness checks}
-Additional sensitivity tests (Fig.~\ref{fig:robustness}):
+\section{Robustness checks against our own assumptions}
+Beyond the two independent data sources, we run a battery of self-checks
+(Fig.~\ref{fig:robustness}):
 \begin{itemize}[leftmargin=1.4em,itemsep=2pt]
-\item \textbf{Joint $(K_d, H)$ surface:} simultaneously varying $K_d$ and the
-  compaction scale height $H$ shows a single, well-defined minimum.
-\item \textbf{Input sensitivities:} perturbing albedo, emissivity, $Q_b$, and $H$
-  individually and re-fitting $K_d$ quantifies how each input affects the answer.
+\item \textbf{Joint $(K_d, H)$ RMSE surface.} Simultaneously varying $K_d$ and
+  the compaction $e$-folding depth $H$ over $H\in[3,10]$~cm and
+  $K_d\in[1.5,18]$~mW\,m$^{-1}$\,K$^{-1}$ shows a single, well-defined minimum
+  near our 1-D retrieval at both sites. There is no second basin we might be
+  missing.
+\item \textbf{Borestem cut sensitivity.} Sliding the $z>80$~cm shallow-cut
+  threshold over $\{70, 80, 90\}$~cm shifts $K_d^{*}$ by under
+  $0.15$~mW\,m$^{-1}$\,K$^{-1}$ at A15 and not at all at A17 --- the result is
+  not driven by any single borderline sensor.
+\item \textbf{Stability-window threshold.} Changing the $0.08$~K\,yr$^{-1}$
+  flatness criterion by $\pm$50\% shifts $K_d^{*}$ by under
+  $0.05$~mW\,m$^{-1}$\,K$^{-1}$ --- the trend cut is not load-bearing.
+\item \textbf{Surface-bias test.} Adding a $\pm$2~K constant offset to every
+  deep-sensor reading (to mimic a possible Nagihara calibration bias) shifts
+  $K_d^{*}$ by less than its bootstrap CI --- the absolute calibration is not
+  load-bearing.
+\item \textbf{Single-anchor solve.} Re-running with only the deep stage of the
+  flux-anchored solver (skipping the cheap shallow stage) gives the same
+  $K_d^{*}$ to three decimal places --- the two-stage schedule is purely an
+  optimisation, not a structural assumption.
 \end{itemize}
+Every check is in \code{pipeline/compute/compute\_*\_sensitivity.py} and is rerun
+end-to-end by \code{make aux}.
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=0.82\linewidth]{figures/fig_robustness.pdf}
@@ -2060,7 +2251,88 @@ efficiently --- plausibly denser, more compacted, or more rock-rich material
 \code{notebooks/equilibrium\_demo.ipynb} (old vs.\ new), and
 \code{pytest tests/test\_equilibrium.py} (the certification).
 
+\section{Common pitfalls --- for the next student}
+The single most valuable thing about this project, from a teaching standpoint,
+is the list of \emph{mistakes that were almost made and caught}. Future students
+of the lunar heat-flow data should know about them:
+
+\begin{warn}
+\textbf{1. The 30-lunation spin-up bug (Flag F1).} A fixed-duration spin-up
+\emph{looks} converged --- the cycle-to-cycle change drops below tolerance ---
+but the deep column is still controlled by the starting guess. The 1000-lunation
+diffusive timescale is far longer than the apparent convergence time. \emph{Fix:}
+always certify steady state by (a) guess-independence, (b) flux closure, not by
+``did the iteration slow down''. (Ch.~\ref{ch:steady}.)
+
+\textbf{2. The $\chi$ conditionality.} The radiative coefficient $\chi$ in
+Hayne's $K(T,z)$ is the largest single sensitivity in the entire retrieval,
+swamping every term that is in the formal error budget. Reporting $K_d$ without
+also reporting $\chi$ is misleading. (\S\ref{sec:chi-conditionality}.)
+
+\textbf{3. The 60-cm borestem outlier.} A sensor very close to the borestem cut
+behaves like a deep sensor but lives in the disturbed zone; including it shifts
+$K_d^{*}$ enough to matter. \emph{Fix:} apply the cut at $z>80$~cm even when it
+costs you a data point. (\S\ref{sec:provenance}; audit appendix.)
+
+\textbf{4. The Diviner hemisphere bug.} GCP files are indexed by latitude band;
+mistakenly fetching the \emph{southern} hemisphere band for a northern site
+gives a closure check that looks self-consistent but is meaningless. \emph{Fix:}
+always print the fetched lat-band before computing residuals. (Audit appendix.)
+
+\textbf{5. The $Q_b$ circularity.} The basal flux values come from the same
+HFE thermometers; the retrieval is conditional, not independent, of Langseth's
+analysis. Worth re-deriving self-consistently in future work.
+(\S\ref{sec:qb-circularity}.)
+\end{warn}
+
 % =====================================================================
+\chapter*{Glossary of acronyms}
+\addcontentsline{toc}{chapter}{Glossary of acronyms}
+\markboth{Glossary}{Glossary}
+
+\begin{center}\small
+\begin{tabular}{@{}lp{10cm}@{}}
+\toprule
+Acronym & Meaning \\
+\midrule
+\multicolumn{2}{l}{\emph{Mission \& instruments}}\\
+HFE & Heat Flow Experiment (Apollo 15 \& 17 thermal-probe arrays) \\
+TG & gradient thermocouple (the sensor that reports a $\Delta T$ across one bridge) \\
+TR & ring thermocouple (the reference / sheath sensor) \\
+TC & thermocouple (Apollo 17 sensor labelling for both kinds) \\
+LRO & NASA's Lunar Reconnaissance Orbiter (in operation since 2009) \\
+Diviner & Diviner Lunar Radiometer Experiment (LRO instrument used for surface closure) \\
+PSR & Permanently Shadowed Region (relevant for the Vasavada / Martínez context) \\
+\midrule
+\multicolumn{2}{l}{\emph{Numerics \& boundary conditions}}\\
+BC & boundary condition (top: radiative balance; bottom: $Q_b$ Neumann) \\
+CN & Crank--Nicolson (the implicit time scheme used in the solver) \\
+RMSE & root-mean-square error of the model against the deep sensors \\
+\midrule
+\multicolumn{2}{l}{\emph{Statistics}}\\
+MCMC & Markov-chain Monte Carlo (used for the joint $(K_d, Q_b)$ cross-check) \\
+AICc & Akaike Information Criterion with the small-sample correction \\
+CI & confidence interval (bootstrap, 95\% by default) \\
+\midrule
+\multicolumn{2}{l}{\emph{Ephemeris / SPICE}}\\
+SPICE & JPL toolkit for solar-system geometry \\
+NAIF & Navigation and Ancillary Information Facility (the SPICE provider) \\
+LSK & leap-seconds kernel \\
+PCK & planetary constants kernel \\
+BPC & binary PCK (used for the Moon's rotation) \\
+SPK / BSP & spacecraft/planet kernel (DE440 ephemeris) \\
+\midrule
+\multicolumn{2}{l}{\emph{Diviner products}}\\
+GCP & global cumulative product (Diviner $T_b$ bins by latitude $\times$ local solar time) \\
+\midrule
+\multicolumn{2}{l}{\emph{Journals}}\\
+JGR & Journal of Geophysical Research \\
+PSJ & Planetary Science Journal \\
+\bottomrule
+\end{tabular}
+\end{center}
+\clearpage
+
 \chapter*{References}
 \addcontentsline{toc}{chapter}{References}
 \markboth{References}{References}
@@ -2179,6 +2451,32 @@ import json
 d = json.load(open("results/kd_retrieval_results.json"))
 print(d["A15"]["kd_star"]*1e3, d["A17"]["kd_star"]*1e3)   # -> 4.58, 8.12
 \end{lstlisting}
+
+\textbf{Expected output of a clean run.} Everything below should match to within
+the listed tolerance:
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Quantity & Expected value & Tolerance \\
+\midrule
+$K_d^{*}$ (Apollo 15) & $4.58$ mW\,m$^{-1}$\,K$^{-1}$ & $\pm 0.01$ \\
+$K_d^{*}$ (Apollo 17) & $8.12$ mW\,m$^{-1}$\,K$^{-1}$ & $\pm 0.01$ \\
+Bootstrap 95\% CI (A15) & $[4.12,\ 7.45]$ & $\pm 0.02$ \\
+Bootstrap 95\% CI (A17) & $[6.85,\ 9.04]$ & $\pm 0.02$ \\
+Contrast median & $3.31$ & $\pm 0.05$ \\
+Contrast $p$-value & $0.011$ & $\pm 0.003$ \\
+Test suite & $37$ passed & exact \\
+Equilibrium drift & $\le 0.023$ K & --- \\
+Flux closure & $< 2\%$ & --- \\
+Wall time (fast path) & $\sim$15 min & --- \\
+Wall time (\code{make all}) & $\sim$1 h & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+If any of these is off by more than the listed tolerance, you have hit
+either a Python-version difference or a numerics regression --- both are worth
+investigating.
+
 The fast path (using the committed auxiliary JSONs and skipping the $\sim$60-min
 sensitivity sweeps) runs end to end in $\sim$15 minutes; a full reproduction is
 about an hour.

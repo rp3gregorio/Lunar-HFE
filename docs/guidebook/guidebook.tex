@@ -526,6 +526,38 @@ $\sim$100\,K at night ($-173\,$\textdegree C) to $\sim$390\,K at noon
 ($+117\,$\textdegree C). This is the ``forcing'' that drives everything
 (Fig.~\ref{fig:forcing}).
 
+\subsection{Which terms we keep, and which we drop}\label{sec:forcing-neglect}
+The pipeline drives the solver with
+$S(t)=S_0\cos(\mathrm{lat})\,\max(0,\cos 2\pi t/P)$. This is the simplest forcing
+that captures the day-night cycle. Three real terms are absent. It is worth
+estimating them so we know how much the simplification costs.
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Neglected term & Magnitude & Estimated bias on $K_d^{*}$ \\
+\midrule
+Solar declination $\pm 1.5^{\circ}$ & $\cos(\mathrm{lat})$ varies by
+  $\le 1.5\%$ & $\le 0.05$ mW\,m$^{-1}$\,K$^{-1}$ \\
+Earth orbit eccentricity & $S_0$ varies by $\pm 3.3\%$ over a year &
+  $\le 0.1$ mW\,m$^{-1}$\,K$^{-1}$ \\
+Site longitude (LST offset) & a constant phase shift; no effect on cycle mean &
+  $\sim 0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The first two enter only through the cycle-mean insolation, which the deep
+$\Tm$ profile responds to via Eq.~\eqref{eq:closure}. Their combined effect on
+$\Tm$ at $z\sim 1$~m is at most a few tenths of a Kelvin, translating to a
+shift in $K_d^{*}$ that is small compared to the bootstrap CI half-width
+($\sim 1.7$ mW\,m$^{-1}$\,K$^{-1}$ at A15). The third (longitude) shifts the
+phase of the diurnal wave but not its mean, so the steady-state retrieval is
+insensitive. A correct SPICE/DE440 implementation
+(\code{src/lunar/ephem.py}) exists for future per-timestamp work that
+would close even these terms; the audit appendix (Appendix~\ref{app:flags}, F2)
+records the decision to use the idealised forcing for this paper.
+
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_book_sunmoon.pdf}
 \caption{The lunar forcing. As the Moon turns, the borehole site rotates from the
@@ -861,16 +893,72 @@ The density follows the same exponential shape:
 \rho(z)=\rho_d-(\rho_d-\rho_s)\,e^{-z/H},\qquad \rho_s=1100,\ \rho_d=1800\ \text{kg\,m}^{-3}.
 \end{equation}
 
-\section{Mart\'inez \& Siegler (2021): a density-based model}
-An alternative writes $K$ directly in terms of bulk density $\rho$:
+\section{Mart\'inez \& Siegler (2021): a density-based model}\label{sec:martinez}
+The Martínez \& Siegler form abandons Hayne's depth-based scaling and writes the
+conductivity \emph{directly} as a function of density and temperature:
 \begin{equation}
-K(T,\rho)=(A_1\rho+A_2)\,k_{\mathrm{am}}(T)+(B_1\rho+B_2)\,T^3,
+K(T,\rho)=(A_1\,\rho+A_2)\,k_{\mathrm{am}}(T)+(B_1\,\rho+B_2)\,T^3.
 \label{eq:Kmartinez}
 \end{equation}
-with $k_{\mathrm{am}}(T)$ a fitted amorphous-solid polynomial. Same physics,
-different parameterisation: where Hayne's free parameter is $K_d$, Mart\'inez's
-is effectively the deep density. We use it as an independent cross-check
-(Ch.~\ref{ch:crosschecks}).
+There are two terms, both density-weighted, and the structure parallels Hayne's
+factorisation: a contact part and a radiative part. But every choice is
+different, so let us unpack it.
+
+\subsection{The amorphous-solid baseline $k_{\mathrm{am}}(T)$}
+Lunar regolith grains are dominated by impact-shocked, partially amorphous
+silicate glass --- not pristine crystal. Crystalline phonon conduction rises
+linearly with $T$; amorphous phonon conduction does \emph{not}. Woods-Robinson
+et al.\ (2019) measured the temperature dependence of synthetic lunar-glass
+analogues and reported a 9-term polynomial in $T^{-4}\!,\,T^{-3}\!,\ldots,T^4$
+that captures the data from 30~K to 400~K. The Martínez code adopts that
+polynomial as $k_{\mathrm{am}}(T)$; it is the \emph{intrinsic} conductivity of a
+solid amorphous grain at temperature $T$. In our code (\code{src/lunar/properties.py})
+its nine coefficients are \code{MS\_KAM\_A\ldots MS\_KAM\_I}.
+
+\subsection{The contact term $(A_1\rho+A_2)\,k_{\mathrm{am}}$}
+Bulk regolith is not a solid block; it is a packing of grains. Two facts about
+contact conduction matter:
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+\item \emph{The intrinsic grain conductivity sets the upper limit} --- you cannot
+  conduct better than the material itself. That is $k_{\mathrm{am}}(T)$.
+\item \emph{Packing reduces it.} Heat must funnel through finite contact patches
+  whose total area scales with the packing fraction, i.e.\ with bulk density~$\rho$.
+\end{enumerate}
+The Martínez prescription is simply the linear ansatz: contact conductivity is a
+fraction $(A_1\rho+A_2)$ of the intrinsic grain conductivity. The slope $A_1$ and
+intercept $A_2$ are calibrated from laboratory glass-bead measurements:
+$A_1=5.08\times10^{-6}$~m$^3$\,kg$^{-1}$, $A_2=-0.0051$ (dimensionless).
+At lunar deep density ($\rho\approx 1800$~kg\,m$^{-3}$) the prefactor is
+$(A_1\rho+A_2)\approx 4.1\times10^{-3}$ --- i.e.\ the bulk regolith conducts at
+$\sim$0.4\% of its grains' intrinsic conductivity, which is the right order of
+magnitude for a granular medium with $\sim$50\% porosity.
+
+\subsection{The radiative term $(B_1\rho+B_2)\,T^3$}
+The $T^3$ structure is the same as Hayne's --- the temperature derivative of
+Stefan-Boltzmann emission --- but the prefactor is again density-weighted. The
+intuition: tighter packing reduces the size of the pores across which radiation
+crosses. The published coefficients are $B_1=2.00\times10^{-13}$ and
+$B_2=-1.95\times10^{-10}$ (in SI). At deep density these give a radiative term
+that doubles the contact part by $T\approx 360$~K --- the same crossover
+temperature we get from Hayne (Problem~3.1).
+
+\subsection{What is the ``free parameter'' here?}
+Look at Eq.~\eqref{eq:Kmartinez} again: there is no $K_d$. The model is fully
+specified by $\rho(z)$. We turn it into a one-parameter retrieval by introducing
+$\alpha$, a multiplier on Hayne's deep density asymptote:
+$\rho_d \to \alpha\,\rho_d$. The bulk profile keeps Hayne's exponential shape
+but its deep value scales with $\alpha$. Sweeping $\alpha$ and minimising the
+RMSE gives $\alpha^{*}$ per site --- the equivalent of $K_d^{*}$ in Hayne's
+formulation.
+
+\begin{plain}
+Two ways to spell the same physics. Hayne lets you tune the deep
+\emph{conductivity}; Martínez lets you tune the deep \emph{density}. If the
+inter-site contrast we observe is real, \emph{both} retrievals should report a
+denser-and-better-conducting deep column at Apollo~17 --- which they do
+(Ch.~\ref{ch:crosschecks}). Two completely independent parameterisations agreeing
+is a far stronger statement than either alone.
+\end{plain}
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_models.pdf}
@@ -1746,6 +1834,43 @@ Solver / numerical             & 0.15 & 0.15 \\
 \end{tabular}
 \end{center}
 
+\subsection{How each $\sigma$ is generated}
+Each row of the table is the half-range of a re-retrieval at perturbed inputs,
+not a guess. Specifically:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item $\sigma_{\rm stat}$: half-width of the 16th--84th percentile of the 1500
+  bootstrap $K_d^{*}$ values (\code{kd\_retrieval\_results.json}).
+\item $\sigma_{Q_b}$: $\sigma_{Q_b}=K_d^{*}\,(Q_b^{\rm high}-Q_b^{\rm low})/(2\,Q_b^{\rm nom})$,
+  with the published $Q_b$ envelopes
+  ($14$--$25$~mW\,m$^{-2}$ at A15, $10$--$18$ at A17 from Langseth 1976 / Saito
+  2007 / Nagihara 2018). This is the analytical degeneracy-line slope evaluated
+  at the data --- no extra forward solves needed.
+\item $\sigma_A$: re-run the full retrieval at $A\to A\pm 0.01$ (the Vasavada
+  2012 lat-band scatter); record the half-range of the resulting $K_d^{*}$
+  (\code{compute\_surface\_bias\_test.py}). The $\pm 0.01$ envelope is the
+  largest perturbation that keeps the misfit bowl monotonic; beyond that the
+  retrieval flips between RMSE branches.
+\item $\sigma_{K_s}$: re-run with the surface conductivity at $\pm 10\%$ of its
+  Hayne~2017 value (\code{compute\_fixed\_input\_sensitivities.py}).
+\item $\sigma_\rho$: re-run with the deep density at $\pm 5\%$ of its Hayne~2017
+  asymptote.
+\item $\sigma_{z_b}$: half-range over the borestem-cut sweep at
+  $\{70, 80, 90\}$~cm (\code{compute\_borestem\_sensitivity.py}); the 60-cm cut
+  is included as a diagnostic but excluded from the budget (it readmits a
+  borestem-contaminated sensor at A17).
+\item $\sigma_{\rm thr}$: half-range over the stability-window flatness threshold
+  sweep at $\pm 50\%$ of the nominal $0.08$~K\,yr$^{-1}$
+  (\code{compute\_stability\_threshold\_sensitivity.py}).
+\item $\sigma_{\rm solver}$: an upper-bound systematic from the equilibrium
+  certification --- the $\le 0.08$~K mean-temperature drift at sensor depths
+  over a 120-lunation honest run, times the measured $dK_d^{*}/dT$ response of
+  $\sim$1.5--2~mW\,m$^{-1}$\,K$^{-1}$ per K.
+\end{itemize}
+Each is recomputed end-to-end by \code{make aux}; the totals in the table are
+$\sqrt{\sum_i \sigma_i^2}$. The $\chi$ and $H$ sensitivities are reported
+separately as \emph{conditional} terms (\S\ref{sec:chi-conditionality}), not in
+the quadrature, because they parametrise the Hayne form we adopted.
+
 Two lessons. First, the basal flux $Q_b$ and the albedo $A$ dominate the
 systematic budget --- $Q_b$ is the single largest term, consistent with the
 $K_d$--$Q_b$ degeneracy of Ch.~\ref{ch:qb}. Second, Apollo~17's budget is about
@@ -1931,6 +2056,42 @@ Apollo~15 for all plausible $Q_b$ values ($\sim$83\% posterior probability from
 the MCMC). $Q_b$ is one of the largest terms in the error budget --- a direct
 fingerprint of this coupling.
 
+\section{Practice problems}\label{sec:prob-qb}
+
+\begin{problembox}[Problem 8.1 — sliding the degeneracy diagonal]
+The retrieval at Apollo~15 finds $K_d^{*}=4.58$ at $Q_b=21$~mW\,m$^{-2}$. If a
+future re-analysis revised Apollo~15's $Q_b$ down to $18$~mW\,m$^{-2}$ (about
+$-14\%$), what would the corresponding $K_d^{*}$ be? Use the closure relation
+$d\Tm/dz \propto Q_b/K_d$ and assume the deep gradient the data demand is fixed.
+\end{problembox}
+\begin{solutionbox}
+The closure says $K_d \propto Q_b$ for a fixed observed gradient, so a $-14\%$
+shift in $Q_b$ drags $K_d^{*}$ down by the same fraction:
+$K_d^{*}\to 4.58\times(18/21)\approx 3.92$ mW\,m$^{-1}$\,K$^{-1}$. The
+inter-site \emph{contrast}, in contrast, is approximately preserved because the
+$Q_b/K_d$ ratio at A17 would shift by a similar factor --- which is exactly the
+$\sim$83\% posterior-direction-survival result from the MCMC.
+\end{solutionbox}
+
+\begin{problembox}[Problem 8.2 — why one borehole cannot break the degeneracy]
+A graduate student proposes: ``Just measure $K_d$ and $Q_b$ both from the data --
+the misfit surface should pick a single $(K_d, Q_b)$.'' Explain why this fails
+at \emph{one} borehole but might succeed if you had two probes at very different
+depths at the same site.
+\end{problembox}
+\begin{solutionbox}
+At one borehole the deep mean temperatures are sensitive almost only to the
+\emph{ratio} $Q_b/K_d$, not the two values separately, because the closure
+$d\Tm/dz = Q_b/K(\Tm,z)$ depends on that ratio. Move along the
+$Q_b\propto K_d$ diagonal and you sweep through fits of essentially equal
+quality. Two probes at different depths could in principle break the
+degeneracy because they probe \emph{different} parts of $K(\Tm,z)$ --- but the
+real Apollo probes are at similar enough depths (and the $T$ range is narrow)
+that the radiative term doesn't differentiate them enough. That is why the
+field needs independent measurements of either $Q_b$ (e.g.\ from drilling deeper)
+or $K(T,z)$ (e.g.\ in-situ probes like ChaSTE) to truly close the loop.
+\end{solutionbox}
+
 \begin{figure}[htbp]\centering
 \includegraphics[width=0.82\linewidth]{figures/fig_kd_qb_posterior.pdf}
 \caption{The $K_d$--$Q_b$ trade-off: many combinations along a diagonal fit
@@ -2058,6 +2219,42 @@ pyroclastics, both of which couple thermally better than Hadley Rille's mature
 mare-basalt fines.
 \end{plain}
 
+\section{Practice problems}\label{sec:prob-sites}
+
+\begin{problembox}[Problem 9.1 — temperature is not the explanation]
+The deep mean temperature at Apollo~17 ($\sim$256~K) is slightly \emph{warmer}
+than at Apollo~15 ($\sim$253~K). Could the inter-site $K$ contrast be a
+temperature effect (via the radiative $T^3$ term) rather than a regolith-density
+effect?
+\end{problembox}
+\begin{solutionbox}
+Compute the radiative multiplier at both temperatures:
+$(T/T_{\rm ref})^3 = (253/350)^3 \approx 0.378$ at A15; $(256/350)^3\approx
+0.392$ at A17. With $\chi=2.7$ the bracket
+$[1+\chi(T/T_{\rm ref})^3]$ shifts only $\sim$2\% between the two sites
+(from $\sim$2.02 to $\sim$2.06). That is \emph{vastly} smaller than the
+$\sim 1.8\times$ contrast we observe in $K_d^{*}$. The temperature difference
+can account for at most a couple of percent of the contrast --- not the bulk.
+The remainder must come from genuinely different bulk material.
+\end{solutionbox}
+
+\begin{problembox}[Problem 9.2 — what would falsify the geology story?]
+Suppose a future LRO Diviner thermal-inertia map of Hadley Rille and
+Taurus-Littrow showed identical thermal inertia at the two sites. How would
+that affect the geological interpretation of the $K_d$ contrast?
+\end{problembox}
+\begin{solutionbox}
+Thermal inertia $I=\sqrt{K\rho c_p}$ is sensitive to roughly the top
+$\sim$1 skin depth (a few cm), not the deep column. Identical surface thermal
+inertia tells us the \emph{near-surface} packings and bulk densities are
+similar between the sites. That would not falsify the $K_d$ contrast --- our
+$K_d$ probes the column below 80~cm, an entirely different layer. But it would
+sharpen the story: the contrast must originate from a layer that orbital
+thermal inertia cannot see. Conversely, if Diviner showed a clear thermal-inertia
+contrast at the surface, that would be additional support that the difference
+extends to the surface.
+\end{solutionbox}
+
 
 % =====================================================================
 \chapter{Independent cross-checks}\label{ch:crosschecks}
@@ -2150,6 +2347,41 @@ Beyond the two independent data sources, we run a battery of self-checks
 Every check is in \code{pipeline/compute/compute\_*\_sensitivity.py} and is rerun
 end-to-end by \code{make aux}.
 
+\section{Practice problems}\label{sec:prob-crosschecks}
+
+\begin{problembox}[Problem 10.1 — why the surface closure tests something different]
+The Diviner closure compares the model's predicted \emph{surface} diurnal curve
+to orbital observations, even though our $K_d^{*}$ was fitted to \emph{deep}
+sensors only. Why is this an independent check rather than a tautology?
+\end{problembox}
+\begin{solutionbox}
+The deep-sensor RMSE is dominated by the cycle-mean profile $\Tm(z)$, which is
+controlled by $Q_b/K_d$ and the deep-column average $K$. The surface diurnal
+curve is dominated by the skin-depth $\delta=\sqrt{2\kappa/\omega}$ which
+depends on $K$ in the top centimetres --- a different layer probed by very
+different physics. A retrieval that fits the deep mean and then \emph{also}
+matches the unrelated surface swing is much more constrained than either
+alone --- the agreement is not built in.
+\end{solutionbox}
+
+\begin{problembox}[Problem 10.2 --- the Mart\'inez $\alpha$ as a sanity check]
+At Apollo~15 the Martínez retrieval prefers $\alpha^{*}\approx 1.12$
+($\rho_d\approx 2010$ kg/m³). At Apollo~17, $\alpha^{*}\approx 1.83$
+($\rho_d\approx 3300$ kg/m³). The A17 value sits noticeably above intact
+mare-basalt density ($\sim 3000$ kg/m³). Is that a problem for the model?
+\end{problembox}
+\begin{solutionbox}
+The Martínez density is not a literal regolith density --- it is the
+\emph{effective} density that makes the Martínez form match the deep mean
+profile. A value above intact-rock density tells us the model is being pushed
+beyond its calibration regime to compensate for missing physics (probably the
+buried-block conduction channel discussed in Ch.~\ref{ch:sites}). It is
+\emph{not} a falsification --- it is a warning that the Martínez parameterisation
+is reaching its limits at A17, which is exactly why the cross-check is useful:
+the qualitative direction (denser-at-A17) survives even though the quantitative
+$\alpha^{*}$ is at the edge of physical plausibility.
+\end{solutionbox}
+
 \begin{figure}[htbp]\centering
 \includegraphics[width=0.82\linewidth]{figures/fig_robustness.pdf}
 \caption{Robustness: (a)~joint $K_d$--$H$ RMSE surface, (b,c)~sensitivity of
@@ -2190,36 +2422,121 @@ small modules (\code{grid}, \code{solver}, \code{equilibrium}).}
 \label{fig:arch}
 \end{figure}
 
+\section{The data model: how a pixel travels through the code}
+Everything the solver needs about one site --- grid, time-axis, insolation,
+albedo, emissivity, basal flux, conductivity function, initial guess --- is
+bundled into a single \code{PixelInputs} dataclass; everything the solver
+produces --- the cycle-resolved $T(z,t)$ field, surface skin temperature,
+diagnostics --- comes back as a \code{PixelOutputs}. There are no globals; the
+solver is a pure function of \code{PixelInputs} (\code{src/lunar/solver.py},
+line 69--110). That single design decision is what makes the parallel sweep,
+the bootstrap, and the joint $(K_d, H)$ surface trivial: every solve is
+self-contained, so the caller is free to schedule them however it likes.
+
+The equilibrium driver layers on top: \code{solve\_periodic\_equilibrium} returns
+an \code{EquilibriumResult} carrying the per-cycle \code{PixelOutputs}, the
+cycle-mean profile $\Tm$, the anchor drift, and the flux-closure residual --- the
+self-certification numbers from \S\ref{sec:cert}.
+
 \section{Parallelism: one solve vs.\ many solves}
 A single forward solve (one call to \code{run\_with}) is inherently sequential:
 each time step depends on the previous one. You cannot split a single trajectory
 across cores.
 
 But the \emph{sweep} (28--30 independent $K_d$ values) and the \emph{bootstrap}
-(1500 independent resamples) consist of many independent solves. These run
-across all available cores. ``More cores speed up the batch, not one solve.''
+(1500 independent resamples) consist of many independent solves. The pipeline
+runs them across all available cores via Python's
+\code{concurrent.futures.ProcessPoolExecutor}. The shared idiom: build all the
+\code{PixelInputs} dataclasses up front, fan them out across workers, gather the
+\code{PixelOutputs} when they return, then aggregate (compute RMSE, take a
+percentile). \emph{More cores speed up the batch, not one solve.}
 
-\section{C++ port: why and what}
-The inner time step (\code{\_step} in \code{solver.py}) runs $\sim$709 times per
-lunation and $\sim$150 lunations per equilibrium solve --- over 100,000 calls.
-The Thomas algorithm is already JIT-compiled (Numba), but the matrix assembly is
-interpreted Python --- exactly where a compiled language wins
-($\sim$10--100$\times$).
+\section{Testing strategy: what 37 tests actually pin down}
+The test suite (\code{tests/}) is a tiered safety net:
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{Unit tests} for the leaf modules (grid construction, conductivity,
+  density, specific heat, Thomas algorithm, Newton surface solver).
+\item \textbf{Solver integration tests} that compare the numerical CN solve
+  against the analytical thermal wave in the constant-coefficient regime ---
+  first-order convergence is verified, $L^\infty$ error decreases with $\Delta z$.
+\item \textbf{Equilibrium regression tests} that enforce the F1 fix is in: a
+  guess-independence test (242~K vs 258~K start give the same converged
+  profile to $<0.05$~K) and a flux-closure test (mean conductive flux equals
+  $Q_b$ below the anchor to within 10\%). These are the regression locks for
+  the entire methodological contribution.
+\item \textbf{Headline regression test}: the canonical
+  \code{results/kd\_retrieval\_results.json} is reproduced to within $\pm$0.01
+  mW\,m$^{-1}$\,K$^{-1}$ from a clean retrieve run.
+\end{itemize}
+Any change to the solver that breaks any of these blows the suite, so future
+edits cannot silently re-introduce F1-class bugs.
 
-The plan: port \code{grid}, \code{solver}, and \code{equilibrium} to C++; keep
-configuration and analysis in Python. Validate the C++ port against the existing
-37-test suite and the committed steady-state profiles.
+\section{Performance today, and why a C++ port isn't on the critical path}
+The inner time step (\code{\_step} in \code{solver.py}) is JIT-compiled by Numba;
+the inner Thomas algorithm and Newton surface solver run at near-C speed. The
+remaining Python overhead is in the per-call setup (building
+\code{PixelInputs}, dispatching to the worker), which is amortised across the
+$\sim$10$^5$ time steps each solve runs.
 
-The three speed-ups multiply:
-\[
-\underbrace{\text{algorithm (shortcut)}}_{\sim30\times,\ \text{done}}
-\times
-\underbrace{\text{compilation (C++)}}_{\sim10\text{--}100\times}
-\times
-\underbrace{\text{parallelism}}_{\times\text{cores}}.
-\]
-Not needed for this paper's $\sim$60 solves; valuable at scale (full Diviner
-maps, mission pipeline).
+One equilibrium solve takes $\sim$9~s on a modern laptop; the headline retrieve
+finishes in $\sim$12~min and the bootstrap in another $\sim$5. For \emph{this}
+study that is fine. A C++ port of the entire solver could be $5$--$10\times$
+faster --- worthwhile if the pipeline were to be run over a full Diviner map
+($\sim$10$^4$ pixels) or as part of an in-situ mission. We mention it not as
+work that has been done but as a clean future direction: with the data-model
+and test suite already in place, a port can be validated cell-by-cell against
+the committed Python results.
+
+\section{Practice problems}\label{sec:prob-code}
+
+\begin{problembox}[Problem 11.1 — why no globals?]
+The forward solver is a pure function of \code{PixelInputs}. Suppose we cheated
+and made the conductivity model $K(T,z)$ a global variable instead. Identify two
+concrete bugs that would be possible under the global design that are impossible
+under the dataclass design.
+\end{problembox}
+\begin{solutionbox}
+\emph{(1)~Race condition.} Run two pixels in parallel with different
+conductivity models (say A15 with Hayne and A17 with Martínez). With a global,
+worker~A could overwrite the conductivity model worker~B is reading mid-step,
+silently giving worker~B the wrong $K$. With dataclasses each worker carries
+its own immutable \code{PixelInputs}.
+\emph{(2)~Stale-state across runs.} An interactive notebook session that
+re-runs a single cell sometimes leaves the global at the last value set.
+Re-running the retrieval after a sensitivity test could silently use the
+perturbed model. With dataclasses this is impossible --- the function takes its
+inputs.
+\end{solutionbox}
+
+\begin{problembox}[Problem 11.2 — why is the F1 regression test the most important one?]
+The 37 tests cover many things. Argue which single test is the most important to
+keep green and explain why.
+\end{problembox}
+\begin{solutionbox}
+\code{test\_equilibrium::test\_guess\_independence}: it asserts the flux-anchored
+equilibrium driver returns the same profile from 242~K and 258~K starting
+guesses. If \emph{this} test breaks, F1 has returned and every retrieved $K_d$
+becomes a function of the starting guess --- i.e.\ wrong. Every other test could
+in principle be broken-but-recoverable; F1 silently corrupts the headline number,
+so it is the lock the suite cannot afford to lose.
+\end{solutionbox}
+
+\begin{problembox}[Problem 11.3 — porting strategy]
+You are tasked with porting only the inner \code{\_step} function to C++ (not the
+whole solver). What two artifacts of the current codebase make that port
+\emph{verifiable}, rather than a leap of faith?
+\end{problembox}
+\begin{solutionbox}
+\emph{(1)~The analytical thermal-wave test} in \code{tests/test\_solver.py}
+checks one CN step against the closed-form $A e^{-z/\delta}\sin(\omega t - z/\delta)$
+solution. Any port that produces the same output on this constant-coefficient
+problem to within first-order numerical precision is at least
+mechanically correct.
+\emph{(2)~The committed \code{results/kd\_retrieval\_results.json}} pins the
+end-to-end retrieval to four significant figures. A port that reproduces $K_d^{*}$
+to within $\pm 0.01$ has matched the Python at the integration level. Together
+they bracket the port from below (unit) and above (system).
+\end{solutionbox}
 
 
 % =====================================================================

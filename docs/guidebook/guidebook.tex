@@ -273,7 +273,7 @@ whole Moon. \textbf{Our question is simply: what is $K_d$ at each of the two
 boreholes, separately --- and do they differ?} (Fig.~\ref{fig:map}.)
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.7\linewidth]{figures/fig_context_map.pdf}
+\includegraphics[width=0.85\linewidth]{figures/fig_context_map.pdf}
 \caption{The two heat-flow boreholes. Apollo~15 sits at Hadley Rille on the
 Imbrium mare/Apennine boundary; Apollo~17 in the Taurus--Littrow highland valley.
 Different terrains suggest possibly different regolith properties.}
@@ -342,7 +342,7 @@ geothermal signal that fixes $K_d$.}
 \end{figure}
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.96\linewidth]{figures/fig_book_sensor.pdf}
+\includegraphics[width=\linewidth]{figures/fig_book_sensor.pdf}
 \caption{What an HFE sensor actually \emph{is}. Two probe-tube sections,
 separated by $\sim$50\,cm, are joined by a pair of platinum-resistance
 bridges. Each bridge reports the temperature at its level; their difference,
@@ -369,7 +369,7 @@ flow --- inputs, processes, results --- so every chapter that follows has a
 home. Figure~\ref{fig:pipeline} is a one-page map of the same thing.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth]{figures/fig_book_pipeline.pdf}
+\includegraphics[width=0.85\linewidth]{figures/fig_book_pipeline.pdf}
 \caption{The retrieval pipeline. Three inputs (Apollo data, the Hayne
 conductivity model with one free knob $K_d$, and the published basal flux $Q_b$)
 feed four processes (extract equilibrium temperatures, solve the heat equation
@@ -508,7 +508,7 @@ than leaving below (or vice versa).'' The three material properties --- $\rho$
 \end{plain}
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.9\linewidth]{figures/fig_book_heateq.pdf}
+\includegraphics[width=\linewidth]{figures/fig_book_heateq.pdf}
 \caption{Reading the heat equation. Take one thin layer of regolith as a box.
 Heat flows in through its top face and out through its bottom face; whatever does
 not leave is \emph{stored}, warming the layer. ``Stored equals in minus out'' is
@@ -1029,7 +1029,7 @@ This chapter walks through the solver in \code{src/lunar/solver.py} and
 \code{src/lunar/grid.py}, piece by piece.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.82\linewidth]{figures/fig_book_numerical.pdf}
+\includegraphics[width=\linewidth]{figures/fig_book_numerical.pdf}
 \caption{Discretising the column: cells in depth, steps in time; each time step
 solves a small linear system that couples each cell to its neighbours.}
 \label{fig:numerical}
@@ -1042,7 +1042,7 @@ changes rapidly over a few centimetres), but the deep column can be coarse
 --- each $\sim$8\% thicker than the one above (Fig.~\ref{fig:grid}).
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.86\linewidth]{figures/fig_book_grid3d.pdf}
+\includegraphics[width=0.85\linewidth]{figures/fig_book_grid3d.pdf}
 \caption{The geometric depth grid. Cells are 2\,mm at the surface --- fine enough
 to resolve the daily wave --- and grow by $\sim$8\% each layer, reaching tens of
 centimetres at depth where the temperature is nearly flat. Just $\sim$69 cells
@@ -1538,7 +1538,7 @@ error is still $\sim$13\,K. The deep column's thermal timescale is $\tau \sim
 method imposes the answer directly via $dT/dz = Q_b/K$.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.82\linewidth]{figures/fig_convergence.pdf}
+\includegraphics[width=\linewidth]{figures/fig_convergence.pdf}
 \caption{Brute-force error at sensor depths (0.8--2.4\,m) vs.\ lunation count.
 At 30 lunations (red dashed line) the old method still carries $>$12\,K of error.
 The shaded band marks the $<$30\,mK tolerance that the shortcut achieves in
@@ -1576,7 +1576,7 @@ If either check fails, the code signals that the solve did not converge. This is
 exactly the verification the old fixed spin-up could never provide.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.78\linewidth]{figures/fig_equilibrium_certification.pdf}
+\includegraphics[width=\linewidth]{figures/fig_equilibrium_certification.pdf}
 \caption{Guess-independence and flux closure --- the returned proof that a solve
 reached steady state. Different starting guesses produce the same answer (left);
 the flux closes on $Q_b$ to $<2\%$ at all depths (right).}
@@ -1685,7 +1685,7 @@ which pins the minimum to far finer than the grid spacing without any extra
 and the steady state is unique for each $K_d$.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.74\linewidth]{figures/fig_kd_sweep.pdf}
+\includegraphics[width=0.85\linewidth]{figures/fig_kd_sweep.pdf}
 \caption{Deep-sensor RMSE vs.\ trial $K_d$. The minimum is $K_d^{*}$; Apollo~17's
 sits at a clearly higher conductivity than Apollo~15's.}
 \label{fig:sweep}
@@ -1704,7 +1704,7 @@ better than the one-size-fits-all value (Fig.~\ref{fig:profiles}); at Apollo~17
 the misfit roughly halves.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.74\linewidth]{figures/fig_thermal_profiles.pdf}
+\includegraphics[width=0.85\linewidth]{figures/fig_thermal_profiles.pdf}
 \caption{Settled mean temperature vs.\ depth using each site's retrieved
 $K_d^{*}$, plotted against the deep-sensor measurements (dots). The per-site
 $K_d$ matches the data; the global $K_d=3.4$ does not.}
@@ -1775,7 +1775,7 @@ Jittering each depth by $\mathcal{N}(0,2.5\,\mathrm{cm})$ folds the positional
 uncertainty (Nagihara 2018) into the very same loop.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.92\linewidth]{figures/fig_bootstrap.pdf}
+\includegraphics[width=0.85\linewidth]{figures/fig_bootstrap.pdf}
 \caption{Bootstrap distributions of $K_d^{*}$ (1500 resamples). The two site
 distributions barely overlap --- the contrast is statistically real
 ($p\approx0.011$).}
@@ -1801,7 +1801,7 @@ contrast (or larger) by chance, if the two sites actually had the same $K_d$, is
 about 1\%. The two humps in Fig.~\ref{fig:boot} barely overlap.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.74\linewidth]{figures/fig_book_bootstrap.pdf}
+\includegraphics[width=\linewidth]{figures/fig_book_bootstrap.pdf}
 \caption{What the bootstrap does, schematically: resample the data many times,
 re-fit each time, read the spread.}
 \label{fig:bootschem}
@@ -2093,7 +2093,7 @@ or $K(T,z)$ (e.g.\ in-situ probes like ChaSTE) to truly close the loop.
 \end{solutionbox}
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.82\linewidth]{figures/fig_kd_qb_posterior.pdf}
+\includegraphics[width=0.7\linewidth]{figures/fig_kd_qb_posterior.pdf}
 \caption{The $K_d$--$Q_b$ trade-off: many combinations along a diagonal fit
 almost equally well, so $K_d$ is conditional on $Q_b$. The contrast between sites
 is more robust than either absolute value.}
@@ -2312,7 +2312,7 @@ parameterisations of the same physics yield the same inter-site direction.}
 \begin{minipage}{0.49\linewidth}\centering
 \includegraphics[width=\linewidth]{figures/fig_diviner_closure.pdf}\end{minipage}\hfill
 \begin{minipage}{0.49\linewidth}\centering
-\includegraphics[width=\linewidth]{figures/fig_alpha_sweep.pdf}\end{minipage}
+\includegraphics[width=0.85\linewidth]{figures/fig_alpha_sweep.pdf}\end{minipage}
 \caption{Left: the model with the retrieved $K_d$ reproduces the Diviner surface
 temperatures. Right: the Mart\'inez density retrieval tells the same story ---
 different deep densities at the two sites.}
@@ -2383,7 +2383,7 @@ $\alpha^{*}$ is at the edge of physical plausibility.
 \end{solutionbox}
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.82\linewidth]{figures/fig_robustness.pdf}
+\includegraphics[width=0.85\linewidth]{figures/fig_robustness.pdf}
 \caption{Robustness: (a)~joint $K_d$--$H$ RMSE surface, (b,c)~sensitivity of
 $K_d^*$ to input perturbations.}
 \label{fig:robustness}
@@ -2416,7 +2416,7 @@ returns a settled profile. Everything else --- the sweep, the bootstrap, the
 cross-checks --- calls \code{run\_with} in a loop.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.82\linewidth]{figures/fig_architecture.pdf}
+\includegraphics[width=0.85\linewidth]{figures/fig_architecture.pdf}
 \caption{Three layers; imports point only downward. The numerics live in three
 small modules (\code{grid}, \code{solver}, \code{equilibrium}).}
 \label{fig:arch}

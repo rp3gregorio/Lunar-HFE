@@ -158,43 +158,97 @@ document is structured as a single logical argument:
 \clearpage
 
 % ================= NOTATION =================
-\chapter*{Notation}
-\addcontentsline{toc}{chapter}{Notation}
+\chapter*{Notation \& symbol reference}
+\addcontentsline{toc}{chapter}{Notation \& symbol reference}
 \markboth{Notation}{Notation}
-\noindent Symbols used throughout, with units and representative values. Each is
-introduced where it first appears in the text.
-\begin{center}\small
-\begin{tabular}{@{}lll@{}}
+\noindent Every symbol used in the book, grouped by where in the pipeline it
+lives. The ``Source'' column says where each number comes from --- a measurement,
+a published model, a code constant, or a derivation in this book.
+
+\vspace{4pt}
+\noindent\textbf{Independent variables} \hfill (the axes of everything)
+\begin{center}\footnotesize
+\begin{tabular}{@{}p{1.2cm}p{4.8cm}p{2.5cm}p{6cm}@{}}
 \toprule
-Symbol & Meaning & Units / value \\
+Symbol & Meaning & Units / value & Source \\
 \midrule
-$T$ & temperature & K \\
-$z$ & depth below surface & m \\
-$t$ & time & s \\
-$q$ & conductive heat flux & W\,m$^{-2}$ \\
-$K(T,z)$ & thermal conductivity & W\,m$^{-1}$\,K$^{-1}$ \\
-$K_c(z)$ & contact (non-radiative) conductivity & W\,m$^{-1}$\,K$^{-1}$ \\
-$K_s,\ K_d$ & surface / deep contact conductivity & $7.4\times10^{-4}$ / retrieved \\
-$H$ & compaction $e$-folding depth & 0.06 m \\
-$\chi$ & radiative enhancement coefficient & 2.7 \\
-$T_{\mathrm{ref}}$ & radiative reference temperature & 350 K \\
-$\rho(z)$ & bulk density ($\rho_s\!\to\!\rho_d$) & 1100--1800 kg\,m$^{-3}$ \\
-$c_p(T)$ & specific heat capacity & J\,kg$^{-1}$\,K$^{-1}$ \\
-$\kappa$ & thermal diffusivity $K/(\rho c_p)$ & m$^2$\,s$^{-1}$ \\
-$\delta$ & thermal skin depth $\sqrt{2\kappa/\omega}$ & $\sim$0.1--0.2 m \\
-$P,\ \omega$ & lunation period; angular frequency $2\pi/P$ & $\sim$29.5 d \\
-$A$ & Bond albedo & 0.131 / 0.137 \\
-$\varepsilon$ & emissivity & $\sim$0.95 \\
-$\sigma$ & Stefan--Boltzmann constant & $5.67\times10^{-8}$ W\,m$^{-2}$\,K$^{-4}$ \\
-$S(t)$ & incident solar flux & W\,m$^{-2}$ \\
-$T_s$ & surface temperature & K \\
-$Q_b$ & basal (geothermal) heat flux & 21 / 15 mW\,m$^{-2}$ \\
-$\Tm$ & cycle-mean temperature & K \\
-$z_0$ & reconstruction anchor depth & 0.55 m \\
-$u_{\rm rect}$ & rectified (eddy) flux correction & W\,m$^{-2}$ \\
-$\mathrm{RMSE}$ & deep-sensor root-mean-square misfit & K \\
-$N$ & number of deep sensors & 7 (A15), 16 (A17) \\
-$N_{\mathrm{boot}}$ & bootstrap resamples & 1500 \\
+$z$ & depth below the surface & m & axis \\
+$t$ & time & s & axis \\
+$T$ & temperature & K & dependent variable \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{4pt}
+\noindent\textbf{Material properties of the regolith}
+\begin{center}\footnotesize
+\begin{tabular}{@{}p{1.6cm}p{4.4cm}p{3.2cm}p{5.5cm}@{}}
+\toprule
+Symbol & Meaning & Units / value & Source \\
+\midrule
+$K(T,z)$ & thermal conductivity & W\,m$^{-1}$\,K$^{-1}$ & Hayne (2017) form, Eq.~\eqref{eq:Khayne} \\
+$K_c(z)$ & contact (non-radiative) part of $K$ & W\,m$^{-1}$\,K$^{-1}$ & Hayne (2017), Eq.~\eqref{eq:Kc} \\
+$K_s$ & surface contact conductivity & $7.4\times10^{-4}$ & Hayne (2017), fixed \\
+$\boldsymbol{K_d}$ & \textbf{deep contact conductivity} & retrieved & \textbf{free parameter --- the answer} \\
+$H$ & compaction $e$-folding depth & 0.06 m & Hayne (2017), fixed \\
+$\chi$ & radiative enhancement coefficient & 2.7 & Hayne (2017), fixed (cf.\ Vasavada 1.48) \\
+$T_{\rm ref}$ & radiative reference temperature & 350 K & Hayne (2017) convention \\
+$\rho(z)$ & bulk density profile & 1100--1800 kg\,m$^{-3}$ & Hayne (2017) form, $\rho_s\to\rho_d$ \\
+$c_p(T)$ & specific heat capacity & J\,kg$^{-1}$\,K$^{-1}$ & Hemingway et al.~(1973) polynomial \\
+$\kappa$ & thermal diffusivity $\,K/(\rho c_p)$ & $\sim10^{-8}$ m$^2$\,s$^{-1}$ & derived \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{4pt}
+\noindent\textbf{The forcing (top boundary)}
+\begin{center}\footnotesize
+\begin{tabular}{@{}p{1.6cm}p{4.4cm}p{3.2cm}p{5.5cm}@{}}
+\toprule
+Symbol & Meaning & Units / value & Source \\
+\midrule
+$S(t)$ & incident solar flux at the surface & W\,m$^{-2}$ & cosine model in \code{retrieve\_kd.run\_with} \\
+$S_0$ & solar constant & 1361 W\,m$^{-2}$ & NASA standard \\
+$A$ & Bond albedo & 0.131 / 0.137 & Hayne (2017), per site \\
+$\varepsilon$ & emissivity & 0.95 & code constant (\code{src/lunar/config.py}) \\
+$\sigma$ & Stefan--Boltzmann constant & $5.67\times10^{-8}$ W\,m$^{-2}$\,K$^{-4}$ & physical constant \\
+$T_s$ & surface skin temperature & K & solved via Newton in surface BC \\
+$P$ & synodic lunation period & 29.53 d & ephemeris \\
+$\omega$ & angular forcing frequency $\,2\pi/P$ & $\sim10^{-6}$ s$^{-1}$ & derived \\
+$\delta$ & thermal skin depth $\,\sqrt{2\kappa/\omega}$ & $\sim$0.04--0.10 m & derived (\S\ref{sec:skin}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{4pt}
+\noindent\textbf{The basal boundary}
+\begin{center}\footnotesize
+\begin{tabular}{@{}p{1.6cm}p{4.4cm}p{3.2cm}p{5.5cm}@{}}
+\toprule
+Symbol & Meaning & Units / value & Source \\
+\midrule
+$Q_b$ & basal geothermal heat flux & 21 / 15 mW\,m$^{-2}$ & Langseth et al.~(1976), held fixed \\
+$z_0$ & reconstruction anchor depth & 0.55 m & code constant \code{EQ\_Z\_ANCHOR} \\
+$u_{\rm rect}$ & rectified (eddy) flux correction & W\,m$^{-2}$ & derived (\S\ref{sec:newmethod}) \\
+$\Tm$ & cycle-mean temperature profile & K & output of \code{solve\_periodic\_equilibrium} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{4pt}
+\noindent\textbf{The data, the retrieval, and the statistics}
+\begin{center}\footnotesize
+\begin{tabular}{@{}p{1.6cm}p{4.4cm}p{3.2cm}p{5.5cm}@{}}
+\toprule
+Symbol & Meaning & Units / value & Source \\
+\midrule
+$T_{\rm eq}$ & per-sensor equilibrium temperature & K & stable-window mean of HFE record \\
+$N$ & number of deep sensors & 7 / 16 & $z>80$\,cm cut on Nagihara (2018) \\
+RMSE & deep-sensor root-mean-square misfit & K & $\sqrt{\langle(T_{\rm model}-T_{\rm eq})^2\rangle}$ \\
+$\boldsymbol{K_d^*}$ & \textbf{best-fit deep conductivity} & 4.58 / 8.12 & \textbf{minimum of the RMSE curve} \\
+$N_{\rm boot}$ & bootstrap resamples & 1500 & code constant \\
+$\sigma_{\rm tot}$ & quadrature 1$\sigma$ error budget & 1.75 / 4.61 & \code{kd\_error\_budget.json} \\
+$p$ & contrast bootstrap $p$-value & 0.011 & \code{contrast\_bootstrap} in JSON \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -245,7 +299,7 @@ lunation (lunar day, $\sim$29.5 Earth days) to the next.
 At Apollo~15 we have 7 deep sensors; at Apollo~17, 16. These are the data points
 our model must match.
 
-\section{From the raw record to a data point}
+\section{From the raw record to a data point}\label{sec:provenance}
 Each Apollo site carried \emph{two} probes, each with several sensors of two
 kinds (gradient bridges, TG; and ring/reference thermocouples, TR). The probes
 recorded for years, but the early record is contaminated by the heat of drilling
@@ -308,6 +362,89 @@ makes the model's deep temperatures match the Apollo sensors; \emph{(v)} the har
 part was reaching steady state correctly --- the bulk of this document --- and
 \emph{(vi)} we then quantify the uncertainty and interpret the result. Each clause
 is a chapter.
+
+\section{How everything works together}\label{sec:pipeline}
+The book is long, but the pipeline is short. This section gives the master
+flow --- inputs, processes, results --- so every chapter that follows has a
+home. Figure~\ref{fig:pipeline} is a one-page map of the same thing.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_pipeline.pdf}
+\caption{The retrieval pipeline. Three inputs (Apollo data, the Hayne
+conductivity model with one free knob $K_d$, and the published basal flux $Q_b$)
+feed four processes (extract equilibrium temperatures, solve the heat equation
+forward to a certified steady state, sweep $K_d$ to minimise the deep-sensor
+RMSE, then quantify uncertainty). Every step's output names what feeds the next.
+The boxed equation in step~B --- the heat equation --- is the physical core; the
+rest is bookkeeping around it.}
+\label{fig:pipeline}
+\end{figure}
+
+\begin{stepbox}{Step A — from sensor record to $T_{\rm eq}$ (data preparation)}
+\textbf{Inputs:} multi-year HFE temperature record at every probe sensor (Nagihara
+2018; \code{src/lunar/apollo\_helpers.py}). \\
+\textbf{What happens:} for each sensor, scan the trailing 55--85\% of the record
+and pick the earliest window whose linear trend is flatter than
+$0.08$~K\,yr$^{-1}$; the mean of that quiet tail is the sensor's equilibrium
+temperature~$T_{\rm eq}$. \\
+\textbf{Output:} a small list of $(z, T_{\rm eq})$ deep-sensor data points --- 7
+at Apollo~15 and 16 at Apollo~17 (only $z>80$~cm survives the borestem cut). \\
+\textbf{Details:} \S\ref{sec:provenance}; see also Fig.~\ref{fig:borehole}.
+\end{stepbox}
+
+\begin{stepbox}{Step B — from a trial $K_d$ to a profile $T(z;K_d)$ (forward solve)}
+\textbf{Inputs:} a single trial value of $K_d$. \\
+\textbf{What happens:} plug $K_d$ into Hayne's $K(T,z)$
+(Eqs.~\ref{eq:Kc}--\ref{eq:Khayne}); solve the heat equation
+\[
+\rho\,c_p\,\frac{\partial T}{\partial t}
+=\frac{\partial}{\partial z}\!\left(K\,\frac{\partial T}{\partial z}\right),
+\qquad K(T,z;K_d)
+\]
+with the radiative surface BC (Eq.~\ref{eq:surfbc}) at the top and the basal-flux
+BC (Eq.~\ref{eq:bottombc}, $Q_b$ from Langseth et al.~1976) at the bottom, all
+the way to a \emph{certified} periodic steady state via the flux-anchored
+equilibrium solver (\code{src/lunar/equilibrium.py}). \\
+\textbf{Output:} the cycle-mean profile $\Tm(z;K_d)$. \\
+\textbf{Details:} solver in Ch.~\ref{ch:solver}; the certification, in
+Ch.~\ref{ch:steady}, is the methodological contribution of this work.
+\end{stepbox}
+
+\begin{stepbox}{Step C — from a curve $T(z;K_d)$ to one number $K_d^{*}$ (retrieval)}
+\textbf{Inputs:} the deep-sensor data $(z_i, T_{\rm eq,i})$ from step~A; a grid of
+trial $K_d$ values (28 at A15, 30 at A17). \\
+\textbf{What happens:} call step~B at each trial $K_d$, compute the
+deep-sensor RMSE,
+\[
+\mathrm{RMSE}(K_d)=\sqrt{\frac{1}{N}\sum_{i=1}^{N}\big[\Tm(z_i;K_d)-T_{\rm eq,i}\big]^{2}},
+\]
+then refine the minimum with a parabolic vertex through its three lowest points
+(\code{pipeline/compute/retrieve\_kd.py}, \code{kd\_star\_from\_residuals}). \\
+\textbf{Output:} the best-fit $K_d^{*}$ for the site. \\
+\textbf{Details:} \S\ref{sec:sweep}.
+\end{stepbox}
+
+\begin{stepbox}{Step D — how confident are we (uncertainty)}
+\textbf{Inputs:} the same data, the same forward model. \\
+\textbf{What happens:} \emph{(1)}~bootstrap: resample sensors with replacement
+$1500$ times, re-run step~C on each, read the 95\% interval; \emph{(2)}~MCMC: a
+joint $(K_d, Q_b)$ posterior; \emph{(3)}~AICc model selection (per-site $K_d$ vs
+shared $K_d$); \emph{(4)}~error budget: re-retrieve at perturbed inputs
+($Q_b$, albedo, $K_s$, density, \ldots) and sum the induced shifts in quadrature
+(\code{pipeline/compute/compute\_error\_budget.py}). \\
+\textbf{Output:} a 95\% CI, an error-budget total, a contrast and a $p$-value. \\
+\textbf{Details:} Ch.~\ref{ch:stats}.
+\end{stepbox}
+
+\begin{plain}
+The same sentence in everyday words. Apollo's deep thermometers give us a
+number per sensor (Step A). The Hayne formula tells us what the conductivity
+\emph{would} look like if $K_d$ took a given value, and the heat equation lets us
+predict what the deep temperatures would be at that $K_d$ (Step B). Step C
+tries many $K_d$'s and picks the one whose predictions hit the data best.
+Step D asks how lucky the fit might be. The final answer --- $K_d^{*}$ with a 95\%
+interval and a budget --- is reported per site.
+\end{plain}
 
 
 % =====================================================================

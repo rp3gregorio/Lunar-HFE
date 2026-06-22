@@ -488,6 +488,13 @@ interval and a budget --- is reported per site.
 % =====================================================================
 \chapter{The physics, from the ground up}\label{ch:physics}
 % =====================================================================
+This chapter builds the equation our solver integrates, starting from one
+empirical law (Fourier) and one conservation principle (energy). The chain is
+short --- Fourier's law $\to$ heat equation $\to$ boundary conditions $\to$
+the periodic steady state we will fit. Each step is motivated before any
+equation appears. If you remember nothing else, remember this: the whole
+retrieval rests on one PDE, two BCs, and the demand that the solution repeats
+identically every lunation.
 
 \section{Heat conduction: what Fourier's law says}\label{sec:fourier}
 Heat flows from hot to cold. Fourier's law quantifies this: the heat flux $q$
@@ -545,8 +552,8 @@ than leaving below (or vice versa).'' The three material properties --- $\rho$
 --- are the knobs. This single equation is the physics of the entire study.
 \end{plain}
 
-\begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth]{figures/fig_book_heateq.pdf}
+\begin{figure}[t!]\centering
+\includegraphics[width=0.65\linewidth]{figures/fig_book_heateq.pdf}
 \caption{Reading the heat equation. Take one thin layer of regolith as a box.
 Heat flows in through its top face and out through its bottom face; whatever does
 not leave is \emph{stored}, warming the layer. ``Stored equals in minus out'' is
@@ -2142,7 +2149,12 @@ above.
 \chapter{The role of the basal flux \texorpdfstring{$Q_b$}{Qb}}\label{ch:qb}\label{sec:qb}
 % =====================================================================
 
-$K_d$ cannot be read in isolation, and understanding \emph{why} is essential.
+The bootstrap CI of Ch.~\ref{ch:stats} tells us how scattered $K_d^{*}$ is
+\emph{at the fixed published $Q_b$}. But $Q_b$ itself was measured, and it
+carries its own uncertainty. This chapter takes the next layer off the onion:
+what happens to $K_d^{*}$ when we let $Q_b$ move. The short answer ---
+$K_d$ and $Q_b$ trade off along a line and we cannot separate them from one
+borehole alone --- sets the strongest honest caveat on the headline numbers.
 
 \section{The degeneracy: $K_d$ and $Q_b$ trade off}
 The deep gradient is $Q_b/K$ (Eq.~\ref{eq:closure}). For the \emph{same} set of
@@ -2246,8 +2258,12 @@ is more robust than either absolute value.}
 % =====================================================================
 \chapter{Why might the two sites differ?}\label{ch:sites}\label{sec:sites}
 % =====================================================================
-A factor-of-two contrast is large but physically reasonable: the two boreholes
-sample genuinely different regolith.
+So far the contrast has been a statistical fact and a methodological caveat.
+This chapter asks whether it is also \emph{physically plausible}: do the two
+landing sites sample regolith you would expect to conduct heat differently?
+A factor-of-two contrast is large but physically reasonable --- the two
+boreholes sample genuinely different regolith, and the directions of every
+relevant indicator agree with the conductivity ordering.
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_book_sites.pdf}
@@ -2529,6 +2545,14 @@ $K_d^*$ to input perturbations.}
 % =====================================================================
 \chapter{How the code is organised, and what comes next}\label{ch:code}
 % =====================================================================
+The previous chapters explained \emph{what} the code does. This one explains
+\emph{how it is organised}, so you can read the source alongside the maths.
+The architecture is intentionally simple: a small core physics package
+(\code{src/lunar/}), a thin pipeline that orchestrates the per-trial solves
+(\code{pipeline/compute/}), and a figure layer that consumes the JSONs the
+pipeline writes (\code{pipeline/figures/}). Read this chapter once if you
+want to extend the project or port the inner solver; skip it on a first pass
+if you just want to understand the result.
 
 \section{Architecture}
 The code is layered (Fig.~\ref{fig:arch}):

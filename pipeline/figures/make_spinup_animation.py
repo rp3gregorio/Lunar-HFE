@@ -28,7 +28,7 @@ from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import PixelInputs, solve_pixel
 from lunar.equilibrium import solve_periodic_equilibrium
-from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM
+from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM, C_GRID
 
 DOC = _REPO / "docs" / "guidebook"
 FIG = _REPO / "results" / "figures"
@@ -128,7 +128,7 @@ def main():
     # filmstrip of 5 stills for the PDF
     picks = [0, 30, 100, 300, 1000]
     idx = [min(range(len(frames)), key=lambda i: abs(frames[i]["lun"] - p)) for p in picks]
-    fig, axes = plt.subplots(1, 5, figsize=(13, 3.4), sharey=True)
+    fig, axes = plt.subplots(1, 5, figsize=(13, 4.2), sharey=True)
     m = z <= ZMAX_PLOT
     for ax, k in zip(axes, idx):
         fr = frames[k]
@@ -136,17 +136,25 @@ def main():
         ax.plot(T_target[m], z[m], "--", color=C_CHAR, lw=1.6)
         ax.plot(fr["mean"][m], z[m], "-", color=C_A15, lw=2.2)
         ax.invert_yaxis(); ax.set_xlim(150, 320); ax.set_ylim(ZMAX_PLOT, 0)
-        ax.set_title(f"{fr['lun']} lunations", fontsize=10,
-                     color=(C_A17 if fr["lun"] == 30 else C_CHAR),
-                     fontweight=("bold" if fr["lun"] == 30 else "normal"))
-        ax.set_xlabel("T [K]", fontsize=9); ax.grid(alpha=0.2)
-    axes[0].set_ylabel("depth [m]")
-    axes[-1].plot([], [], "--", color=C_CHAR, lw=1.6, label="target")
-    axes[-1].plot([], [], "-", color=C_A15, lw=2.2, label="brute force")
-    axes[-1].legend(fontsize=8, frameon=False, loc="lower left")
-    fig.suptitle("Brute-force spin-up: the deep profile is still far from the target at 30 lunations; "
-                 "it only settles after hundreds", fontsize=11, color=C_CHAR)
-    fig.tight_layout(rect=[0, 0, 1, 0.94])
+        is_30 = fr["lun"] == 30
+        ax.set_title(f"{fr['lun']} lunations", fontsize=12,
+                     color=(C_A17 if is_30 else C_CHAR),
+                     fontweight=("bold" if is_30 else "normal"),
+                     pad=6)
+        if is_30:
+            ax.text(0.5, 0.02, "the old test says\n'converged' here",
+                    transform=ax.transAxes, ha="center", va="bottom",
+                    fontsize=8.5, color=C_A17, style="italic")
+        ax.set_xlabel("T [K]", fontsize=10); ax.grid(alpha=0.2)
+        ax.tick_params(axis="both", labelsize=9)
+    axes[0].set_ylabel("depth [m]", fontsize=11)
+    axes[-1].plot([], [], "--", color=C_CHAR, lw=1.6, label="true steady target")
+    axes[-1].plot([], [], "-", color=C_A15, lw=2.2, label="brute-force current")
+    axes[-1].legend(fontsize=9, frameon=True, framealpha=0.95,
+                    edgecolor=C_GRID, loc="lower left")
+    fig.suptitle("Brute-force spin-up: snapshots of the column as lunations accumulate",
+                 fontsize=12.5, color=C_CHAR, fontweight="bold")
+    fig.tight_layout(rect=[0, 0, 1, 0.92])
     fig.savefig(FIG / "spinup_filmstrip.pdf", bbox_inches="tight")
     plt.close(fig)
     print(f"  -> {(FIG / 'spinup_filmstrip.pdf').relative_to(_REPO)}")

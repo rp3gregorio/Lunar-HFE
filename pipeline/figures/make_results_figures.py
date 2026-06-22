@@ -249,12 +249,12 @@ def fig_bootstrap(d, out_path):
               label=f"contrast 95% CI  [{clo:.2f}, {chi_:.2f}]"),
     ]
     fig.legend(handles=handles, loc="lower center",
-               bbox_to_anchor=(0.5, 0.005), ncols=3, frameon=True,
-               edgecolor=C_GRID, framealpha=0.97, fontsize=8.5,
-               handlelength=1.6, borderpad=0.4, columnspacing=1.2,
-               labelspacing=0.3,
+               bbox_to_anchor=(0.5, 0.005), ncols=2, frameon=True,
+               edgecolor=C_GRID, framealpha=0.97, fontsize=9.5,
+               handlelength=1.8, borderpad=0.55, columnspacing=2.0,
+               labelspacing=0.45,
                title=f"Bootstrap distributions  ($N_{{\\rm boot}} = {len(boot15)}$)",
-               title_fontsize=9.0)
+               title_fontsize=10.0)
 
     fig.savefig(out_path)
     plt.close(fig)

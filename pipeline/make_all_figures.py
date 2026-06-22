@@ -13,6 +13,7 @@ import importlib, sys, time, pathlib
 
 _REPO = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO))
+sys.path.insert(0, str(_REPO / "src"))
 sys.path.insert(0, str(_REPO / "pipeline" / "figures"))
 sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 

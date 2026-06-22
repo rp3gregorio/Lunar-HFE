@@ -30,6 +30,14 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+def test_spice_kernel_dir_env_override(monkeypatch, tmp_path):
+    """SPICE_KERNEL_DIR should override the default repo data/spice path."""
+    from lunar import ephem
+
+    monkeypatch.setenv("SPICE_KERNEL_DIR", str(tmp_path))
+    assert ephem.spice_kernel_dir() == tmp_path
+
+
 def test_ephem_equator_diurnal_cycle():
     """The equatorial sub-solar elevation should swing through a full
     diurnal cycle over one lunation, crossing zero twice."""

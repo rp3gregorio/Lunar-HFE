@@ -9,8 +9,10 @@ LaTeX caption.
 Outputs (results/figures/):
   fig_book_conduction.pdf  -- Fourier's law: heat flows down a gradient
   fig_book_numerical.pdf   -- how a continuous equation is computed
+  fig_book_f1_bug.pdf      -- why 30 lunations looked converged but was not
   fig_book_bootstrap.pdf   -- resampling, from scratch
   fig_book_mcmc.pdf        -- Bayesian updating + the K_d/Q_b ridge
+  fig_book_mcmc_corner.pdf -- quantile-based K_d/Q_b corner reconstruction
   fig_book_aicc.pdf        -- overfitting and the AICc penalty
 
 Run:  python pipeline/figures/make_book_figures.py
@@ -19,7 +21,7 @@ from __future__ import annotations
 import json, sys, pathlib
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_REPO))
+sys.path.insert(0, str(_REPO / "src"))
 sys.path.insert(0, str(_REPO / "pipeline" / "figures"))
 
 import numpy as np
@@ -179,6 +181,59 @@ def fig_bootstrap():
     fig.savefig(OUT / "fig_book_bootstrap.pdf", bbox_inches="tight")
     plt.close(fig)
     print("  -> fig_book_bootstrap.pdf")
+
+
+# ══════════════════════════════════════════════════════════════════════════
+def fig_f1_bug_schematic():
+    """Why the fixed 30-lunation spin-up looked converged but was still wrong."""
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(10.2, 4.0),
+                                   gridspec_kw={"wspace": 0.30})
+
+    lun = np.linspace(1, 1000, 600)
+    apparent = 0.7 * np.exp(-lun / 7.5) + 0.0012
+    deep_error = 40.0 * np.exp(-lun / 360.0) + 0.025
+    axA.semilogy(lun, apparent, color=C_TEAL, lw=2.2,
+                 label="cycle-to-cycle $\\Delta T$")
+    axA.semilogy(lun, deep_error, color=C_CORAL, lw=2.2,
+                 label="deep-profile error")
+    axA.axhline(0.01, color=C_DIM, lw=1.0, ls=(0, (3, 2)))
+    axA.axvline(30, color=C_CHAR, lw=1.0, ls=":")
+    axA.text(47, 0.018, "30 lunations:\npasses the\nold test",
+             fontsize=FS_TICK - 1, color=C_CHAR, va="bottom")
+    axA.text(280, 0.014, "old tolerance", fontsize=FS_TICK - 1,
+             color=C_DIM, va="bottom")
+    fmt_axis(axA, xlabel="spin-up length  [lunations]",
+             ylabel="temperature scale  [K]",
+             title="(a)  Apparent convergence is the wrong diagnostic")
+    axA.set_xlim(1, 1000)
+    axA.set_ylim(8e-4, 70)
+    axA.legend(fontsize=FS_LEGEND - 1, loc="upper right", framealpha=0.95)
+
+    z = np.linspace(0, 2.5, 300)
+    true = 252.0 + 4.0 * z + 2.0 * (1 - np.exp(-z / 0.35))
+    old_240 = true - 12.0 * (1 - np.exp(-z / 0.45))
+    old_260 = true + 10.0 * (1 - np.exp(-z / 0.45))
+    fixed = true + 0.025 * np.sin(4 * z)
+    axB.plot(old_240, z, color=C_CORAL, lw=1.8, alpha=0.85,
+             label="30-lunation from 240 K")
+    axB.plot(old_260, z, color=C_CORAL, lw=1.8, alpha=0.55,
+             label="30-lunation from 260 K")
+    axB.plot(fixed, z, color=C_TEAL, lw=2.4,
+             label="flux-anchored fix")
+    axB.plot(true, z, color=C_CHAR, lw=1.7, ls=(0, (4, 2)),
+             label="true steady state", zorder=5)
+    axB.axhspan(0.8, 2.4, color=C_TEAL, alpha=0.08)
+    axB.text(0.04, 0.50, "Apollo deep-sensor zone",
+             transform=axB.transAxes, fontsize=FS_TICK - 1, color=C_TEAL,
+             ha="left", va="center")
+    axB.invert_yaxis()
+    fmt_axis(axB, xlabel="cycle-mean temperature  [K]",
+             ylabel="depth  [m]",
+             title="(b)  The deep profile has not arrived")
+    axB.legend(fontsize=FS_LEGEND - 1.6, loc="lower right", framealpha=0.95)
+    fig.savefig(OUT / "fig_book_f1_bug.pdf", bbox_inches="tight")
+    plt.close(fig)
+    print("  -> fig_book_f1_bug.pdf")
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -417,14 +472,91 @@ def fig_mcmc_posterior():
     print("  -> fig_book_mcmc_posterior.pdf")
 
 
+def fig_mcmc_corner():
+    """Quantile-based 2x2 corner reconstructions for the joint K_d/Q_b posteriors."""
+    d = json.loads(
+        (_REPO / "results" / "bayesian_crosscheck_samples.json").read_text())
+
+    def _sigma(lo, med, hi):
+        return max(0.5 * ((hi - med) + (med - lo)) / 0.9945, 1e-3)
+
+    def _normal_pdf(x, mu, sig):
+        y = np.exp(-0.5 * ((x - mu) / sig) ** 2)
+        return y / y.max()
+
+    fig = plt.figure(figsize=(10.2, 4.8))
+    outer = fig.add_gridspec(1, 2, wspace=0.28)
+
+    for block, site, color in [(outer[0], "A15", C_A15), (outer[1], "A17", C_A17)]:
+        s = d[site]
+        gs = block.subgridspec(2, 2, width_ratios=[1, 1], height_ratios=[1, 1],
+                               wspace=0.08, hspace=0.08)
+        ax_k = fig.add_subplot(gs[0, 0])
+        ax_blank = fig.add_subplot(gs[0, 1])
+        ax_joint = fig.add_subplot(gs[1, 0])
+        ax_q = fig.add_subplot(gs[1, 1])
+        ax_blank.axis("off")
+
+        kd_mu = s["kd_q50"]
+        qb_mu = s["qb_q50"]
+        kd_sig = _sigma(s["kd_q16"], s["kd_q50"], s["kd_q84"])
+        qb_sig = _sigma(s["qb_q16"], s["qb_q50"], s["qb_q84"])
+        rho = 0.92
+
+        kd = np.linspace(s["kd_q025"], s["kd_q975"], 220)
+        qb = np.linspace(max(0.1, qb_mu - 2.6 * qb_sig), qb_mu + 2.6 * qb_sig, 220)
+        ax_k.fill_between(kd, 0, _normal_pdf(kd, kd_mu, kd_sig),
+                          color=color, alpha=0.34)
+        ax_k.plot(kd, _normal_pdf(kd, kd_mu, kd_sig), color=color, lw=1.8)
+        ax_k.axvline(kd_mu, color=C_CHAR, lw=0.8, ls=":")
+        ax_k.set_yticks([])
+        ax_k.set_xticklabels([])
+        ax_k.set_title(f"{site}: reconstructed posterior", fontsize=FS_LABEL,
+                       color=C_CHAR, loc="left")
+
+        K, Q = np.meshgrid(kd, qb)
+        X = (K - kd_mu) / kd_sig
+        Y = (Q - qb_mu) / qb_sig
+        Z = np.exp(-(X**2 - 2 * rho * X * Y + Y**2) / (2 * (1 - rho**2)))
+        levels = np.exp(-0.5 * np.array([4.0, 2.30, 1.0]))
+        ax_joint.contourf(K, Q, Z, levels=[levels[0], levels[1], levels[2], 1.0],
+                          colors=[color], alpha=0.18)
+        ax_joint.contour(K, Q, Z, levels=levels, colors=[color], linewidths=1.2)
+        ax_joint.plot(kd_mu, qb_mu, "o", ms=4.5, color=C_CHAR)
+        fmt_axis(ax_joint, xlabel="$K_d$  [mW m$^{-1}$ K$^{-1}$]",
+                 ylabel="$Q_b$  [mW m$^{-2}$]")
+
+        ax_q.fill_betweenx(qb, 0, _normal_pdf(qb, qb_mu, qb_sig),
+                           color=color, alpha=0.34)
+        ax_q.plot(_normal_pdf(qb, qb_mu, qb_sig), qb, color=color, lw=1.8)
+        ax_q.axhline(qb_mu, color=C_CHAR, lw=0.8, ls=":")
+        ax_q.set_xticks([])
+        ax_q.set_yticklabels([])
+        for ax in (ax_k, ax_q):
+            for sp in ax.spines.values():
+                sp.set_color(C_GRID)
+        ax_k.text(0.97, 0.86, f"$K_d$ med. {kd_mu:.2f}",
+                  transform=ax_k.transAxes, ha="right", va="top",
+                  fontsize=FS_TICK - 1, color=C_CHAR)
+        ax_q.text(0.10, 0.92, f"$Q_b$ med.\n{qb_mu:.1f}",
+                  transform=ax_q.transAxes, ha="left", va="top",
+                  fontsize=FS_TICK - 1, color=C_CHAR)
+
+    fig.savefig(OUT / "fig_book_mcmc_corner.pdf", bbox_inches="tight")
+    plt.close(fig)
+    print("  -> fig_book_mcmc_corner.pdf")
+
+
 def main():
     print("Building guidebook concept figures:")
     fig_conduction()
     fig_numerical()
     fig_raw_record()
+    fig_f1_bug_schematic()
     fig_bootstrap()
     fig_mcmc()
     fig_mcmc_posterior()
+    fig_mcmc_corner()
     fig_aicc()
     print("done.")
 

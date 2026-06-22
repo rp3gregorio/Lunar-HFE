@@ -23,6 +23,7 @@ from copy import deepcopy
 # SAME checkout or the published PDFs silently go stale.
 _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
+sys.path.insert(0, str(_REPO / "src"))
 sys.path.insert(0, str(_REPO / "pipeline"))
 
 from lunar import _bootstrap as boot

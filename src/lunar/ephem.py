@@ -20,12 +20,14 @@ References
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Iterable, Sequence
 
 import numpy as np
 
-_SPICE_DIR = Path(__file__).resolve().parents[2] / "data" / "spice"  # src/lunar/ -> repo root
+SPICE_KERNEL_DIR_ENV = "SPICE_KERNEL_DIR"
+_DEFAULT_SPICE_DIR = Path(__file__).resolve().parents[2] / "data" / "spice"
 
 _KERNELS = (
     "naif0012.tls",               # leap seconds
@@ -37,6 +39,11 @@ _KERNELS = (
 )
 
 _FURNISHED = False
+
+
+def spice_kernel_dir() -> Path:
+    """Return the SPICE kernel directory, honoring ``SPICE_KERNEL_DIR``."""
+    return Path(os.environ.get(SPICE_KERNEL_DIR_ENV, _DEFAULT_SPICE_DIR)).expanduser()
 
 
 def _furnish_kernels() -> None:
@@ -53,15 +60,18 @@ def _furnish_kernels() -> None:
         ) from exc
 
     missing = []
+    kernel_dir = spice_kernel_dir()
     for name in _KERNELS:
-        path = _SPICE_DIR / name
+        path = kernel_dir / name
         if not path.is_file():
             missing.append(str(path))
         else:
             spice.furnsh(str(path))
     if missing:
         raise FileNotFoundError(
-            "Missing SPICE kernels — download via the data-setup script:\n  "
+            f"Missing SPICE kernels in {kernel_dir}. Set "
+            f"{SPICE_KERNEL_DIR_ENV} to override the default, or download via "
+            "the data-setup script:\n  "
             + "\n  ".join(missing)
         )
     _FURNISHED = True

@@ -8,13 +8,14 @@ Functions:
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 import numpy as np
 
 from lunar.validation import load_apollo_hfe_depth
 
 
-def iso_to_seconds(iso_arr):
+def iso_to_seconds(iso_arr: np.ndarray) -> np.ndarray:
     """Convert ISO-8601 strings to Unix timestamp seconds."""
     out = np.empty(len(iso_arr), dtype=np.float64)
     for i, s in enumerate(iso_arr):
@@ -25,7 +26,11 @@ def iso_to_seconds(iso_arr):
     return out
 
 
-def find_stable_window(subset, slope_thresh_K_per_year=0.08, min_frac=0.20):
+def find_stable_window(
+    subset: np.ndarray,
+    slope_thresh_K_per_year: float = 0.08,
+    min_frac: float = 0.20,
+) -> tuple[int, float, str, float]:
     """Scan 55%–85% of a record; pick the earliest start where the trailing
     linear fit has |slope| < threshold.  Fallback: last 25% of records.
 
@@ -65,7 +70,7 @@ def find_stable_window(subset, slope_thresh_K_per_year=0.08, min_frac=0.20):
     return chosen_i, float(t_day[chosen_i]), method, slope_out
 
 
-def extract_sensor_stability(mission, min_depth_cm):
+def extract_sensor_stability(mission: str, min_depth_cm: float) -> dict[str, Any]:
     """Load HFE depth tables and compute per-sensor equilibrium temperatures.
 
     Returns a dict with keys: d1, d2, sensors, probe_data, depth_cm_all,

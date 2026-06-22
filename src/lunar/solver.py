@@ -198,6 +198,26 @@ def _solve_surface_newton(
     The derivative is always negative, so Newton converges from any
     positive starting point.
     """
+    vals = {
+        "insolation": insolation,
+        "albedo": albedo,
+        "emissivity": emissivity,
+        "K_surf": K_surf,
+        "dz_surf": dz_surf,
+        "T_subsurf": T_subsurf,
+        "T_s_guess": T_s_guess,
+    }
+    bad = [name for name, val in vals.items() if not np.isfinite(val)]
+    if bad:
+        raise ValueError(f"surface Newton inputs must be finite; bad: {', '.join(bad)}")
+    if not 0.0 <= albedo < 1.0:
+        raise ValueError("albedo must satisfy 0 <= albedo < 1")
+    if emissivity <= 0.0:
+        raise ValueError("emissivity must be positive")
+    if K_surf <= 0.0:
+        raise ValueError("K_surf must be positive")
+    if dz_surf <= 0.0:
+        raise ValueError("dz_surf must be positive")
     T_s = max(T_s_guess, 1.0)
     for _ in range(max_iter):
         R = surface_energy_balance_residual(

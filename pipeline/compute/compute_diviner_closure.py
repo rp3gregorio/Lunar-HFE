@@ -35,6 +35,7 @@ import json, sys, pathlib
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
+sys.path.insert(0, str(_REPO / "src"))
 sys.path.insert(0, str(_REPO / "pipeline" / "figures"))
 sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 

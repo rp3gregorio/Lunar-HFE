@@ -12,10 +12,12 @@ solver converges and produces a physically plausible diurnal range.
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
 from lunar.grid import DepthGrid, make_geometric_grid
 from lunar.solver import (
     PixelInputs,
+    _solve_surface_newton,
     analytical_thermal_wave,
     solve_pixel,
     surface_energy_balance_residual,
@@ -137,6 +139,44 @@ def test_radiative_bc_surface_newton_equilibrium():
     Q_b = 0.018
     T_cold = (Q_b / (emissivity * SIGMA_SB)) ** 0.25
     assert 20.0 < T_cold < 30.0
+
+
+def test_surface_newton_solves_radiative_bc_directly():
+    """Newton's surface solve should return a root of the radiative balance."""
+    T_s = _solve_surface_newton(
+        insolation=850.0,
+        albedo=0.12,
+        emissivity=0.95,
+        K_surf=1.2e-3,
+        dz_surf=0.002,
+        T_subsurf=255.0,
+        T_s_guess=250.0,
+    )
+    residual = surface_energy_balance_residual(
+        T_s=T_s,
+        insolation=850.0,
+        albedo=0.12,
+        emissivity=0.95,
+        K_surf=1.2e-3,
+        dz_surf=0.002,
+        T_subsurf=255.0,
+    )
+    assert 255.0 < T_s < 390.0
+    assert abs(residual) < 1e-6
+
+
+def test_surface_newton_rejects_invalid_inputs():
+    """Pathological BC inputs should fail at the boundary, not later as NaNs."""
+    with pytest.raises(ValueError, match="K_surf must be positive"):
+        _solve_surface_newton(
+            insolation=850.0,
+            albedo=0.12,
+            emissivity=0.95,
+            K_surf=0.0,
+            dz_surf=0.002,
+            T_subsurf=255.0,
+            T_s_guess=250.0,
+        )
 
 
 def test_radiative_bc_smoke_run_short():

@@ -50,6 +50,7 @@ from copy import deepcopy
 # are written into the SAME checkout the script is run from.
 _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
+sys.path.insert(0, str(_REPO / "src"))
 from lunar import _bootstrap as boot
 boot.ensure_lunar(extra=('spiceypy', 'scipy'))
 boot.ensure_apollo_hfe(mission='a15', probes=())
@@ -96,6 +97,20 @@ sys.path.insert(0, str(_REPO / 'pipeline' / 'figures'))
 # In-process memo cache for converged mean profiles, keyed on every input
 # that can change the forward model (speeds the repeated sweeps).
 _PROFILE_CACHE: dict = {}
+
+
+def _interp_profile_at_depths(z_obs, z_model, T_model, *, context):
+    """Interpolate a model profile, rejecting depths outside the solved grid."""
+    z_obs = np.asarray(z_obs, dtype=float)
+    z_model = np.asarray(z_model, dtype=float)
+    if z_obs.size == 0:
+        raise ValueError(f"{context}: no observation depths were supplied")
+    if z_obs.min() < z_model[0] or z_obs.max() > z_model[-1]:
+        raise ValueError(
+            f"{context}: observation depths [{z_obs.min():.3f}, {z_obs.max():.3f}] m "
+            f"fall outside model grid [{z_model[0]:.3f}, {z_model[-1]:.3f}] m"
+        )
+    return np.interp(z_obs, z_model, T_model)
 
 
 def conductivity_3layer(T, z, Kd, rho_deep=TL_RHO_REF):
@@ -262,7 +277,10 @@ def run_kd_sweep_extended(site_cfg, kd_grid, k_model='hayne'):
     for k, kd in enumerate(kd_grid):
         # EXPENSIVE: This calls solve_periodic_equilibrium (~40 lunations)
         z_mid, T_mean_z = run_with(site_cfg, kd=kd, k_model=k_model)
-        T_pred = np.interp(z_obs_deep, z_mid, T_mean_z)
+        T_pred = _interp_profile_at_depths(
+            z_obs_deep, z_mid, T_mean_z,
+            context=f"{site_cfg['label']} {k_model} K_d sweep",
+        )
         R[:, k] = T_pred - T_obs_deep
         if (k + 1) % 5 == 0 or k == len(kd_grid) - 1:
             print(f"   K_d sweep ({site_cfg['label']}, {k_model}): "
@@ -317,7 +335,10 @@ def bootstrap_kd_with_depth_uncertainty(
         # build a residual matrix per K_d at the jittered depths
         R_jit = np.empty((n, len(kd_grid)))
         for k in range(len(kd_grid)):
-            T_pred = np.interp(z_jit, z_grid_dense, T_cache[k])
+            T_pred = _interp_profile_at_depths(
+                z_jit, z_grid_dense, T_cache[k],
+                context=f"{site_cfg['label']} bootstrap depth jitter",
+            )
             R_jit[:, k] = T_pred - T_obs_deep[idx]
         kd_star, _ = kd_star_from_residuals(R_jit, kd_grid)
         boots[b] = kd_star
@@ -341,7 +362,10 @@ def joint_kd_h_dense(site_cfg, kd_grid, h_grid):
     for i, h in enumerate(h_grid):
         for j, kd in enumerate(kd_grid):
             z_mid, T_mean_z = run_with(site_cfg, kd=kd, h=h)
-            T_pred = np.interp(z_obs_deep, z_mid, T_mean_z)
+            T_pred = _interp_profile_at_depths(
+                z_obs_deep, z_mid, T_mean_z,
+                context=f"{site_cfg['label']} joint K_d-H grid",
+            )
             rmse[i, j] = np.sqrt(((T_pred - T_obs_deep)**2).mean())
             n += 1
             if n % 16 == 0 or n == total:

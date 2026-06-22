@@ -617,6 +617,15 @@ the study.}
 \label{fig:wave3d}
 \end{figure}
 
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.88\linewidth]{figures/fig_book_thermalfield3d.pdf}
+\caption{The same certified $T(z,t)$ field as a 3D surface. The high surface ridge
+is the day--night wave; moving downward, the ridge rapidly flattens into the
+cycle-mean profile. This is the skin-depth decay of Eq.~\eqref{eq:wave} in one
+view.}
+\label{fig:thermalfield3d}
+\end{figure}
+
 \section{The skin depth: why only the top matters for the daily cycle}\label{sec:skin}
 This ``thermal wave'' travels downward, but it \emph{dies out} exponentially. Its
 amplitude falls by a factor of $e\approx2.72$ over the \textbf{skin depth}:
@@ -1009,12 +1018,13 @@ the radiative $T^3$ term roughly doubles $K$ by midday.}
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_book_kTz.pdf}
-\caption{The full $K(T,z)$ field at the retrieved Apollo~15 $K_d^{*}=4.58$
-mW\,m$^{-1}$\,K$^{-1}$, plotted from the actual code (\code{conductivity\_hayne}
-in \code{src/lunar/properties.py}). Read horizontally to see the radiative $T^3$
-rise at fixed depth; read vertically to see $K\to K_d$ once you drop below a few
-compaction lengths $H$. The contour at $K=4.58$ is roughly where the column
-becomes thermally ``deep''.}
+\caption{The full $K(T,z)$ field under the retrieved Hayne form, plotted from the
+actual code (\code{conductivity\_hayne} in \code{src/lunar/properties.py}). The
+filled field uses Apollo~15's $K_d^{*}=4.58$; the green and orange contours mark
+where the full conductivity reaches the retrieved A15 and A17 contact
+asymptotes. Read horizontally to see the radiative $T^3$ rise at fixed depth;
+read vertically to see how the contact part approaches $K_d$ below a few
+compaction lengths $H$.}
 \label{fig:kTz}
 \end{figure}
 
@@ -1375,6 +1385,17 @@ partly by the starting guess. When we try to find the $K_d$ that best matches
 the data, we are fitting a profile that still remembers our arbitrary starting
 temperature. Different starting temperatures lead to different best-fit $K_d$
 values. The starting guess has become a hidden free parameter of the retrieval.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_f1_bug.pdf}
+\caption{Why flag F1 fooled the old solver. \emph{Left:} the cycle-to-cycle
+change drops below the old tolerance by 30 lunations, so the run looks
+converged, while the deep-profile error remains orders of magnitude larger.
+\emph{Right:} at Apollo sensor depths, a fixed 30-lunation spin-up still depends
+on the starting guess; the flux-anchored reconstruction lands on the true steady
+profile instead.}
+\label{fig:f1bug}
+\end{figure}
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/spinup_filmstrip.pdf}
@@ -2030,12 +2051,22 @@ to the repo.}
 \label{fig:mcmcpost}
 \end{figure}
 
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_mcmc_corner.pdf}
+\caption{A corner-plot view of the same joint $(K_d,Q_b)$ cross-check. Raw MCMC
+chains are not committed, so this reconstructs smooth Gaussian-ridge posteriors
+from the committed quantiles in \code{results/bayesian\_crosscheck\_samples.json}.
+The diagonal panels show marginal $K_d$ and $Q_b$ constraints; off-diagonal
+contours show the positive degeneracy ridge.}
+\label{fig:mcmccorner}
+\end{figure}
+
 \section{Model selection (AICc)}\label{sec:aicc}
 We compare three models:
 \begin{itemize}[leftmargin=1.4em,itemsep=2pt]
 \item $M_1$: different $K_d$ per site, $Q_b$ fixed (our model, 2 free parameters);
-\item $M_2$: one shared $K_d$, $Q_b$ fixed (1 free parameter);
-\item $M_3$: one shared $K_d$, different $Q_b$ per site (3 free parameters).
+\item $M_2$: one shared $K_d$, different $Q_b$ per site (3 free parameters);
+\item $M_3$: one shared $K_d$, $Q_b$ fixed (1 free parameter).
 \end{itemize}
 AICc (Akaike Information Criterion, corrected for small samples) penalises models
 for using more parameters. For $N$ data points, $k$ free parameters, and Gaussian
@@ -2047,10 +2078,11 @@ residuals,
 where the first term rewards fit, the $2k$ term penalises complexity, and the last
 is the small-sample correction (it matters here, with $N=23$ sensors). Only
 \emph{differences} between models are meaningful: a gap $\Delta\mathrm{AICc}\gtrsim2$
-is notable, $\gtrsim4$ strong. The per-site model $M_1$ beats the shared-$K_d$
-model $M_2$ by $\Delta\text{AICc}=3.99$ and the shared-$K_d$/free-$Q_b$ model
-$M_3$ by $2.71$ --- the data favour a genuine \emph{conductivity} contrast, not a
-flux artefact, even after paying for the extra parameter.
+is notable, $\gtrsim4$ strong. The per-site model $M_1$ beats the shared-$K_d$,
+free-$Q_b$ model $M_2$ by $\Delta\text{AICc}=3.99$ and the strict shared-$K_d$,
+fixed-$Q_b$ null $M_3$ by $2.71$ --- the data favour a genuine
+\emph{conductivity} contrast, not a flux artefact, even after paying for the
+extra parameter.
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_book_aicc.pdf}
@@ -2291,11 +2323,12 @@ spray. Three properties matter:
 \item \textbf{Material:} highland breccia + pyroclastic glass + buried massif
   blocks at A17, versus comminuted mare basalt at A15. Greater compositional
   diversity raises the chance of well-conducting components in the deep mix.
-\item \textbf{Independent support from Martínez:} re-running the retrieval with
-  the density-based Martínez \& Siegler (2021) form prefers an effective deep
-  density scaling $\alpha\approx 1.83$ at A17 vs $\alpha\approx 1.12$ at A15
-  (Ch.~\ref{ch:crosschecks}) --- the same direction as the $K_d$ contrast, from
-  a completely different parameterisation.
+\item \textbf{Independent check from Martínez:} re-running the retrieval with
+  the density-based Martínez \& Siegler (2021) form prefers ordinary effective
+  density scalings, $\alpha\approx 1.13$ at A15 and $\alpha\approx 0.98$ at A17
+  (Ch.~\ref{ch:crosschecks}). That check does \emph{not} reproduce the Hayne
+  $K_d$ ordering by density alone; it says the A17 contrast should be read as
+  contact-network or block-rich structure, not merely as a bulk-density proxy.
 \item \textbf{Compaction history:} the Taurus-Littrow regolith is thinner and
   less mature; the deep column likely contains a larger fraction of in-situ
   highland blocks, which contact more grain-to-grain area per unit volume than
@@ -2393,7 +2426,7 @@ retrieval and the orbital surface measurement are mutually consistent.
 \subsubsection*{What it tests}
 Whether the inter-site contrast comes from a peculiarity of Hayne's
 parameterisation (where $K_d$ is the free knob) or whether an entirely different
-conductivity form gives the same story.
+conductivity form gives a consistent diagnostic.
 
 \subsubsection*{How it works}
 The Martínez \& Siegler (2021) form (Eq.~\ref{eq:Kmartinez}) writes $K$ directly
@@ -2404,11 +2437,13 @@ deep-sensor RMSE. A higher $\alpha^{*}$ means the model needs a denser deep
 column to fit the data.
 
 \subsubsection*{What we find}
-Apollo~15 prefers $\alpha^{*}\approx 1.12$ ($\rho_d\approx 2010$~kg\,m$^{-3}$).
-Apollo~17 prefers $\alpha^{*}\approx 1.83$ ($\rho_d\approx 3300$~kg\,m$^{-3}$).
-Apollo~17 wants a substantially denser deep column --- exactly the direction the
-Hayne retrieval reports through a higher $K_d$. \emph{Two independent
-parameterisations of the same physics yield the same inter-site direction.}
+Apollo~15 prefers $\alpha^{*}\approx 1.13$ ($\rho_d\approx 2026$~kg\,m$^{-3}$).
+Apollo~17 prefers $\alpha^{*}\approx 0.98$ ($\rho_d\approx 1767$~kg\,m$^{-3}$).
+So the Martínez check is not a second retrieval of the same inter-site ordering.
+It is a useful negative control: within the published density law, a simple
+bulk-density rescaling does not explain why Hayne's $K_d^{*}$ is larger at A17.
+The contrast is therefore more naturally interpreted as contact geometry,
+buried blocks, or other structure that the scalar $\rho_d$ proxy cannot express.
 
 \begin{figure}[htbp]\centering
 \begin{minipage}{0.49\linewidth}\centering
@@ -2416,8 +2451,9 @@ parameterisations of the same physics yield the same inter-site direction.}
 \begin{minipage}{0.49\linewidth}\centering
 \includegraphics[width=0.85\linewidth]{figures/fig_alpha_sweep.pdf}\end{minipage}
 \caption{Left: the model with the retrieved $K_d$ reproduces the Diviner surface
-temperatures. Right: the Mart\'inez density retrieval tells the same story ---
-different deep densities at the two sites.}
+temperatures. Right: the Mart\'inez density retrieval is a diagnostic control:
+both fitted density scalars remain near the published baseline, so scalar
+density alone does not reproduce the Hayne $K_d$ contrast.}
 \label{fig:diviner}\label{fig:alpha}
 \end{figure}
 
@@ -2467,21 +2503,19 @@ alone --- the agreement is not built in.
 \end{solutionbox}
 
 \begin{problembox}[Problem 10.2 --- the Mart\'inez $\alpha$ as a sanity check]
-At Apollo~15 the Martínez retrieval prefers $\alpha^{*}\approx 1.12$
-($\rho_d\approx 2010$ kg/m³). At Apollo~17, $\alpha^{*}\approx 1.83$
-($\rho_d\approx 3300$ kg/m³). The A17 value sits noticeably above intact
-mare-basalt density ($\sim 3000$ kg/m³). Is that a problem for the model?
+At Apollo~15 the Martínez retrieval prefers $\alpha^{*}\approx 1.13$
+($\rho_d\approx 2026$ kg/m³). At Apollo~17, $\alpha^{*}\approx 0.98$
+($\rho_d\approx 1767$ kg/m³). Does the fact that A17's fitted density scalar is
+not larger than A15's falsify the Hayne $K_d$ contrast?
 \end{problembox}
 \begin{solutionbox}
-The Martínez density is not a literal regolith density --- it is the
-\emph{effective} density that makes the Martínez form match the deep mean
-profile. A value above intact-rock density tells us the model is being pushed
-beyond its calibration regime to compensate for missing physics (probably the
-buried-block conduction channel discussed in Ch.~\ref{ch:sites}). It is
-\emph{not} a falsification --- it is a warning that the Martínez parameterisation
-is reaching its limits at A17, which is exactly why the cross-check is useful:
-the qualitative direction (denser-at-A17) survives even though the quantitative
-$\alpha^{*}$ is at the edge of physical plausibility.
+No. The two fits are answers to different inverse problems. Hayne's free knob is
+a deep conductivity asymptote; Martínez's diagnostic knob is a scalar density
+asymptote inside a fixed $K(T,\rho)$ law. The alpha sweep says a density-only
+rescaling of that published law does \emph{not} reproduce the Hayne ordering.
+That is a constraint on interpretation, not a contradiction: the A17 contrast
+must live in contact geometry, block fraction, or other structure that a single
+bulk-density scalar cannot represent.
 \end{solutionbox}
 
 \begin{figure}[htbp]\centering
@@ -2509,7 +2543,8 @@ The code is layered (Fig.~\ref{fig:arch}):
   produce figures or output files.
 \item \textbf{\code{notebooks/}} --- interactive exploration (the equivalence
   demo, the retrieval, the figures).
-\item \textbf{\code{tests/}} --- 37 tests including equilibrium certification.
+\item \textbf{\code{tests/}} --- 43 tests including equilibrium certification and
+  direct numerical-internal checks.
 \end{itemize}
 
 One function, \code{run\_with} (in \code{pipeline/compute/retrieve\_kd.py}), is
@@ -2545,15 +2580,16 @@ A single forward solve (one call to \code{run\_with}) is inherently sequential:
 each time step depends on the previous one. You cannot split a single trajectory
 across cores.
 
-But the \emph{sweep} (28--30 independent $K_d$ values) and the \emph{bootstrap}
-(1500 independent resamples) consist of many independent solves. The pipeline
-runs them across all available cores via Python's
-\code{concurrent.futures.ProcessPoolExecutor}. The shared idiom: build all the
-\code{PixelInputs} dataclasses up front, fan them out across workers, gather the
-\code{PixelOutputs} when they return, then aggregate (compute RMSE, take a
-percentile). \emph{More cores speed up the batch, not one solve.}
+But the \emph{sweep} (28--30 independent $K_d$ values) and the auxiliary grids
+are embarrassingly parallel in principle. The current committed production
+drivers run them serially, reusing the in-process profile cache in
+\code{pipeline/compute/retrieve\_kd.py}; this keeps logs deterministic and makes
+failed runs easier to resume. The equilibrium demo and figure scripts show the
+parallel pattern with \code{ProcessPoolExecutor}, and the same pattern can be
+applied to the retrieval later. The invariant is simple: \emph{more cores can
+speed up a batch of independent solves, not one solve.}
 
-\section{Testing strategy: what 37 tests actually pin down}
+\section{Testing strategy: what 43 tests actually pin down}
 The test suite (\code{tests/}) is a tiered safety net:
 \begin{itemize}[leftmargin=1.4em,itemsep=2pt]
 \item \textbf{Unit tests} for the leaf modules (grid construction, conductivity,
@@ -2566,6 +2602,11 @@ The test suite (\code{tests/}) is a tiered safety net:
   profile to $<0.05$~K) and a flux-closure test (mean conductive flux equals
   $Q_b$ below the anchor to within 10\%). These are the regression locks for
   the entire methodological contribution.
+\item \textbf{Dedicated internal checks} for the load-bearing pieces named in
+  this chapter: the surface-BC Newton root, the sub-skin reconstruction step, and
+  the flux-closure certifier. Invalid conductivity and boundary-condition inputs
+  now raise clear \code{ValueError}s instead of turning into downstream
+  \code{nan}s.
 \item \textbf{Headline regression test}: the canonical
   \code{results/kd\_retrieval\_results.json} is reproduced to within $\pm$0.01
   mW\,m$^{-1}$\,K$^{-1}$ from a clean retrieve run.
@@ -2599,14 +2640,16 @@ run. Each row names what failed, why, and the cheapest fix.
 Symptom & Most likely cause & Fix \\
 \midrule
 \code{ModuleNotFoundError: lunar} after \code{git clone} &
-the package isn't installed in the active interpreter &
-\code{pip install -e ".[dev]"} inside the venv;
-\code{which python} should point inside \code{.venv/}. \\
+the active interpreter is not the checkout or editable install &
+\code{make test} uses the repo \code{src/} path directly; for pipeline scripts,
+run \code{pip install -e ".[dev]"} inside the venv. \\
 \addlinespace
 RMSE comes back as \code{nan} on a fresh retrieve &
 sensor depth below the lower bound of the grid, or an empty stable window &
-check that \code{depth\_cm\_all >= EQ\_Z\_ANCHOR}; widen
-\code{find\_stable\_window(slope\_thresh\_K\_per\_year=)}. \\
+check that all selected sensor depths lie inside the model grid and that the
+stable-window tail is non-empty; then widen
+\code{find\_stable\_window(...)} only if the data record genuinely lacks a flat
+tail. \\
 \addlinespace
 $K_d^{*}$ off by $\gtrsim 0.1$ from the headline values &
 input has been quietly perturbed (often a notebook-state stale global) &
@@ -2615,9 +2658,9 @@ input has been quietly perturbed (often a notebook-state stale global) &
 \addlinespace
 ``Equilibrium did not certify'' in the solver log &
 spin-up too short for a very low $K_d$ trial &
-raise \code{n\_lunations\_max} in
-\code{solve\_periodic\_equilibrium}; the F1 fix already prefers convergence
-over wall-clock. \\
+raise \code{EQ\_MAX\_OUTER} or \code{EQ\_N\_INNER} in
+\code{src/lunar/config.py}; the F1 fix already prefers convergence over
+wall-clock. \\
 \addlinespace
 Surface-BC Newton fails to converge &
 the cosine forcing has been replaced with a sharper pulse outside its
@@ -2668,7 +2711,7 @@ inputs.
 \end{solutionbox}
 
 \begin{problembox}[Problem 11.2 — why is the F1 regression test the most important one?]
-The 37 tests cover many things. Argue which single test is the most important to
+The 43 tests cover many things. Argue which single test is the most important to
 keep green and explain why.
 \end{problembox}
 \begin{solutionbox}
@@ -3019,7 +3062,7 @@ Bootstrap 95\% CI (A15) & $[4.12,\ 7.45]$ & $\pm 0.02$ \\
 Bootstrap 95\% CI (A17) & $[6.85,\ 9.04]$ & $\pm 0.02$ \\
 Contrast median & $3.31$ & $\pm 0.05$ \\
 Contrast $p$-value & $0.011$ & $\pm 0.003$ \\
-Test suite & $37$ passed & exact \\
+Test suite & $43$ passed & exact \\
 Equilibrium drift & $\le 0.023$ K & --- \\
 Flux closure & $< 2\%$ & --- \\
 Wall time (fast path) & $\sim$15 min & --- \\
@@ -3078,9 +3121,10 @@ Notebook & Wall time & Produces \\
 \begin{itemize}[leftmargin=1.4em,itemsep=2pt]
 \item \textbf{SciPy build error on macOS:} force prebuilt wheels with
   \code{pip install --only-binary=:all: -e ".[dev]"}.
-\item \textbf{SPICE kernel download blocked:} the kernels are fetched on demand by
-  \code{src/lunar/ephem.py}; set \code{SPICE\_KERNEL\_DIR} to a local directory
-  holding the DE440 kernel and the NAIF lunar/earth PCK.
+\item \textbf{SPICE kernel download blocked:} \code{src/lunar/ephem.py} reads
+  kernels from \code{data/spice/} by default and honors
+  \code{SPICE\_KERNEL\_DIR}; point that variable at a local directory holding
+  the DE440 kernel and the NAIF lunar/earth PCK.
 \item \textbf{Diviner SSL error:} \code{pipeline/fetch\_diviner.py} retries with
   verification disabled --- the PDS data is public, so this is safe.
 \item \textbf{Missing LaTeX font/package:} install a complete distribution

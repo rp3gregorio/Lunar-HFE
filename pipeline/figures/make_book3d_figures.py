@@ -10,10 +10,15 @@ Run:  python pipeline/figures/make_book3d_figures.py
 from __future__ import annotations
 import json
 import pathlib
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
+from matplotlib.lines import Line2D
+
+_REPO = pathlib.Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO / "src"))
 
 from lunar.config import (SITES, GRID, HAYNE, S0, T_LUNAR, DT_STEP,
                           EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL)
@@ -21,11 +26,12 @@ from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.plotting.style import (ANTH_DIVERGE, C_CORAL, C_TEAL, C_FOREST,
-                                  C_CHAR, C_DIM, C_GRID, JGR_FULL)
+                                  C_CHAR, C_DIM, C_GRID, JGR_FULL,
+                                  C_A15, C_A17)
 
-OUT = pathlib.Path(__file__).resolve().parents[2] / "results" / "figures"
+OUT = _REPO / "results" / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
-_RESULTS = pathlib.Path(__file__).resolve().parents[2] / "results" / "kd_retrieval_results.json"
+_RESULTS = _REPO / "results" / "kd_retrieval_results.json"
 
 
 def _kd_star(tag: str, default: float) -> float:
@@ -111,17 +117,60 @@ def fig_thermal_field():
     print("  -> fig_book_thermalfield.pdf")
 
 
+def fig_thermal_field_3d():
+    """3D mesh of T(z,t), showing the skin-depth decay as a surface."""
+    z, t_days, T = _solve_field("A17")
+    z_sel = z <= 0.75
+    tidx = np.arange(0, t_days.size, 8)
+    zidx = np.where(z_sel)[0][::2]
+    TT, ZZ = np.meshgrid(t_days[tidx], z[zidx])
+    TF = T[np.ix_(zidx, tidx)]
+
+    fig = plt.figure(figsize=(JGR_FULL, 5.0))
+    ax = fig.add_subplot(111, projection="3d")
+    norm = plt.Normalize(float(TF.min()), float(TF.max()))
+    surf = ax.plot_surface(
+        TT, ZZ, TF,
+        facecolors=ANTH_DIVERGE(norm(TF)),
+        rstride=1, cstride=1, linewidth=0.2, edgecolor=(1, 1, 1, 0.25),
+        antialiased=True, shade=False,
+    )
+    ax.view_init(elev=28, azim=-134)
+    ax.set_xlim(0, t_days[-1])
+    ax.set_ylim(0.75, 0.0)
+    ax.set_zlim(float(TF.min()) - 4, float(TF.max()) + 4)
+    ax.set_xlabel("time over one lunation  [days]", labelpad=8)
+    ax.set_ylabel("depth  $z$  [m]", labelpad=8)
+    ax.set_zlabel("temperature  [K]", labelpad=8)
+    ax.set_title("3D view of $T(z,t)$: the surface wave collapses with depth",
+                 loc="left", fontsize=10.5, color=C_CHAR, pad=12)
+    _clean_3d(ax)
+    sm = cm.ScalarMappable(norm=norm, cmap=ANTH_DIVERGE)
+    sm.set_array([])
+    cb = fig.colorbar(sm, ax=ax, shrink=0.68, pad=0.08, aspect=18)
+    cb.set_label("temperature  [K]", fontsize=9)
+    cb.ax.tick_params(labelsize=8, colors=C_DIM)
+    cb.outline.set_edgecolor(C_GRID)
+    fig.savefig(OUT / "fig_book_thermalfield3d.pdf", bbox_inches="tight",
+                pad_inches=0.18)
+    plt.close(fig)
+    print("  -> fig_book_thermalfield3d.pdf")
+
+
 def fig_kTz_heatmap():
     """K(T, z) heatmap from the actual Hayne function at the retrieved K_d* = 4.58.
     Shows the deep asymptote K -> K_d and the T^3 radiative rise."""
     from lunar.properties import conductivity_hayne
     from lunar.config import HAYNE
-    Kd = 4.58e-3              # A15 retrieved
+    Kd15 = _kd_star("A15", 4.58e-3)
+    Kd17 = _kd_star("A17", 8.12e-3)
     T_grid = np.linspace(100, 390, 240)
     z_grid = np.linspace(0.0, 2.0, 200)
     TT, ZZ = np.meshgrid(T_grid, z_grid)
-    K = conductivity_hayne(TT, ZZ, Ks=HAYNE['K_S'], Kd=Kd, H=HAYNE['H'],
+    K = conductivity_hayne(TT, ZZ, Ks=HAYNE['K_S'], Kd=Kd15, H=HAYNE['H'],
                            chi=HAYNE['CHI']) * 1e3            # mW/(m K)
+    K17 = conductivity_hayne(TT, ZZ, Ks=HAYNE['K_S'], Kd=Kd17, H=HAYNE['H'],
+                             chi=HAYNE['CHI']) * 1e3
 
     fig, ax = plt.subplots(figsize=(JGR_FULL, 3.8))
     im = ax.pcolormesh(T_grid, z_grid, K, cmap=ANTH_DIVERGE,
@@ -129,16 +178,19 @@ def fig_kTz_heatmap():
     cs = ax.contour(T_grid, z_grid, K, levels=[1, 2, 3, 4, 5, 7, 10, 15],
                     colors="white", linewidths=0.5, alpha=0.7)
     ax.clabel(cs, inline=True, fontsize=7, fmt="%.0f", colors="#FFFFFF")
+    ax.contour(T_grid, z_grid, K, levels=[Kd15 * 1e3],
+               colors=[C_A15], linewidths=1.8)
+    ax.contour(T_grid, z_grid, K17, levels=[Kd17 * 1e3],
+               colors=[C_A17], linewidths=1.8)
     ax.invert_yaxis()
     ax.set_xlabel("temperature  $T$  [K]")
     ax.set_ylabel("depth  $z$  [m]")
-    ax.set_title(r"$K(T,z)$ at the retrieved Apollo 15 $K_d^*=4.58$ "
-                 r"mW m$^{-1}$ K$^{-1}$ — Hayne (2017) form",
+    ax.set_title(r"$K(T,z)$ under the retrieved Hayne-form conductivities",
                  loc="left", fontsize=10.5, color=C_CHAR)
 
     # mark the deep asymptote K -> K_d
     ax.axhline(0.30, color=C_TEAL, lw=0.9, ls="--")
-    ax.text(108, 0.28, r"below the $H$-folding ($z \sim 5H \approx 30$ cm):  $K \to K_d$",
+    ax.text(108, 0.28, r"below the $H$-folding ($z \sim 5H \approx 30$ cm): contact $K \to K_d$",
             color=C_TEAL, fontsize=8, va="bottom")
     # mark the radiative rise
     ax.annotate(r"radiative $T^3$ rise", xy=(380, 1.7), xytext=(220, 1.7),
@@ -146,6 +198,13 @@ def fig_kTz_heatmap():
                 arrowprops=dict(arrowstyle="->", color=C_CORAL, lw=0.8))
     for s in ax.spines.values():
         s.set_color(C_CHAR)
+    handles = [
+        Line2D([0], [0], color=C_A15, lw=1.8,
+               label=fr"A15 $K=K_d^*$ ({Kd15*1e3:.2f})"),
+        Line2D([0], [0], color=C_A17, lw=1.8,
+               label=fr"A17 $K=K_d^*$ ({Kd17*1e3:.2f})"),
+    ]
+    ax.legend(handles=handles, fontsize=8, loc="lower right", framealpha=0.92)
     cb = fig.colorbar(im, ax=ax, pad=0.015, aspect=20)
     cb.set_label(r"$K$  [mW m$^{-1}$ K$^{-1}$]", fontsize=9)
     cb.ax.tick_params(labelsize=8, colors=C_DIM)
@@ -496,6 +555,7 @@ def main():
     # heateq + grid were re-authored as SVG (pipeline/figures/svg -> make_svg_figures).
     fig_fourier()               # 2D equation interpretation (contains a T(z) plot)
     fig_thermal_field()         # 2D data heatmap
+    fig_thermal_field_3d()       # 3D data mesh
     fig_skin_wave()             # 2D data lines
     fig_kTz_heatmap()           # 2D Hayne K(T,z) heatmap
     print("done.")

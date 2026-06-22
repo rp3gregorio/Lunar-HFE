@@ -105,6 +105,12 @@ def _reconstruct_subskin(T_mean: np.ndarray, z: np.ndarray, i0: int,
     Midpoint (RK2) integration; K varies slowly cell-to-cell so this is
     accurate to << 1 mK per cell at the production grid resolution.
     """
+    if not 0 <= i0 < z.size:
+        raise ValueError(f"anchor index i0={i0} is outside the depth grid")
+    if not np.all(np.diff(z) > 0):
+        raise ValueError("depth grid z must be strictly increasing")
+    if not np.isfinite(Q_b):
+        raise ValueError("Q_b must be finite")
     T_new = T_mean.copy()
     for i in range(i0, z.size - 1):
         dz = z[i + 1] - z[i]
@@ -112,10 +118,20 @@ def _reconstruct_subskin(T_mean: np.ndarray, z: np.ndarray, i0: int,
                      if u_rect is not None else 0.0)
         K_i = float(np.asarray(K_func(np.array([T_new[i]]),
                                       np.array([z[i]])))[0])
+        if not np.isfinite(K_i) or K_i <= 0.0:
+            raise ValueError(
+                f"K_func returned invalid conductivity {K_i!r} "
+                f"at z={z[i]:.3g} m during sub-skin reconstruction"
+            )
         T_half = T_new[i] + 0.5 * q_i / K_i * dz
         z_half = 0.5 * (z[i] + z[i + 1])
         K_h = float(np.asarray(K_func(np.array([T_half]),
                                       np.array([z_half])))[0])
+        if not np.isfinite(K_h) or K_h <= 0.0:
+            raise ValueError(
+                f"K_func returned invalid midpoint conductivity {K_h!r} "
+                f"at z={z_half:.3g} m during sub-skin reconstruction"
+            )
         T_new[i + 1] = T_new[i] + q_i / K_h * dz
     return T_new
 
@@ -133,6 +149,8 @@ def _mean_flux_closure(T_mean: np.ndarray, z: np.ndarray, i0: int,
     q = K * np.gradient(T_mean, z)
     if u_rect is not None:
         q = q + u_rect
+    if Q_b == 0.0:
+        raise ValueError("Q_b must be non-zero for relative flux-closure certification")
     rel = np.abs(q[i0:] - Q_b) / Q_b
     return float(np.max(rel))
 
@@ -160,6 +178,11 @@ def solve_periodic_equilibrium(
     only seeds the first iterate and is eliminated by the outer
     iteration -- see the module docstring.
     """
+    if z_anchor > grid.z_mid[-1]:
+        raise ValueError(
+            f"z_anchor={z_anchor} m lies below the grid bottom "
+            f"({grid.z_mid[-1]:.3g} m cell center)"
+        )
     z = grid.z_mid
     i0 = int(np.argmin(np.abs(z - z_anchor)))
 

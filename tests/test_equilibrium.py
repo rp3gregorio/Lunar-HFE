@@ -11,8 +11,13 @@ a coarsened version so CI stays fast.
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
-from lunar.equilibrium import solve_periodic_equilibrium
+from lunar.equilibrium import (
+    _mean_flux_closure,
+    _reconstruct_subskin,
+    solve_periodic_equilibrium,
+)
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.constants import LUNATION_SECONDS
@@ -51,3 +56,38 @@ def test_flux_closure():
         emissivity=0.95, Q_b=0.021, K_func=k_func, cp_func=cp_func,
         T_guess=250.0)
     assert eq.flux_closure < 0.10
+
+
+def test_reconstruct_subskin_integrates_constant_flux_profile():
+    """Sub-skin reconstruction should reproduce a linear constant-K profile."""
+    z = np.array([0.0, 1.0, 2.0])
+    T_mean = np.array([250.0, 0.0, 0.0])
+
+    def k_const(T, z):
+        return np.full_like(np.asarray(z, dtype=float), 0.01)
+
+    out = _reconstruct_subskin(T_mean, z, i0=0, Q_b=0.02, K_func=k_const)
+    assert np.allclose(out, [250.0, 252.0, 254.0])
+
+
+def test_reconstruct_subskin_rejects_invalid_conductivity():
+    """Invalid K values should raise a clear error before division."""
+    z = np.array([0.0, 1.0])
+    T_mean = np.array([250.0, 250.0])
+
+    def k_zero(T, z):
+        return np.zeros_like(np.asarray(z, dtype=float))
+
+    with pytest.raises(ValueError, match="invalid conductivity"):
+        _reconstruct_subskin(T_mean, z, i0=0, Q_b=0.02, K_func=k_zero)
+
+
+def test_flux_closure_certifier_matches_constant_flux():
+    """The flux-closure certifier should report zero for an exact profile."""
+    z = np.array([0.0, 1.0, 2.0])
+    T_mean = np.array([250.0, 252.0, 254.0])
+
+    def k_const(T, z):
+        return np.full_like(np.asarray(z, dtype=float), 0.01)
+
+    assert _mean_flux_closure(T_mean, z, i0=0, Q_b=0.02, K_func=k_const) < 1e-12

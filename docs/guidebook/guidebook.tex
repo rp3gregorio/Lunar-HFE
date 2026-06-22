@@ -1349,15 +1349,6 @@ thermal conductivity (W\,m$^{-1}$\,K$^{-1}$). The minus sign says heat flows
 \emph{downhill} in temperature: from the hot surface into the cooler subsurface
 during the day, and back up at night.
 
-\begin{plain}
-Imagine holding one end of a metal rod over a flame. Heat flows from the hot end
-to the cold end. $K$ tells you how fast: copper ($K\approx400$) carries heat
-quickly; lunar regolith ($K\approx0.003$) is an extraordinary insulator. The
-$\partial T/\partial z$ part says heat flows faster when the temperature changes
-sharply over a short distance (steep gradient) and slower when it changes
-gradually (gentle gradient).
-\end{plain}
-
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_book_fourier.pdf}
 \caption{Reading Fourier's law. (a) Heat flows down the column from the hot
@@ -1383,14 +1374,6 @@ where $\rho$ is the density (kg\,m$^{-3}$), $c_p$ is the specific heat capacity
 (J\,kg$^{-1}$\,K$^{-1}$, how much energy it takes to warm a kilogram by one
 Kelvin; for lunar regolith the code uses the Hemingway et al.~(1973) polynomial),
 and $t$ is time (seconds).
-
-\begin{plain}
-The left side says ``this layer is warming (or cooling) at such-and-such a
-rate.'' The right side says ``because this much more heat is arriving from above
-than leaving below (or vice versa).'' The three material properties --- $\rho$
-(how heavy), $c_p$ (how hard to heat), and $K$ (how easily heat passes through)
---- are the knobs. This single equation is the physics of the entire study.
-\end{plain}
 
 \begin{figure}[t!]\centering
 \includegraphics[width=0.65\linewidth]{figures/fig_book_heateq.pdf}
@@ -1958,14 +1941,6 @@ def make_geometric_grid(z_max=5.0, dz0=0.002, growth=0.08):
     # cell centres z_mid, thicknesses dz follow from the faces
 \end{lstlisting}
 
-\begin{plain}
-The top cell is 2\,mm thick (to resolve the daily wave precisely). By a depth
-of 1\,m the cells are $\sim$10\,cm thick. By 5\,m they are $\sim$1\,m thick. This
-gives $\sim$69 cells total: fine where it matters, cheap where it does not. The
-alternative --- uniform 2\,mm cells all the way to 5\,m --- would need 2500 cells
-and be $\sim$35$\times$ slower.
-\end{plain}
-
 \section{One time step: Crank--Nicolson}\label{sec:cn}
 We step forward in time by one hour (3600\,s) per step. There are $\sim$709 steps
 in one lunation. At each step, we need to compute the new temperature profile
@@ -2030,16 +2005,6 @@ b = 1 + 0.5*(aL + aR)     # main diagonal (self + both neighbours)
 d = 0.5*aL*Tleft + (1 - 0.5*(aL+aR))*T_prev + 0.5*aR*Tright
 \end{lstlisting}
 
-\begin{plain}
-What this does, in words: each cell's new temperature is a weighted average of its
-old temperature and its neighbours' temperatures. Cells with high conductivity
-exchange heat faster (larger coupling coefficients $a_L$, $a_R$). Cells with high
-heat capacity ($\rho c_p \Delta z$) respond more slowly. The 0.5 factors are the
-Crank--Nicolson averaging between old and new time levels, which makes the scheme
-second-order accurate and unconditionally stable (no timestep restriction from the
-grid spacing).
-\end{plain}
-
 \section{Solving the system: the Thomas algorithm}\label{sec:thomas}
 A tridiagonal system (each equation involves at most three unknowns) can be
 solved in just two passes --- one forward, one backward --- in $O(N)$ time.
@@ -2072,13 +2037,6 @@ for _ in range(max_iter):           # usually converges in 2-3 steps
     dR = -4*eps*sigma*Ts**3 - 2*Ksurf/dz0    # derivative of R w.r.t. Ts
     Ts = Ts - R/dR                            # Newton update
 \end{lstlisting}
-
-\begin{plain}
-The residual $R$ says: ``absorbed sunlight minus radiated heat minus conducted heat
---- how far from balance are we?'' If $R>0$, the surface is too cold (not radiating
-enough); if $R<0$, it is too hot. Newton's method adjusts $T_s$ in the right
-direction, overshooting by just the right amount to converge in 2--3 steps.
-\end{plain}
 
 \section{One complete lunation: stepping through the day}\label{sec:oneday}
 One lunation = $\sim$709 hourly steps. At each step:

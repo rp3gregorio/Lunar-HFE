@@ -1,0 +1,37 @@
+% Crank-Nicolson stencil: one cell at t^n and t^{n+1} with neighbours.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  node distance=18mm,
+  T/.style={circle, draw=black, line width=0.5pt, fill=white,
+            minimum size=11mm, inner sep=0pt,
+            font=\footnotesize},
+  arr/.style={-{Stealth[length=1.8mm]}, line width=0.5pt, color=dim},
+  arrCN/.style={-{Stealth[length=2mm]}, line width=0.8pt, color=teal},
+  every node/.style={align=center}
+]
+% Time axis label
+\node[font=\sffamily\bfseries, color=char] at (-30mm, 0)
+  {time\\$t^n$};
+\node[font=\sffamily\bfseries, color=char] at (-30mm, -20mm)
+  {time\\$t^{n+1}$};
+% t^n row
+\node[T] (Tnm1) at (0,0) {$T_{i-1}^{n}$};
+\node[T] (Tni)  at (20mm,0) {$T_{i}^{n}$};
+\node[T] (Tnp1) at (40mm,0) {$T_{i+1}^{n}$};
+% t^{n+1} row
+\node[T] (Tnp1m1) at (0,-20mm)  {$T_{i-1}^{n+1}$};
+\node[T] (Tnp1i)  at (20mm,-20mm) {$T_{i}^{n+1}$};
+\node[T] (Tnp1p1) at (40mm,-20mm) {$T_{i+1}^{n+1}$};
+% Coupling arrows (lateral, t^n)
+\draw[arr] (Tnm1.east) -- (Tni.west);
+\draw[arr] (Tnp1.west) -- (Tni.east);
+% Coupling arrows (lateral, t^{n+1})
+\draw[arr] (Tnp1m1.east) -- (Tnp1i.west);
+\draw[arr] (Tnp1p1.west) -- (Tnp1i.east);
+% Vertical CN time-coupling
+\draw[arrCN] (Tni.south) -- (Tnp1i.north);
+% Annotation: half + half on the right
+\node[anchor=west, color=teal, font=\sffamily\small\bfseries]
+  at (52mm, -10mm)
+  {\begin{tabular}{@{}l@{}}CN \\ averages\\ the two\\ rows\end{tabular}};
+\end{tikzpicture}

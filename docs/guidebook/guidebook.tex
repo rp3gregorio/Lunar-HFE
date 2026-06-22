@@ -2277,7 +2277,28 @@ puddle had settled, said ``yes,'' and assumed the lake had too. It hadn't.
 The new method avoids waiting for the deep column to relax. Instead of simulating
 1000 lunations of heat diffusion, it uses Eq.~\eqref{eq:closure} to
 \emph{calculate} the deep profile directly. This section explains it step by
-step.
+step. The data flow of the two-step inner iteration is summarised in
+Fig.~\ref{fig:fluxanchored}.
+
+\begin{figure}[htbp]\centering
+\input{figures-tikz/fluxanchored}
+\caption{The flux-anchored equilibrium loop.}
+\label{fig:fluxanchored}
+\end{figure}
+\begin{figdesc}
+Step~A consumes the current best guess of the cycle-mean profile,
+$T_{\rm init}(z)$, and runs a short forward solve (CN + Newton + Thomas
+hour by hour for $n_{\rm in}$ lunations). It returns the cycle-mean of
+the last lunation $T_{\rm mean}(z)$, the anchor temperature at $z_0$,
+and the rectified flux $u_{\rm rect}(z)$. Step~B takes the anchor and
+integrates the steady closure equation downward by direct RK2; it
+returns $T_{\rm recon}(z)$ for every $z>z_0$. The dashed coral arrow
+closes the loop: we re-seed Step~A with $T_{\rm recon}$ and iterate
+until the anchor temperature stops moving by more than $0.005$\,K
+between cycles. Typical convergence: $6$--$10$ outer cycles, a few
+seconds of wall-clock per trial $K_d$ instead of the
+$\sim$1000-lunation diffusive timescale that brute force needs.
+\end{figdesc}
 
 \subsection{The key insight}
 
@@ -2653,7 +2674,7 @@ highland valley is bracketed by massifs and includes dark-mantle
 pyroclastic deposits, while Hadley Rille is on the Imbrium mare basalt
 floor. It does \emph{not} imply that the geothermal interior is
 different beneath the two sites; the basal flux $Q_b$ comes from a
-separate measurement, and the K_d--Q_b degeneracy is exactly why we
+separate measurement, and the $K_d$--$Q_b$ degeneracy is exactly why we
 treat $Q_b$ as a fixed input rather than a free fit
 (Ch.~\ref{ch:qb}). And it does \emph{not} imply that Apollo~17 is the
 ``correct'' value and Apollo~15 the wrong one: both are correct
@@ -2662,16 +2683,16 @@ treat $Q_b$ as a fixed input rather than a free fit
 \noindent\textbf{Three downstream uses.}
 First, every \emph{future thermal probe}, whether on Chang'E,
 Chandrayaan, or a future US lander, will use a 1-D heat model
-calibrated against an in-situ K_d. The pipeline and per-site
+calibrated against an in-situ $K_d$. The pipeline and per-site
 $K_d^{*}$ here give those missions a real benchmark. Second, the
 \emph{Diviner orbital closure check} (\S\ref{sec:divinerclosure})
-becomes tighter: the deep K_d directly influences the surface
-diurnal swing the orbiter sees, so a better deep K_d is a better
-Diviner forward model. Third, the per-site K_d feeds
+becomes tighter: the deep $K_d$ directly influences the surface
+diurnal swing the orbiter sees, so a better deep $K_d$ is a better
+Diviner forward model. Third, the per-site $K_d$ feeds
 \emph{volatile-stability inferences in permanently shadowed
 regions}: cold-trap lifetimes depend on the rate at which heat is
 conducted away from the trap floor, which in turn depends on the
-deep K_d. A factor of 2 in deep K_d translates into a factor of 2
+deep $K_d$. A factor of 2 in deep $K_d$ translates into a factor of 2
 in characteristic diffusive timescales, which is the difference
 between hour- and day-scale thermal memory.
 

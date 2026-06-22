@@ -477,6 +477,105 @@ shared $K_d$); \emph{(4)}~error budget: re-retrieve at perturbed inputs
 \textbf{Details:} Ch.~\ref{ch:stats}.
 \end{stepbox}
 
+\subsection*{A worked example, end to end (Apollo 15)}
+\label{sec:worked-example}
+To make Fig.~\ref{fig:eqnflow} concrete, walk one trial of $K_d$ through the
+entire pipeline with the actual Apollo~15 numbers. The point is not to redo
+the retrieval --- it is to see what each box of the figure outputs in real
+units before reaching for code.
+
+\begin{stepbox}{Worked example --- one trial pass at $K_d = 5.0$ mW\,m$^{-1}$\,K$^{-1}$}
+\textbf{The set-up.} Apollo~15, $Q_b = 21$\,mW\,m$^{-2}$, deepest sensor at
+$z = 1.39$\,m, observed $T_{\rm eq}^{\rm obs}(1.39\,{\rm m})=253.53$\,K
+(Fig.~\ref{fig:rawrecord}). We pick a single trial value
+$K_d^{\rm try}=5.0$\,mW\,m$^{-1}$\,K$^{-1}$ ---
+a number deliberately close to the eventual answer so the arithmetic is
+honest.
+
+\medskip
+\noindent\textbf{(1)~Contact conductivity at depth} (Eq.~\ref{eq:Kc}).
+At $z=1.39$\,m the compaction factor is
+$e^{-z/H}=e^{-1.39/0.06}\approx 9\times 10^{-11}$ --- essentially zero.
+The contact piece has already saturated:
+\[
+K_c(1.39\,{\rm m}) \;=\; K_d^{\rm try} - (K_d^{\rm try}-K_s)\,e^{-z/H}
+\;\approx\; K_d^{\rm try} \;=\; 5.0\;\mathrm{mW\,m^{-1}\,K^{-1}}.
+\]
+
+\noindent\textbf{(2)~Full $K(T,z)$ at the deep temperature}
+(Eq.~\ref{eq:Khayne}). Using $T\approx T_{\rm eq}=253.5$\,K, $\chi=2.7$,
+$T_{\rm ref}=350$\,K:
+\[
+K(T,z)=K_c\!\left[\,1+\chi\!\left(\tfrac{T}{T_{\rm ref}}\right)^{3}\right]
+     = 5.0\,\bigl[\,1 + 2.7\,(253.5/350)^3\,\bigr]
+     \approx 5.0\times 2.02
+     \approx 10.1\;\mathrm{mW\,m^{-1}\,K^{-1}}.
+\]
+\emph{Read:} the radiative term roughly doubles the effective $K$ at this
+temperature even in a regime where the contact part is almost pure $K_d$.
+
+\medskip
+\noindent\textbf{(3)~Forward solve $\to$ deep gradient.}
+The PDE (Eq.~\ref{eq:heat}) integrated to its certified periodic steady state
+must satisfy the flux-closure (Eq.~\ref{eq:closure}):
+$d\langle T\rangle/dz = Q_b/K$. At our depth this is
+\[
+\left.\frac{d\langle T\rangle}{dz}\right|_{1.39\,{\rm m}}
+   = \frac{Q_b}{K(T,z)}
+   = \frac{21\times 10^{-3}}{10.1\times 10^{-3}}
+   \approx 2.08\;\mathrm{K\,m^{-1}}.
+\]
+This gentle slope --- about $2$\,K per metre --- is what carries the geothermal
+signal up through the column.
+
+\medskip
+\noindent\textbf{(4)~Model prediction at the sensor.}
+The certified solve fixes the absolute temperature at every depth. With this
+$K_d^{\rm try}$ the solver returns (you would see this if you ran
+\code{run\_with("A15", kd=5.0e-3)} interactively)
+\[
+T_{\rm model}^{\rm try}(1.39\,{\rm m}) \;\approx\; 254.0\;\mathrm{K}.
+\]
+\emph{Read:} the model predicts the deepest sensor would sit at $\sim 254.0$\,K
+if $K_d$ really were $5.0$.
+
+\medskip
+\noindent\textbf{(5)~The misfit at this one sensor.}
+The residual is the difference between model and data:
+\[
+T_{\rm model}^{\rm try}-T_{\rm eq}^{\rm obs}
+\;\approx\; 254.0-253.5 \;=\; 0.5\;\mathrm{K}.
+\]
+The full RMSE (Eq.~\ref{eq:rmse}) sums this over all $N=7$ deep sensors and
+takes a root-mean-square. At $K_d^{\rm try}=5.0$ the actual RMSE is
+$\approx 0.96$\,K --- close to the minimum, but not the minimum.
+
+\medskip
+\noindent\textbf{(6)~Sweep and refine.}
+Step~C repeats the procedure on a grid of $28$ trial $K_d$'s on
+$[1, 15]$\,mW\,m$^{-1}$\,K$^{-1}$. The RMSE curve is a smooth bowl
+(Fig.~\ref{fig:sweep}); its parabolic vertex (Eq.~\ref{eq:vertex}) lands at
+\[
+\boxed{\;K_d^{*}\;=\;4.58\;\mathrm{mW\,m^{-1}\,K^{-1}}\;}
+\qquad\text{with RMSE}=0.95\;\mathrm{K}.
+\]
+Our trial $5.0$ was close, but the data prefer $4.58$ --- a $9\%$ smaller value
+that brings the deep gradient closer to the average sensor measurement.
+
+\medskip
+\noindent\textbf{(7)~Step~D in one line.}
+Resampling the seven A15 sensors $1500\times$ and re-fitting on each draw
+maps the sensor scatter into a posterior on $K_d^{*}$ whose central
+$95\%$ is $[4.12,\,7.45]$\,mW\,m$^{-1}$\,K$^{-1}$. That is the bootstrap
+column in the headline result of Fig.~\ref{fig:eqnflow}.
+\end{stepbox}
+
+\noindent The arithmetic in steps (1)--(5) used nothing beyond a calculator;
+steps (3)--(4) hide the time-stepping the solver actually performs to
+\emph{certify} that $T(z,t)$ has reached its periodic steady state. The next
+chapters open those two boxes: Ch.~\ref{ch:physics} for the PDE, Ch.~\ref{ch:solver}
+for the solver, Ch.~\ref{ch:steady} for the certification.
+
 \begin{plain}
 The same sentence in everyday words. Apollo's deep thermometers give us a
 number per sensor (Step A). The Hayne formula tells us what the conductivity

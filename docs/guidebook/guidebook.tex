@@ -2609,13 +2609,71 @@ sits at a clearly higher conductivity than Apollo~15's.}
 \label{fig:sweep}
 \end{figure}
 
-\section{The result}
+\section{The result}\label{sec:result}
 \[
 K_{d,\mathrm{A15}}^{*}=4.58,\qquad K_{d,\mathrm{A17}}^{*}=8.12\quad
 \mathrm{mW\,m^{-1}\,K^{-1}}.
 \]
-Apollo~17's deep regolith conducts heat about twice as well as Apollo~15's. Both
-are higher than the global literature value of 3.4.
+Apollo~17's deep regolith conducts heat about $1.8\times$ better than
+Apollo~15's. Both are higher than the global literature value of
+$3.4$\,mW\,m$^{-1}$\,K$^{-1}$ from Hayne~(2017). The next four
+paragraphs put that headline number in context.
+
+\noindent\textbf{Is a factor of 1.8 big?}
+For dry regolith, deep conductivity is controlled mostly by grain-to-grain
+contact area, which scales super-linearly with packing density. Going
+from a loose mare regolith ($\rho_d\!\sim\!1700$\,kg\,m$^{-3}$) to a
+compacted, rock-rich highland regolith
+($\rho_d\!\sim\!2000$\,kg\,m$^{-3}$) is only a $\sim$15\% density jump,
+but the contact-area scaling can push the conductivity by a factor of
+$\sim$2 ($K\propto\rho^{n}$ with $n\gtrsim 4$ in many granular-contact
+models). The contrast we measure is therefore right in the middle of the
+range you would expect for a real mare/highland regolith change ---
+neither implausibly large nor a fluke.
+
+\noindent\textbf{Why both numbers sit above Hayne's $3.4$.}
+Hayne's global value is an \emph{area-weighted average} of the entire
+lunar surface, dominated by the highlands ($\sim$83\% of the surface)
+but anchored to his Diviner surface-temperature fits. If we take our
+two retrievals and weight them by the same global mare/highland
+coverage (17\% mare and 83\% highland from LROC mapping), we get a
+mean of $\sim 7.5$\,mW\,m$^{-1}$\,K$^{-1}$ --- about twice Hayne's
+$3.4$. The discrepancy is real, but it is pulling in a sensible
+direction: the local in-situ Apollo signal sits about $2\times$ above
+the global Diviner-derived average. Two points cannot overturn a
+global fit, but they do show that any future heat-flow probe will
+see a similar spread between the answer at its borehole and the
+global average.
+
+\noindent\textbf{What the inter-site contrast does --- and does not --- imply.}
+It \emph{does} imply that the deep regolith at Apollo~17 is denser, more
+compacted, or more rock-rich than at Apollo~15. Each of those three is
+expected from the geology (Ch.~\ref{ch:sites}): the Taurus--Littrow
+highland valley is bracketed by massifs and includes dark-mantle
+pyroclastic deposits, while Hadley Rille is on the Imbrium mare basalt
+floor. It does \emph{not} imply that the geothermal interior is
+different beneath the two sites; the basal flux $Q_b$ comes from a
+separate measurement, and the K_d--Q_b degeneracy is exactly why we
+treat $Q_b$ as a fixed input rather than a free fit
+(Ch.~\ref{ch:qb}). And it does \emph{not} imply that Apollo~17 is the
+``correct'' value and Apollo~15 the wrong one: both are correct
+\emph{at their site}.
+
+\noindent\textbf{Three downstream uses.}
+First, every \emph{future thermal probe}, whether on Chang'E,
+Chandrayaan, or a future US lander, will use a 1-D heat model
+calibrated against an in-situ K_d. The pipeline and per-site
+$K_d^{*}$ here give those missions a real benchmark. Second, the
+\emph{Diviner orbital closure check} (\S\ref{sec:divinerclosure})
+becomes tighter: the deep K_d directly influences the surface
+diurnal swing the orbiter sees, so a better deep K_d is a better
+Diviner forward model. Third, the per-site K_d feeds
+\emph{volatile-stability inferences in permanently shadowed
+regions}: cold-trap lifetimes depend on the rate at which heat is
+conducted away from the trap floor, which in turn depends on the
+deep K_d. A factor of 2 in deep K_d translates into a factor of 2
+in characteristic diffusive timescales, which is the difference
+between hour- and day-scale thermal memory.
 
 \begin{plain}
 \textbf{Reconciling our per-site $K_d^{*}$ with Hayne's global 3.4.}
@@ -3123,7 +3181,7 @@ the surrounding physics is mis-specified. We therefore test the result against
 \emph{two} entirely independent data sources, then add a battery of robustness
 checks against our own assumptions.
 
-\section{Diviner surface closure}
+\section{Diviner surface closure}\label{sec:divinerclosure}
 \subsubsection*{What it tests}
 Whether the same conductivity that explains the \emph{deep, steady} HFE
 temperatures also produces a sensible \emph{surface, daily} temperature swing.

@@ -479,102 +479,177 @@ shared $K_d$); \emph{(4)}~error budget: re-retrieve at perturbed inputs
 
 \subsection*{A worked example, end to end (Apollo 15)}
 \label{sec:worked-example}
-To make Fig.~\ref{fig:eqnflow} concrete, walk one trial of $K_d$ through the
-entire pipeline with the actual Apollo~15 numbers. The point is not to redo
-the retrieval --- it is to see what each box of the figure outputs in real
-units before reaching for code.
+To make Fig.~\ref{fig:eqnflow} concrete, walk one full retrieval through the
+pipeline --- inputs all the way to the bootstrap CI --- with the real Apollo~15
+numbers. The point is not to redo the retrieval; it is to see what each band
+of the figure outputs in real units before reaching for code. We work through
+the seven bands of Fig.~\ref{fig:eqnflow} in order.
 
-\begin{stepbox}{Worked example --- one trial pass at $K_d = 5.0$ mW\,m$^{-1}$\,K$^{-1}$}
-\textbf{The set-up.} Apollo~15, $Q_b = 21$\,mW\,m$^{-2}$, deepest sensor at
-$z = 1.39$\,m, observed $T_{\rm eq}^{\rm obs}(1.39\,{\rm m})=253.53$\,K
-(Fig.~\ref{fig:rawrecord}). We pick a single trial value
-$K_d^{\rm try}=5.0$\,mW\,m$^{-1}$\,K$^{-1}$ ---
-a number deliberately close to the eventual answer so the arithmetic is
-honest.
+\begin{stepbox}[breakable, enhanced jigsaw]{Worked example --- Apollo 15, every band of Fig.~\ref{fig:eqnflow}}
+
+\textbf{(0) INPUTS --- what is fixed and what is the knob.}
+The five \emph{fixed} inputs come straight from the literature; the sixth is
+the one we vary.
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Quantity & Value & Source \\
+\midrule
+Surface contact conductivity $K_s$ & $0.74\!\times\!10^{-3}$ W\,m$^{-1}$K$^{-1}$ & Hayne (2017), fixed \\
+Compaction $e$-folding $H$ & $0.06$ m & Hayne (2017), fixed \\
+Radiative coefficient $\chi$ & $2.7$ & Hayne (2017), fixed \\
+Reference temperature $T_{\rm ref}$ & $350$ K & Hayne (2017), fixed \\
+Basal flux $Q_b$ & $21$ mW\,m$^{-2}$ & Langseth (1976), fixed \\
+Surface forcing $S_0,\,A,\,\varepsilon$ & $1361$\,W\,m$^{-2}$, $0.131$, $0.95$ & Hayne / NASA, fixed \\
+\midrule
+\textbf{Trial conductivity $K_d$} & swept on $[1,15]$\,mW\,m$^{-1}$K$^{-1}$ & \textbf{the free knob} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For the per-band arithmetic below we pick the single trial
+$K_d^{\rm try}=5.0$\,mW\,m$^{-1}$K$^{-1}$ --- a number deliberately close to
+the eventual answer so the arithmetic is honest.
 
 \medskip
-\noindent\textbf{(1)~Contact conductivity at depth} (Eq.~\ref{eq:Kc}).
-At $z=1.39$\,m the compaction factor is
-$e^{-z/H}=e^{-1.39/0.06}\approx 9\times 10^{-11}$ --- essentially zero.
-The contact piece has already saturated:
+\noindent\textbf{(1) DATA PREP --- the Apollo record becomes seven dots.}
+For each deep sensor of probe~1 and probe~2 at Apollo~15, the code scans the
+trailing $55$--$85\%$ of the record and picks the earliest window whose linear
+trend is flatter than $0.08$\,K\,yr$^{-1}$. The mean of that flat tail is
+$T_{\rm eq}^{\rm obs}$; only $z>80$\,cm survives the borestem cut. The seven
+dots that come out (the targets the model must hit) are:
+
+\begin{center}\small
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+sensor & TG11B & TG12A & TR12A & TR12B & TG12B & TR22B & TG22B \\
+$z$ (cm) & 84 & 91 & 101 & 129 & 139 & 87 & 97 \\
+$T_{\rm eq}^{\rm obs}$ (K) & 253.28 & 253.15 & 253.14 & 253.36 & 253.53 & 250.88 & 251.16 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\emph{Read:} all seven sit within $\sim 3$\,K of each other (Fig.~\ref{fig:rawrecord}).
+The model must reproduce both the absolute values and the gentle deep gradient
+between them.
+
+\medskip
+\noindent\textbf{(2) MATERIAL --- $K_c(z)$ then $K(T,z)$ at the sensors.}
+Eq.~\ref{eq:Kc} gives the contact conductivity at depth. At
+$z=1.39$\,m the compaction factor is $e^{-z/H}=e^{-23.2}\approx 9\times 10^{-11}$,
+so the contact piece has already saturated to $K_d$:
 \[
 K_c(1.39\,{\rm m}) \;=\; K_d^{\rm try} - (K_d^{\rm try}-K_s)\,e^{-z/H}
-\;\approx\; K_d^{\rm try} \;=\; 5.0\;\mathrm{mW\,m^{-1}\,K^{-1}}.
+\;\approx\; K_d^{\rm try} \;=\; 5.0\;\mathrm{mW\,m^{-1}K^{-1}}.
 \]
-
-\noindent\textbf{(2)~Full $K(T,z)$ at the deep temperature}
-(Eq.~\ref{eq:Khayne}). Using $T\approx T_{\rm eq}=253.5$\,K, $\chi=2.7$,
-$T_{\rm ref}=350$\,K:
+Eq.~\ref{eq:Khayne} adds the radiative term. At
+$T\approx T_{\rm eq}=253.5$\,K:
 \[
-K(T,z)=K_c\!\left[\,1+\chi\!\left(\tfrac{T}{T_{\rm ref}}\right)^{3}\right]
+K(T,z)=K_c\!\left[1+\chi\!\left(\tfrac{T}{T_{\rm ref}}\right)^{3}\right]
      = 5.0\,\bigl[\,1 + 2.7\,(253.5/350)^3\,\bigr]
      \approx 5.0\times 2.02
-     \approx 10.1\;\mathrm{mW\,m^{-1}\,K^{-1}}.
+     \approx 10.1\;\mathrm{mW\,m^{-1}K^{-1}}.
 \]
 \emph{Read:} the radiative term roughly doubles the effective $K$ at this
 temperature even in a regime where the contact part is almost pure $K_d$.
 
 \medskip
-\noindent\textbf{(3)~Forward solve $\to$ deep gradient.}
-The PDE (Eq.~\ref{eq:heat}) integrated to its certified periodic steady state
-must satisfy the flux-closure (Eq.~\ref{eq:closure}):
-$d\langle T\rangle/dz = Q_b/K$. At our depth this is
+\noindent\textbf{(3) BOUNDARIES --- top and bottom of the column.}
+\emph{Surface (Eq.~\ref{eq:surfbc}):} energy in $=$ energy out:
+$(1-A)\,S(t)=\varepsilon\sigma T_s^4+K\,\partial_z T|_{z=0}$. With
+$A=0.131$, $\varepsilon=0.95$, $S(t)\le S_0\cos(26.1^\circ)=1221$\,W\,m$^{-2}$
+at noon, Newton's method returns a surface temperature swinging between
+$T_s^{\min}\!\approx\!100$\,K (deep night) and
+$T_s^{\max}\!\approx\!380$\,K (lunar noon).
+\emph{Basal (Eq.~\ref{eq:bottombc}):} $K\,\partial_z T|_{z=z_{\max}}=Q_b$ ---
+$21$\,mW\,m$^{-2}$ flows up through every layer in steady state.
+
+\medskip
+\noindent\textbf{(4) FORWARD SOLVE --- one lunation, then steady state.}
+Plug $K(T,z;K_d^{\rm try})$ and the two BCs into the heat equation
+(Eq.~\ref{eq:heat}), discretise it (Crank--Nicolson + Thomas + Newton surface),
+and iterate until the column reaches a \emph{certified} periodic steady state
+via the flux-anchored equilibrium method of Ch.~\ref{ch:steady} ($\le 0.08$\,K
+drift over $120$ honest lunations). The output is $T(z,t;K_d^{\rm try})$;
+its cycle-mean profile $\langle T\rangle(z;K_d^{\rm try})$ is what we compare
+to the seven $T_{\rm eq}$ dots.
+
+A sanity check from the flux closure (Eq.~\ref{eq:closure}):
 \[
-\left.\frac{d\langle T\rangle}{dz}\right|_{1.39\,{\rm m}}
+\left.\frac{d\langle T\rangle}{dz}\right|_{\rm deep}
    = \frac{Q_b}{K(T,z)}
    = \frac{21\times 10^{-3}}{10.1\times 10^{-3}}
    \approx 2.08\;\mathrm{K\,m^{-1}}.
 \]
-This gentle slope --- about $2$\,K per metre --- is what carries the geothermal
-signal up through the column.
+The deep column rises at about $2$\,K per metre. At $z=1.39$\,m the solver
+returns $\langle T\rangle(1.39\,{\rm m};5.0)\approx 254.0$\,K --- about
+$0.5$\,K hotter than the observed $253.53$\,K.
 
 \medskip
-\noindent\textbf{(4)~Model prediction at the sensor.}
-The certified solve fixes the absolute temperature at every depth. With this
-$K_d^{\rm try}$ the solver returns (you would see this if you ran
-\code{run\_with("A15", kd=5.0e-3)} interactively)
+\noindent\textbf{(5) RETRIEVAL --- RMSE, sweep, parabolic vertex.}
+The RMSE (Eq.~\ref{eq:rmse}) sums the misfit at every deep sensor:
 \[
-T_{\rm model}^{\rm try}(1.39\,{\rm m}) \;\approx\; 254.0\;\mathrm{K}.
+\mathrm{RMSE}(K_d) = \sqrt{\tfrac{1}{N}\sum_{i=1}^{N=7}
+\bigl[\,\langle T\rangle(z_i;K_d) - T_{\rm eq,i}^{\rm obs}\,\bigr]^2}.
 \]
-\emph{Read:} the model predicts the deepest sensor would sit at $\sim 254.0$\,K
-if $K_d$ really were $5.0$.
-
-\medskip
-\noindent\textbf{(5)~The misfit at this one sensor.}
-The residual is the difference between model and data:
+At $K_d^{\rm try}=5.0$ the actual RMSE is $0.96$\,K --- close to the minimum
+but not the minimum. Sweep $28$ trials on $[1, 15]$\,mW\,m$^{-1}$K$^{-1}$:
+the resulting RMSE curve is a smooth bowl (Fig.~\ref{fig:sweep}). The
+parabolic vertex (Eq.~\ref{eq:vertex}) through the three lowest points lands at
 \[
-T_{\rm model}^{\rm try}-T_{\rm eq}^{\rm obs}
-\;\approx\; 254.0-253.5 \;=\; 0.5\;\mathrm{K}.
-\]
-The full RMSE (Eq.~\ref{eq:rmse}) sums this over all $N=7$ deep sensors and
-takes a root-mean-square. At $K_d^{\rm try}=5.0$ the actual RMSE is
-$\approx 0.96$\,K --- close to the minimum, but not the minimum.
-
-\medskip
-\noindent\textbf{(6)~Sweep and refine.}
-Step~C repeats the procedure on a grid of $28$ trial $K_d$'s on
-$[1, 15]$\,mW\,m$^{-1}$\,K$^{-1}$. The RMSE curve is a smooth bowl
-(Fig.~\ref{fig:sweep}); its parabolic vertex (Eq.~\ref{eq:vertex}) lands at
-\[
-\boxed{\;K_d^{*}\;=\;4.58\;\mathrm{mW\,m^{-1}\,K^{-1}}\;}
+\boxed{\;K_d^{*}\;=\;4.58\;\mathrm{mW\,m^{-1}K^{-1}}\;}
 \qquad\text{with RMSE}=0.95\;\mathrm{K}.
 \]
-Our trial $5.0$ was close, but the data prefer $4.58$ --- a $9\%$ smaller value
-that brings the deep gradient closer to the average sensor measurement.
+Our trial $5.0$ was close. The data prefer $4.58$, $9\%$ smaller.
 
 \medskip
-\noindent\textbf{(7)~Step~D in one line.}
-Resampling the seven A15 sensors $1500\times$ and re-fitting on each draw
-maps the sensor scatter into a posterior on $K_d^{*}$ whose central
-$95\%$ is $[4.12,\,7.45]$\,mW\,m$^{-1}$\,K$^{-1}$. That is the bootstrap
-column in the headline result of Fig.~\ref{fig:eqnflow}.
+\noindent\textbf{(6) UNCERTAINTY --- bootstrap, error budget, contrast + $p$.}
+\emph{(a) Bootstrap.} Resample the seven $(z_i, T_{\rm eq,i})$ pairs with
+replacement (and jitter each depth by $\mathcal{N}(0,2.5\,\mathrm{cm})$);
+re-run steps (1)--(5); repeat $1500\times$. The $2.5$ and $97.5$ percentiles
+of the resulting $K_d^{*}$ distribution are the 95\% CI:
+$K_d^{*}(A15)\in[4.12,\,7.45]$.
+
+\emph{(b) Error budget.} Perturb each \emph{fixed} input within its
+published uncertainty and re-retrieve. Quadrature sum of the half-ranges
+gives $\sigma_{\rm tot}$:
+\begin{center}\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+contribution & $\sigma_{Q_b}$ & $\sigma_A$ & $\sigma_{K_s}$ \\
+$\sigma$ (mW\,m$^{-1}$K$^{-1}$) & 1.20 & 0.80 & 0.53 \\[2pt]
+\midrule
+contribution & $\sigma_{\rm stat}$ & $\sigma_{\rm depth}+\sigma_{\rm thr}+\sigma_{\rm solver}$ & \textbf{Total} \\
+$\sigma$ (mW\,m$^{-1}$K$^{-1}$) & 0.80 & 0.31 & \textbf{1.75} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\emph{(c) Inter-site contrast.} Repeat all six bands at Apollo~17
+($N=16$ deep sensors, $Q_b=15$): $K_d^{*}(A17)=8.12$\,mW\,m$^{-1}$K$^{-1}$.
+The contrast distribution from $1500$ joint bootstrap draws has median
+$\Delta K_d=3.31$ and a tail probability of $p\approx 0.011$ that it crossed
+zero by chance.
+
+\medskip
+\noindent\textbf{(7) HEADLINE result.}
+\[
+\boxed{\;K_d^{*}(A15) = 4.58\,[4.12,\,7.45] \quad
+        K_d^{*}(A17) = 8.12\,[6.85,\,9.04]\;\;\mathrm{mW\,m^{-1}K^{-1}};
+        \quad \Delta K_d = 3.31,\ p\approx 0.011.\;}
+\]
+Everything in the bracket is the bootstrap CI; the systematic envelope around
+each is $\pm\,1.75$ at A15 and $\pm\,4.61$ at A17 (Ch.~\ref{ch:stats}).
 \end{stepbox}
 
-\noindent The arithmetic in steps (1)--(5) used nothing beyond a calculator;
-steps (3)--(4) hide the time-stepping the solver actually performs to
-\emph{certify} that $T(z,t)$ has reached its periodic steady state. The next
-chapters open those two boxes: Ch.~\ref{ch:physics} for the PDE, Ch.~\ref{ch:solver}
-for the solver, Ch.~\ref{ch:steady} for the certification.
+\noindent Steps (0)--(2) and (5) used nothing beyond a calculator; step (4)
+hides the time-stepping the solver performs to \emph{certify} that $T(z,t)$
+has reached its periodic steady state, and step (6c) hides a re-run of the
+whole pipeline $1500$ times. The next chapters open those boxes:
+Ch.~\ref{ch:physics} for the PDE, Ch.~\ref{ch:solver} for the discretisation,
+Ch.~\ref{ch:steady} for the certification, Ch.~\ref{ch:retrieval} for the
+sweep, and Ch.~\ref{ch:stats} for the bootstrap and error budget.
 
 \begin{plain}
 The same sentence in everyday words. Apollo's deep thermometers give us a

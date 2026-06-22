@@ -481,46 +481,60 @@ shared $K_d$); \emph{(4)}~error budget: re-retrieve at perturbed inputs
 \label{sec:worked-example}
 To make Fig.~\ref{fig:eqnflow} concrete, walk one full retrieval through the
 pipeline \emph{in the order things actually happen} --- starting on the lunar
-surface in 1971 and ending at the headline number in 2026. The point is not to
-redo the retrieval; it is to see what each box of the figure outputs in real
-units, and \emph{when}.
+surface in 1971 and ending at the headline number in 2026. Every numerical
+step below is grounded in a specific function in the repository, named by
+file and line.
+
+\paragraph{What we use from Hayne (2017), what is ours.}
+Hayne's \emph{conductivity form} $K(T,z)$ (Eq.~\ref{eq:Khayne}), its
+published constants $K_s, H, \chi, T_{\rm ref}$, the bulk \emph{density
+profile} $\rho(z)$ used as \code{\_default\_rho} in
+\code{src/lunar/solver.py:248}, and the per-site \emph{albedo} are all
+Hayne's. The Crank--Nicolson PDE solver
+(\code{\_step}, \code{src/lunar/solver.py:256}), the Thomas algorithm
+(\code{\_thomas}, \code{src/lunar/solver.py:133}), the Newton surface
+solver (\code{\_solve\_surface\_newton},
+\code{src/lunar/solver.py:181}), and the flux-anchored equilibrium method
+(\code{solve\_periodic\_equilibrium}, \code{src/lunar/equilibrium.py:158})
+are this work. Hayne fit Diviner surface brightness; we fit HFE
+\emph{deep} sub-surface temperatures with the same material laws but a
+different solver and dataset --- which is why we get \emph{per-site}
+$K_d^{*}=4.58$ and $8.12$ instead of Hayne's global $3.4$.
 
 \begin{stepbox}[breakable, enhanced jigsaw]{Worked example --- one Apollo~15 retrieval, in time order}
 
 \textbf{1971-07-31 \;--\; drilling at Hadley Rille.}
 At 19:52~UTC the Apollo~15 crew emplaces probe~1 in a 2.4\,m borehole; probe~2
 follows minutes later (Langseth 1972). The HFE platinum-resistance bridges
-along each probe read $\sim$330\,K --- the residual heat of the drilling. The
+along each probe read $\sim$330\,K --- the residual heat of drilling. The
 seven sensors that eventually anchor the retrieval start cooling.
 
 \medskip
 \noindent\textbf{1971--1974 \;--\; the drilling transient dies out.}
 For about $2.7$ years the sensors decay exponentially toward the regolith's
-true undisturbed temperature. The deepest sensor, TG12B at $z=1.39$\,m on
-probe~1, drops from $\sim$280\,K to $\sim$254\,K and visibly flattens
-(Fig.~\ref{fig:rawrecord}, left panel). The probes telemeter to Earth every
-few hours.
+undisturbed temperature. TG12B at $z=1.39$\,m on probe~1 drops from
+$\sim$280\,K to $\sim$254\,K and visibly flattens (Fig.~\ref{fig:rawrecord},
+left panel).
 
 \medskip
 \noindent\textbf{1974--1977 \;--\; the stable record accumulates.}
-Once the trend at TG12B drops below $0.08$\,K\,yr$^{-1}$, the sensor is
-recording the undisturbed deep temperature plus a $\sim$0.15\,K annual
-oscillation from Earth's orbital eccentricity (Fig.~\ref{fig:rawrecord},
-right panel). All seven deep sensors at A15 reach this regime by year~$2.7$.
-Mission ends in 1977.
+Once the trend at TG12B drops below $0.08$\,K\,yr$^{-1}$, the sensor records
+the undisturbed deep temperature plus a $\sim$0.15\,K annual oscillation.
+All seven A15 deep sensors reach this regime by year~$2.7$. Mission ends 1977.
 
 \medskip
 \noindent\textbf{2018 \;--\; Nagihara restores the digital record.}
-The 1971--1977 HFE tapes are recovered, re-digitised, and made available with
-$\pm 2.5$\,cm per-sensor depth uncertainty (Nagihara 2018). This is the
+The 1971--1977 HFE tapes are recovered, re-digitised, depths re-archived
+with $\pm 2.5$\,cm uncertainty (Nagihara 2018). This is the
 \code{src/lunar/apollo\_helpers.py} input.
 
 \medskip
 \noindent\textbf{2026, t = 0 \;--\; the retrieval begins. Extract $T_{\rm eq}$ for the seven A15 deep sensors.}
-For each sensor, \code{find\_stable\_window} scans the trailing $55$--$85\%$
-of the record and picks the earliest window whose linear trend is flatter
-than $0.08$\,K\,yr$^{-1}$; the mean of that flat tail is $T_{\rm eq}^{\rm obs}$.
-After applying the $z>80$\,cm borestem cut we are left with seven dots:
+For each sensor, \code{find\_stable\_window}
+(\code{src/lunar/apollo\_helpers.py:28}) scans the trailing $55$--$85\%$ of
+the record and picks the earliest window flatter than $0.08$\,K\,yr$^{-1}$;
+the mean of that tail is $T_{\rm eq}^{\rm obs}$. After the $z>80$\,cm
+borestem cut, seven dots remain:
 
 \begin{center}\small
 \begin{tabular}{@{}lccccccc@{}}
@@ -533,9 +547,7 @@ $T_{\rm eq}^{\rm obs}$ (K) & 253.28 & 253.15 & 253.14 & 253.36 & 253.53 & 250.88
 \end{center}
 
 \medskip
-\noindent\textbf{Choose the model + a trial $K_d$.}
-We adopt the Hayne~(2017) form for $K(T,z)$ and Langseth~(1976) for $Q_b$:
-
+\noindent\textbf{Choose the model + a trial $K_d$ (everything is Hayne's except $K_d$).}
 \begin{center}\small
 \begin{tabular}{@{}lll@{}}
 \toprule
@@ -545,267 +557,372 @@ Surface contact conductivity $K_s$ & $0.74\!\times\!10^{-3}$ W\,m$^{-1}$K$^{-1}$
 Compaction $e$-folding $H$ & $0.06$ m & Hayne (2017), fixed \\
 Radiative coefficient $\chi$ & $2.7$ & Hayne (2017), fixed \\
 Reference temperature $T_{\rm ref}$ & $350$ K & Hayne (2017), fixed \\
+Density profile $\rho(z)$ & $1100$--$1800$\,kg\,m$^{-3}$ & Hayne (2017), fixed \\
 Basal flux $Q_b$ & $21$ mW\,m$^{-2}$ & Langseth (1976), fixed \\
-Surface forcing $S_0,\,A,\,\varepsilon$ & $1361$\,W\,m$^{-2}$, $0.131$, $0.95$ & Hayne / NASA, fixed \\
+Surface forcing $S_0,\,A,\,\varepsilon$ & $1361$ W\,m$^{-2}$, $0.131$, $0.95$ & Hayne / NASA, fixed \\
 \midrule
-\textbf{Trial conductivity $K_d$} & swept on $[1,15]$\,mW\,m$^{-1}$K$^{-1}$ & \textbf{the free knob} \\
+\textbf{Trial conductivity $K_d$} & swept on $[1,15]$\,mW\,m$^{-1}$K$^{-1}$ & \textbf{the free knob (ours)} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \noindent The sweep grid has 28 trials. We follow the \emph{first} trial in
-detail; for clarity that trial is $K_d^{\rm try}=5.0$\,mW\,m$^{-1}$K$^{-1}$,
-deliberately close to the eventual answer so the arithmetic is honest.
+detail; for clarity that trial is $K_d^{\rm try}=5.0$, deliberately close to
+the eventual answer.
 
 \medskip
 \noindent\textbf{Build the material laws at $K_d^{\rm try}=5.0$.}
-Eq.~\ref{eq:Kc} gives the contact conductivity at every depth. At
-$z=1.39$\,m the compaction factor is $e^{-z/H}=e^{-23.2}\approx 9\!\times\!10^{-11}$,
-so the contact piece has already saturated to $K_d$:
-\[
-K_c(1.39\,{\rm m}) \;=\; K_d^{\rm try} - (K_d^{\rm try}-K_s)\,e^{-z/H}
-\;\approx\; K_d^{\rm try} \;=\; 5.0\;\mathrm{mW\,m^{-1}K^{-1}}.
-\]
-Eq.~\ref{eq:Khayne} adds the radiative term. At $T\approx T_{\rm eq}=253.5$\,K:
-\[
-K(T,z)=K_c\!\left[1+\chi\!\left(\tfrac{T}{T_{\rm ref}}\right)^{3}\right]
-     = 5.0\,\bigl[\,1 + 2.7\,(253.5/350)^3\,\bigr]
-     \approx 10.1\;\mathrm{mW\,m^{-1}K^{-1}}.
-\]
-\emph{Read:} at this temperature the radiative term roughly doubles the
-effective $K$.
+Hayne's contact conductivity (Eq.~\ref{eq:Kc}) gives, at $z=1.39$\,m,
+$K_c\!\approx\!K_d^{\rm try}=5.0$\,mW\,m$^{-1}$K$^{-1}$ (the compaction
+factor $e^{-z/H}$ is essentially zero). Hayne's radiative term
+(Eq.~\ref{eq:Khayne}) then gives
+$K(T,z)\approx 5.0\,[\,1 + 2.7\,(253.5/350)^3\,]\approx 10.1$\,mW\,m$^{-1}$K$^{-1}$.
+At the same depth the Hayne density profile saturates at
+$\rho(1.39\,{\rm m})\!\approx\!1798$\,kg\,m$^{-3}$ (\code{\_default\_rho},
+\code{src/lunar/solver.py:248}), and Hemingway's polynomial gives
+$c_p(253)\!\approx\!650$\,J\,kg$^{-1}$K$^{-1}$.
 
 \medskip
 \noindent\textbf{Set up the simulation.}
-A geometric depth grid (\code{src/lunar/grid.py}, \code{make\_geometric\_grid})
-gives $\Delta z = 2$\,mm at the surface, $8\%$ thicker per cell, $\sim$69
-cells reaching $z_{\max}=5$\,m. Time is sliced into $\Delta t = 1$\,h, so
-one $29.5$-day lunation is $N_t = 24\!\times\!29.5\approx 709$ steps. The
-initial condition is $T(z,0)=250$\,K everywhere. The boundary conditions are:
-\emph{(surface)} the non-linear energy balance
-$(1-A)\,S(t)=\varepsilon\sigma T_s^4+K\,\partial_z T|_{z=0}$ (Eq.~\ref{eq:surfbc}),
-\emph{(bottom)} the geothermal flux $K\,\partial_z T|_{z=z_{\max}}=Q_b$
+\code{make\_geometric\_grid} (\code{src/lunar/grid.py}) builds a geometric
+depth grid: $\Delta z = 2$\,mm at $z=0$, $8\%$ thicker per cell, $n=69$
+cells reaching $z_{\max}=5$\,m. Time slice $\Delta t = 1$\,h, so one
+$29.5$-day lunation has $N_t = 24\!\times\!29.5\!\approx\!709$ steps.
+Initial condition: $T(z,0)=250$\,K everywhere. Boundaries:
+\emph{(surface)} the non-linear energy balance (Eq.~\ref{eq:surfbc});
+\emph{(bottom)} the Neumann flux condition $K\,\partial_z T = Q_b$
 (Eq.~\ref{eq:bottombc}).
 
 \medskip
-\noindent\textbf{Model time $t = 0$ \;--\; the column starts cold.}
-$T(z,0)=250$\,K at every cell. The sun is just rising
-($\cos 2\pi t/P=1$, full incidence).
-
-\medskip
-\noindent\textbf{$t = 1$\,h \;--\; the first Crank--Nicolson step.}
-For each cell $i$ we evaluate the right-hand side of the heat equation half
-at $t^n$ and half at $t^{n+1}$ (Eq.~\ref{eq:heat}):
+\noindent\textbf{A 5-cell toy column to follow the algebra.}
+The real grid has 69 cells, but the structure is the same as in 5; let us
+walk a toy with $n=5$, uniform $\Delta z=0.10$\,m, uniform
+$K_{\rm face}=10$\,mW\,m$^{-1}$K$^{-1}$, and uniform $\rho c_p = 9\!\times\!10^5$\,J\,m$^{-3}$K$^{-1}$.
+The cell heat capacity per area is
+$C=\rho c_p\,\Delta z=9\!\times\!10^4$\,J\,m$^{-2}$K$^{-1}$, and the CN
+coupling becomes
 \[
-C_i\,\frac{T_i^{n+1}-T_i^n}{\Delta t}
-= \tfrac{1}{2}\!\left[\,F_i^{n+1}+F_i^n\,\right],
-\qquad
-F_i \;=\; \frac{K_{i+\tfrac{1}{2}}(T_{i+1}-T_i)}{\Delta z_{i+\tfrac{1}{2}}}
-       -\frac{K_{i-\tfrac{1}{2}}(T_i-T_{i-1})}{\Delta z_{i-\tfrac{1}{2}}},
+\alpha \;=\; \frac{\Delta t\,K_{\rm face}}{\Delta z\,C}
+       \;=\; \frac{3600\times 0.010}{0.10\times 9\!\times\!10^4}
+       \;=\; 4.0\!\times\!10^{-3}.
 \]
-where $C_i=\rho_i c_p(T_i)\Delta z_i$ is the heat capacity per area.
-Collecting $T^{n+1}$ on the left gives a tridiagonal linear system
-$-a_i^{\rm L}T_{i-1}^{n+1}+(1+a_i^{\rm L}+a_i^{\rm R})T_i^{n+1}-a_i^{\rm R}T_{i+1}^{n+1}=b_i^{\rm RHS}$.
+This $\alpha$ is the dimensionless conductance for one cell over one time
+step. In the 5-cell toy it is the same everywhere.
 
 \medskip
-\noindent\textbf{Coefficients at one specific cell.}
-Take $z=0.50$\,m, $T\approx 250$\,K: $\rho\approx 1798$\,kg\,m$^{-3}$,
-$c_p\approx 650$\,J\,kg$^{-1}$K$^{-1}$, $K\approx 10$\,mW\,m$^{-1}$K$^{-1}$,
-$\Delta z\approx 4.7$\,cm. The heat capacity is
-$C = \rho c_p \Delta z \approx 5.5\!\times\!10^4$\,J\,m$^{-2}$K$^{-1}$, and the CN
-couplings are
+\noindent\textbf{Model time $t=0$ \;--\; the column starts at $T=250$\,K everywhere.}
+The starting state is $T^0 = [\,250,\,250,\,250,\,250,\,250\,]$\,K. Newton
+has not yet run; the surface boundary is open.
+
+\medskip
+\noindent\textbf{$t=1$\,h \;--\; build the interior tridiagonal system.}
+\code{\_step} in \code{src/lunar/solver.py:256} assembles three diagonals
+$a_i,b_i,c_i$ and a right-hand side $d_i$ for each cell:
 \[
-a^{\rm L}\approx a^{\rm R} \;=\; \tfrac{1}{2}\,\frac{\Delta t\,K_{\rm face}}{\Delta z\,C}
-\;\approx\; \frac{3600\times 10\!\times\!10^{-3}}{2\times 0.047\times 5.5\!\times\!10^4}
-\;\approx\; 1.4\!\times\!10^{-2}.
+a_i = -\tfrac{1}{2}\alpha,\qquad
+b_i = 1 + \alpha,\qquad
+c_i = -\tfrac{1}{2}\alpha,
 \]
-This cell's row of the matrix is $[-0.014,\;1.028,\;-0.014]$ acting on
-$(T_{i-1},T_i,T_{i+1})^{n+1}$. Far from the surface the system is nearly
-diagonal: the deep layers barely talk to each other in one hour.
-
-\medskip
-\noindent\textbf{Solve the tridiagonal --- Thomas algorithm.}
-\code{src/lunar/solver.py}, \code{\_thomas} does two sweeps. Forward elimination
-(top down):
-$c_i' = c_i/(b_i - a_i\,c_{i-1}')$,
-$d_i' = (d_i - a_i\,d_{i-1}')/(b_i - a_i\,c_{i-1}')$,
-where $(a_i,b_i,c_i)$ are the three diagonals. Backward substitution (bottom
-up): $T_i^{n+1} = d_i' - c_i'\,T_{i+1}^{n+1}$. Total cost $\sim 8N$
-multiplications; 69 cells take well under a microsecond.
-
-\medskip
-\noindent\textbf{Solve the non-linear surface BC --- Newton's method.}
-At $z=0$ the surface BC is non-linear in $T_s$ because of the $T_s^4$ term.
-The residual is
 \[
-R(T_s)=(1-A)\,S(t)-\varepsilon\sigma T_s^4-K_{\rm surf}\,
-\tfrac{T_s-T_1^{n+1}}{\Delta z_{\rm surf}}.
+d_i \;=\; \tfrac{1}{2}\alpha\,T^n_{i-1} + (1-\alpha)\,T^n_i + \tfrac{1}{2}\alpha\,T^n_{i+1}
+\;=\; 250 \quad\text{(for uniform $T^n=250$).}
 \]
-Newton iterates $T_s^{k+1}=T_s^k-R/R'$, with
-$R'=-4\varepsilon\sigma T_s^3-K_{\rm surf}/\Delta z_{\rm surf}$ always
-negative, so the iteration converges from any positive start. Typical:
-$\sim$3 iterations to a few mK
-(\code{src/lunar/solver.py}, \code{\_solve\_surface\_newton}). The resulting
-$T_s^{n+1}$ becomes the Dirichlet anchor for the next time step.
+
+\noindent With our toy numbers $a_i = c_i = -0.002$ and $b_i = 1.004$. The
+interior $5\!\times\!5$ system is
+\[
+\underbrace{\begin{bmatrix}
+1.004 & -0.002 & 0 & 0 & 0 \\
+-0.002 & 1.004 & -0.002 & 0 & 0 \\
+0 & -0.002 & 1.004 & -0.002 & 0 \\
+0 & 0 & -0.002 & 1.004 & -0.002 \\
+0 & 0 & 0 & -0.002 & 1.004
+\end{bmatrix}}_{\mathbf{A}}
+\begin{bmatrix} T_0 \\ T_1 \\ T_2 \\ T_3 \\ T_4 \end{bmatrix}^{n+1}
+=
+\begin{bmatrix} 250 \\ 250 \\ 250 \\ 250 \\ 250 \end{bmatrix}.
+\]
+The matrix is tridiagonal because Crank--Nicolson only couples each cell
+to its immediate neighbours.
 
 \medskip
-\noindent\textbf{Apply the basal BC at $z_{\max}=5$\,m.}
-The last row of the matrix enforces $T_N^{n+1}-T_{N-1}^{n+1}=Q_b\,\Delta z/K$.
-With $Q_b=21$\,mW\,m$^{-2}$ and $K\approx 10$\,mW\,m$^{-1}$K$^{-1}$ this is
-$\sim 1.05$\,K across the bottom cell --- exactly the geothermal slope.
+\noindent\textbf{$t=1$\,h \;--\; apply the surface boundary first.}
+The surface BC is non-linear in $T_s$ and \emph{must be solved before} the
+linear tridiagonal. \code{\_solve\_surface\_newton}
+(\code{src/lunar/solver.py:181}) finds the root of
+\[
+R(T_s) \;=\; (1-A)\,S(t) - \varepsilon\sigma T_s^4
+- K_{\rm surf}\,\frac{T_s - T^n_0}{\Delta z_{\rm surf}/2} \;=\; 0,
+\]
+holding $T^n_0=250$\,K (the explicit-side sub-surface). At $t=1$\,h with
+$S(t)\!\approx\!1221$\,W\,m$^{-2}$ (midday sub-solar at $26.1^\circ$
+latitude), Newton converges in $\sim$3 iterations to $T_s^{n+1}\!\approx\!372$\,K.
+
+This $T_s^{n+1}$ is now a known boundary value, not an unknown of the
+linear system. The cell-0 equation in the matrix had implicitly assumed a
+ghost cell $T_{-1}^{n+1}$; we replace that ghost with the Newton answer.
+Concretely (\code{src/lunar/solver.py:344--366}): the matrix entries
+$a_0,b_0,c_0$ stay as interior values; only $d_0$ is modified:
+\[
+d_0 \;\to\; d_0 - \tfrac{1}{2}\alpha\,T^n_0 + \tfrac{1}{2}\alpha\,T_s^{n}
+                 + \tfrac{1}{2}\alpha\,T_s^{n+1}.
+\]
+The first term cancels the wall-surrogate that the interior loop had used
+in place of the missing left neighbour; the next two terms add the
+explicit-side and implicit-side ghosts at the surface. With
+$T_s^n\!\approx\!T_s^{n+1}\!\approx\!372$\,K and $T^n_0=250$\,K:
+\[
+d_0 \;=\; 250 - 0.5\!\times\!4\!\times\!10^{-3}\!\times\!250
+       + 0.5\!\times\!4\!\times\!10^{-3}\!\times\!372
+       + 0.5\!\times\!4\!\times\!10^{-3}\!\times\!372
+       \;\approx\; 250.99.
+\]
 
 \medskip
-\noindent\textbf{$t = 12$\,h, $t = 24$\,h, \dots \;--\; the surface skin oscillates.}
-After 12 hours the surface has cycled to noon: $S(t)$ peaks at
-$\sim 1221$\,W\,m$^{-2}$ (sub-solar projection at A15's latitude $26.1^\circ$),
-Newton returns $T_s\approx 380$\,K. Twelve hours later: shadow,
-$T_s\approx 100$\,K. The first few centimetres of the column swing through this
-$\sim 280$\,K range every lunation; below the skin depth $\delta\sim 6$\,cm
-the swing is already halved (Fig.~\ref{fig:wave3d}).
+\noindent\textbf{$t=1$\,h \;--\; apply the basal boundary.}
+The Neumann condition $K\,\partial_z T|_{z_{\max}}=Q_b$ at the bottom face
+is implemented (\code{src/lunar/solver.py:377--378}) by:
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+\item subtracting the missing right-coupling from the last row's diagonal:
+  $b_{n-1} \to b_{n-1} - \tfrac{1}{2}\alpha$, giving $b_4 = 1.002$;
+\item adding a source term proportional to the flux:
+  $d_{n-1} \to d_{n-1} + \Delta t\,Q_b/C
+  = 3600\!\times\!0.021/9\!\times\!10^4
+  \approx 8.4\!\times\!10^{-4}$.
+\end{enumerate}
+
+\noindent After both BC modifications the $5\!\times\!5$ system is
+\[
+\underbrace{\begin{bmatrix}
+1.004 & -0.002 & 0 & 0 & 0 \\
+-0.002 & 1.004 & -0.002 & 0 & 0 \\
+0 & -0.002 & 1.004 & -0.002 & 0 \\
+0 & 0 & -0.002 & 1.004 & -0.002 \\
+0 & 0 & 0 & -0.002 & \mathbf{1.002}
+\end{bmatrix}}_{\mathbf{A}'}
+\mathbf{T}^{n+1}
+=
+\begin{bmatrix} \mathbf{250.99} \\ 250 \\ 250 \\ 250 \\ \mathbf{250.00084} \end{bmatrix}.
+\]
+The two highlighted rows are where the boundary conditions live. Nothing
+else in the matrix changes from the interior assembly.
 
 \medskip
-\noindent\textbf{$t = 29.5$\,d \;--\; one lunation complete.}
-$N_t\approx 709$ time steps have been advanced. Each one ran Thomas plus
-Newton; the JIT-compiled inner loop took $\sim$8 seconds wall clock total.
-The cycle-mean profile $\langle T\rangle(z)$ over this lunation looks
-\emph{nothing} like the converged steady state --- the deep column is still
-controlled by the $T=250$\,K initial guess. The cycle-to-cycle change at the
-deep sensors is $\sim 1$\,K, far above the certification tolerance.
+\noindent\textbf{$t=1$\,h \;--\; Thomas algorithm in two sweeps.}
+\code{\_thomas} (\code{src/lunar/solver.py:133--152}) is the standard $O(N)$
+tridiagonal solver. \emph{Forward sweep} (top$\,\to\,$bottom) computes
+modified super-diagonal $c'_i$ and modified RHS $d'_i$:
+\[
+c'_0 = c_0/b_0,\quad d'_0 = d_0/b_0;\qquad
+c'_i = \frac{c_i}{b_i - a_i\,c'_{i-1}},\quad
+d'_i = \frac{d_i - a_i\,d'_{i-1}}{b_i - a_i\,c'_{i-1}}.
+\]
+
+\noindent Running on our toy:
+\begin{center}\small
+\begin{tabular}{@{}cccc@{}}
+\toprule
+$i$ & $b_i - a_i c'_{i-1}$ & $c'_i$ & $d'_i$ \\
+\midrule
+0 & $1.004$       & $-0.001992$ & $249.988$ \\
+1 & $1.003996$    & $-0.001992$ & $249.503$ \\
+2 & $1.003996$    & $-0.001992$ & $249.503$ \\
+3 & $1.003996$    & $-0.001992$ & $249.503$ \\
+4 & $1.001996$    & ---          & $249.999$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent \emph{Backward sweep} (bottom$\,\to\,$top):
+$T^{n+1}_{n-1} = d'_{n-1}$, and
+$T^{n+1}_i = d'_i - c'_i\,T^{n+1}_{i+1}$ going up. On the toy:
+\[
+T^{n+1}_4 = 249.999,\quad
+T^{n+1}_3 = 250.001,\quad
+T^{n+1}_2 = 250.001,\quad
+T^{n+1}_1 = 250.001,\quad
+T^{n+1}_0 = 250.486.
+\]
+After one hour the surface cell has heated by $\sim 0.49$\,K (it sits next
+to the $372$\,K skin), the middle cells barely moved, and the bottom cell
+gained $\sim 8\!\times\!10^{-4}$\,K from the basal flux. Cost of this
+solve: $\sim 8N$ multiplications. For 69 real cells the wall-clock cost
+is sub-microsecond.
 
 \medskip
-\noindent\textbf{Outer loop \;--\; the flux-anchored shortcut.}
-A brute-force time integration would have to march $\sim$1000 lunations
-($z_{\max}^2/\kappa$) to converge --- decades of wall time, and the F1 bug
-shows that a fixed 30-lunation cut-off is wrong (\S\ref{sec:f1}). Instead the
-flux-anchored equilibrium solver (Ch.~\ref{ch:steady}) iterates two
-operations:
-
-\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
-\item[\textbf{A.}] Run one lunation forward to settle the surface skin and
-  read the anchor temperature $\langle T\rangle(z_0)$ at $z_0=0.55$\,m;
-\item[\textbf{B.}] Reconstruct the deep profile below the anchor by
-  integrating the steady closure
-  $d\langle T\rangle/dz=(Q_b+u_{\rm rect})/K(\langle T\rangle,z)$
-  directly with a midpoint (RK2) rule.
-\end{itemize}
-
-\noindent After each outer iteration the deep column is re-built from the
-closure, then a fresh lunation is run from the reconstructed state, and the
-process repeats. Convergence: $\sim 6$--$10$ outer cycles.
+\noindent\textbf{$t = 12,\,24,\,\ldots$\,h \;--\; the cycle.}
+The same three operations --- Newton at the surface, Thomas through the
+column, basal flux update --- repeat at every hour. As $t$ progresses the
+surface forcing $S(t)$ cycles through noon ($\sim 1221$\,W\,m$^{-2}$,
+$T_s\!\sim\!380$\,K) and shadow ($S=0$, $T_s\!\sim\!100$\,K). The skin
+absorbs and re-radiates this huge swing; below the skin depth
+$\delta\!\sim\!6$\,cm it is already halved (Fig.~\ref{fig:wave3d}).
 
 \medskip
-\noindent\textbf{Certification \;--\; ``is this really steady state?''}
-The solver does \emph{not} declare success on cycle-to-cycle change (that
-was the F1 bug). It performs three independent checks in
-\code{\_mean\_flux\_closure} (\code{src/lunar/equilibrium.py}):
+\noindent\textbf{$t = 29.5$\,d \;--\; end of lunation~1.}
+$N_t\!\approx\!709$ time steps have advanced. Wall-clock cost of the inner
+loop: $\sim$8\,seconds (\S\ref{sec:oneday}). The cycle-mean profile
+$\langle T\rangle(z)$ over this lunation looks \emph{nothing} like the
+true steady state --- the deep column is still controlled by the
+$T=250$\,K initial guess. We need an outer loop.
+
+\medskip
+\noindent\textbf{Outer loop \;--\; the flux-anchored equilibrium (this work).}
+A brute-force time integration converges on the diffusive timescale
+$\tau\sim z_{\max}^2/\kappa\sim 10^3$ lunations
+(\S\ref{sec:f1}) --- and even a 30-lunation cut-off, the literature
+default, is the F1 bug. \code{solve\_periodic\_equilibrium}
+(\code{src/lunar/equilibrium.py:158}) replaces brute force with a
+two-step inner iteration:
+
+\smallskip
+\noindent\emph{Step A (forward solve).}
+\textbf{Consumes} $T_{\rm init}(z)$, the current best guess of
+$\langle T\rangle(z)$. \textbf{Action:} call \code{solve\_pixel}
+(\code{src/lunar/solver.py:383}) to run $n_{\rm in}$ lunations of
+hour-by-hour CN steps (Newton + Thomas at each), starting from
+$T_{\rm init}$. The skin equilibrates fast ($\tau_{\rm skin}\sim 3$
+lunations) but the deep column drifts slowly.
+\textbf{Produces:} $T_{\rm mean}(z) = $ cycle-mean of the last lunation,
+including the anchor temperature $T_{\rm mean}(z_0)$ at $z_0=0.55$\,m, and
+the rectified flux $u_{\rm rect}(z)$ (the small non-zero average flux from
+the unsteady oscillation; \code{\_rectified\_flux},
+\code{src/lunar/equilibrium.py:79}).
+
+\smallskip
+\noindent\emph{Step B (closure reconstruction).}
+\textbf{Consumes} $T_{\rm mean}(z_0)$ and $u_{\rm rect}(z)$.
+\textbf{Action:} starting from the anchor and going \emph{downward}, the
+deep column \emph{must} satisfy the steady closure
+\[
+\frac{d\langle T\rangle}{dz} \;=\; \frac{Q_b + u_{\rm rect}(z)}{K(\langle T\rangle,\,z)},
+\]
+which is a first-order ODE in depth, solved with a midpoint (RK2) rule by
+\code{\_reconstruct\_subskin} (\code{src/lunar/equilibrium.py:100}).
+\textbf{Produces:} $T_{\rm recon}(z)$ for $z>z_0$ --- the deep profile that
+\emph{would} be at steady state given the current top of the column.
+
+\smallskip
+\noindent\emph{Closure of the iteration.} Set $T_{\rm init}\leftarrow T_{\rm recon}$,
+go back to Step~A. Convergence: the anchor temperature
+$T_{\rm mean}(z_0)$ changes by less than $0.005$\,K from one outer
+iteration to the next. Stage~1 anchors high ($z_0=0.25$\,m) for fast bulk
+relaxation; stage~2 anchors at $z_0=0.55$\,m for clean reconstruction
+below the rectification zone. Typical convergence: $6$--$10$ outer cycles
+total.
+
+\medskip
+\noindent\textbf{Why this is the same answer as brute force.} Step~A holds
+the skin physics honestly (CN time-stepping is unconditionally stable and
+second-order). Step~B's ODE \emph{is} the steady state below the anchor
+--- it is the defining equation, not an approximation. Iterating to a
+consistent fixed point therefore lands on the true periodic steady state,
+provably. The agreement with brute-force is verified directly in
+\S\ref{sec:agree} (Fig.~\ref{fig:overlay}).
+
+\medskip
+\noindent\textbf{Certification.}
+The solver does \emph{not} declare success on cycle-to-cycle change. It
+calls \code{\_mean\_flux\_closure} (\code{src/lunar/equilibrium.py:139})
+which performs three checks:
 \begin{itemize}[leftmargin=1.4em,itemsep=2pt]
 \item \textbf{Guess-independence}: re-run from $T(z,0)=240$\,K instead of
-  $260$\,K. Final $\langle T\rangle(z)$ profiles agree to within $0.05$\,K.
+  $260$\,K. Final $\langle T\rangle(z)$ profiles agree to within
+  $0.05$\,K everywhere.
 \item \textbf{Flux closure}: the mean conductive flux below the anchor
   equals $Q_b$ to within $10\%$.
-\item \textbf{Mean drift}: $\le 0.08$\,K mean-temperature change over a
+\item \textbf{Mean drift}: $\le 0.08$\,K change in the deep mean over a
   $120$-lunation honest re-run.
 \end{itemize}
-
-\noindent All three pass for $K_d^{\rm try}=5.0$. The solver writes the
-certified $\langle T\rangle(z;K_d^{\rm try})$.
+All three pass for $K_d^{\rm try}=5.0$. The solver writes the certified
+$\langle T\rangle(z;5.0)$ to disk.
 
 \medskip
 \noindent\textbf{Read the model predictions at the seven sensor depths.}
-The solver returns the cycle-mean profile sampled at every grid cell;
-interpolating to the sensor depths gives, e.g.,
-$\langle T\rangle(1.39\,{\rm m};\,5.0)\approx 254.0$\,K --- $0.5$\,K hotter
-than the observed $253.53$\,K. Sanity check from the flux closure
-(Eq.~\ref{eq:closure}):
-$d\langle T\rangle/dz = Q_b/K = (21\!\times\!10^{-3})/(10.1\!\times\!10^{-3})
-\approx 2.08$\,K\,m$^{-1}$. The deep column rises at about $2$\,K per metre.
+Interpolate $\langle T\rangle(z;5.0)$ to the sensor depths. At
+$z=1.39$\,m: $\langle T\rangle(1.39\,{\rm m};5.0)\approx 254.0$\,K --- about
+$0.5$\,K hotter than the observed $T_{\rm eq}=253.53$\,K.
 
 \medskip
 \noindent\textbf{Score this trial \;--\; the RMSE.}
-Apply Eq.~\ref{eq:rmse} to the seven model--data pairs:
 \[
-\mathrm{RMSE}(K_d=5.0) = \sqrt{\tfrac{1}{7}\sum_{i=1}^{7}
-\bigl[\langle T\rangle(z_i;5.0)-T_{\rm eq,i}^{\rm obs}\bigr]^2}
-\;\approx\; 0.96\;\mathrm{K}.
+\mathrm{RMSE}(K_d=5.0)
+ = \sqrt{\tfrac{1}{7}\sum_{i=1}^{7}
+   \bigl[\langle T\rangle(z_i;5.0)-T_{\rm eq,i}^{\rm obs}\bigr]^2}
+ \;\approx\; 0.96\;\mathrm{K}.
 \]
 
 \medskip
 \noindent\textbf{Move to the next trial in the sweep.}
-Repeat the entire procedure --- material build, simulation set-up, flux-anchored
-iteration, certification, model interpolation, RMSE --- for each of the 28
+Repeat the entire procedure --- material build, simulation set-up, outer
+loop, certification, model interpolation, RMSE --- for each of the 28
 trial $K_d$ values on $[1,\,15]$\,mW\,m$^{-1}$K$^{-1}$. Each trial is
 $\sim$9 wall-clock seconds; the sweep takes about four minutes.
 
 \medskip
 \noindent\textbf{Find the minimum \;--\; the parabolic vertex.}
-The 28 RMSE values trace a smooth bowl (Fig.~\ref{fig:sweep}). Take the three
-points around the grid minimum $(y_-,\,y_0,\,y_+)$ at spacing $\Delta$ and fit
-a parabola (Eq.~\ref{eq:vertex}):
+The 28 RMSE values trace a smooth bowl (Fig.~\ref{fig:sweep}). Take the
+three lowest points $(y_-,\,y_0,\,y_+)$ at grid spacing $\Delta$ and fit a
+parabola (Eq.~\ref{eq:vertex}):
 \[
 \boxed{\;K_d^{*}=4.58\;\mathrm{mW\,m^{-1}K^{-1}}\;}
 \qquad\text{with RMSE}=0.95\;\mathrm{K}.
 \]
-Our trial $5.0$ was close; the data prefer $4.58$ ($9\%$ smaller).
 
 \medskip
-\noindent\textbf{Bootstrap iteration 1 \;--\; the statistical layer begins.}
-Now the entire sweep is treated as one black box and re-run on resampled data:
-draw 7 sensors from the 7 with replacement (some appear twice, some not at
-all), jitter each kept depth by $\mathcal{N}(0,2.5\,\mathrm{cm})$ to fold in
-Nagihara's depth uncertainty, and re-run the full $K_d$ sweep on this
-resampled set. The bootstrap retrieves a new
-$K_d^{*,\,{\rm boot},\,1}$.
+\noindent\textbf{Bootstrap iteration 1 \;--\; the statistical layer.}
+The entire sweep is wrapped in
+\code{contrast\_bootstrap} (\code{pipeline/compute/retrieve\_kd.py}).
+For one bootstrap draw: resample 7 sensors from the 7 with replacement;
+jitter each kept depth by $\mathcal{N}(0,2.5\,{\rm cm})$; re-run the full
+$K_d$ sweep on the resampled set; store the new $K_d^{*}$.
 
 \medskip
 \noindent\textbf{Bootstrap iterations 2 through 1500.}
-Repeat $1500$ times. The result is a posterior distribution of $K_d^{*}$
-whose $2.5$th and $97.5$th percentiles give the bootstrap CI:
+Repeat $1500$ times. The $2.5$th and $97.5$th percentiles give
 $K_d^{*}(A15)\in[4.12,\,7.45]$.
 
 \medskip
-\noindent\textbf{Error budget \;--\; perturb each \emph{fixed} input.}
+\noindent\textbf{Error budget.}
 For each fixed input we re-run the retrieval at $\pm$ its published
-uncertainty and record the half-range as $\sigma_i$. Combine in quadrature:
+uncertainty, record the half-range as $\sigma_i$, and combine in quadrature:
 \begin{center}\small
-\begin{tabular}{@{}lcccccc@{}}
+\begin{tabular}{@{}lccccccc@{}}
 \toprule
-contribution & $\sigma_{Q_b}$ & $\sigma_A$ & $\sigma_{K_s}$ & $\sigma_{\rm stat}$ & $\sigma_{\rm depth+thr+solver}$ & \textbf{Total} \\
+contribution & $\sigma_{Q_b}$ & $\sigma_A$ & $\sigma_{K_s}$ & $\sigma_{\rm stat}$ & $\sigma_{\rm rest}$ & \textbf{Total} \\
 $\sigma$ (mW\,m$^{-1}$K$^{-1}$) & 1.20 & 0.80 & 0.53 & 0.80 & 0.31 & \textbf{1.75} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \medskip
-\noindent\textbf{Repeat the whole pipeline at Apollo 17.}
-Apollo~17 has $N=16$ deep sensors and $Q_b=15$\,mW\,m$^{-2}$. The same
-chronology applies, with one numerical change: $K_d^{*}(A17)=8.12$\,mW\,m$^{-1}$K$^{-1}$
-and $\sigma_{\rm tot}(A17)=4.61$.
+\noindent\textbf{Repeat the whole pipeline at Apollo~17.}
+$N=16$ deep sensors, $Q_b=15$\,mW\,m$^{-2}$. Same chronology, different
+numbers: $K_d^{*}(A17)=8.12$\,mW\,m$^{-1}$K$^{-1}$,
+$\sigma_{\rm tot}(A17)=4.61$.
 
 \medskip
-\noindent\textbf{Inter-site contrast \;--\; the bootstrap goes joint.}
-For each of the 1500 bootstrap draws record both
-$K_d^{*}({\rm A17})$ and $K_d^{*}({\rm A15})$, take the difference, and read
-the histogram
-(Fig.~\ref{fig:boot}). The median is $\Delta K_d = 3.31$ and the tail
-probability of having crossed zero by chance is $p\approx 0.011$ --- the
-$p$-value of the headline contrast.
+\noindent\textbf{Inter-site contrast.}
+For each of the 1500 joint bootstrap draws record
+$K_d^{*}({\rm A17})-K_d^{*}({\rm A15})$. Median $\Delta K_d=3.31$;
+tail probability of crossing zero $p\approx 0.011$.
 
 \medskip
 \noindent\textbf{Headline result.}
 \[
-\boxed{\;K_d^{*}(A15) = 4.58\,[4.12,\,7.45] \quad
-        K_d^{*}(A17) = 8.12\,[6.85,\,9.04]\;\;\mathrm{mW\,m^{-1}K^{-1}};
-        \quad \Delta K_d = 3.31,\ p\approx 0.011.\;}
+\boxed{\;K_d^{*}(A15)=4.58\,[4.12,7.45]\quad
+        K_d^{*}(A17)=8.12\,[6.85,9.04]\;\;\mathrm{mW\,m^{-1}K^{-1}};\quad
+        \Delta K_d=3.31,\ p\approx 0.011.\;}
 \]
 The bracket is the bootstrap CI; the systematic envelope around each is
 $\pm\,1.75$ at A15 and $\pm\,4.61$ at A17.
 \end{stepbox}
 
-\noindent The narrative above hides only one thing the next chapters open:
-\emph{why} the flux-anchored shortcut is correct in the first place
-(Ch.~\ref{ch:steady}). Ch.~\ref{ch:physics} formalises the PDE,
-Ch.~\ref{ch:solver} the discretisation, Ch.~\ref{ch:retrieval} the sweep,
-Ch.~\ref{ch:stats} the bootstrap and error budget.
+\noindent The narrative above hides nothing the next chapters expand. The
+PDE itself is formalised in Ch.~\ref{ch:physics}; the discretisation
+in Ch.~\ref{ch:solver}; the flux-anchored fix in Ch.~\ref{ch:steady}; the
+sweep in Ch.~\ref{ch:retrieval}; the bootstrap and error budget in
+Ch.~\ref{ch:stats}.
 
 \begin{plain}
 The same sentence in everyday words. Apollo's deep thermometers give us a

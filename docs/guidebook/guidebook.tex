@@ -319,19 +319,22 @@ Sensors deeper than 80\,cm are flagged ``deep'' and become the retrieval target
 (7 at Apollo~15, 16 at Apollo~17). Figure~\ref{fig:rawrecord} shows what one
 sensor's record actually looks like.
 
-\begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth]{figures/fig_book_raw_record.pdf}
-\caption{What the raw HFE record looks like for one deep sensor (Apollo~15
-probe~1, TG12B at $z=139$~cm --- the deepest sensor in the dataset).
-\emph{Left:} the full multi-year record. The probe emerges from the borehole at
-$\sim$330~K (residual drilling heat) and settles toward the regolith's
-undisturbed deep temperature over $\sim$2.7~years. The black dotted line marks
-the stable-window cut chosen by \code{find\_stable\_window}; only the green tail
-contributes to $T_{\rm eq}$. \emph{Right:} zoom on the stable window. The
-$\sim$0.15~K residual oscillation visible here is the annual cycle (Earth's
-orbital eccentricity reaching the deep regolith); its mean over the window is
-$T_{\rm eq}=253.53$~K. The coral shaded band is the $\pm 0.08$~K\,yr$^{-1}$
-trend envelope that the flatness criterion enforces.}
+\begin{figure}[p]\centering
+\includegraphics[width=\linewidth]{figures/fig_apollo_timeline.pdf}
+\caption{Per-probe stability-window timeline for all four Apollo HFE probes
+(A15 P1/P2, A17 P1/P2). \emph{Top of each block}: the raw HFE traces of every
+sensor on that probe; coral bands mark documented data-quality events
+(drilling/emplacement transient, ALSEP outages, end-of-mission outage). The
+\emph{coloured rectangles} along the trace are the stability windows that
+\code{find\_stable\_window} accepted --- the trailing flat tail whose linear
+slope is below $0.08$~K\,yr$^{-1}$. The \emph{dashed line} on the deepest
+sensor is the OLS fit through its window, with the residual slope quoted on
+the right (here a small, real annual drift, not drilling heat).
+\emph{Below each block}: a depth-ordered Gantt strip showing every sensor's
+selected window (broken across outages). Each row's $T_{\rm eq}$ on the right
+is the mean over the kept (coloured) intervals; grey rows are shallow sensors
+in the borestem zone, excluded from the retrieval. Together these are the 23
+deep $(z, T_{\rm eq})$ points the model must hit.}
 \label{fig:rawrecord}
 \end{figure}
 
@@ -603,8 +606,8 @@ insensitive. A correct SPICE/DE440 implementation
 would close even these terms; the audit appendix (Appendix~\ref{app:flags}, F2)
 records the decision to use the idealised forcing for this paper.
 
-\begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth]{figures/fig_book_sunmoon.pdf}
+\begin{figure}[t!]\centering
+\includegraphics[width=0.85\linewidth]{figures/fig_book_sunmoon.pdf}
 \caption{The lunar forcing. As the Moon turns, the borehole site rotates from the
 sunlit day side ($\sim$390\,K) through the terminator into the frozen night
 ($\sim$100\,K) and back, once per lunation. The model drives the surface with the
@@ -625,11 +628,14 @@ the study.}
 \end{figure}
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=0.88\linewidth]{figures/fig_book_thermalfield3d.pdf}
-\caption{The same certified $T(z,t)$ field as a 3D surface. The high surface ridge
-is the day--night wave; moving downward, the ridge rapidly flattens into the
-cycle-mean profile. This is the skin-depth decay of Eq.~\eqref{eq:wave} in one
-view.}
+\includegraphics[width=\linewidth]{figures/fig_book_thermalfield3d.pdf}
+\caption{The same certified $T(z,t)$ field as a 3D surface, viewed from three
+angles. (a) Side view --- the daily wave profile is visible at the front face
+and dies out within a few centimetres. (b) Three-quarter view --- the full
+surface shape, with the day--night ridge running along the surface line. (c)
+Top-down view --- collapses the surface into the same time$\times$depth heatmap
+of Fig.~\ref{fig:wave3d}. The collapse with depth is the skin-depth
+decay of Eq.~\eqref{eq:wave}, seen from every side.}
 \label{fig:thermalfield3d}
 \end{figure}
 
@@ -795,8 +801,8 @@ $Q_b$ of heat; where $K$ is large (better conductor, like the compacted deep
 regolith), the gradient is gentle.
 \end{plain}
 
-\begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth]{figures/fig_book_fluxclosure.pdf}
+\begin{figure}[t!]\centering
+\includegraphics[width=0.92\linewidth]{figures/fig_book_fluxclosure.pdf}
 \caption{Reading the flux closure $d\langle T\rangle/dz=Q_b/K$. (a) In a widening
 pipe the same water crosses every slice each second, so it must move \emph{fast}
 where the pipe is narrow. (b) In steady state the same heat $Q_b$ crosses every
@@ -1023,8 +1029,8 @@ the radiative $T^3$ term roughly doubles $K$ by midday.}
 \label{fig:models}
 \end{figure}
 
-\begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth]{figures/fig_book_kTz.pdf}
+\begin{figure}[t!]\centering
+\includegraphics[width=0.92\linewidth]{figures/fig_book_kTz.pdf}
 \caption{The full $K(T,z)$ field under the retrieved Hayne form, plotted from the
 actual code (\code{conductivity\_hayne} in \code{src/lunar/properties.py}). The
 filled field uses Apollo~15's $K_d^{*}=4.58$; the green and orange contours mark

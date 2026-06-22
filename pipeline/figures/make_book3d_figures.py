@@ -118,7 +118,10 @@ def fig_thermal_field():
 
 
 def fig_thermal_field_3d():
-    """3D mesh of T(z,t), showing the skin-depth decay as a surface."""
+    """3D mesh of T(z,t), shown from three angles so the skin-depth
+    decay is visible from every side: side-on (the wave profile), the
+    standard 3/4 view (the surface), and overhead (the time-depth
+    heatmap reading)."""
     z, t_days, T = _solve_field("A17")
     z_sel = z <= 0.75
     tidx = np.arange(0, t_days.size, 8)
@@ -126,31 +129,53 @@ def fig_thermal_field_3d():
     TT, ZZ = np.meshgrid(t_days[tidx], z[zidx])
     TF = T[np.ix_(zidx, tidx)]
 
-    fig = plt.figure(figsize=(JGR_FULL, 5.0))
-    ax = fig.add_subplot(111, projection="3d")
+    # Wide-but-not-tall: 1x3 grid; each panel roughly square.
+    fig = plt.figure(figsize=(13.5, 5.2))
+    gs = fig.add_gridspec(1, 3, wspace=0.08, left=0.02, right=0.92,
+                          top=0.90, bottom=0.06)
+    views = [
+        (12, -88,  "(a)  Side view\nthe surface wave"),
+        (26, -132, "(b)  3/4 view\nthe full surface"),
+        (78, -90,  "(c)  Top-down\ntime $\\times$ depth heatmap"),
+    ]
     norm = plt.Normalize(float(TF.min()), float(TF.max()))
-    surf = ax.plot_surface(
-        TT, ZZ, TF,
-        facecolors=ANTH_DIVERGE(norm(TF)),
-        rstride=1, cstride=1, linewidth=0.2, edgecolor=(1, 1, 1, 0.25),
-        antialiased=True, shade=False,
-    )
-    ax.view_init(elev=28, azim=-134)
-    ax.set_xlim(0, t_days[-1])
-    ax.set_ylim(0.75, 0.0)
-    ax.set_zlim(float(TF.min()) - 4, float(TF.max()) + 4)
-    ax.set_xlabel("time over one lunation  [days]", labelpad=8)
-    ax.set_ylabel("depth  $z$  [m]", labelpad=8)
-    ax.set_zlabel("temperature  [K]", labelpad=8)
-    ax.set_title("3D view of $T(z,t)$: the surface wave collapses with depth",
-                 loc="left", fontsize=10.5, color=C_CHAR, pad=12)
-    _clean_3d(ax)
+    for k, (elev, azim, ttl) in enumerate(views):
+        ax = fig.add_subplot(gs[k], projection="3d")
+        ax.plot_surface(
+            TT, ZZ, TF,
+            facecolors=ANTH_DIVERGE(norm(TF)),
+            rstride=1, cstride=1, linewidth=0.15, edgecolor=(1, 1, 1, 0.18),
+            antialiased=True, shade=False,
+        )
+        ax.view_init(elev=elev, azim=azim)
+        ax.set_xlim(0, t_days[-1])
+        ax.set_ylim(0.75, 0.0)
+        ax.set_zlim(float(TF.min()) - 4, float(TF.max()) + 4)
+        if k == 0:
+            ax.set_zlabel("$T$  [K]", labelpad=6, fontsize=9)
+            ax.set_ylabel("depth  $z$  [m]", labelpad=6, fontsize=9)
+            ax.set_xticks([])
+        elif k == 1:
+            ax.set_xlabel("time  [days]", labelpad=6, fontsize=9)
+            ax.set_ylabel("depth  [m]", labelpad=6, fontsize=9)
+            ax.set_zticks([])
+        else:
+            ax.set_xlabel("time  [days]", labelpad=6, fontsize=9)
+            ax.set_ylabel("depth  [m]", labelpad=2, fontsize=9)
+            ax.set_zticks([])
+        ax.tick_params(axis="both", labelsize=8, colors=C_DIM)
+        _clean_3d(ax)
+        ax.set_title(ttl, loc="left", fontsize=10, color=C_CHAR, pad=10)
+
     sm = cm.ScalarMappable(norm=norm, cmap=ANTH_DIVERGE)
     sm.set_array([])
-    cb = fig.colorbar(sm, ax=ax, shrink=0.68, pad=0.08, aspect=18)
+    cb = fig.colorbar(sm, ax=fig.axes, shrink=0.62, pad=0.02, aspect=22)
     cb.set_label("temperature  [K]", fontsize=9)
     cb.ax.tick_params(labelsize=8, colors=C_DIM)
     cb.outline.set_edgecolor(C_GRID)
+
+    fig.suptitle("$T(z,t)$ from three angles --- the surface swing collapses with depth",
+                 fontsize=11, color=C_CHAR, fontweight="bold", y=0.99)
     fig.savefig(OUT / "fig_book_thermalfield3d.pdf", bbox_inches="tight",
                 pad_inches=0.18)
     plt.close(fig)

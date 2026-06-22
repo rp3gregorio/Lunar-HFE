@@ -118,8 +118,8 @@ def fig_numerical():
 # ══════════════════════════════════════════════════════════════════════════
 def fig_bootstrap():
     """Resampling explained: data -> many resamples -> spread of answers."""
-    fig = plt.figure(figsize=(10.0, 4.4))
-    gs = fig.add_gridspec(1, 3, width_ratios=[0.8, 1.0, 1.2], wspace=0.34)
+    fig = plt.figure(figsize=(10.0, 5.0))
+    gs = fig.add_gridspec(1, 3, width_ratios=[0.7, 0.95, 1.0], wspace=0.30)
     axA = fig.add_subplot(gs[0])
     axB = fig.add_subplot(gs[1])
     axC = fig.add_subplot(gs[2])

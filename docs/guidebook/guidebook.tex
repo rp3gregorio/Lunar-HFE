@@ -646,10 +646,148 @@ each is $\pm\,1.75$ at A15 and $\pm\,4.61$ at A17 (Ch.~\ref{ch:stats}).
 \noindent Steps (0)--(2) and (5) used nothing beyond a calculator; step (4)
 hides the time-stepping the solver performs to \emph{certify} that $T(z,t)$
 has reached its periodic steady state, and step (6c) hides a re-run of the
-whole pipeline $1500$ times. The next chapters open those boxes:
-Ch.~\ref{ch:physics} for the PDE, Ch.~\ref{ch:solver} for the discretisation,
-Ch.~\ref{ch:steady} for the certification, Ch.~\ref{ch:retrieval} for the
-sweep, and Ch.~\ref{ch:stats} for the bootstrap and error budget.
+whole pipeline $1500$ times. The box below opens step~(4) on a single time
+step at a single cell so the PDE solution itself is concrete; the full
+treatment lives in Ch.~\ref{ch:solver} and Ch.~\ref{ch:steady}.
+
+\begin{stepbox}[breakable, enhanced jigsaw]{Inside step (4) --- solving the PDE step by step}
+
+\textbf{(4a)~Discretise the column.}
+The depth grid is geometric: $\Delta z=2$\,mm at the surface,
+$8\%$ thicker per cell going down, $\sim$69 cells reaching $5$\,m
+(\code{src/lunar/grid.py}, \code{make\_geometric\_grid}). Time is sliced into
+$\Delta t = 1$\,h, so one $29.5$-day lunation is
+$N_t = 24\times 29.5\approx 709$ steps.
+At each cell $i$ we store $T_i^n$ (the temperature at depth $z_i$ at time
+$t^n$). The PDE
+$\rho c_p\,\partial_t T = \partial_z(K\,\partial_z T)$
+becomes a recurrence that advances every $T_i^n$ to $T_i^{n+1}$.
+
+\medskip
+\noindent\textbf{(4b)~Crank--Nicolson update.}
+We evaluate the right-hand side half at $t^n$ and half at $t^{n+1}$ ---
+unconditionally stable and second-order in $\Delta t$:
+\[
+C_i\,\frac{T_i^{n+1}-T_i^n}{\Delta t}
+= \tfrac{1}{2}\!\left[\,F_i^{n+1}+F_i^n\,\right],
+\qquad
+F_i \;=\; \frac{K_{i+\tfrac{1}{2}}\,(T_{i+1}-T_i)}{\Delta z_{i+\tfrac{1}{2}}}
+       -\frac{K_{i-\tfrac{1}{2}}\,(T_i-T_{i-1})}{\Delta z_{i-\tfrac{1}{2}}},
+\]
+where $C_i = \rho_i\,c_p(T_i)\,\Delta z_i$ is the heat capacity per area of
+cell $i$. Collecting $T^{n+1}$ on the left gives a tridiagonal linear system
+\[
+-a_i^{\rm L}\,T_{i-1}^{n+1}
++ \bigl(1+a_i^{\rm L}+a_i^{\rm R}\bigr)\,T_i^{n+1}
+- a_i^{\rm R}\,T_{i+1}^{n+1}
+\;=\; b_i^{\rm RHS}\qquad\text{(one row per cell)}.
+\]
+
+\noindent\textbf{(4c)~Coefficients at one cell.}
+Take $z=0.50$\,m at temperature $T\approx 253$\,K with $K_d^{\rm try}=5.0$:
+the Hayne density profile gives $\rho(0.5)\approx 1\,798$ kg\,m$^{-3}$, the
+Hemingway polynomial gives $c_p(253)\approx 650$ J\,kg$^{-1}$K$^{-1}$, and
+$K(T,z)\approx 10.1$\,mW\,m$^{-1}$K$^{-1}$ (from step~(2)). At this depth
+$\Delta z\approx 4.7$\,cm, so
+\[
+C \;=\; \rho\,c_p\,\Delta z \;\approx\; 1798\times 650\times 0.047
+       \;\approx\; 5.5\times 10^{4}\;\mathrm{J\,m^{-2}\,K^{-1}}.
+\]
+The CN coupling coefficients are
+$a^{\rm L,R} = \tfrac{1}{2}\,\Delta t\,K_{\rm face}\,/(\Delta z\cdot C)$:
+\[
+a^{\rm L} \;\approx\; a^{\rm R} \;\approx\;
+\frac{3600\times 10.1\!\times\! 10^{-3}}{0.047\times 5.5\!\times\! 10^{4}}
+\;\approx\; 1.4\times 10^{-2}.
+\]
+So this cell's row of the matrix is essentially
+$\bigl[\,-0.014,\;1.028,\;-0.014\,\bigr]$ acting on
+$\bigl(T_{i-1},\,T_i,\,T_{i+1}\bigr)^{n+1}$. Far from the surface the column
+is nearly diagonal --- the deep layers barely talk to each other in one hour.
+
+\medskip
+\noindent\textbf{(4d)~Thomas algorithm --- $O(N)$ solve of a tridiagonal.}
+A tridiagonal system is solved in two sweeps (\code{src/lunar/solver.py},
+\code{\_thomas}). Forward elimination: starting at the top, replace
+$T_{i+1}$ with the relation from row~$i$:
+\[
+c_i' \;=\; \frac{c_i}{b_i-a_i\,c_{i-1}'},\qquad
+d_i' \;=\; \frac{d_i-a_i\,d_{i-1}'}{b_i-a_i\,c_{i-1}'},
+\]
+where $(a_i,b_i,c_i)$ are the three diagonals and $d_i$ is the right-hand side.
+Backward substitution: starting at the bottom,
+$T_i^{n+1} = d_i' - c_i'\,T_{i+1}^{n+1}$.
+Total cost: $\sim 8N$ multiplications --- 69 cells take under a microsecond.
+
+\medskip
+\noindent\textbf{(4e)~The non-linear surface boundary --- Newton.}
+At $z=0$ the surface BC is non-linear in $T_s$ because of the radiative term:
+\[
+R(T_s) \;=\; (1-A)\,S(t) - \varepsilon\sigma T_s^4
+- K_{\rm surf}\,\frac{T_s - T_1^{n+1}}{\Delta z_{\rm surf}} \;=\; 0.
+\]
+Take $t = 7$ days into the lunation:
+$\cos(2\pi t/P)=\cos(1.49)\approx 0.082$, so
+$S(t)\approx 1361\times\cos(26.1^\circ)\times 0.082 \approx 100$\,W\,m$^{-2}$.
+At the previous time-step $T_s\approx 230$\,K, so Newton iterates
+$T_s^{k+1}=T_s^k - R/R'$ with
+$R' = -4\varepsilon\sigma T_s^3 - K_{\rm surf}/\Delta z_{\rm surf}$,
+converging in $\sim$3 iterations to a few mK
+(\code{src/lunar/solver.py}, \code{\_solve\_surface\_newton}).
+This $T_s^{n+1}$ becomes the Dirichlet anchor for the linear system above.
+
+\medskip
+\noindent\textbf{(4f)~At the bottom, the flux boundary.}
+We impose the Neumann condition $K\,\partial_z T = Q_b$ at $z=z_{\max}=5$\,m
+by setting the last row of the matrix to
+$T_{N}^{n+1} - T_{N-1}^{n+1} = Q_b\,\Delta z/K$. With $Q_b=21$\,mW\,m$^{-2}$
+and $K\approx 10$ here, the imposed differential is
+$\sim 21\times 10^{-3}/(10\times 10^{-3})\times 0.5 \approx 1.05$\,K across
+the bottom cell --- exactly the geothermal slope (\S\ref{sec:bc}).
+
+\medskip
+\noindent\textbf{(4g)~Walk one full lunation.}
+With one CN solve per time step and 709 time steps per lunation, one lunation
+is $\sim$8\,000 Thomas sweeps and Newton calls. Each is fast; the JIT-compiled
+loop runs in $\sim$8 seconds (\S\ref{sec:oneday}).
+
+\medskip
+\noindent\textbf{(4h)~Outer loop --- flux-anchored equilibrium.}
+Brute-force time integration would converge on the $\sim$1000-lunation
+\emph{diffusive timescale} (\S\ref{sec:f1}) --- decades of wall time. Instead,
+the flux-anchored equilibrium solver (Ch.~\ref{ch:steady}) iterates two
+operations: (Step~A) run one lunation forward to settle the surface skin and
+read the anchor temperature $\langle T\rangle(z_0)$ at $z_0=0.55$\,m; (Step~B)
+\emph{reconstruct} the deep profile below the anchor by directly integrating
+the closure $d\langle T\rangle/dz = (Q_b+u_{\rm rect})/K(\langle T\rangle,z)$
+with a midpoint rule.
+The two-step iteration converges in $\sim 6$--$10$ outer cycles instead of
+$1000$ lunations.
+
+\medskip
+\noindent\textbf{(4i)~Certification --- when is it really done?}
+The solver does not declare success on \emph{cycle-to-cycle change} (that was
+the F1 bug; \S\ref{sec:f1}). It declares success on three independent checks
+performed inside \code{\_mean\_flux\_closure} (\code{src/lunar/equilibrium.py}):
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{guess-independence}: same converged $\langle T\rangle(z)$ to
+  within $0.05$\,K from two different starting profiles (e.g.\ $240$\,K vs
+  $260$\,K everywhere);
+\item \textbf{flux closure}: the mean conductive flux below the anchor equals
+  $Q_b$ to within $10\%$;
+\item \textbf{mean drift}: $\le 0.08$\,K over a $120$-lunation honest re-run.
+\end{itemize}
+Only then is $\langle T\rangle(z;K_d^{\rm try})$ written and step~(5) gets
+its inputs.
+
+\medskip
+\noindent\textbf{Putting it together.} For our $K_d^{\rm try}=5.0$ the
+two-step iteration delivers a settled column whose deepest cell reads
+$\langle T\rangle(1.39\,{\rm m})\approx 254.0$\,K. That is the single number
+step~(4) hands to step~(5), the source of the $0.5$\,K residual against
+$T_{\rm eq}^{\rm obs}=253.53$\,K, and ultimately of the $0.96$\,K RMSE.
+Every box in Fig.~\ref{fig:eqnflow} is now made of arithmetic.
+\end{stepbox}
 
 \begin{plain}
 The same sentence in everyday words. Apollo's deep thermometers give us a

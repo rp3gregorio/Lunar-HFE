@@ -316,7 +316,24 @@ the earliest window whose linear trend is flatter than $0.08$\,K\,yr$^{-1}$
 about $4.6\times$ stricter than the often-cited $10^{-3}$\,K\,day$^{-1}$). The
 mean of that flat tail is $T_{\rm eq}$; its scatter sets the per-sensor noise.
 Sensors deeper than 80\,cm are flagged ``deep'' and become the retrieval target
-(7 at Apollo~15, 16 at Apollo~17).
+(7 at Apollo~15, 16 at Apollo~17). Figure~\ref{fig:rawrecord} shows what one
+sensor's record actually looks like.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_raw_record.pdf}
+\caption{What the raw HFE record looks like for one deep sensor (Apollo~15
+probe~1, TG12B at $z=139$~cm --- the deepest sensor in the dataset).
+\emph{Left:} the full multi-year record. The probe emerges from the borehole at
+$\sim$330~K (residual drilling heat) and settles toward the regolith's
+undisturbed deep temperature over $\sim$2.7~years. The black dotted line marks
+the stable-window cut chosen by \code{find\_stable\_window}; only the green tail
+contributes to $T_{\rm eq}$. \emph{Right:} zoom on the stable window. The
+$\sim$0.15~K residual oscillation visible here is the annual cycle (Earth's
+orbital eccentricity reaching the deep regolith); its mean over the window is
+$T_{\rm eq}=253.53$~K. The coral shaded band is the $\pm 0.08$~K\,yr$^{-1}$
+trend envelope that the flatness criterion enforces.}
+\label{fig:rawrecord}
+\end{figure}
 
 \begin{plain}
 In short: we don't trust the first few years (the probe is still cooling off from
@@ -1722,6 +1739,26 @@ K_{d,\mathrm{A15}}^{*}=4.58,\qquad K_{d,\mathrm{A17}}^{*}=8.12\quad
 Apollo~17's deep regolith conducts heat about twice as well as Apollo~15's. Both
 are higher than the global literature value of 3.4.
 
+\begin{plain}
+\textbf{Reconciling our per-site $K_d^{*}$ with Hayne's global 3.4.}
+Hayne~(2017) fits one number to the full Moon, weighting maria and highlands by
+their global surface coverage ($\sim$17\% mare, $\sim$83\% highland from LROC
+mosaic mapping; e.g.\ Speyerer et al.\ 2011). Applying the same weighting to our
+two per-site retrievals gives an area-weighted mean
+\[
+\bar K_d \;=\; 0.17\,(4.58) + 0.83\,(8.12) \;\approx\; 7.5\;\mathrm{mW\,m^{-1}\,K^{-1}},
+\]
+roughly twice Hayne's $3.4$. The discrepancy is real and pulls in the direction
+the rest of this study points: \emph{both} of our sites are more conductive
+than Hayne's global fit predicts. The likely reasons are the ones we list in
+Ch.~\ref{ch:sites} (compaction, rock content at depth) plus the calibration
+choice for $\chi$ that §\ref{sec:chi-conditionality} flags. Two points are not
+enough to overturn a global fit derived from continuous Diviner coverage; they
+are enough to show that the local in-situ signal can sit a factor of 2 above
+the global average, and that any future heat-flow probe will see a similar
+spread.
+\end{plain}
+
 With these retrieved values, the modelled deep temperatures track the data far
 better than the one-size-fits-all value (Fig.~\ref{fig:profiles}); at Apollo~17
 the misfit roughly halves.
@@ -1974,7 +2011,24 @@ in the full $(K_d, Q_b)$ plane; see Fig.~\ref{fig:qb} for the joint shape.}
 \noindent Even when $Q_b$ is allowed to vary jointly with $K_d$, the marginal
 posterior shows Apollo~17 is more conductive than Apollo~15 about $83\%$ of the
 time --- the contrast survives the degeneracy that gives Ch.~\ref{ch:qb} its
-title.
+title. Figure~\ref{fig:mcmcpost} is the actual result of that run: the per-site
+marginals on the left, the joint contrast distribution on the right.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{figures/fig_book_mcmc_posterior.pdf}
+\caption{The MCMC result, from
+\code{results/bayesian\_crosscheck\_samples.json} (32 walkers, 4000 steps,
+1000 burned in; autocorrelation-effective sample sizes $\sim$2700--2900).
+\emph{Left:} marginal posteriors of $K_d$ for both sites with $Q_b$
+free; A17's mode (orange) sits cleanly above A15's (green), and the dotted
+lines mark the medians. \emph{Right:} the posterior of the inter-site contrast
+$\Delta K_d \equiv K_d({\rm A17})-K_d({\rm A15})$; the integral over
+$\Delta K_d > 0$ is $P=0.833$. The smooth shapes are two-sided Gaussians
+fit through the published quantiles
+$(q_{025}, q_{16}, q_{50}, q_{84}, q_{975})$ since raw chains aren't committed
+to the repo.}
+\label{fig:mcmcpost}
+\end{figure}
 
 \section{Model selection (AICc)}\label{sec:aicc}
 We compare three models:
@@ -2535,6 +2589,63 @@ work that has been done but as a clean future direction: with the data-model
 and test suite already in place, a port can be validated cell-by-cell against
 the committed Python results.
 
+\section{Troubleshooting / runbook}
+A practical reference for the symptoms most likely to surface during a fresh
+run. Each row names what failed, why, and the cheapest fix.
+
+\begin{center}\small
+\begin{tabular}{@{}p{4.3cm}p{4.5cm}p{5.2cm}@{}}
+\toprule
+Symptom & Most likely cause & Fix \\
+\midrule
+\code{ModuleNotFoundError: lunar} after \code{git clone} &
+the package isn't installed in the active interpreter &
+\code{pip install -e ".[dev]"} inside the venv;
+\code{which python} should point inside \code{.venv/}. \\
+\addlinespace
+RMSE comes back as \code{nan} on a fresh retrieve &
+sensor depth below the lower bound of the grid, or an empty stable window &
+check that \code{depth\_cm\_all >= EQ\_Z\_ANCHOR}; widen
+\code{find\_stable\_window(slope\_thresh\_K\_per\_year=)}. \\
+\addlinespace
+$K_d^{*}$ off by $\gtrsim 0.1$ from the headline values &
+input has been quietly perturbed (often a notebook-state stale global) &
+\code{make clean \&\& make retrieve}; check
+\code{kd\_retrieval\_results.json} for \code{git diff}. \\
+\addlinespace
+``Equilibrium did not certify'' in the solver log &
+spin-up too short for a very low $K_d$ trial &
+raise \code{n\_lunations\_max} in
+\code{solve\_periodic\_equilibrium}; the F1 fix already prefers convergence
+over wall-clock. \\
+\addlinespace
+Surface-BC Newton fails to converge &
+the cosine forcing has been replaced with a sharper pulse outside its
+calibrated domain &
+revert to the analytic
+\code{S\_t = S0*cos(lat)*max(0, cos(2\,pi\,t/P))}. \\
+\addlinespace
+Bootstrap CI changes between runs &
+the random seed in \code{pipeline/compute/retrieve\_kd.py} was edited &
+re-pin the seed; the canonical CI is reproducible only with the committed
+seed. \\
+\addlinespace
+\code{fetch\_diviner.py} returns the wrong latitude band &
+hemisphere-flip bug (see audit appendix F2) &
+print the GCP file name before reading; the L\#\#\#\_N band must match the
+Apollo site latitude sign. \\
+\addlinespace
+Tests fail only inside CI &
+font / matplotlib backend differs from local &
+set \code{MPLBACKEND=Agg}; the figure tests don't require a display. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent For anything else, \code{make help} lists the entry points and the
+audit appendix (App.~\ref{app:flags}) records the known-rejected paths that
+were tried and discarded.
+
 \section{Practice problems}\label{sec:prob-code}
 
 \begin{problembox}[Problem 11.1 — why no globals?]
@@ -2616,6 +2727,42 @@ efficiently --- plausibly denser, more compacted, or more rock-rich material
 \code{notebooks/equilibrium\_demo.ipynb} (old vs.\ new), and
 \code{pytest tests/test\_equilibrium.py} (the certification).
 
+\section{What a future heat-flow mission should do differently}
+The Apollo HFE record is the only in-situ lunar heat-flow data we have, and the
+analysis in this book has spent most of its pages working around the things the
+1971--77 hardware could not pin down. If you are designing the next probe ---
+ARTEMIS, Chang'e, or any of the proposed Lunar Geophysical Network nodes ---
+the three biggest design choices that would make a re-do meaningful are:
+
+\begin{enumerate}[leftmargin=1.4em,itemsep=3pt]
+\item \textbf{Drill deeper, decisively past the daily skin.} The Apollo probes
+  reach $1.39$ m (A15) and $2.34$ m (A17); the deepest sensor at A17 sits only
+  $\sim$10 skin depths down. Even $3$--$4$ m would put the bottom sensor in a
+  regime where the daily wave is below 1\,mK, eliminating the borestem and
+  stable-window debates of \S\ref{sec:provenance} entirely. Annual and
+  Milankovitch-scale variations would still need stable-window logic, but on a
+  cleaner signal.
+
+\item \textbf{Co-locate a thermal-conductivity probe.} The whole
+  $K_d$--$Q_b$ degeneracy (Ch.~\ref{ch:qb}) collapses if any \emph{independent}
+  in-situ measurement of $K(T,z)$ is available. A heated needle / line-source
+  probe in the borestem at $\sim$1 m depth, run for a few diurnal cycles, would
+  pin $K$ to within $\sim$10\% --- and then $Q_b$ falls out of Fourier's law
+  unconditionally, without leaning on Langseth's analysis of the same probe.
+
+\item \textbf{Sample more than two sites, with deliberate geological contrast.}
+  Our entire factor-of-two contrast (Ch.~\ref{ch:sites}) rests on two
+  boreholes. With a four-node network spanning a mare interior, a mare/highland
+  boundary, a fresh impact ejecta blanket, and a stable highland plain, the
+  \emph{shape} of the conductivity-vs-geology relationship becomes measurable,
+  not just the existence of a contrast.
+\end{enumerate}
+
+\noindent The methodological lesson from this study --- that a published
+constant ($\chi$, $Q_b$) can swamp a quoted error budget --- generalises:
+future missions should plan to retrieve, not assume, the inputs to whichever
+forward model carries the analysis.
+
 \section{Common pitfalls --- for the next student}
 The single most valuable thing about this project, from a teaching standpoint,
 is the list of \emph{mistakes that were almost made and caught}. Future students
@@ -2693,6 +2840,48 @@ GCP & global cumulative product (Diviner $T_b$ bins by latitude $\times$ local s
 \multicolumn{2}{l}{\emph{Journals}}\\
 JGR & Journal of Geophysical Research \\
 PSJ & Planetary Science Journal \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{6pt}
+\noindent\textbf{Glossary of concepts.}
+\begin{center}\small
+\begin{tabular}{@{}lp{10cm}@{}}
+\toprule
+Term & One-line meaning \\
+\midrule
+Skin depth $\delta$ & the depth at which the daily surface temperature swing
+  has fallen by a factor $e\approx2.72$; $\delta=\sqrt{2\kappa/\omega}$ for a
+  homogeneous column (\S\ref{sec:skin}). Below a few $\delta$ the lunation
+  signal is essentially gone. \\
+Steady state (periodic) & the limiting solution in which every depth's
+  temperature repeats identically from one lunation to the next; the cycle
+  mean $\langle T\rangle(z)$ is what carries the $K_d$ signal (Ch.~\ref{ch:steady}). \\
+Crank--Nicolson & second-order-accurate implicit time scheme: the right-hand
+  side is evaluated half at $t^n$ and half at $t^{n+1}$. Unconditionally
+  stable for the linear heat equation (\S\ref{sec:cn}). \\
+Thomas algorithm & $O(N)$ direct solver for tridiagonal linear systems;
+  what each CN time step actually invokes (\S\ref{sec:thomas}). \\
+Prior / likelihood / posterior & Bayes' rule: the posterior is the prior
+  belief about the parameters times the likelihood that the model+data agree,
+  normalised (Fig.~\ref{fig:mcmc}). \\
+Percentile CI (bootstrap) & the central 95\% of the 1500 re-fitted $K_d^{*}$
+  values from resampling the deep sensors with replacement; the answer to
+  "how much would my number move if I had drawn slightly different sensors?"
+  (\S\ref{sec:bootstrap}). \\
+Error budget ($\sigma_{\rm tot}$) & quadrature sum of the half-ranges
+  obtained by perturbing each \emph{published} input within its stated
+  uncertainty and re-retrieving $K_d^{*}$ (\S\ref{sec:errorbudget}). \\
+AICc & Akaike Information Criterion with the small-sample correction; lower is
+  better, only \emph{differences} between models are meaningful, a gap of
+  $\gtrsim2$ is notable and $\gtrsim4$ strong (\S\ref{sec:aicc}). \\
+Conditional uncertainty & a sensitivity quoted separately from the formal
+  budget because it sits on a model choice we are not entitled to vary --- here,
+  the radiative coefficient $\chi$ (\S\ref{sec:chi-conditionality}). \\
+Flux closure & the steady-state identity
+  $K(z)\,d\langle T\rangle/dz=Q_b$ at every depth; the certification we use
+  to declare a solve "converged" (\S\ref{sec:cert}). \\
 \bottomrule
 \end{tabular}
 \end{center}

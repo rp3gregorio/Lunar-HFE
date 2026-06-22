@@ -261,12 +261,170 @@ def fig_aicc():
     print("  -> fig_book_aicc.pdf")
 
 
+# ══════════════════════════════════════════════════════════════════════════
+def fig_raw_record():
+    """One Apollo 15 deep sensor's multi-year T(t) trace with the stable-window
+    tail highlighted; the mean of that tail is T_eq.  Closes the 'we never
+    show what raw data looks like' gap.
+
+    Two panels: (a) full record showing the drilling-heat transient + the
+    multi-year settling, (b) zoom on the stable window plateau to make the
+    annual oscillation visible.
+    """
+    from lunar.apollo_helpers import extract_sensor_stability
+    blob = extract_sensor_stability("a15", min_depth_cm=80.0)
+    # deepest sensor at A15 = probe 1's bottom sensor (the iconic ~139 cm one).
+    target = max(blob["sensors"], key=lambda s: s["depth_cm"])
+    name = target["sensor"]
+    probe = target["probe"]
+    series = blob["probe_data"][probe][name]
+    t_yr = series["t_day"] / 365.25
+    T = series["T"]
+    i_start = series["i_start"]
+    T_eq = float(target["T_eq"])
+    depth = float(target["depth_cm"])
+    t_start_yr = t_yr[i_start]
+
+    fig, (axA, axB) = plt.subplots(
+        1, 2, figsize=(10.2, 3.6),
+        gridspec_kw={"width_ratios": [1.0, 1.1], "wspace": 0.28})
+
+    # ---- (a) full record ----
+    axA.plot(t_yr, T, color=C_DIM, lw=0.5, alpha=0.7,
+             label="raw record")
+    axA.plot(t_yr[i_start:], T[i_start:], color=C_A15, lw=0.9,
+             label="stable window")
+    axA.axvline(t_start_yr, color=C_CHAR, lw=0.8, ls=":")
+    axA.text(t_start_yr, axA.get_ylim()[1] * 0.985,
+             f"  window start\n  ({t_start_yr:.1f} yr)",
+             fontsize=FS_TICK - 1.5, color=C_CHAR, va="top", ha="left")
+    fmt_axis(axA, xlabel="years since 1971-07-31",
+             ylabel="temperature (K)",
+             title=f"(a)  Full record -- drilling transient + settling")
+    axA.legend(fontsize=FS_LEGEND - 1.5, loc="upper right", framealpha=0.95)
+
+    # ---- (b) zoom on stable window ----
+    sl = slice(i_start, None)
+    axB.plot(t_yr[sl], T[sl], color=C_A15, lw=0.7)
+    axB.axhline(T_eq, color=C_CORAL, lw=1.2, ls="--",
+                label=f"$T_{{\\rm eq}}={T_eq:.2f}$ K  (mean of window)")
+    # show the trend-flatness threshold band: ±0.08 K/yr * window length
+    window_yrs = t_yr[-1] - t_start_yr
+    pad = max(0.08 * window_yrs * 0.5, 0.05)
+    axB.fill_between(t_yr[sl], T_eq - pad, T_eq + pad,
+                     color=C_CORAL, alpha=0.10,
+                     label=f"$\\pm 0.08$ K/yr drift envelope")
+    fmt_axis(axB, xlabel="years since 1971-07-31",
+             ylabel="temperature (K)",
+             title=f"(b)  Zoom on the stable window -- $T_{{\\rm eq}}$ extracted here")
+    axB.legend(fontsize=FS_LEGEND - 1.5, loc="lower right", framealpha=0.95)
+
+    fig.suptitle(f"Apollo 15 probe {probe}, sensor {name} at $z={depth:.0f}$ cm",
+                 y=1.02, fontsize=FS_LABEL, color=C_CHAR)
+    fig.savefig(OUT / "fig_book_raw_record.pdf", bbox_inches="tight")
+    plt.close(fig)
+    print("  -> fig_book_raw_record.pdf")
+
+
+# ══════════════════════════════════════════════════════════════════════════
+def fig_mcmc_posterior():
+    """The actual MCMC result: per-site K_d marginal + contrast distribution.
+
+    Built from results/bayesian_crosscheck_samples.json (quantiles only --
+    raw chains aren't committed).  Each marginal is drawn as a skew-normal
+    fit through the (q025, q16, q50, q84, q975) tuple so the shape matches
+    the chain summary even without the chain itself.
+    """
+    d = json.loads(
+        (_REPO / "results" / "bayesian_crosscheck_samples.json").read_text())
+
+    fig, (axL, axR) = plt.subplots(
+        1, 2, figsize=(10.0, 3.8), gridspec_kw={"wspace": 0.30})
+
+    def _fit_marginal(q):
+        """Smooth marginal through the MCMC quantiles, in mW/(m K).
+
+        We have (q025, q16, q50, q84, q975) but not the raw chain.  Build a
+        smooth curve by mixing two half-Gaussians on either side of the
+        median, with widths sigma_left=(q50-q16)/0.9945 and
+        sigma_right=(q84-q50)/0.9945 (the 1-sigma distance for a Gaussian).
+        That captures the asymmetric tails the quantile summary implies
+        without pretending we have more information than we do.
+        """
+        q025, q16, q50, q84, q975 = q
+        sigL = max((q50 - q16) / 0.9945, 1e-3)
+        sigR = max((q84 - q50) / 0.9945, 1e-3)
+        lo = q025 - 0.3 * sigL
+        hi = q975 + 0.3 * sigR
+        x = np.linspace(lo, hi, 600)
+        pdf = np.where(x < q50,
+                       np.exp(-0.5 * ((x - q50) / sigL) ** 2),
+                       np.exp(-0.5 * ((x - q50) / sigR) ** 2))
+        if pdf.max() > 0:
+            pdf /= pdf.max()
+        return x, pdf
+
+    # ---- left: K_d marginals for both sites ----
+    for site, color, label in (("A15", C_A15, "Apollo 15"),
+                                ("A17", C_A17, "Apollo 17")):
+        s = d[site]
+        x, pdf = _fit_marginal((s["kd_q025"], s["kd_q16"],
+                                s["kd_q50"], s["kd_q84"], s["kd_q975"]))
+        axL.fill_between(x, 0, pdf, color=color, alpha=0.30)
+        axL.plot(x, pdf, color=color, lw=1.8, label=label)
+        axL.axvline(s["kd_q50"], color=color, lw=0.9, ls=":")
+    fmt_axis(axL, xlabel="$K_d$  (mW m$^{-1}$ K$^{-1}$)",
+             ylabel="posterior density",
+             title="(a)  Joint $(K_d, Q_b)$ MCMC: marginal posteriors of $K_d$")
+    axL.set_yticks([])
+    axL.legend(fontsize=FS_LEGEND - 0.5, loc="upper right", framealpha=0.95)
+    axL.set_xlim(0, 14)
+
+    # ---- right: contrast distribution + P(A17>A15) ----
+    c = d["contrast"]
+    x, pdf = _fit_marginal((c["q025"], c["q16"], c["median"],
+                            c["q84"], c["q975"]))
+    axR.fill_between(x, 0, pdf, where=(x > 0), color=C_TEAL, alpha=0.35)
+    axR.fill_between(x, 0, pdf, where=(x < 0), color=C_DIM, alpha=0.22)
+    axR.plot(x, pdf, color=C_CHAR, lw=1.6)
+    axR.axvline(0, color=C_CHAR, lw=0.8)
+    axR.axvline(c["median"], color=C_CORAL, lw=1.4)
+    fmt_axis(axR, xlabel="$\\Delta K_d \\equiv K_d({\\rm A17}) - K_d({\\rm A15})$",
+             ylabel="density",
+             title="(b)  Posterior contrast")
+    axR.set_yticks([])
+    # left side: label the negative-tail
+    axR.text(0.03, 0.55, "no\ncontrast", transform=axR.transAxes,
+             ha="left", va="center", fontsize=FS_TICK - 1.5,
+             color=C_DIM, style="italic")
+    # right side: the headline number
+    axR.text(0.97, 0.55,
+             "A17 more\nconductive",
+             transform=axR.transAxes, ha="right", va="center",
+             fontsize=FS_TICK - 1, color=C_TEAL, style="italic")
+    # consolidated stats box, top-centre
+    axR.text(0.5, 0.97,
+             f"P$(\\Delta K_d > 0) = {c['p_gt']:.3f}$,"
+             f"  median $= {c['median']:.2f}$,"
+             f"  95% CI $[{c['q025']:.2f},\\, {c['q975']:.2f}]$",
+             transform=axR.transAxes, ha="center", va="top",
+             fontsize=FS_TICK - 1, color=C_CHAR,
+             bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
+                       edgecolor=C_GRID, alpha=0.92))
+
+    fig.savefig(OUT / "fig_book_mcmc_posterior.pdf", bbox_inches="tight")
+    plt.close(fig)
+    print("  -> fig_book_mcmc_posterior.pdf")
+
+
 def main():
     print("Building guidebook concept figures:")
     fig_conduction()
     fig_numerical()
+    fig_raw_record()
     fig_bootstrap()
     fig_mcmc()
+    fig_mcmc_posterior()
     fig_aicc()
     print("done.")
 

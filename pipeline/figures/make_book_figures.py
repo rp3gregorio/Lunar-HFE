@@ -117,9 +117,15 @@ def fig_numerical():
 
 # ══════════════════════════════════════════════════════════════════════════
 def fig_bootstrap():
-    """Resampling explained: data -> many resamples -> spread of answers."""
+    """Resampling explained: data -> many resamples -> spread of answers.
+
+    No text overlays inside the panel data areas; all explanatory text
+    lives in the LaTeX caption + figdesc box that follows the figure
+    in the guidebook.
+    """
     fig = plt.figure(figsize=(10.0, 5.0))
-    gs = fig.add_gridspec(1, 3, width_ratios=[0.7, 0.95, 1.0], wspace=0.30)
+    gs = fig.add_gridspec(1, 3, width_ratios=[0.7, 0.95, 1.0],
+                          wspace=0.30, top=0.86, bottom=0.14)
     axA = fig.add_subplot(gs[0])
     axB = fig.add_subplot(gs[1])
     axC = fig.add_subplot(gs[2])
@@ -134,9 +140,10 @@ def fig_bootstrap():
                                  alpha=0.85))
         axA.text(2, 6.6 - i * 0.85, lab, ha="center", va="center",
                  color="white", fontsize=FS_TICK - 1, fontweight="bold")
-    axA.set_title("(a)  The 7 Apollo 15\ndeep sensors", fontsize=FS_LABEL)
+    axA.set_title("(a)  The 7 deep sensors", fontsize=FS_LABEL, pad=8)
 
-    # (b) three example resamples (draw with replacement)
+    # (b) three example resamples (draw with replacement) — labels for the
+    # mini-columns go ABOVE the panel as text annotations of the title.
     axB.axis("off")
     axB.set_xlim(0, 6); axB.set_ylim(0, 8)
     for col, x0 in enumerate((0.6, 2.6, 4.6)):
@@ -146,38 +153,30 @@ def fig_bootstrap():
                           color=C_A17, alpha=0.8))
             axB.text(x0 + 0.45, 6.6 - i * 0.85, str(d), ha="center",
                      va="center", color="white", fontsize=FS_TICK - 2)
-        axB.text(x0 + 0.45, 7.5, f"#{col+1}", ha="center", fontsize=FS_TICK - 1,
-                 color=C_CHAR)
-    axB.set_title("(b)  Redraw 1,500 times\n(repeats allowed)",
-                  fontsize=FS_LABEL)
-    axB.text(3.0, 0.6, "some sensors appear twice,\nothers not at all",
-             ha="center", fontsize=FS_TICK - 1.5, color=C_DIM, style="italic")
-    # connection cue: each redraw -> one K_d*
-    axB.annotate("each redraw\n$\\to$ one $K_d^*$",
-                 xy=(5.6, 4.0), xytext=(5.6, 4.0),
-                 ha="center", va="center", fontsize=FS_TICK - 1.5,
-                 color=C_CHAR, style="italic")
+        axB.text(x0 + 0.45, 7.55, f"#{col+1}", ha="center",
+                 fontsize=FS_TICK - 1, color=C_CHAR)
+    axB.set_title("(b)  Three example redraws", fontsize=FS_LABEL, pad=8)
 
-    # (c) the resulting spread, from the REAL bootstrap
+    # (c) the resulting spread, from the REAL bootstrap — clean legend
+    # in an outer frame, no inline annotations.
     d = json.loads((_REPO / "results" / "kd_retrieval_results.json").read_text())
     boot = np.array(d["A15"]["bootstrap"]["samples"]) * 1e3
     lo, hi = np.percentile(boot, [2.5, 97.5])
+    med = np.median(boot)
     axC.hist(boot, bins=np.linspace(boot.min(), boot.max(), 30),
-             color=C_A15, alpha=0.6, edgecolor=C_A15, lw=0.4)
-    axC.axvspan(lo, hi, color=C_A15, alpha=0.12)
-    axC.axvline(np.median(boot), color=C_CHAR, lw=1.6)
+             color=C_A15, alpha=0.55, edgecolor=C_A15, lw=0.4,
+             label="1500 re-fits")
+    axC.axvspan(lo, hi, color=C_A15, alpha=0.15,
+                label=f"95% CI [{lo:.2f}, {hi:.2f}]")
+    axC.axvline(med, color=C_CHAR, lw=1.6,
+                label=f"median {med:.2f}")
     fmt_axis(axC, xlabel="recovered $K_d^*$ (mW m$^{-1}$ K$^{-1}$)",
-             ylabel="how often",
-             title="(c)  Distribution of $K_d^*$ over 1,500 redraws")
+             ylabel="frequency",
+             title="(c)  Distribution of $K_d^*$ over the redraws")
     axC.set_yticks([])
-    # CI annotation sits inside the axes, top-right, below the title.
-    axC.text(0.97, 0.93,
-             "95% bootstrap CI:\n"
-             f"$K_d^* \\in [{lo:.2f},\\,{hi:.2f}]$",
-             transform=axC.transAxes, ha="right", va="top",
-             fontsize=FS_TICK - 0.5, color=C_CHAR,
-             bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
-                       edgecolor=C_GRID, alpha=0.92))
+    axC.legend(loc="upper right", frameon=True, framealpha=0.97,
+               edgecolor=C_GRID, fontsize=FS_TICK - 1,
+               labelspacing=0.35, borderpad=0.45)
     fig.savefig(OUT / "fig_book_bootstrap.pdf", bbox_inches="tight")
     plt.close(fig)
     print("  -> fig_book_bootstrap.pdf")
@@ -196,18 +195,17 @@ def fig_f1_bug_schematic():
                  label="cycle-to-cycle $\\Delta T$")
     axA.semilogy(lun, deep_error, color=C_CORAL, lw=2.2,
                  label="deep-profile error")
-    axA.axhline(0.01, color=C_DIM, lw=1.0, ls=(0, (3, 2)))
-    axA.axvline(30, color=C_CHAR, lw=1.0, ls=":")
-    axA.text(47, 0.018, "30 lunations:\npasses the\nold test",
-             fontsize=FS_TICK - 1, color=C_CHAR, va="bottom")
-    axA.text(280, 0.014, "old tolerance", fontsize=FS_TICK - 1,
-             color=C_DIM, va="bottom")
+    axA.axhline(0.01, color=C_DIM, lw=1.0, ls=(0, (3, 2)),
+                label="old 0.01 K tolerance")
+    axA.axvline(30, color=C_CHAR, lw=1.0, ls=":",
+                label="30-lunation cut-off")
     fmt_axis(axA, xlabel="spin-up length  [lunations]",
              ylabel="temperature scale  [K]",
              title="(a)  Apparent convergence is the wrong diagnostic")
     axA.set_xlim(1, 1000)
     axA.set_ylim(8e-4, 70)
-    axA.legend(fontsize=FS_LEGEND - 1, loc="upper right", framealpha=0.95)
+    axA.legend(fontsize=FS_LEGEND - 1, loc="upper right",
+               frameon=True, framealpha=0.97, edgecolor=C_GRID)
 
     z = np.linspace(0, 2.5, 300)
     true = 252.0 + 4.0 * z + 2.0 * (1 - np.exp(-z / 0.35))
@@ -222,15 +220,14 @@ def fig_f1_bug_schematic():
              label="flux-anchored fix")
     axB.plot(true, z, color=C_CHAR, lw=1.7, ls=(0, (4, 2)),
              label="true steady state", zorder=5)
-    axB.axhspan(0.8, 2.4, color=C_TEAL, alpha=0.08)
-    axB.text(0.04, 0.50, "Apollo deep-sensor zone",
-             transform=axB.transAxes, fontsize=FS_TICK - 1, color=C_TEAL,
-             ha="left", va="center")
+    axB.axhspan(0.8, 2.4, color=C_TEAL, alpha=0.08,
+                label="Apollo deep-sensor zone")
     axB.invert_yaxis()
     fmt_axis(axB, xlabel="cycle-mean temperature  [K]",
              ylabel="depth  [m]",
              title="(b)  The deep profile has not arrived")
-    axB.legend(fontsize=FS_LEGEND - 1.6, loc="lower right", framealpha=0.95)
+    axB.legend(fontsize=FS_LEGEND - 1.6, loc="lower right",
+               frameon=True, framealpha=0.97, edgecolor=C_GRID)
     fig.savefig(OUT / "fig_book_f1_bug.pdf", bbox_inches="tight")
     plt.close(fig)
     print("  -> fig_book_f1_bug.pdf")

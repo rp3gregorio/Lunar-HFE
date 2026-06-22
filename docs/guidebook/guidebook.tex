@@ -97,6 +97,12 @@
 \newtcolorbox{solutionbox}{colback=forest!4,colframe=forest!28,boxrule=0.5pt,arc=2pt,
   left=6pt,right=6pt,top=4pt,bottom=4pt,before skip=2pt,after skip=8pt,
   title={\sffamily\bfseries\itshape Solution},coltitle=forest,fonttitle=\small}
+% A description box that sits below a figure.  Used to keep ALL fuller
+% explanation off the data area of the figure itself.  The figure's
+% \caption is the short visual title; this box is the longer read.
+\newtcolorbox{figdesc}{colback=teal!4,colframe=teal!25,boxrule=0.4pt,arc=2pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,before skip=2pt,after skip=8pt,
+  fontupper=\small\itshape\color{char}}
 
 \begin{document}
 
@@ -2232,14 +2238,21 @@ values. The starting guess has become a hidden free parameter of the retrieval.
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_book_f1_bug.pdf}
-\caption{Why flag F1 fooled the old solver. \emph{Left:} the cycle-to-cycle
-change drops below the old tolerance by 30 lunations, so the run looks
-converged, while the deep-profile error remains orders of magnitude larger.
-\emph{Right:} at Apollo sensor depths, a fixed 30-lunation spin-up still depends
-on the starting guess; the flux-anchored reconstruction lands on the true steady
-profile instead.}
+\caption{Why flag F1 fooled the old solver.}
 \label{fig:f1bug}
 \end{figure}
+\begin{figdesc}
+\textbf{(a)} The cycle-to-cycle change in temperature (teal) drops below
+the old $0.01$\,K tolerance long before the actual deep-profile error
+(coral) does. By 30~lunations the convergence test passes but the deep
+column is still tens of kelvin from its true steady state.
+\textbf{(b)} At the Apollo deep-sensor depths (shaded band), a fixed
+30-lunation spin-up still depends on the starting guess --- two starting
+guesses (240~K and 260~K) land on visibly different profiles.
+The flux-anchored fix instead reconstructs the deep column from the
+steady-state closure, landing on the true profile (dashed line) from
+either starting guess.
+\end{figdesc}
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/spinup_filmstrip.pdf}
@@ -2837,10 +2850,19 @@ about 1\%. The two humps in Fig.~\ref{fig:boot} barely overlap.
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_book_bootstrap.pdf}
-\caption{What the bootstrap does, schematically: resample the data many times,
-re-fit each time, read the spread.}
+\caption{What the bootstrap does, schematically.}
 \label{fig:bootschem}
 \end{figure}
+\begin{figdesc}
+\textbf{(a)} The real Apollo~15 deep sensors --- seven dots labelled 1--7.
+\textbf{(b)} Three example resamples drawn from the seven \emph{with
+replacement}; some labels appear twice, others not at all. Each redraw
+becomes a fresh dataset to re-fit. \textbf{(c)} The actual bootstrap from
+\code{results/kd\_retrieval\_results.json}: 1500 re-fits of $K_d^{*}$,
+binned as a histogram. The black vertical line marks the median; the
+shaded band marks the central 95\% (the bootstrap CI). All explanatory
+labels live in this box and the legend, never on top of the data.
+\end{figdesc}
 
 \section{The full error budget}\label{sec:errorbudget}
 The bootstrap captures the \emph{statistical} scatter from the finite, noisy

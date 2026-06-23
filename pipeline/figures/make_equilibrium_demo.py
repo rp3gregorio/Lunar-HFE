@@ -228,6 +228,10 @@ def plot_overlay(result):
 
 def run(**kw):
     import matplotlib; matplotlib.use("Agg")
+    # Extend the spin-up grid out to the ~1000-lunation diffusive timescale and
+    # beyond, so both guesses are seen to *reach* the shortcut (flat onto the
+    # dashed line), not merely trend toward it.
+    kw.setdefault("n_grid", (50, 100, 200, 400, 800, 1500, 3000))
     res = compute_curves(**kw)
     plot_curves(res, save=_REPO / "results" / "figures" / "fig_equilibrium_demo.pdf")
     sc = res["shortcut"]
@@ -236,6 +240,8 @@ def run(**kw):
     print(f"brute force: {res['wall_parallel']:.1f} s wall on {res['n_workers']} core(s)")
     return res
 
+
+main = run   # entry-point alias for pipeline/make_all_figures.py
 
 if __name__ == "__main__":
     run()

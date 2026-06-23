@@ -1026,38 +1026,39 @@ Mean drift         & 120-lun.\ honest re-run drift     & $\le 0.08$ K   & $0.063
   on the manifold of true steady states, not merely near it.
 \end{itemize}
 
-\section{The 700$\times$ speed-up, in one calculation}\label{sec:speedup}
+\section{The speed-up, in measured numbers}\label{sec:speedup}
 
-The payoff is the wall-clock saving. Compare the two routes through the same
-retrieval loops:
+The payoff is wall-clock, and it is worth stating with the real timings rather
+than a round figure. A single flux-anchored solve reaches the certified steady
+state in $\sim$9\,s (measured). Brute-force time integration reaches the
+\emph{same} state only on the diffusive timescale: at the production grid it
+costs $\sim$0.23\,s per simulated lunation, so the $\sim$3000 lunations needed
+just to come within $\sim$0.1\,K of the shortcut take $\sim$700\,s --- and even
+then the brute-force profile is \emph{less} converged than the shortcut's $3$\,mK
+(Fig.~\ref{fig:overlay}). That is a per-solve speed-up of
 \[
-\text{Brute force}:\;
-\underbrace{1000\,\text{lunations}}_{\tau\sim z_{\max}^2/\kappa}
-\times
-\underbrace{9\,\text{s/lun}}_{\text{JIT solver}}
-\times
-\underbrace{28\,K_d}_{\text{sweep}}
-\times
-\underbrace{2\,\text{sites}}_{}
-\times
-\underbrace{1500\,\text{boots}}_{}
-\;\sim\;
-2\,\text{years.}
+\frac{T_{\rm brute}}{T_{\rm anchored}}
+\;\approx\;\frac{\sim 700\,\text{s}}{\sim 9\,\text{s}}
+\;\approx\;\boxed{80\times.}
 \]
-\[
-\text{Flux-anchored}:\;
-\underbrace{6\text{--}10\,\text{cycles}}_{B\circ A}
-\times
-\underbrace{12\,\text{s}}_{\text{Step A}}
-\times
-\underbrace{28\times2\times1500}_{\text{same loops}}
-\;\sim\;
-\underbrace{12\,\text{hours.}}_{\text{tractable}}
-\]
-The ratio is about $700\times$. Without it, the per-site retrieval --- and the
-bootstrap that gives it a confidence interval --- would simply not have been
-possible on commodity hardware. Ch.~\ref{ch:bruteforce} unpacks what this
-comparison means.
+The retrieval calls the solver $28\times2=56$ times (the $K_d$ sweep at both
+sites), so this turns an $\sim$11-hour brute-force sweep into an $\sim$8-minute
+flux-anchored one (Fig.~\ref{fig:speedup}). The $1500$-draw bootstrap multiplies
+\emph{neither}: it re-uses the $56$ cached profiles and only re-selects which
+residuals enter each RMSE, adding seconds, not hours (\S\,Step~9). Without the
+$\sim$80$\times$ per-solve saving the per-site retrieval --- and the bootstrap
+that gives it a confidence interval --- would not have been comfortable on
+commodity hardware.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.8\linewidth]{figures/fig_speedup.pdf}
+\caption{Measured wall-clock, flux-anchored vs brute force (log scale). One
+solve: $\sim$9\,s vs the $\sim$700\,s a 3000-lunation brute-force run needs to
+approach the same state. The full $K_d$ sweep (56 solves) is $\sim$8 minutes vs
+$\sim$11 hours --- about $80\times$. The bootstrap is omitted because it re-uses
+cached profiles and costs seconds either way.}
+\label{fig:speedup}
+\end{figure}
 
 % =====================================================================
 \chapter{How the slope method differs from brute force}\label{ch:bruteforce}
@@ -1134,24 +1135,25 @@ guess-independence is certified to $0.038$\,K directly in \S\ref{sec:cert}.)
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_equilibrium_demo.pdf}
-\caption{Brute force converges onto the flux-anchored shortcut. \textbf{(a)} Two
+\caption{Brute force \emph{reaches} the flux-anchored shortcut. \textbf{(a)} Two
 brute-force runs from very different starting guesses (240\,K, 260\,K) both
-approach the \emph{same} shortcut equilibrium (dashed) as the spin-up lengthens.
-\textbf{(b)} Their maximum difference from the shortcut below $0.3$\,m decays
-toward the shortcut's own $0.03$\,K tolerance --- but only after several hundred
-lunations, whereas the slope method lands there in $\sim$9\,s from either guess.
-Apollo~15, $K_d=4.58$.}
+converge onto the \emph{same} shortcut equilibrium (dashed): by $\sim$3000
+lunations the two curves have merged onto it --- they have arrived, not just
+trended. \textbf{(b)} Their maximum difference from the shortcut below $0.3$\,m
+falls from $\sim$15\,K to within $\sim$0.1\,K, but only after $\sim$3000
+lunations of spin-up, whereas the slope method lands there (to $3$\,mK) in
+$\sim$9\,s from either guess. Apollo~15, $K_d=4.58$.}
 \label{fig:overlay}
 \end{figure}
 
 \section{The wall-clock difference}
 
-We did the arithmetic in \S\ref{sec:speedup}: brute force across the full
-retrieval ($1000$ lunations $\times$ the sweep $\times$ two sites $\times$ 1500
-bootstraps) runs to about two years of compute; the flux-anchored loop, doing the
-\emph{same} outer loops with $\sim$10 cheap cycles in place of 1000 lunations,
-finishes in about twelve hours --- roughly $700\times$ faster. The point for this
-comparison is \emph{where} the saving comes from: it is not a faster inner step
+We measured this in \S\ref{sec:speedup}: per solve, brute force needs
+$\sim$3000 lunations ($\sim$700\,s) to approach the steady state the
+flux-anchored loop certifies in $\sim$9\,s --- about $80\times$ faster --- and
+across the 56-solve sweep that is $\sim$8 minutes versus $\sim$11 hours (the
+bootstrap re-uses cached profiles, so it multiplies neither side). The point for
+this comparison is \emph{where} the saving comes from: it is not a faster inner step
 (the inner step is identical), it is replacing 1000 lunations of deep diffusion
 with a $\sim$microsecond ODE integration. The skin work is unchanged; the deep
 work all but vanishes.

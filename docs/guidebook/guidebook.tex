@@ -909,24 +909,24 @@ Putting Steps A and B together, here is what a complete Apollo~15 solve at
 $K_d=4.58$ looks like from the outside. Start from a deliberately wrong flat
 guess; each outer cycle settles the skin (A) and rebuilds the deep column (B),
 and the anchor temperature --- the one number the loop watches --- contracts
-toward its fixed value. A representative trace of the anchor temperature and its
-change between cycles (``drift''):
+toward its fixed value. The real trace --- read straight from the solver's
+convergence history --- is (Fig.~\ref{fig:anchorconv}):
 
 \begin{center}\small
 \begin{tabular}{@{}clcc@{}}
 \toprule
 Stage & cycle & $\Tm(z_0)$ (K) & drift (K) \\
 \midrule
-1 ($z_0{=}0.25$\,m) & 1 & 251.2  & --- \\
-                    & 2 & 253.0  & 1.8 \\
-                    & 3 & 253.2  & 0.20 \\
-                    & 4 & 253.24 & 0.04$^{\dagger}$ \\
+1 ($z_0{=}0.25$\,m) & 1 & 250.99 & --- \\
+                    & 2 & 250.93 & 0.063$^{\dagger}$ \\
 \midrule
-2 ($z_0{=}0.55$\,m) & 1 & 253.70  & --- \\
-                    & 2 & 253.90  & 0.20 \\
-                    & 3 & 253.96  & 0.06 \\
-                    & 4 & 253.978 & 0.018 \\
-                    & 5 & 253.982 & 0.004$^{\ddagger}$ \\
+2 ($z_0{=}0.55$\,m) & 1 & 251.71 & --- \\
+                    & 2 & 251.75 & 0.045 \\
+                    & 3 & 251.78 & 0.028 \\
+                    & 4 & 251.80 & 0.017 \\
+                    & 5 & 251.81 & 0.010 \\
+                    & 6 & 251.82 & 0.0062 \\
+                    & 7 & 251.82 & 0.0038$^{\ddagger}$ \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -935,15 +935,27 @@ advance to the deeper anchor.\quad $^{\ddagger}$ below the stage-2 tolerance
 ($0.005$\,K) --- converged.}
 
 \smallskip
-\noindent The drift shrinks by roughly a factor of $\sim$3--5 each cycle --- the
-geometric contraction the fixed-point argument guarantees. Nine outer cycles,
-each a $\sim$9--12\,s Step~A plus a microsecond Step~B, take the anchor to a
-$4$\,mK drift; the certified solve then passes all three checks of
-\S\ref{sec:cert}. Run the \emph{same} loop from a 240\,K guess instead of
-260\,K and it lands within $0.038$\,K of this profile at every depth --- that is
-the guess-independence number. Figure~\ref{fig:newfilm} shows the same solve as
+\noindent In stage 2 the drift shrinks by about $40\%$ each cycle (geometric
+ratio $\sim$0.6) --- the contraction the fixed-point argument guarantees. Nine
+outer cycles, each a $\sim$9--12\,s Step~A plus a microsecond Step~B, take the
+anchor to a $\sim$4\,mK drift, and the certified solve then passes all three
+checks of \S\ref{sec:cert}. Run the \emph{same} loop from a 240\,K guess instead
+of 260\,K and it lands within $0.038$\,K of this profile at every depth --- the
+guess-independence number. Figure~\ref{fig:newfilm} shows the same solve as
 snapshots: the skin settles, then Step~B snaps the deep column onto the steady
 gradient.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.86\linewidth]{figures/fig_anchor_convergence.pdf}
+\caption{What the anchor method actually does, one real Apollo~15 $K_d=4.58$
+solve. \emph{Top:} the anchor temperature $\Tm(z_0)$ settling --- two cheap
+shallow cycles ($z_0=0.25$\,m), then the deep stage ($z_0=0.55$\,m) refining to
+$251.82$\,K. \emph{Bottom:} the inter-cycle drift contracting geometrically past
+the stage-1 ($0.10$\,K) and stage-2 ($0.005$\,K) tolerances, reaching $3.8$\,mK
+by the ninth cycle. This is the output the old fixed spin-up could never
+certify.}
+\label{fig:anchorconv}
+\end{figure}
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/newmethod_filmstrip.pdf}

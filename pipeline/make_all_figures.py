@@ -31,6 +31,9 @@ JOBS = [
     ("make_illustrations",      ["main"]),    # modern schematic diagrams
     ("make_primer_figures",     ["main"]),
     ("make_equilibrium_certification", ["main"]),
+    ("make_anchor_convergence",  ["main"]),   # flux-anchored convergence trace (real history)
+    ("make_equilibrium_demo",    ["main"]),   # guess-independence proof
+    ("make_justification_figures", ["main"]), # convergence vs lunations, F1 bug
     ("make_codeguide_figures",  ["main"]),    # docs/guidebook diagrams
     ("make_svg_figures",        ["main"]),    # hand-authored SVG illustrations (run last: wins)
 ]

@@ -74,6 +74,9 @@ class EquilibriumResult:
     anchor_drift_K: float      # last inter-iteration anchor change [K]
     flux_closure: float        # max |<q>(z) - Q_b| / Q_b below the anchor
     converged: bool
+    # Per-outer-cycle convergence trace: tuples (stage_z0, iter, anchor_K,
+    # drift_K). Diagnostic only; lets callers visualise the contraction.
+    history: tuple = ()
 
 
 def _rectified_flux(T_cycle: np.ndarray, z: np.ndarray, K_func) -> np.ndarray:
@@ -204,6 +207,7 @@ def solve_periodic_equilibrium(
     out = None
     T_mean = None
     n_outer = 0
+    history: list = []
     for stage in stages:
         i_s = int(np.argmin(np.abs(z - stage["z0"])))
         anchor_prev = np.inf
@@ -220,6 +224,7 @@ def solve_periodic_equilibrium(
             T_mean = out.T.mean(axis=1)
             anchor = float(T_mean[i_s])
             drift = abs(anchor - anchor_prev)
+            history.append((float(stage["z0"]), it, anchor, float(drift)))
             u_rect = _rectified_flux(out.T, z, K_func)
             T_recon = _reconstruct_subskin(T_mean, z, i_s, Q_b, K_func,
                                            u_rect=u_rect)
@@ -235,4 +240,5 @@ def solve_periodic_equilibrium(
         anchor_K=float(T_mean[i0]), anchor_drift_K=float(drift),
         flux_closure=closure,
         converged=bool(drift < anchor_tol_K),
+        history=tuple(history),
     )

@@ -1121,36 +1121,27 @@ still in motion, not the one that settled first.
 
 \section{The accuracy difference}
 
-When brute force is given \emph{enough} time --- not 30 lunations but the full
-$\sim$1000 --- it converges to the same profile the slope method produces in
-seconds. We verified this directly. Run the slope method from three wildly
-different starting temperatures (200, 250, 300\,K): all three land on the same
-profile to within 21\,mK at sensor depths (Fig.~\ref{fig:overlay}b,c). Run the
-old method from two guesses (200, 250\,K) at 30 lunations: they disagree by
-$\sim$40\,K (Fig.~\ref{fig:overlay}a). The error of a brute-force run falls as a
-power law in lunation count (Fig.~\ref{fig:conv}); at 30 lunations it is still
-$\sim$13\,K, and only after hundreds of lunations does it reach the sub-30\,mK
-band the slope method hits in $\sim$9\,s. The two methods agree --- the slope
-method just refuses to wait.
+When brute force is given \emph{enough} time --- not 30 lunations but several
+hundred --- it converges to the same profile the slope method produces in
+seconds, from any starting guess. We checked directly (Fig.~\ref{fig:overlay}):
+brute-force runs from two very different starting temperatures (240\,K and
+260\,K) both march toward the \emph{same} flux-anchored equilibrium, and their
+gap to it decays past the shortcut's own tolerance only after several hundred
+lunations. At the literature's 30-lunation cut-off that gap is still many kelvin;
+the slope method reaches the identical answer in $\sim$9\,s from either guess.
+The two methods agree --- the slope method just refuses to wait. (The
+guess-independence is certified to $0.038$\,K directly in \S\ref{sec:cert}.)
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/fig_equilibrium_demo.pdf}
-\caption{Guess-dependence test. \textbf{(a)} The old method (30 lunations) from
-two starting guesses gives different answers --- a $\sim$40\,K gap at sensor
-depths. \textbf{(b)} The slope method from three guesses (200, 250, 300\,K) lands
-on the same profile. \textbf{(c)} Residual: the slope method's three runs agree
-to $<$21\,mK at sensor depths; the old method's error exceeds 12\,K. This is the
-proof that the slope method converges to a unique, guess-independent steady
-state.}
+\caption{Brute force converges onto the flux-anchored shortcut. \textbf{(a)} Two
+brute-force runs from very different starting guesses (240\,K, 260\,K) both
+approach the \emph{same} shortcut equilibrium (dashed) as the spin-up lengthens.
+\textbf{(b)} Their maximum difference from the shortcut below $0.3$\,m decays
+toward the shortcut's own $0.03$\,K tolerance --- but only after several hundred
+lunations, whereas the slope method lands there in $\sim$9\,s from either guess.
+Apollo~15, $K_d=4.58$.}
 \label{fig:overlay}
-\end{figure}
-
-\begin{figure}[htbp]\centering
-\includegraphics[width=0.85\linewidth]{figures/fig_convergence.pdf}
-\caption{Brute-force error at sensor depths (0.8--2.4\,m) vs.\ lunation count. At
-30 lunations (red dashed) the old method still carries $>$12\,K of error. The
-shaded band marks the $<$30\,mK tolerance the slope method reaches in $\sim$9\,s.}
-\label{fig:conv}
 \end{figure}
 
 \section{The wall-clock difference}

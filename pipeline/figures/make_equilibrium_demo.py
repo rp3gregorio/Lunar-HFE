@@ -153,12 +153,8 @@ def plot_curves(result, save=None):
     axB.set_title("(b)  Difference decays to the shortcut", loc="left", fontsize=10)
     axB.legend(fontsize=8, frameon=False); axB.grid(alpha=0.25, which="both")
 
-    fig.suptitle(
-        f"Brute force vs the flux-anchored shortcut (Apollo 15)\n"
-        f"shortcut = {sc['wall']:.0f} s   |   brute force = {result['wall_parallel']:.0f} s "
-        f"wall on {result['n_workers']} core(s)  ({result['serial_lun']} lunations total)",
-        fontsize=10, color=C_CHAR)
-    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    # No on-canvas title: the LaTeX caption carries the words (design rule).
+    fig.tight_layout()
     if save:
         fig.savefig(save, bbox_inches="tight"); print("->", save)
     return fig

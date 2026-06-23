@@ -181,6 +181,27 @@ $p$ & contrast bootstrap $p$-value & 0.011 & \S\ref{sec:resultstats} \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+\vspace{4pt}
+\noindent\textbf{Introduced in the derivations} (App.~\ref{app:deriv})
+\begin{center}\footnotesize
+\begin{tabular}{@{}p{1.7cm}p{5.4cm}p{3.0cm}p{4.8cm}@{}}
+\toprule
+Symbol & Meaning & Units / value & Source \\
+\midrule
+$q$ & conductive heat flux $-K\,\partial_z T$ & W\,m$^{-2}$ & Fourier's law (App.~\ref{app:heateq}) \\
+$K_{i+1/2}$ & harmonic-mean face conductivity & W\,m$^{-1}$K$^{-1}$ & App.~\ref{app:grid} \\
+$C_i$ & cell heat capacity $\rho c_p\,\Delta z_i$ & J\,m$^{-2}$K$^{-1}$ & finite-volume cell \\
+$g$ & grid growth ratio per cell & 0.08 & \code{config.py}, \code{GRID} \\
+$\theta$ & time-weighting of the $\theta$-method & $\tfrac12$ for CN & App.~\ref{app:cn} \\
+$r$ & diffusion number $\kappa\,\Delta t/\Delta z^2$ & --- & von Neumann analysis \\
+$\xi$ & per-step amplification factor & $|\xi|\le1$ (stable) & von Neumann analysis \\
+$k$ & Fourier mode wavenumber & m$^{-1}$ & von Neumann analysis \\
+$a_i,b_i,c_i,d_i$ & tridiagonal sub/diag/super/RHS & --- & App.~\ref{app:assembly} \\
+$R(T_s),\,R'(T_s)$ & surface residual and its derivative & --- & App.~\ref{app:newton} \\
+\bottomrule
+\end{tabular}
+\end{center}
 \clearpage
 
 % =====================================================================
@@ -341,7 +362,8 @@ K(T,z) \;=\; K_c(z)\,\bigl[\,1 + \chi\,(T/T_{\rm ref})^3\,\bigr],
 \label{eq:Khayne}
 \end{equation}
 The same paper supplies $\rho(z)$ ($1100\!\to\!1800$\,kg\,m$^{-3}$); Hemingway
-(1973) supplies $c_p(T)$. Fix the five Hayne constants and the density profile,
+(1973) supplies $c_p(T)$; both conductivity terms are derived from their physics
+in App.~\ref{app:hayne}. Fix the five Hayne constants and the density profile,
 and the only free number left is $K_d$ (Fig.~\ref{fig:kTz}). That is what makes
 this a one-parameter retrieval.
 
@@ -355,7 +377,8 @@ picks the member that fits the deep sensors.}
 \end{figure}
 
 \paragraph{\textbf{Step 5 --- solve the heat equation forward.}}
-With $K(T,z)$ chosen, we solve the heat equation in the column,
+With $K(T,z)$ chosen, we solve the heat equation in the column (derived in
+App.~\ref{app:heateq}),
 \begin{equation}
 \rho\,c_p\,\frac{\partial T}{\partial t}
 =\frac{\partial}{\partial z}\!\left(K\,\frac{\partial T}{\partial z}\right),
@@ -372,14 +395,15 @@ and by the fixed geothermal flux at the bottom (Langseth 1976),
 K\,\frac{\partial T}{\partial z}\bigg|_{z_{\max}} \;=\; Q_b.
 \label{eq:bottombc}
 \end{equation}
-No closed-form solution exists when $K$ depends on both $T$ and $z$, so we
-discretise: a
+Both boundary conditions are derived in App.~\ref{app:bc}. No closed-form
+solution exists when $K$ depends on both $T$ and $z$, so we discretise: a
 \emph{geometric} depth grid ($\Delta z_0=2$\,mm at the surface, each cell 8\%
 thicker, 69 cells to $z_{\max}=5$\,m) and hourly time steps ($\Delta t=3600$\,s,
 $\sim$709 per lunation). The grid follows one rule of thumb --- fine cells where
 the temperature changes fast (millimetres at the surface, which sees a
 $\sim$280\,K swing each lunation), coarse cells where it does not (tens of
-centimetres by $1$\,m). The dimensionless cell-to-cell coupling per step,
+centimetres by $1$\,m); App.~\ref{app:grid} gives the finite-volume cells and the
+harmonic-mean face conductivities. The dimensionless cell-to-cell coupling per step,
 $\alpha=\Delta t\,K/(\rho c_p\,\Delta z^2)$, stays small ($\sim10^{-3}$), so
 neighbouring cells nudge each other only gently each hour. Three pieces of
 machinery advance one hour, and they are all you need to understand the solver
@@ -395,17 +419,20 @@ machinery advance one hour, and they are all you need to understand the solver
   endpoints, not just one. This couples all the new temperatures into one linear
   system $\mathbf{A}\,\mathbf{T}^{n+1}=\mathbf{d}$, and because each cell only
   talks to its immediate neighbours, $\mathbf{A}$ is \emph{tridiagonal} (nonzero
-  only on three diagonals).
+  only on three diagonals). Derived, with the truncation-error and stability
+  arguments, in App.~\ref{app:cn}; the matrix assembly and boundary rows in
+  App.~\ref{app:assembly}.
 \item \textbf{The Thomas algorithm} solves that tridiagonal system in $O(N)$
   --- two sweeps (a forward elimination, a backward substitution) instead of the
   $\sim N^3/3$ of general Gaussian elimination. For 69 cells it is
-  sub-microsecond.
+  sub-microsecond (App.~\ref{app:thomas}).
 \item \textbf{Newton's method} handles the surface. The top balance
   $(1-A)S(t)=\varepsilon\sigma T_s^4 + \text{(conduction down)}$ is non-linear in
   $T_s$ because of the $T_s^4$ infrared term. Newton slides along the tangent to
   the residual until it hits zero --- 2--3 iterations per hour. It runs
   \emph{every time step} (the insolation $S(t)$ changes hourly), and feeds its
-  $T_s^{n+1}$ into the matrix as the top boundary value before Thomas solves.
+  $T_s^{n+1}$ into the matrix as the top boundary value before Thomas solves
+  (App.~\ref{app:newton}).
 \end{itemize}
 
 \begin{figure}[htbp]\centering
@@ -458,7 +485,8 @@ and read its vertex:
 K_d^{*}=K_d^{(k)}+\frac{\Delta}{2}\,\frac{y_--y_+}{y_--2y_0+y_+},
 \label{eq:vertex}
 \end{equation}
-giving sub-grid precision with no extra (9-second) solves. For Apollo~15 the
+giving sub-grid precision with no extra (9-second) solves (App.~\ref{app:vertex}).
+For Apollo~15 the
 vertex sits at $K_d^{*}=4.58$\,mW\,m$^{-1}$K$^{-1}$ with RMSE $\approx0.95$\,K.
 
 \begin{figure}[htbp]\centering
@@ -471,7 +499,8 @@ vertex of a parabola through the three lowest points is $K_d^{*}$.}
 
 \paragraph{\textbf{Step 9 --- bootstrap for a confidence interval.}}
 Seven dots, one number --- how confident are we? We cannot re-fly the mission, so
-the bootstrap pretends we can. Treat the seven sensors as the population, draw
+the bootstrap pretends we can (the plug-in principle behind this is justified in
+App.~\ref{app:stats}). Treat the seven sensors as the population, draw
 seven \emph{with replacement} (some appear twice, some not at all), jitter each
 depth by $\mathcal{N}(0,2.5\,\mathrm{cm})$ to fold in Nagihara's positional
 uncertainty, and re-fit $K_d^{*}$. Repeat 1500 times. The 2.5th and 97.5th
@@ -581,9 +610,9 @@ start.
 
 The fix observes that the slow part --- the deep column's drift --- does not
 actually require time integration at all. In steady state the deep temperature
-obeys a simple first-order ODE in depth:
+obeys a simple first-order ODE in depth (derived in App.~\ref{app:closure}):
 \begin{equation}
-\frac{d\Tm}{dz} \;=\; \frac{Q_b + u_{\rm rect}(z)}{K(\Tm,\,z)}.
+\frac{d\Tm}{dz} \;=\; \frac{Q_b - u_{\rm rect}(z)}{K(\Tm,\,z)}.
 \label{eq:closure}
 \end{equation}
 At any depth, the slope is the flux ($Q_b$, known, plus a small correction
@@ -593,7 +622,8 @@ below the skin, we can compute the next depth down, and the next --- building th
 entire deep profile by walking down the slope, never simulating the slow
 diffusion. The one temperature we need is the \textbf{anchor}: the cycle-mean
 temperature at a depth $z_0$ just below the daily skin, where the skin has
-already settled. The whole method is two operations, alternated
+already settled (the skin-depth scale $\delta$ is derived in App.~\ref{app:skin}).
+The whole method is two operations, alternated
 (Fig.~\ref{fig:fluxanchored}):
 
 \begin{itemize}[leftmargin=1.4em,itemsep=3pt]
@@ -775,7 +805,8 @@ the whole forward solve the slope method leans on.
 \section{Step B as RK2 --- walking the deep profile down}\label{sec:stepB}
 
 Step~B integrates the closure ODE from the anchor down to $z_{\max}$ by the
-midpoint rule (Runge--Kutta order 2), one cell at a time. To see it concretely,
+midpoint rule (Runge--Kutta order 2; its $O(\Delta z^3)$ local error is shown in
+App.~\ref{app:rk2}), one cell at a time. To see it concretely,
 walk the same toy column (Fig.~\ref{fig:toy}) with anchor at $z_0=0.05$\,m,
 $K=10$\,mW\,m$^{-1}$K$^{-1}$ (taken constant for clarity),
 $Q_b=21$\,mW\,m$^{-2}$, $u_{\rm rect}\approx0$ (we are below the skin), and
@@ -784,11 +815,11 @@ $i{+}1$ is:
 
 \begin{enumerate}[leftmargin=1.4em,itemsep=3pt]
 \item \emph{Slope at the start of the cell:}
-  $s_i = (Q_b+u_{{\rm rect},i})/K(\Tm_i,z_i)= 0.021/0.010 = 2.10$\,K\,m$^{-1}$.
+  $s_i = (Q_b-u_{{\rm rect},i})/K(\Tm_i,z_i)= 0.021/0.010 = 2.10$\,K\,m$^{-1}$.
 \item \emph{Predict at the midpoint:}
   $\Tm_{i+1/2} = \Tm_i + (\Delta z/2)\,s_i = 253.40 + 0.05\times2.10 = 253.505$\,K.
 \item \emph{Slope at the midpoint:}
-  $s_{i+1/2} = (Q_b+u_{{\rm rect},i+1/2})/K(\Tm_{i+1/2},z_{i+1/2}) \approx 2.10$\,K\,m$^{-1}$.
+  $s_{i+1/2} = (Q_b-u_{{\rm rect},i+1/2})/K(\Tm_{i+1/2},z_{i+1/2}) \approx 2.10$\,K\,m$^{-1}$.
 \item \emph{Step using the midpoint slope:}
   $\Tm_{i+1} = \Tm_i + \Delta z\,s_{i+1/2} = 253.40 + 0.10\times2.10 = 253.61$\,K.
 \end{enumerate}
@@ -842,7 +873,7 @@ everywhere, and you can compute the height anywhere.
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{figures/reconstruct_filmstrip.pdf}
 \caption{Step~B as snapshots. From the anchor at 0.55\,m (the dot), the code
-walks downward computing $d\Tm/dz=(Q_b+u_{\rm rect})/K$ at each depth. By the
+walks downward computing $d\Tm/dz=(Q_b-u_{\rm rect})/K$ at each depth. By the
 fourth panel the entire deep profile is built, matching the true steady state
 (dashed).}
 \label{fig:reconstruct}
@@ -1037,7 +1068,7 @@ periodic steady state? --- by opposite routes.
 \midrule
 Strategy & Integrate forward in time until things stop changing. & Use the steady-state equation directly below an anchor depth. \\
 \addlinespace
-Deep column & Waits for heat to diffuse in --- the $\sim$1000-lunation timescale of Eq.~\eqref{eq:tau}. & Reconstructed by integrating $d\Tm/dz=(Q_b+u_{\rm rect})/K$ in microseconds. \\
+Deep column & Waits for heat to diffuse in --- the $\sim$1000-lunation timescale of Eq.~\eqref{eq:tau}. & Reconstructed by integrating $d\Tm/dz=(Q_b-u_{\rm rect})/K$ in microseconds. \\
 \addlinespace
 Convergence test & Cycle-to-cycle change $\Delta T<0.01$\,K --- which the skin satisfies long before the deep column does. & Anchor-temperature change between outer cycles $<0.005$\,K --- the quantity that actually still moves. \\
 \addlinespace
@@ -1250,7 +1281,8 @@ distributions barely overlap --- the contrast is statistically real
 the fixed inputs. Each published input (basal flux, albedo, surface
 conductivity, density, depths, thresholds) is perturbed by its stated
 uncertainty, the retrieval is re-run, and the induced shift in $K_d^{*}$ is
-recorded; the independent contributions add in quadrature:
+recorded; the independent contributions add in quadrature (justified in
+App.~\ref{app:stats}):
 
 \begin{center}\small
 \begin{tabular}{@{}lcc@{}}
@@ -1329,6 +1361,378 @@ tested 1-D solver is in \code{src/lunar/}, the retrieval driver in
 guide --- the full physics, the solver line by line, the statistics, the geology,
 the code, and practice problems --- see the extended edition at
 \code{docs/guidebook/reference/guidebook-extended.tex}.
+
+% =====================================================================
+\chapter{Derivations and numerical methods}\label{app:deriv}
+% =====================================================================
+The six chapters state the equations and show them moving real numbers; this
+appendix derives them. It is opt-in: you can read the book without it, but every
+result the main text uses is established here from first principles, in the order
+the pipeline meets them. Part~I (\S\ref{app:heateq}--\S\ref{app:bc}) is the
+physics; Part~II (\S\ref{app:grid}--\S\ref{app:stats}) is the numerical method.
+Code references name the file the result is implemented in.
+
+\bigskip
+\noindent\textbf{\textsf{\color{forest} Part I --- the physics}}
+
+\section{From Fourier's law to the heat equation}\label{app:heateq}
+Picture a thin horizontal slab of regolith between depth $z$ and $z+dz$, of unit
+area. Conservation of energy says the rate at which it stores heat equals the
+flux in at its top face minus the flux out at its bottom face. Fourier's law
+gives the conductive flux through any face,
+\[
+q(z) \;=\; -\,K\,\frac{\partial T}{\partial z}
+\qquad(\text{W\,m}^{-2}),
+\]
+the minus sign because heat flows down-gradient. The slab stores $\rho c_p T$ per
+unit volume, so its storage rate per unit area is $\rho c_p\,(\partial T/\partial
+t)\,dz$. Balancing,
+\[
+\rho c_p\,\frac{\partial T}{\partial t}\,dz
+\;=\; q(z) - q(z+dz)
+\;=\; -\,\frac{\partial q}{\partial z}\,dz .
+\]
+Divide by $dz$ and insert Fourier's law:
+\[
+\boxed{\;\rho c_p\,\frac{\partial T}{\partial t}
+\;=\; -\frac{\partial q}{\partial z}
+\;=\; \frac{\partial}{\partial z}\!\left(K\,\frac{\partial T}{\partial z}\right).\;}
+\]
+The conductivity stays \emph{inside} the derivative because $K=K(T,z)$ depends on
+both depth (compaction) and temperature (radiation); pulling it out, as the
+constant-$K$ textbook form $\kappa\,\partial_{zz}T$ does, would be wrong here.
+This is Eq.~\eqref{eq:heat}.
+
+\section{The Hayne conductivity, term by term}\label{app:hayne}
+Hayne's $K(T,z)$ is a product of a depth-dependent contact part and a
+temperature-dependent radiative enhancement; each comes from a separate physical
+mechanism.
+
+\emph{Contact conductivity.} Heat crosses from grain to grain through small
+contact patches whose area grows as overburden compacts the column. Model the
+contact conductivity as relaxing exponentially from its surface value $K_s$ to a
+deep asymptote $K_d$ with $e$-folding depth $H$:
+\[
+K_c(z) \;=\; K_d - (K_d - K_s)\,e^{-z/H}.
+\]
+Check the limits: at $z=0$, $K_c=K_s$; as $z\to\infty$, $K_c\to K_d$. The
+exponential-compaction \emph{form} is physics; the three numbers $K_s$, $H$, and
+(for us) $K_d$ are fitted --- $K_s$ and $H$ from Hayne~(2017), $K_d$ retrieved
+here. This is Eq.~\eqref{eq:Kc}.
+
+\emph{Radiative enhancement.} Across the gas-empty pore between grains, heat also
+moves by thermal radiation, whose flux scales as $\sigma T^4$
+(Stefan--Boltzmann). The \emph{conductivity} that represents this is the
+temperature derivative of that flux,
+\[
+\frac{d}{dT}\big(\sigma T^4\big) = 4\sigma T^3 \;\propto\; T^3,
+\]
+so the radiative conductivity rises as $T^3$. Hayne folds it in as a
+multiplicative enhancement of the contact term,
+\[
+\boxed{\;K(T,z) \;=\; K_c(z)\,\Big[\,1 + \chi\,(T/T_{\rm ref})^3\,\Big],\;}
+\]
+with $T_{\rm ref}=350$\,K a reference convention and $\chi$ the fitted strength
+($\chi=2.7$ Hayne; cf.\ $\chi=1.48$ Vasavada, \S\ref{sec:chi}). The $T^3$ scaling
+is physics; $\chi$ and $T_{\rm ref}$ are Hayne's constants. This is
+Eq.~\eqref{eq:Khayne}, implemented in \code{src/lunar/properties.py}
+(\code{conductivity\_hayne}).
+
+\section{The thermal skin depth}\label{app:skin}
+Why can we anchor the deep solve just below the surface? Because the diurnal wave
+dies exponentially with depth. Linearise the heat equation with constant $K$, so
+$\partial_t T = \kappa\,\partial_{zz}T$ with diffusivity $\kappa=K/(\rho c_p)$,
+and drive the surface harmonically at angular frequency $\omega=2\pi/P$. Seek a
+solution $T=\Tm + \mathrm{Re}\big[A(z)\,e^{i\omega t}\big]$. Substituting,
+\[
+i\omega\,A = \kappa\,A'' \;\Rightarrow\; A'' = \frac{i\omega}{\kappa}\,A
+\;\Rightarrow\; A(z) = A_0\,e^{-qz},\quad
+q=\sqrt{\tfrac{i\omega}{\kappa}}=\sqrt{\tfrac{\omega}{2\kappa}}\,(1+i).
+\]
+Writing $\delta \equiv \sqrt{2\kappa/\omega}$, the real part of $q$ is $1/\delta$,
+so the amplitude decays as $e^{-z/\delta}$ (the imaginary part is just a
+depth-lag):
+\[
+\boxed{\;\delta = \sqrt{2\kappa/\omega}\;\approx\;0.04\text{--}0.10\;\text{m}.\;}
+\]
+With $\kappa\sim10^{-8}$\,m$^2$\,s$^{-1}$ and $P=29.53$\,d, the daily swing falls
+by $e$ every $\delta$, and by $e^{-3}\approx5\%$ within $\sim$3 skin depths. That
+is why an anchor at $z_0=0.25$--$0.55$\,m sits comfortably below the diurnal wave
+(\S\ref{sec:insight}).
+
+\section{The boundary conditions, derived}\label{app:bc}
+\emph{Surface (radiative balance).} At $z=0$ the absorbed sunlight must equal the
+emitted infrared plus the heat conducted into the column. Absorbed:
+$(1-A)\,S(t)$, with $A$ the Bond albedo. Emitted: $\varepsilon\sigma T_s^4$.
+Conducted into the top half-cell, whose centre lies $\Delta z_{\rm surf}/2$ below
+the surface: $K_{\rm surf}(T_s-T_{\rm sub})/(\Delta z_{\rm surf}/2)$. Hence
+\[
+\boxed{\;(1-A)\,S(t) \;=\; \varepsilon\sigma T_s^4
+\;+\; K_{\rm surf}\,\frac{T_s-T_{\rm sub}}{\Delta z_{\rm surf}/2},\;}
+\]
+nonlinear in $T_s$ through the $T_s^4$ term --- which is why it needs Newton
+(\S\ref{app:newton}). This is Eq.~\eqref{eq:surfbc}
+(\code{src/lunar/solver.py}, \code{surface\_energy\_balance\_residual}).
+
+\emph{Base (geothermal flux).} Deep enough that no surface signal reaches, the
+only heat crossing the bottom face is the steady geothermal flux $Q_b$. Fourier's
+law then fixes the \emph{gradient} rather than the temperature:
+\[
+\boxed{\;K\,\frac{\partial T}{\partial z}\bigg|_{z_{\max}} \;=\; Q_b\;}
+\qquad(Q_b\text{ from Langseth 1976}).
+\]
+This Neumann condition is Eq.~\eqref{eq:bottombc}; with $z$ increasing downward
+and $T$ rising with depth, $\partial_z T>0$.
+
+\bigskip
+\noindent\textbf{\textsf{\color{forest} Part II --- the numerical method}}
+
+\section{The geometric grid and finite-volume cells}\label{app:grid}
+\emph{Why geometric.} The surface skin needs millimetre cells to resolve a
+$\sim$280\,K swing; by $1$\,m the profile is smooth and centimetre cells suffice.
+A uniform millimetre grid to $5$\,m would need $2500$ cells; a geometric one
+needs $69$. The cell edges follow the recurrence
+\[
+z_0^{\rm face}=0,\quad z_{j+1}^{\rm face}=z_j^{\rm face}+\Delta z_j,\quad
+\Delta z_{j+1}=(1+g)\,\Delta z_j,
+\]
+with $\Delta z_0=2$\,mm and growth $g=0.08$ until $z_{\max}=5$\,m; nodes sit at
+cell centres $z_i=\tfrac12(z_i^{\rm face}+z_{i+1}^{\rm face})$
+(\code{src/lunar/grid.py}, \code{make\_geometric\_grid}; parameters in
+\code{config.py}, \code{GRID}).
+
+\emph{Why finite volume.} Integrate the heat equation over one cell
+$[z_{i-1/2},z_{i+1/2}]$:
+\[
+C_i\,\frac{dT_i}{dt} \;=\; q_{i+1/2}-q_{i-1/2},\qquad
+q_{i+1/2}=K_{i+1/2}\,\frac{T_{i+1}-T_i}{\Delta z_{i+1/2}},
+\]
+with $C_i=\rho c_p\,\Delta z_i$. The flux \emph{leaving} cell $i$ across the face
+$i{+}1/2$ is exactly the flux \emph{entering} cell $i{+}1$; summing over cells the
+interior fluxes telescope and cancel, so total energy changes only through the
+two boundaries --- energy is conserved to machine precision, which a plain
+finite-difference stencil does not guarantee.
+
+\emph{Why the harmonic mean at faces.} Heat crossing the face between cells $i$
+and $i{+}1$ passes through two half-cells in \emph{series}: thickness
+$\Delta z/2$ at conductivity $K_i$, then $\Delta z/2$ at $K_{i+1}$. Thermal
+resistances add in series, $R=\Delta z/K_{\rm face}$, so
+\[
+\frac{\Delta z}{K_{i+1/2}} = \frac{\Delta z/2}{K_i}+\frac{\Delta z/2}{K_{i+1}}
+\;\Rightarrow\;
+\boxed{\;K_{i+1/2}=\frac{2\,K_i K_{i+1}}{K_i+K_{i+1}}\;}
+\]
+--- the harmonic mean (\code{src/lunar/solver.py:118},
+\code{\_face\_harmonic\_mean}). The arithmetic mean would let a high-$K$ cell
+``short-circuit'' a neighbouring low-$K$ cell and overstate the flux; the series
+result is the physically correct one, and it matters where $K$ jumps --- the
+steep $K_c$ rise through the top few centimetres.
+
+\section{The Crank--Nicolson scheme}\label{app:cn}
+Write the spatial operator as $L[T]_i = (q_{i+1/2}-q_{i-1/2})/C_i$, so the
+semi-discrete equation is $dT_i/dt=L[T]_i$. The \emph{$\theta$-method} advances
+one step with a weighted blend of $L$ at the old and new times,
+\[
+\frac{T_i^{n+1}-T_i^{n}}{\Delta t}
+= (1-\theta)\,L[T^{n}]_i + \theta\,L[T^{n+1}]_i,
+\]
+$\theta=0$ being explicit Euler, $\theta=1$ implicit Euler, and
+$\theta=\tfrac12$ their average --- Crank--Nicolson.
+
+\emph{Second-order accuracy.} Expand about $t^{n+1/2}$. The left side is a centred
+difference, $(T^{n+1}-T^n)/\Delta t=\partial_t T|^{n+1/2}+O(\Delta t^2)$. At
+$\theta=\tfrac12$ the right side is the midpoint average
+$\tfrac12(L^n+L^{n+1})=L^{n+1/2}+O(\Delta t^2)$. Both sides match
+$\partial_t T=L$ at $t^{n+1/2}$ to $O(\Delta t^2)$, so CN is second-order in
+$\Delta t$. For any $\theta\neq\tfrac12$ a first-order term
+$(\theta-\tfrac12)\,\Delta t\,\partial_t L$ survives --- only the average cancels it.
+
+\emph{Unconditional stability (von Neumann).} Linearise ($K$ const, uniform
+$\Delta z$), so $L[T]_i=(\kappa/\Delta z^2)(T_{i-1}-2T_i+T_{i+1})$, and insert a
+Fourier mode $T_i^n=\xi^n e^{\,ik\,i\Delta z}$. The discrete Laplacian gives
+$e^{-ik\Delta z}-2+e^{ik\Delta z}=-4\sin^2(k\Delta z/2)$, so with $r=\kappa\Delta
+t/\Delta z^2$ and $\beta=4r\sin^2(k\Delta z/2)\ge0$ the $\theta$-scheme yields
+\[
+\xi-1=-(1-\theta)\beta-\theta\beta\,\xi
+\;\Rightarrow\;
+\xi=\frac{1-(1-\theta)\beta}{1+\theta\beta}.
+\]
+At $\theta=\tfrac12$, $\xi=(1-\beta/2)/(1+\beta/2)$, and since $\beta\ge0$ we have
+$|\xi|\le1$ for \emph{every} mode $k$ and \emph{every} $\Delta t$ --- unconditional
+stability. Explicit Euler ($\theta=0$) gives $\xi=1-\beta$, which needs
+$\beta\le2$, i.e.\ $\Delta t\le\Delta z^2/2\kappa$. At the $2$\,mm surface cell
+with $\kappa\sim10^{-8}$\,m$^2$\,s$^{-1}$ that floor is
+\[
+\Delta t \le \frac{(0.002)^2}{2\times10^{-8}} \approx 200\;\text{s},
+\]
+versus CN's $\Delta t=3600$\,s used freely --- and $200$\,s is only the
+\emph{stability} floor; accuracy would force it lower still.
+
+\section{Assembling the tridiagonal system, boundary rows included}\label{app:assembly}
+Apply CN to the finite-volume equation and collect every $T^{n+1}$ on the left.
+An interior cell becomes one row of a tridiagonal system
+$a_i T_{i-1}^{n+1}+b_i T_i^{n+1}+c_i T_{i+1}^{n+1}=d_i$ with
+\[
+a_i=-\tfrac{\Delta t}{2C_i}\,\frac{K_{i-1/2}}{\Delta z_{i-1/2}},\quad
+c_i=-\tfrac{\Delta t}{2C_i}\,\frac{K_{i+1/2}}{\Delta z_{i+1/2}},\quad
+b_i=1-a_i-c_i,
+\]
+and $d_i=T_i^n+\tfrac{\Delta t}{2C_i}\,(q_{i+1/2}^n-q_{i-1/2}^n)$ (the explicit
+half). For the uniform toy these reduce to $(-\tfrac12\alpha,\,1+\alpha,\,
+-\tfrac12\alpha)$ with $\alpha=\Delta t\,K/(C\,\Delta z)$, exactly the row of
+\S\ref{sec:cnhour}. The two boundaries modify only the first and last rows.
+
+\emph{Surface --- a Dirichlet ghost.} The face above cell~0 conducts from the
+\emph{known} surface temperature $T_s$ (Newton has already solved it) across
+$\Delta z_0/2$. Because $T_s$ is known, it is not an unknown in the matrix: its
+contribution moves to the right-hand side. Splitting the CN surface-face flux
+into its explicit ($T_s^n$) and implicit ($T_s^{n+1}$) halves,
+\[
+d_0 \;\to\; d_0 \;-\;\tfrac12\alpha\,T_0^{n}
+\;+\;\tfrac12\alpha\,\big(T_s^{n}+T_s^{n+1}\big),
+\]
+and the interior coefficients $b_0,c_0$ are unchanged. The surface is one RHS
+edit.
+
+\emph{Base --- a Neumann ghost cell.} Introduce an imaginary cell $n$ just below
+$z_{\max}$. The basal condition $K\,\partial_z T=Q_b$, discretised across the last
+face, fixes its temperature:
+\[
+\frac{T_n^{\rm ghost}-T_{n-1}}{\Delta z}=\frac{Q_b}{K}
+\;\Rightarrow\;
+T_n^{\rm ghost}=T_{n-1}+\frac{Q_b\,\Delta z}{K}.
+\]
+Substitute this into cell $(n{-}1)$'s row. Its coupling to the ghost,
+$-\tfrac12\alpha\,T_n^{\rm ghost}=-\tfrac12\alpha\,T_{n-1}-\tfrac12\alpha\,
+\tfrac{Q_b\Delta z}{K}$, splits in two: the $T_{n-1}$ piece folds into the
+diagonal and the constant piece becomes a flux source on the RHS. Carrying both
+time levels through CN,
+\[
+\boxed{\;b_{n-1}\to b_{n-1}-\tfrac12\alpha,\qquad
+d_{n-1}\to d_{n-1}+\frac{\Delta t\,Q_b}{C}.\;}
+\]
+These are exactly the two edits in \code{src/lunar/solver.py} (rows 377--378):
+the imaginary cell never appears in the stored matrix.
+
+\section{The Thomas algorithm}\label{app:thomas}
+A tridiagonal system is Gaussian elimination with almost everything already zero.
+\emph{Forward sweep} (eliminate each sub-diagonal entry using the row above),
+\[
+c_0'=\frac{c_0}{b_0},\quad d_0'=\frac{d_0}{b_0};\qquad
+c_i'=\frac{c_i}{b_i-a_i c_{i-1}'},\quad
+d_i'=\frac{d_i-a_i d_{i-1}'}{b_i-a_i c_{i-1}'}\;\;(i\ge1).
+\]
+After it, each row reads $T_i+c_i' T_{i+1}=d_i'$. \emph{Back-substitution} from
+the bottom, where there is no $T_{i+1}$:
+\[
+T_{n-1}=d_{n-1}',\qquad T_i=d_i'-c_i'\,T_{i+1}\;\;(i=n{-}2,\dots,0).
+\]
+Each sweep touches every row a constant number of times, so the cost is
+$\sim$$8N$ operations --- $O(N)$, not the $\sim N^3/3$ of dense elimination. For
+$N=69$, a few hundred flops (\code{src/lunar/solver.py:133}, \code{\_thomas}).
+
+\section{Newton's method at the surface}\label{app:newton}
+Solving the surface balance (\S\ref{app:bc}) means finding the root of
+\[
+R(T_s)=(1-A)\,S(t)-\varepsilon\sigma T_s^4
+-K_{\rm surf}\,\frac{T_s-T_{\rm sub}}{\Delta z_{\rm surf}/2}.
+\]
+Its derivative is analytic,
+\[
+R'(T_s)=-4\varepsilon\sigma T_s^3-\frac{K_{\rm surf}}{\Delta z_{\rm surf}/2}
+=-4\varepsilon\sigma T_s^3-\frac{2K_{\rm surf}}{\Delta z_{\rm surf}}\;<0,
+\]
+strictly negative, so $R$ is monotone and has a unique root. Newton iterates
+$T_s\leftarrow T_s-R(T_s)/R'(T_s)$; near the root the error squares each step
+($e_{k+1}\approx\tfrac12|R''/R'|\,e_k^2$), so $2$--$3$ iterations reach
+$10^{-4}$\,K. It runs \emph{every} time step because the insolation $S(t)$ has
+moved (\code{src/lunar/solver.py:181}, \code{\_solve\_surface\_newton}).
+
+\section{The steady-state closure and the rectified flux}\label{app:closure}
+This completes the sketch of \S\ref{sec:closure}. Time-average the heat equation
+over one lunation. In periodic steady state the storage term averages to zero
+(every bit of day-warming is undone by night-cooling), so
+$\partial_z\langle K\partial_z T\rangle=0$; integrating once and applying the
+basal condition gives the flux identity $\langle K\partial_z T\rangle=Q_b$ at
+every depth. Now split each factor into its mean and fluctuation,
+$K=K(\Tm)+\delta K$ and $\partial_z T=\partial_z\Tm+\delta(\partial_z T)$. The
+cross-terms carrying a single fluctuation average to zero, leaving
+\[
+\langle K\,\partial_z T\rangle
+= K(\Tm)\,\partial_z\Tm \;+\; \underbrace{\langle \delta K\,\delta(\partial_z
+T)\rangle}_{\textstyle u_{\rm rect}}.
+\]
+Setting this equal to $Q_b$ and solving for the mean gradient,
+\[
+\boxed{\;\frac{d\Tm}{dz}=\frac{Q_b-u_{\rm rect}(z)}{K(\Tm,z)},\qquad
+u_{\rm rect}\equiv\langle K\,\partial_z T\rangle-K(\Tm)\,\partial_z\Tm.\;}
+\]
+The geothermal flux enters as $Q_b-u_{\rm rect}$ with this definition of
+$u_{\rm rect}$ --- exactly the convention computed in
+\code{src/lunar/equilibrium.py:79} (\code{\_rectified\_flux} returns
+$\langle K\,\partial_z T\rangle-K(\Tm)\partial_z\Tm$) and integrated in
+\code{:100} (\code{\_reconstruct\_subskin}, $q=Q_b-u_{\rm rect}$). This is
+Eq.~\eqref{eq:closure}.
+
+\emph{Why it is small.} Taylor-expand $\delta K\approx K'(\Tm)\,\delta T
++\tfrac12 K''(\Tm)\,\delta T^2$. The leading correlation
+$\langle\delta K\,\delta(\partial_z T)\rangle\approx
+K'(\Tm)\,\langle\delta T\,\delta(\partial_z T)\rangle$ scales with the square of
+the diurnal amplitude $\delta T$, so $u_{\rm rect}$ lives in the skin (a few
+percent of $Q_b$ at the anchor) and falls to numerical noise below $\sim$1\,m ---
+which is why the production anchor sits at $0.55$\,m (\S\ref{sec:twostage}).
+
+\section{RK2 reconstruction and its local error}\label{app:rk2}
+Step~B integrates $d\Tm/dz=f(\Tm,z)$ with $f=(Q_b-u_{\rm rect})/K(\Tm,z)$ by the
+midpoint rule. From cell $i$ over a step $h=\Delta z$:
+\[
+s_i=f(\Tm_i,z_i),\quad
+\Tm_{i+1/2}=\Tm_i+\tfrac{h}{2}s_i,\quad
+s_{i+1/2}=f(\Tm_{i+1/2},z_{i+1/2}),\quad
+\Tm_{i+1}=\Tm_i+h\,s_{i+1/2}.
+\]
+Taylor-expanding the true solution, $\Tm(z+h)=\Tm+h\Tm'+\tfrac12h^2\Tm''
++\tfrac16h^3\Tm'''+\dots$; evaluating the slope at the \emph{midpoint} reproduces
+the $h$ and $h^2$ terms, so the local truncation error is $O(h^3)$ --- one order
+better than forward Euler's $O(h^2)$. That is why the cell-by-cell walk of
+\S\ref{sec:stepB} is accurate to $\ll1$\,mK per cell at the production resolution
+(\code{src/lunar/equilibrium.py:100}).
+
+\section{Parabolic vertex refinement}\label{app:vertex}
+The RMSE bowl is locally quadratic, so fit a parabola through its three lowest
+points $(K^{(k)}{-}\Delta,y_-)$, $(K^{(k)},y_0)$, $(K^{(k)}{+}\Delta,y_+)$. Writing
+$y=A(K-K^{(k)})^2+B(K-K^{(k)})+y_0$, the three points give
+$B=(y_+-y_-)/2\Delta$ and $A=(y_+-2y_0+y_-)/2\Delta^2$. The vertex sits at
+$K-K^{(k)}=-B/2A$, i.e.
+\[
+\boxed{\;K_d^{*}=K^{(k)}+\frac{\Delta}{2}\,\frac{y_--y_+}{y_--2y_0+y_+},\;}
+\]
+which is Eq.~\eqref{eq:vertex} --- sub-grid precision with no extra solver runs
+(\code{pipeline/compute/retrieve\_kd.py}, \code{kd\_star\_from\_residuals}).
+
+\section{Statistics: bootstrap and quadrature, justified}\label{app:stats}
+\emph{The bootstrap plug-in principle.} The true distribution $F$ of the
+sensor noise is unknown, but the $N$ observed sensors are themselves a sample from
+$F$, so their empirical distribution $\widehat F$ is a consistent estimate of it.
+Drawing $N$ sensors with replacement from $\widehat F$ therefore mimics
+collecting a fresh dataset from $F$ without assuming any noise shape; re-fitting
+$K_d^{*}$ on each resample maps the sensor scatter into the sampling distribution
+of $K_d^{*}$, whose $2.5$--$97.5$ percentiles are a distribution-free CI
+(\S\,Step~9).
+
+\emph{Why systematics add in quadrature.} If $K_d^{*}$ depends on independent
+inputs $x_j$ (basal flux, albedo, $K_s$, \ldots) each with a small error
+$\delta x_j$, linearise: $\delta K_d^{*}=\sum_j(\partial K_d^{*}/\partial x_j)\,
+\delta x_j$. The variance of a sum of \emph{independent} zero-mean terms is the
+sum of their variances --- every cross-term $\langle\delta x_j\,\delta
+x_k\rangle$ vanishes for $j\neq k$ --- so
+\[
+\boxed{\;\sigma_{\rm tot}^2=\sum_j\Big(\frac{\partial K_d^{*}}{\partial x_j}\Big)^2
+\sigma_j^2=\sum_j\sigma_j^2,\;}
+\]
+the quadrature sum the error-budget table of \S\ref{sec:resultstats} reports
+(\code{pipeline/compute/compute\_error\_budget.py}). Independence is the
+assumption that earns the square-root; correlated inputs would need cross-terms.
 
 % ================= REFERENCES =================
 \chapter*{References}

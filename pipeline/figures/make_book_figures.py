@@ -204,7 +204,10 @@ def fig_f1_bug_schematic():
              title="(a)  Apparent convergence is the wrong diagnostic")
     axA.set_xlim(1, 1000)
     axA.set_ylim(8e-4, 70)
-    axA.legend(fontsize=FS_LEGEND - 1, loc="upper right",
+    # Park the legend in the empty mid-band (between the flat teal line and the
+    # declining coral line) so its opaque box never covers a curve.
+    axA.legend(fontsize=FS_LEGEND - 1, loc="center left",
+               bbox_to_anchor=(0.30, 0.40),
                frameon=True, framealpha=0.97, edgecolor=C_GRID)
 
     z = np.linspace(0, 2.5, 300)
@@ -212,9 +215,9 @@ def fig_f1_bug_schematic():
     old_240 = true - 12.0 * (1 - np.exp(-z / 0.45))
     old_260 = true + 10.0 * (1 - np.exp(-z / 0.45))
     fixed = true + 0.025 * np.sin(4 * z)
-    axB.plot(old_240, z, color=C_CORAL, lw=1.8, alpha=0.85,
+    axB.plot(old_240, z, color=C_CORAL, lw=1.8,
              label="30-lunation from 240 K")
-    axB.plot(old_260, z, color=C_CORAL, lw=1.8, alpha=0.55,
+    axB.plot(old_260, z, color=C_CORAL, lw=1.8, ls=(0, (5, 2)),
              label="30-lunation from 260 K")
     axB.plot(fixed, z, color=C_TEAL, lw=2.4,
              label="flux-anchored fix")

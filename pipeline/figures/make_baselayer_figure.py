@@ -57,40 +57,38 @@ def main():
     z_d = np.array(d["depth_cm_all"])[mask] / 100.0
     T_d = np.array(d["T_eq_all"])[mask]; T_e = np.array(d["T_std_all"])[mask]
 
-    fig, ax = plt.subplots(figsize=(7.0, 5.6))
-    ax.axhspan(0.8, 2.4, color=C_DIM, alpha=0.10, zorder=0, label="Apollo deep-sensor band")
-    ax.plot(T_norock, z, "-", color=C_A15, lw=2.8, label="without bedrock (this study)")
-    ax.plot(T_rock, z, "-", color=C_HAYNE, lw=2.8, label="with bedrock base below 5 m")
-    ax.plot(T_q0, z, ":", color=C_DIM, lw=2.0, label=r"$Q_b=0$ (no internal heat)")
-    ax.errorbar(T_d, z_d, xerr=T_e, fmt="o", color=C_A17, ms=7, capsize=3, lw=1.2,
-                zorder=6, label="Apollo 15 deep sensors")
-    ax.axhline(ZBASE, color=C_A17, lw=1.0, ls="--", alpha=0.7)
-    ax.text(250.4, ZBASE - 0.12, "regolith / bedrock interface", color=C_A17,
-            fontsize=8.5, va="bottom", ha="left")
-    ax.annotate(r"$d\langle T\rangle/dz=Q_b/K\approx2.3$ K/m" + "\n(real geothermal gradient)",
-                xy=(T_norock[np.argmin(abs(z - 9))], 9), xytext=(252.6, 11.0),
-                fontsize=9, color=C_A15, arrowprops=dict(arrowstyle="->", color=C_A15, lw=0.9))
-    ax.annotate("bedrock $K$ ~200x higher\n" + r"$\to$ gradient ~vanishes",
-                xy=(T_rock[np.argmin(abs(z - 8))], 8), xytext=(265, 6.3),
-                fontsize=9, color=C_HAYNE, arrowprops=dict(arrowstyle="->", color=C_HAYNE, lw=0.9))
-    ax.invert_yaxis(); ax.set_xlim(250, 282); ax.set_ylim(12, 0)
-    ax.set_xlabel("cycle-mean temperature  [K]"); ax.set_ylabel("depth  [m]")
-    ax.set_title("With vs without a bedrock base layer  (Apollo 15)",
-                 loc="left", fontsize=12, color=C_CHAR, fontweight="bold")
-    ax.legend(loc="lower right", fontsize=8.5, frameon=True, edgecolor=C_GRID, framealpha=0.97)
-    ax.grid(alpha=0.18)
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(10.0, 4.8),
+                                   gridspec_kw=dict(wspace=0.26))
 
-    axi = ax.inset_axes([0.55, 0.55, 0.42, 0.40])
-    axi.axhspan(0.8, 2.4, color=C_DIM, alpha=0.10)
-    axi.plot(T_norock, z, "-", color=C_A15, lw=2.4)
-    axi.plot(T_rock, z, "-", color=C_HAYNE, lw=2.0, ls=(0, (4, 2)))
-    axi.errorbar(T_d, z_d, xerr=T_e, fmt="o", color=C_A17, ms=5, capsize=2, lw=1.0, zorder=6)
-    axi.invert_yaxis(); axi.set_xlim(250, 255.5); axi.set_ylim(2.5, 0.4)
-    axi.tick_params(labelsize=7)
-    axi.set_title("where the data is:\nidentical, both fit", fontsize=8, color=C_CHAR, pad=2)
-    for s in axi.spines.values(): s.set_edgecolor(C_DIM)
+    # LEFT — the data region: the two models lie on top of each other
+    axL.axhspan(0.8, 2.4, color=C_DIM, alpha=0.12, zorder=0)
+    axL.plot(T_norock, z, "-", color=C_A15, lw=3.0, label="without bedrock")
+    axL.plot(T_rock, z, "--", color=C_HAYNE, lw=2.2, label="with bedrock")
+    axL.errorbar(T_d, z_d, xerr=T_e, fmt="o", color=C_A17, ms=9, capsize=3, lw=1.4,
+                 zorder=6, label="Apollo 15 sensors")
+    axL.invert_yaxis(); axL.set_xlim(250, 256); axL.set_ylim(2.6, 0)
+    axL.set_xlabel("temperature  [K]"); axL.set_ylabel("depth  [m]")
+    axL.set_title("Where the data is (0–2.4 m):\nthe two models are identical",
+                  loc="left", fontsize=12, color=C_CHAR, fontweight="bold")
+    axL.legend(loc="lower left", fontsize=10, frameon=False)
+    axL.grid(alpha=0.2)
 
-    fig.tight_layout()
+    # RIGHT — the full column: they part only below the bedrock
+    axR.axhspan(0.8, 2.4, color=C_DIM, alpha=0.12, zorder=0, label="Apollo sensor depths")
+    axR.plot(T_norock, z, "-", color=C_A15, lw=3.0, label="without bedrock (this study)")
+    axR.plot(T_rock, z, "-", color=C_HAYNE, lw=3.0, label="with bedrock below 5 m")
+    axR.axhline(ZBASE, color=C_DIM, lw=1.2, ls="--")
+    axR.text(250.5, ZBASE - 0.2, "bedrock base (5 m)", color=C_DIM, fontsize=9, ha="left", va="bottom")
+    axR.invert_yaxis(); axR.set_xlim(250, 282); axR.set_ylim(12, 0)
+    axR.set_xlabel("temperature  [K]")
+    axR.set_title("The whole column (0–12 m):\nthey differ only below the sensors",
+                  loc="left", fontsize=12, color=C_CHAR, fontweight="bold")
+    axR.legend(loc="upper right", fontsize=9.5, frameon=True, edgecolor=C_GRID, framealpha=0.97)
+    axR.grid(alpha=0.2)
+
+    fig.suptitle("With or without bedrock, the retrieved $K_d$ is the same — the sensors never reach it",
+                 fontsize=13, color=C_CHAR, fontweight="bold", y=1.0)
+    fig.tight_layout(rect=[0, 0, 1, 0.93])
     out = FIG / "fig_baselayer.pdf"
     fig.savefig(out, bbox_inches="tight"); plt.close(fig)
     print(f"  -> {out.relative_to(_REPO)}  "

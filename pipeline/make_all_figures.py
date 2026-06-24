@@ -33,6 +33,7 @@ JOBS = [
     ("make_equilibrium_certification", ["main"]),
     ("make_anchor_convergence",  ["main"]),   # flux-anchored convergence trace (real history)
     ("make_speedup_figure",      ["main"]),    # measured wall-clock speed-up
+    ("make_baselayer_figure",    ["main"]),    # with/without bedrock base layer
     ("make_equilibrium_demo",    ["main"]),   # guess-independence proof
     ("make_justification_figures", ["main"]), # convergence vs lunations, F1 bug
     ("make_codeguide_figures",  ["main"]),    # docs/guidebook diagrams

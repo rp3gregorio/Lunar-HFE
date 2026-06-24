@@ -1497,7 +1497,8 @@ and $T$ rising with depth, $\partial_z T>0$.
 
 \emph{Why the deep profile keeps rising, and what a base layer would change.}
 Because the bottom condition fixes a \emph{flux} and not a temperature, the
-cycle-mean profile does not approach a single deep value. In steady state
+cycle-mean profile does not approach a single deep value (Fig.~\ref{fig:baselayer}).
+In steady state
 $d\langle T\rangle/dz = Q_b/K$ (\S\ref{sec:closure}), so a constant geothermal
 flux through a roughly constant deep conductivity makes the temperature rise
 almost linearly with depth --- the geothermal gradient, $\sim$2--3\,K\,m$^{-1}$
@@ -1512,6 +1513,22 @@ base, so adding a base layer changes the profile only \emph{below the data} and
 leaves the retrieved $K_d$ unchanged. This is also why the model imposes a
 fixed-flux bottom rather than a fixed-temperature one: $Q_b$ is the measured
 quantity, and no sensor reaches bedrock.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.78\linewidth]{figures/fig_baselayer.pdf}
+\caption{With vs without a bedrock base layer, integrating the steady-state
+closure $d\langle T\rangle/dz=Q_b/K$ down from the Apollo~15 anchor.
+\emph{Without bedrock} (green, this study) the profile rises almost linearly at
+the geothermal gradient $Q_b/K\approx2.3$\,K\,m$^{-1}$ and never settles.
+\emph{With a bedrock base} below $5$\,m (teal) the conductivity jumps
+$\sim$200$\times$, the gradient nearly vanishes, and the profile flattens toward
+a constant; $Q_b=0$ (dotted) would make it isothermal. The seven Apollo~15 deep
+sensors (with $1\sigma$ bars) lie at $0.8$--$1.4$\,m, entirely within the
+regolith, where the two models are identical and fit the data equally
+(inset) --- so a base layer changes only the profile \emph{below the data} and
+leaves $K_d$ unchanged.}
+\label{fig:baselayer}
+\end{figure}
 
 \bigskip
 \noindent\textbf{\textsf{\color{forest} Part II --- the numerical method}}

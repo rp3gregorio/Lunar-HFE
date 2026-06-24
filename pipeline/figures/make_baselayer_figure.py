@@ -49,7 +49,7 @@ def _integrate(z, base, qb=Qb):
 
 
 def main():
-    z = np.linspace(0.55, 12.0, 1500)
+    z = np.linspace(0.55, 20.0, 2200)
     T_norock, T_rock, T_q0 = _integrate(z, False), _integrate(z, True), _integrate(z, False, 0.0)
 
     d = extract_sensor_stability(SITE["mission"], SITE["MIN_DEPTH_CM"])
@@ -73,15 +73,22 @@ def main():
     axL.legend(loc="lower left", fontsize=10, frameon=False)
     axL.grid(alpha=0.2)
 
-    # RIGHT — the full column: they part only below the bedrock
-    axR.axhspan(0.8, 2.4, color=C_DIM, alpha=0.12, zorder=0, label="Apollo sensor depths")
-    axR.plot(T_norock, z, "-", color=C_A15, lw=3.0, label="without bedrock (this study)")
-    axR.plot(T_rock, z, "-", color=C_HAYNE, lw=3.0, label="with bedrock below 5 m")
-    axR.axhline(ZBASE, color=C_DIM, lw=1.2, ls="--")
-    axR.text(250.5, ZBASE - 0.2, "bedrock base (5 m)", color=C_DIM, fontsize=9, ha="left", va="bottom")
-    axR.invert_yaxis(); axR.set_xlim(250, 282); axR.set_ylim(12, 0)
+    # RIGHT — the realistic two-layer column (regolith on bedrock), to 20 m
+    axR.axhspan(0.0, ZBASE, color=C_A15, alpha=0.06, zorder=0)        # regolith layer
+    axR.axhspan(ZBASE, 20, color=C_HAYNE, alpha=0.07, zorder=0)       # bedrock layer
+    axR.axhspan(0.8, 2.4, color=C_DIM, alpha=0.16, zorder=0, label="Apollo sensors")
+    axR.plot(T_norock, z, "-", color=C_A15, lw=3.0, label="no bedrock (regolith only)")
+    axR.plot(T_rock, z, "-", color=C_HAYNE, lw=3.0, label="with bedrock (realistic)")
+    axR.axhline(ZBASE, color=C_CHAR, lw=1.0, ls="--")
+    axR.text(250.6, ZBASE - 0.4, "regolith (~5 m)", color=C_A15, fontsize=9.5,
+             ha="left", va="bottom", fontweight="bold")
+    axR.text(250.6, ZBASE + 0.4, "bedrock (solid rock)", color=C_HAYNE, fontsize=9.5,
+             ha="left", va="top", fontweight="bold")
+    axR.text(263.5, 18.3, "nearly flat in the rock\n(on to the deep interior)",
+             color=C_HAYNE, fontsize=9, ha="left", va="center")
+    axR.invert_yaxis(); axR.set_xlim(250, 292); axR.set_ylim(20, 0)
     axR.set_xlabel("temperature  [K]")
-    axR.set_title("The whole column (0–12 m):\nthey differ only below the sensors",
+    axR.set_title("The realistic column (0–20 m):\nthin regolith on deep bedrock",
                   loc="left", fontsize=12, color=C_CHAR, fontweight="bold")
     axR.legend(loc="upper right", fontsize=9.5, frameon=True, edgecolor=C_GRID, framealpha=0.97)
     axR.grid(alpha=0.2)

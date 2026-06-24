@@ -395,8 +395,12 @@ and by the fixed geothermal flux at the bottom (Langseth 1976),
 K\,\frac{\partial T}{\partial z}\bigg|_{z_{\max}} \;=\; Q_b.
 \label{eq:bottombc}
 \end{equation}
-Both boundary conditions are derived in App.~\ref{app:bc}. No closed-form
-solution exists when $K$ depends on both $T$ and $z$, so we discretise: a
+Both boundary conditions are derived in App.~\ref{app:bc}. Fixing the basal
+\emph{flux} (not a temperature) means the deep profile keeps rising at the
+geothermal gradient $Q_b/K$ rather than approaching a single value --- physical,
+not a drift; a bedrock base layer would flatten it only below the sensors and
+would not change $K_d$ (App.~\ref{app:bc}). No closed-form solution exists when
+$K$ depends on both $T$ and $z$, so we discretise: a
 \emph{geometric} depth grid ($\Delta z_0=2$\,mm at the surface, each cell 8\%
 thicker, 69 cells to $z_{\max}=5$\,m) and hourly time steps ($\Delta t=3600$\,s,
 $\sim$709 per lunation). The grid follows one rule of thumb --- fine cells where
@@ -1490,6 +1494,24 @@ law then fixes the \emph{gradient} rather than the temperature:
 \]
 This Neumann condition is Eq.~\eqref{eq:bottombc}; with $z$ increasing downward
 and $T$ rising with depth, $\partial_z T>0$.
+
+\emph{Why the deep profile keeps rising, and what a base layer would change.}
+Because the bottom condition fixes a \emph{flux} and not a temperature, the
+cycle-mean profile does not approach a single deep value. In steady state
+$d\langle T\rangle/dz = Q_b/K$ (\S\ref{sec:closure}), so a constant geothermal
+flux through a roughly constant deep conductivity makes the temperature rise
+almost linearly with depth --- the geothermal gradient, $\sim$2--3\,K\,m$^{-1}$
+here. That continued rise is \emph{physical} (the Moon loses internal heat
+through the column), not a numerical drift, and it is why a profile plotted to a
+few metres still ``drifts'' rather than levelling off. The profile would flatten
+toward a near-constant only beneath a high-conductivity \emph{bedrock base},
+where $K$ is $\sim$100$\times$ larger so the gradient $Q_b/K$ nearly vanishes
+(or trivially if $Q_b=0$, i.e.\ no internal heat). But the Apollo deep sensors
+sit at $0.8$--$2.4$\,m, entirely within the regolith and far above any such
+base, so adding a base layer changes the profile only \emph{below the data} and
+leaves the retrieved $K_d$ unchanged. This is also why the model imposes a
+fixed-flux bottom rather than a fixed-temperature one: $Q_b$ is the measured
+quantity, and no sensor reaches bedrock.
 
 \bigskip
 \noindent\textbf{\textsf{\color{forest} Part II --- the numerical method}}

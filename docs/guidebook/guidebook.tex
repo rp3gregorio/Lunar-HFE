@@ -1098,12 +1098,14 @@ solve on the fast skin --- which genuinely needs time-stepping --- and
 time-step what is fast; you solve what is slow.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth]{figures/spinup_filmstrip.pdf}
-\caption{Brute-force spin-up as snapshots. Green = current profile, dashed = true
-steady state, shaded = daily swing. At 30 lunations only the top $\sim$0.5\,m has
-moved; the deep column still sits at the starting guess, and only converges after
-\emph{hundreds} of lunations. This is the slow part the slope method refuses to
-wait for.}
+\includegraphics[width=\linewidth]{figures/old_vs_new_filmstrip.pdf}
+\caption{The two routes to steady state, as snapshots (real solver output).
+\emph{Left two panels --- old:} brute force has barely moved the deep column at
+30 lunations and is still creeping at $\sim$1000. \emph{Right four panels ---
+new:} a short run settles the skin, the anchor is dropped at $z_0=0.55$\,m, the
+closure slope is walked downward to fill the deep column, and the solve is
+converged in $\sim$9\,s. An animated version (\code{docs/guidebook/old\_vs\_new.gif})
+is available for talks.}
 \label{fig:spinfilm}
 \end{figure}
 

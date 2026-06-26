@@ -204,10 +204,11 @@ def fig_f1_bug_schematic():
              title="(a)  Apparent convergence is the wrong diagnostic")
     axA.set_xlim(1, 1000)
     axA.set_ylim(8e-4, 70)
-    # Park the legend in the empty mid-band (between the flat teal line and the
-    # declining coral line) so its opaque box never covers a curve.
-    axA.legend(fontsize=FS_LEGEND - 1, loc="center left",
-               bbox_to_anchor=(0.30, 0.40),
+    # Park the legend in the empty right-centre band: the coral curve stays
+    # above y~0.7 on the right while the dashed tolerance and flat teal sit at
+    # y<0.25, so the box covers no line.
+    axA.legend(fontsize=FS_LEGEND - 1, loc="center right",
+               bbox_to_anchor=(0.99, 0.47),
                frameon=True, framealpha=0.97, edgecolor=C_GRID)
 
     z = np.linspace(0, 2.5, 300)
@@ -229,7 +230,11 @@ def fig_f1_bug_schematic():
     fmt_axis(axB, xlabel="cycle-mean temperature  [K]",
              ylabel="depth  [m]",
              title="(b)  The deep profile has not arrived")
-    axB.legend(fontsize=FS_LEGEND - 1.6, loc="lower right",
+    # Panel (b) is crowded edge to edge (old_240 hugs the left, old_260 the
+    # right, the fixed/true bundle the centre), so there is no in-axes pocket
+    # large enough for five entries -- put the legend below the axes instead.
+    axB.legend(fontsize=FS_LEGEND - 1.6, loc="upper center",
+               bbox_to_anchor=(0.5, -0.18), ncol=2,
                frameon=True, framealpha=0.97, edgecolor=C_GRID)
     fig.savefig(OUT / "fig_book_f1_bug.pdf", bbox_inches="tight")
     plt.close(fig)

@@ -32,6 +32,7 @@ JOBS = [
     ("make_primer_figures",     ["main"]),
     ("make_equilibrium_certification", ["main"]),
     ("make_anchor_convergence",  ["main"]),   # flux-anchored convergence trace (real history)
+    ("make_reconstruct_animation", ["filmstrip"]),  # Step-B slope-walk filmstrip (guidebook still)
     ("make_speedup_figure",      ["main"]),    # measured wall-clock speed-up
     ("make_baselayer_figure",    ["main"]),    # with/without bedrock base layer
     ("make_equilibrium_demo",    ["main"]),   # guess-independence proof

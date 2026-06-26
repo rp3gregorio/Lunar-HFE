@@ -13,9 +13,10 @@
   bandlabel/.style={font=\sffamily\bfseries\scriptsize\color{forest},
                     anchor=west},
   arr/.style={-{Stealth[length=2mm]}, line width=0.6pt},
-  % thin dashed arrow for "this input enters that equation"
-  fed/.style={-{Stealth[length=1.6mm]}, line width=0.3pt,
-              dash pattern=on 1.5pt off 1.5pt, color=dim}
+  % dashed feed: "this input enters that equation"; routed in the margins so
+  % it never crosses a box. Slightly heavier than before so the flow is traceable.
+  fed/.style={-{Stealth[length=1.8mm]}, line width=0.45pt,
+              dash pattern=on 2pt off 1.6pt, color=teal!75!dim}
 ]
 % ---------- LEVEL 1: INPUTS ----------
 \node[bandlabel] (L1) at (-78mm, 0) {INPUTS \;\textnormal{\color{dim}\itshape (knobs and data)}};
@@ -99,15 +100,16 @@
   -- ($(pde.north east)+(-3mm,0)$);
 \draw[arr] (bcB.south) -- ++(0,-2mm) -| ($(pde.north)+(40mm,0)$);
 
-% ---------- INPUT -> EQUATION arrows (thin, gray, dashed) ----------
-% Show explicitly which input feeds which constitutive/BC/PDE box.
-\draw[fed] (in3.south) -- ++(0,-2mm) -| ($(eqKc.north)+(5mm,0)$);   % K_d -> Kc
-\draw[fed] (in2.south) -- ++(0,-2mm) -| ($(eqKc.north)+(-5mm,0)$);  % Hayne -> Kc
-\draw[fed] (in2.south) -- ++(0,-2mm) -| ($(eqK.north west)+(8mm,0)$);% Hayne -> K(T,z) (chi, T_ref)
-\draw[fed] (in5.south) -- ++(0,-2mm) -| (bcS.north);                 % S,A,eps -> surf BC
-\draw[fed] (in4.south) -- ++(0,-2mm) -| ($(bcB.north)+(-8mm,0)$);    % Q_b -> basal BC
-\draw[fed] (in6.south) -- ++(0,-2mm) -|
-           ($(pde.north east)+(-25mm,0)$);                           % rho, c_p -> PDE
+% ---------- INPUT -> EQUATION feeds ----------
+% Routed in the top and side margins so a feed line never crosses a box (the
+% earlier straight drops cut through the second input row). Left targets exit
+% over the top and come down the left margin; right targets run out to the
+% right margin. Staggered so the parallel runs do not overlap.
+\draw[fed] (in3.north) -- ++(0,5mm)   -| ($(eqKc.west)+(-8mm,0)$)  -- (eqKc.west);  % K_d   -> contact conductivity
+\draw[fed] (in2.north) -- ++(0,9mm)   -| ($(eqK.west)+(-12mm,0)$)  -- (eqK.west);   % Hayne -> K(T,z)
+\draw[fed] (in5.south) -- ++(0,-2mm)  -| ($(bcS.east)+(26mm,0)$)   -- (bcS.east);   % S,A,eps -> surface BC
+\draw[fed] (in4.south) -- ++(0,-6mm)  -| ($(bcB.east)+(30mm,0)$)   -- (bcB.east);   % Q_b   -> basal BC
+\draw[fed] (in6.south) -- ++(0,-2mm)  -| ($(pde.east)+(8mm,0)$)    -- (pde.east);   % rho,cp -> heat equation
 
 % ---------- LEVEL 5: RETRIEVAL ----------
 \node[bandlabel, below=4mm of pde.south west, anchor=north west] (L5)

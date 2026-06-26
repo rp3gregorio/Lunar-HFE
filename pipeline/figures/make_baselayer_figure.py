@@ -49,58 +49,62 @@ def _integrate(z, base, qb=Qb):
 
 
 def main():
-    z = np.linspace(0.55, 20.0, 2200)
-    T_norock, T_rock, T_q0 = _integrate(z, False), _integrate(z, True), _integrate(z, False, 0.0)
+    # one column to 8 m: the two models are the SAME line until the bedrock,
+    # then fork -- the whole argument in a single view.
+    z = np.linspace(0.55, 8.0, 1600)
+    T_norock, T_rock = _integrate(z, False), _integrate(z, True)
 
     d = extract_sensor_stability(SITE["mission"], SITE["MIN_DEPTH_CM"])
     mask = np.array(d["deep_mask"])
     z_d = np.array(d["depth_cm_all"])[mask] / 100.0
     T_d = np.array(d["T_eq_all"])[mask]; T_e = np.array(d["T_std_all"])[mask]
+    z_deep = float(z_d.max())                          # deepest sensor (~1.39 m)
+    T_fork = float(np.interp(ZBASE, z, T_norock))      # where the two models split
 
-    fig, (axL, axR) = plt.subplots(1, 2, figsize=(10.0, 4.8),
-                                   gridspec_kw=dict(wspace=0.26))
+    fig, ax = plt.subplots(figsize=(JGR_HALF, 5.4))
+    # the two layers, with the interface line
+    ax.axhspan(0.0, ZBASE, color=C_A15, alpha=0.06, zorder=0)
+    ax.axhspan(ZBASE, 8.0, color=C_HAYNE, alpha=0.08, zorder=0)
+    ax.axhline(ZBASE, color=C_CHAR, lw=1.0, ls="--", zorder=1)
 
-    # LEFT — the data region: the two models lie on top of each other
-    axL.axhspan(0.8, 2.4, color=C_DIM, alpha=0.12, zorder=0)
-    axL.plot(T_norock, z, "-", color=C_A15, lw=3.0, label="without bedrock")
-    axL.plot(T_rock, z, "--", color=C_HAYNE, lw=2.2, label="with bedrock")
-    axL.errorbar(T_d, z_d, xerr=T_e, fmt="o", color=C_A17, ms=9, capsize=3, lw=1.4,
-                 zorder=6, label="Apollo 15 sensors")
-    axL.invert_yaxis(); axL.set_xlim(250, 256); axL.set_ylim(2.6, 0)
-    axL.set_xlabel("temperature  [K]"); axL.set_ylabel("depth  [m]")
-    axL.set_title("Where the data is (0–2.4 m):\nthe two models are identical",
-                  loc="left", fontsize=12, color=C_CHAR, fontweight="bold")
-    axL.legend(loc="lower left", fontsize=10, frameon=False)
-    axL.grid(alpha=0.2)
+    # the two models: ONE line through every sensor, forking only at the bedrock
+    ax.plot(T_norock, z, "-", color=C_A15, lw=3.2, zorder=3,
+            label="regolith only (no bedrock)")
+    ax.plot(T_rock, z, "-", color=C_HAYNE, lw=3.2, zorder=3,
+            label="with bedrock below 5 m")
+    ax.errorbar(T_d, z_d, xerr=T_e, fmt="o", color=C_A17, ms=8, capsize=3, lw=1.3,
+                zorder=6, label="Apollo 15 sensors")
+    # mark the depth span the sensors actually occupy, against the 5 m fork
+    ax.annotate("", xy=(250.5, ZBASE), xytext=(250.5, z_deep),
+                arrowprops=dict(arrowstyle="<->", color=C_CHAR, lw=1.2))
+    ax.text(250.8, 0.5 * (z_deep + ZBASE), f"{ZBASE - z_deep:.1f} m\nof regolith,\nno sensor",
+            color=C_CHAR, fontsize=8, ha="left", va="center")
 
-    # RIGHT — the realistic two-layer column (regolith on bedrock), to 20 m
-    axR.axhspan(0.0, ZBASE, color=C_A15, alpha=0.06, zorder=0)        # regolith layer
-    axR.axhspan(ZBASE, 20, color=C_HAYNE, alpha=0.07, zorder=0)       # bedrock layer
-    axR.axhspan(0.8, 2.4, color=C_DIM, alpha=0.16, zorder=0, label="Apollo sensors")
-    axR.plot(T_norock, z, "-", color=C_A15, lw=3.0, label="no bedrock (regolith only)")
-    axR.plot(T_rock, z, "-", color=C_HAYNE, lw=3.0, label="with bedrock (realistic)")
-    axR.axhline(ZBASE, color=C_CHAR, lw=1.0, ls="--")
-    axR.text(250.6, ZBASE - 0.4, "regolith (~5 m)", color=C_A15, fontsize=9.5,
-             ha="left", va="bottom", fontweight="bold")
-    axR.text(250.6, ZBASE + 0.4, "bedrock (solid rock)", color=C_HAYNE, fontsize=9.5,
-             ha="left", va="top", fontweight="bold")
-    axR.text(263.5, 18.3, "nearly flat in the rock\n(on to the deep interior)",
-             color=C_HAYNE, fontsize=9, ha="left", va="center")
-    axR.invert_yaxis(); axR.set_xlim(250, 292); axR.set_ylim(20, 0)
-    axR.set_xlabel("temperature  [K]")
-    axR.set_title("The realistic column (0–20 m):\nthin regolith on deep bedrock",
-                  loc="left", fontsize=12, color=C_CHAR, fontweight="bold")
-    axR.legend(loc="upper right", fontsize=9.5, frameon=True, edgecolor=C_GRID, framealpha=0.97)
-    axR.grid(alpha=0.2)
+    # layer tags (far left, short -> clear of the diagonal curve)
+    ax.text(250.4, 0.5, "regolith", color=C_A15, fontsize=9.5, ha="left",
+            va="center", fontweight="bold")
+    ax.text(254.5, 7.3, "bedrock", color=C_HAYNE, fontsize=9.5, ha="left",
+            va="center", fontweight="bold")
 
-    fig.suptitle("With or without bedrock, the retrieved $K_d$ is the same — the sensors never reach it",
-                 fontsize=13, color=C_CHAR, fontweight="bold", y=1.0)
-    fig.tight_layout(rect=[0, 0, 1, 0.93])
+    # the single load-bearing annotation: they fork only at the bedrock
+    ax.annotate("the two models split\nonly here — at the\nbedrock, far below\nevery sensor",
+                xy=(T_fork, ZBASE), xytext=(250.6, 6.7),
+                fontsize=8.5, color=C_CHAR, ha="left", va="center",
+                arrowprops=dict(arrowstyle="->", color=C_CHAR, lw=1.0))
+
+    ax.invert_yaxis(); ax.set_xlim(250, 271); ax.set_ylim(8.0, 0)
+    ax.set_xlabel("temperature  [K]"); ax.set_ylabel("depth  [m]")
+    ax.set_title("A bedrock layer can't change $K_d$:\n"
+                 "the models are one line through every sensor",
+                 loc="left", fontsize=12, color=C_CHAR, fontweight="bold")
+    ax.legend(loc="upper right", fontsize=9, frameon=True, edgecolor=C_GRID, framealpha=0.97)
+    ax.grid(alpha=0.2)
+    fig.tight_layout()
     out = FIG / "fig_baselayer.pdf"
     fig.savefig(out, bbox_inches="tight"); plt.close(fig)
     print(f"  -> {out.relative_to(_REPO)}  "
-          f"(T at 12 m: {T_norock[-1]:.1f} K without vs {T_rock[-1]:.1f} K with bedrock; "
-          f"{len(z_d)} deep sensors)")
+          f"(fork at {T_fork:.1f} K, 5 m; T at 8 m: {T_norock[-1]:.1f} K regolith vs "
+          f"{T_rock[-1]:.1f} K bedrock; deepest sensor {z_deep:.2f} m; {len(z_d)} sensors)")
 
 
 if __name__ == "__main__":

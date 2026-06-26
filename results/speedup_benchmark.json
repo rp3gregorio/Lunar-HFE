@@ -1,0 +1,23 @@
+{
+  "t_anchored_s": 6.91,
+  "anchored_runs_s": [
+    6.82,
+    6.91,
+    6.93
+  ],
+  "brute_ms_per_lun": 81.6,
+  "brute_points_s": {
+    "100": 7.97,
+    "300": 24.3
+  },
+  "N_converge_lun": 3000,
+  "t_brute_s": 244.9,
+  "speedup_per_solve": 35.4,
+  "N_solves": 56,
+  "sweep_anchored_min": 6.5,
+  "sweep_brute_h": 3.81,
+  "njit_on_ms_per_lun": 83.2,
+  "njit_off_ms_per_lun": 128.0,
+  "njit_speedup": 1.5,
+  "note_njit": "only _thomas and _face_harmonic_mean are @njit; rest of _step is vectorized NumPy"
+}

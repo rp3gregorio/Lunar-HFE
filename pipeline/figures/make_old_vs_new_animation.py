@@ -6,12 +6,12 @@ Two persistent panels (all curves real solver output):
   LEFT  -- brute-force spin-up crawling down (~1000 lunations, still drifting);
   RIGHT -- Step A settles the skin, the anchor drops at z0 = 0.55 m, then the
            closure slope (Q_b - u_rect)/K is walked downward to fill the deep
-           column; converged in ~9 cycles, ~9 s.
+           column; converged in ~10 cycles, ~6.9 s.
 
 Each panel carries a zoomed deep inset (0.5-2.5 m, T ~ 248-260 K) with a live
 deep-error gauge, so the ~1 K gap that brute force still has at 1000 lunations
 is visible (it looks converged at full scale -- the F1 trap). A wall-clock bar
-shows the measured ~80x (one solve: ~700 s brute vs ~9 s flux-anchored).
+shows the measured ~35x (one solve: ~245 s brute vs ~6.9 s flux-anchored).
 
 Outputs:
   docs/guidebook/old_vs_new.gif                 -- the animation (talks/web)
@@ -48,8 +48,8 @@ Z0 = 0.55; ZMAX = 3.0; PROBE_Z = 1.0
 TLIM = (150, 320)
 ZOOM_Z = (2.5, 0.45)          # inverted (top=0.45 m, bottom=2.5 m)
 ZOOM_T = (248, 260)
-SEC_PER_LUN = 0.23            # measured; guidebook S3.13
-T_BRUTE_FULL = 700.0          # one brute solve to convergence (~3000 lun)
+SEC_PER_LUN = 0.082           # measured (bench_speedup.py); guidebook S3.13
+T_BRUTE_FULL = 245.0          # one brute solve to convergence (~3000 lun, measured)
 T_ANCHORED = 9.0
 
 
@@ -113,21 +113,21 @@ def main():
         cap = "Old way: brute-force spin-up -- the skin snaps fast, the deep column crawls"
         specs.append(dict(act=1, old=fr, new=("start", None), pulse=0,
                           old_t=fr["lun"] * SEC_PER_LUN, new_t=0.0, cap=cap))
-    specs += [dict(act=2, old=OLD_FINAL, new=("settle", None), pulse=0, old_t=230, new_t=3.0,
+    specs += [dict(act=2, old=OLD_FINAL, new=("settle", None), pulse=0, old_t=245, new_t=3.0,
                    cap="New way - Step A: a short run (~12 lunations) settles the fast surface skin")] * 6
     for j in range(12):
-        specs.append(dict(act=2, old=OLD_FINAL, new=("anchor", None), pulse=min(j, 6), old_t=230, new_t=4.0,
+        specs.append(dict(act=2, old=OLD_FINAL, new=("anchor", None), pulse=min(j, 6), old_t=245, new_t=4.0,
                           cap="Drop the anchor at z = 0.55 m -- its cycle-mean temperature is known"))
     for wi, k in enumerate(walk_cells):
         specs.append(dict(act=2, old=OLD_FINAL, new=("walk", k), pulse=6,
-                          old_t=230, new_t=4.0 + 4.0 * wi / max(len(walk_cells) - 1, 1),
+                          old_t=245, new_t=4.0 + 2.0 * wi / max(len(walk_cells) - 1, 1),
                           cap="Step B: walk the closure slope (Q_b - u_rect)/K downward -- the deep column draws itself"))
-    specs += [dict(act=2, old=OLD_FINAL, new=("walk", walk_cells[-1]), pulse=6, old_t=230, new_t=8.0,
+    specs += [dict(act=2, old=OLD_FINAL, new=("walk", walk_cells[-1]), pulse=6, old_t=245, new_t=6.0,
                    cap="Step B: walk the closure slope (Q_b - u_rect)/K downward -- the deep column draws itself")] * 3
-    specs += [dict(act=2, old=OLD_FINAL, new=("converged", None), pulse=6, old_t=230, new_t=9.0,
-                   cap="A few refine cycles polish it -- converged in ~9 cycles, ~9 s")] * 4
-    specs += [dict(act=3, old=OLD_FINAL, new=("converged", None), badge=True, pulse=6, old_t=230, new_t=9.0,
-                   cap="Same steady state, ~80x faster: ~700 s brute force  vs  ~9 s flux-anchored")] * 18
+    specs += [dict(act=2, old=OLD_FINAL, new=("converged", None), pulse=6, old_t=245, new_t=6.9,
+                   cap="A few refine cycles polish it -- converged in ~10 cycles, ~6.9 s")] * 4
+    specs += [dict(act=3, old=OLD_FINAL, new=("converged", None), badge=True, pulse=6, old_t=245, new_t=6.9,
+                   cap="Same steady state, ~35x faster: ~245 s brute force  vs  ~6.9 s flux-anchored")] * 18
 
     # ---- figure: 2 panels + a wall-clock bar strip -------------------------
     fig = plt.figure(figsize=(11.0, 6.2))
@@ -201,7 +201,7 @@ def main():
                 prof_err = abs(fa["T_rec"][ip] - Tt[ip]) if z[k] >= PROBE_Z else 99.0
             if kind == "converged":
                 axN.plot(Tt[m], z[m], "-", color=C_HAYNE, lw=3.0)
-                axN.text(0.04, 0.12, "converged\n~9 cycles · ~9 s", transform=axN.transAxes,
+                axN.text(0.04, 0.12, "converged\n~10 cycles · ~6.9 s", transform=axN.transAxes,
                          fontsize=11, color=C_HAYNE, va="top", fontweight="bold")
                 prof_err = 0.0
         if badge:
@@ -235,14 +235,14 @@ def main():
             axBar.barh([1], [T_BRUTE_FULL - 230], left=230, color=C_A17, height=0.55,
                        alpha=0.30, hatch="//", zorder=2)
         axBar.barh([0], [max(new_t, 0.1)], color=C_HAYNE, height=0.55, zorder=3)
-        axBar.set_xlim(0, 720); axBar.set_ylim(-0.7, 1.7)
+        axBar.set_xlim(0, 280); axBar.set_ylim(-0.7, 1.7)
         axBar.set_yticks([0, 1]); axBar.set_yticklabels(["flux-anchored", "brute force"], fontsize=9)
         axBar.set_xlabel("wall-clock per solve  [s]", fontsize=9)
         axBar.tick_params(labelsize=8)
         for s in ("top", "right", "left"): axBar.spines[s].set_visible(False)
         if frozen:
-            axBar.text(224, 1, "230 s", va="center", ha="right", fontsize=8, color="white", fontweight="bold")
-            axBar.text(700, 1.55, "~700 s to fully settle", va="center", ha="right", fontsize=8, color=C_A17)
+            axBar.text(240, 1, "245 s", va="center", ha="right", fontsize=8, color="white", fontweight="bold")
+            axBar.text(245, 1.55, "~3000 lunations to settle", va="center", ha="right", fontsize=8, color=C_A17)
         else:
             axBar.text(min(old_t, 230) + 8, 1, f"~{int(round(old_t))} s", va="center", fontsize=8.5, color=C_CHAR)
         axBar.text(max(new_t, 0.1) + 8, 0, f"~{int(round(new_t))} s", va="center", fontsize=8.5, color=C_HAYNE)
@@ -281,7 +281,7 @@ def main():
             ("new", "settle", None, "new A: settle skin"),
             ("new", "anchor", None, "new: drop anchor"),
             ("new", "walk", kmid, "new B: slope walk"),
-            ("new", "converged", None, "new: converged (~9 s)")]
+            ("new", "converged", None, "new: converged (~6.9 s)")]
     fig, axes = plt.subplots(2, 6, figsize=(15.5, 5.4),
                              gridspec_kw=dict(height_ratios=[2.1, 1.0], hspace=0.32))
     skin = z <= Z0
@@ -312,7 +312,7 @@ def main():
         bot.set_xlabel("T [K]", fontsize=7.5); bot.tick_params(labelsize=7); bot.grid(alpha=0.15)
     axes[0, 0].set_ylabel("depth [m]", fontsize=10); axes[1, 0].set_ylabel("deep zoom", fontsize=9)
     fig.suptitle("Reaching steady state: brute force (~1000 lunations, still ~1 K off) vs the "
-                 "flux-anchored anchor + slope walk (~9 s)  ·  bottom row = deep zoom",
+                 "flux-anchored anchor + slope walk (~6.9 s)  ·  bottom row = deep zoom",
                  fontsize=11.5, color=C_CHAR, fontweight="bold")
     fig.tight_layout(rect=[0, 0, 1, 0.94])
     out = FIG / "old_vs_new_filmstrip.pdf"

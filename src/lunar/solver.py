@@ -25,10 +25,14 @@ required by SKILL.md.
 
 Performance
 -----------
-The tridiagonal sweep is a small inner loop but Numba JIT makes per-pixel
-runs ~10-100x faster. The ``@njit`` fast path is wired via ``NUMBA_OK``;
-when Numba is unavailable the code falls back to pure NumPy and the
-tests still pass.
+Only the two per-cell loops -- ``_face_harmonic_mean`` and the ``_thomas``
+tridiagonal sweep -- carry ``@njit``; the rest of ``_step`` (assembly, the
+Newton surface solve, the cycle-mean accumulation) is vectorised NumPy and
+already runs at C speed. So Numba JIT buys a measured ~1.5x on the per-lunation
+cost (83 vs 128 ms/lun with NUMBA_DISABLE_JIT=1; see results/speedup_benchmark.json),
+NOT the order-of-magnitude one might expect from a fully scalar inner loop.
+The ``@njit`` fast path is wired via ``NUMBA_OK``; when Numba is unavailable the
+code falls back to pure NumPy and the tests still pass.
 """
 
 from __future__ import annotations

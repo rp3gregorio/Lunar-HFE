@@ -39,7 +39,7 @@
   {\color{dim}fixed: $K_s,H,\chi,T_{\rm ref}$;\;\; free knob: $K_d$}};
 \node[inb, below=2mm of i2.south west, anchor=north west] (i3) {%
   \textbf{3.\;Basal heat flux $Q_b$}\\[1pt]
-  $21$ mW\,m$^{-2}$ (A15),\; $15$ (A17)\\
+  $21$ mW\,m$^{-2}$ (A15),\; $16$ (A17)\\
   {\color{dim}Langseth et al.\ (1976)}};
 
 % --- PROCESS column ---
@@ -64,20 +64,20 @@
 % --- RESULTS column ---
 \node[hl]  at (12.4,-0.4)  (r1) {%
   retrieved $K_d^{*}$\\[1pt]
-  \textbf{\itshape A15:\; 4.58}\\
-  \textbf{\itshape A17:\; 8.12}};
+  \textbf{\itshape A15:\; 4.60}\\
+  \textbf{\itshape A17:\; 7.16}};
 \node[rsb, below=2mm of r1.south west, anchor=north west] (r2) {%
   95\% bootstrap CI\\
-  \itshape A15:\,[4.12,\,7.45]\\
-  \itshape A17:\,[6.85,\,9.04]};
+  \itshape A15:\,[4.19,\,7.04]\\
+  \itshape A17:\,[6.20,\,8.16]};
 \node[rsb, below=2mm of r2.south west, anchor=north west] (r3) {%
   inter-site contrast\\
-  \itshape A17 $-$ A15 $= 3.31$\\
-  {\color{dim}$p\approx 0.011$}};
+  \itshape A17 $-$ A15 $= 2.38$\\
+  {\color{dim}$p\approx 0.031$}};
 \node[rsb, below=2mm of r3.south west, anchor=north west] (r4) {%
   total $1\sigma$ budget\\
-  \itshape A15: $\pm 1.75$\\
-  \itshape A17: $\pm 4.61$};
+  \itshape A15: $\pm 1.60$\\
+  \itshape A17: $\pm 3.89$};
 
 % --- arrows: inputs to process ---
 \draw[arr] (i1.east) -- (pA.west);
@@ -90,8 +90,15 @@
 \draw[arr] (pC.south) -- (pD.north);
 
 % --- arrows: process to results ---
-\draw[arr] (pC.east) -- (r1.west);
-\draw[arr] (pD.east) -- (r2.west);
-\draw[arr] (pD.east) -- (r3.west);
-\draw[arr] (pD.east) -- (r4.west);
+% Fix (2026-07): a direct diagonal (pC.east)--(r1.west) cut straight across
+% the top of box D and crossed the three (pD.east)--(rN.west) arrows below
+% it, producing a tangled X in the gap between the PROCESS and RESULTS
+% columns. Routed instead as two parallel orthogonal "bus" trunks — one at
+% +3mm off the process column for C's single result, one at +7mm for D's
+% three — so each source box gets its own vertical lane and no two arrows
+% cross.
+\draw[arr] (pC.east) -- ++(3mm,0) |- (r1.west);
+\draw[arr] (pD.east) -- ++(7mm,0) |- (r2.west);
+\draw[arr] (pD.east) -- ++(7mm,0) |- (r3.west);
+\draw[arr] (pD.east) -- ++(7mm,0) |- (r4.west);
 \end{tikzpicture}

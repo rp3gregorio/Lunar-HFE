@@ -57,9 +57,6 @@ JOBS = [
     ("make_equilibrium_demo",    ["main"]),   # guess-independence proof
     ("make_headline_figure",     ["main"]),    # the result in one glance (forest plot)
     ("make_stats_figures",       ["main"]),    # statistics chapter: bootstrap clouds + contrast/p-value
-    ("make_poster_figures",      ["main"]),    # AOGS poster panels + poster_numbers.tex
-                                               # (was unregistered; audit 2026-07-11)
-    ("make_explainer_kd_bowl",   ["main"]),    # K_d bowl w/ degeneracy markers (explainer)
     ("make_svg_figures",        ["main"]),    # hand-authored SVG illustrations (run last: wins)
 ]
 

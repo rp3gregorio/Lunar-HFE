@@ -22,7 +22,7 @@ from lunar.plotting.style import (JGR_HALF, C_A15, C_A17, C_HAYNE, C_CHAR,
                                   C_DIM, C_GRID, fmt_axis, assert_no_overlap)
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-OUT = ROOT / "results" / "figures"
+OUT = ROOT / ".." / "figures"
 HAYNE_GLOBAL = 3.4          # Hayne et al. (2017) single global K_d [mW/m/K]
 
 

@@ -30,7 +30,7 @@ from lunar.plotting.style import (ANTH_DIVERGE, C_CORAL, C_TEAL, C_FOREST,
                                   C_CHAR, C_DIM, C_GRID, JGR_FULL,
                                   C_A15, C_A17)
 
-OUT = _REPO / "results" / "figures"
+OUT = _REPO / ".." / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 _RESULTS = _REPO / "results" / "kd_retrieval_results.json"
 

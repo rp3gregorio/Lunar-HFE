@@ -45,8 +45,8 @@ from lunar.equilibrium import (solve_periodic_equilibrium,
 from lunar.plotting.style import (C_CORAL, C_FOREST, C_CHAR, C_DIM, C_GRID,
                                   C_CORAL_L, C_FOREST_L)
 
-DOC = _REPO / "results" / "anim"
-FIG = _REPO / "results" / "figures"; FIG.mkdir(parents=True, exist_ok=True)
+DOC = _REPO / ".." / "figures" / "anim"
+FIG = _REPO / ".." / "figures"; FIG.mkdir(parents=True, exist_ok=True)
 SITE = SITES["A15"]; KD = 4.60e-3; GUESS = 240.0; ZMAX = 3.0
 XLIM = (150, 320)
 import json as _json

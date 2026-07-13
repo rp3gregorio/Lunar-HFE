@@ -1,0 +1,64 @@
+% Fig — one Crank-Nicolson time step of the certified march, as a process.
+% Mirrors solver._step (midpoint-Picard sweeps) + solve_pixel (wrap step).
+% Body only; the book supplies \caption/\label.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=center},
+  box/.style={rectangle, rounded corners=2pt, draw=dim, line width=0.8pt,
+              fill=white, inner sep=4pt, text width=64mm},
+  tbox/.style={box, draw=teal, fill=teal!7},
+  wrap/.style={rectangle, rounded corners=3pt, draw=forest, fill=forest!10,
+               line width=1pt, inner sep=5pt, text width=76mm},
+  arr/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, draw=dim,
+              rounded corners=3pt, line cap=round}]
+
+  \node[tbox] (props) at (0,0)
+    {\textbf{properties} $K(T,z)$, $c_p(T)$ at the sweep state\\
+     {\scriptsize\color{dim}predictor: $T^{n}$;\; correctors: the midpoint
+      $\tfrac12(T^{n}{+}T^{n+1})$}};
+  \node[box, below=4.5mm of props] (asm)
+    {\textbf{assemble} the tridiagonal system\\
+     {\scriptsize\color{dim}harmonic-mean faces, Crank--Nicolson
+      $\theta=\tfrac12$}};
+  \node[box, below=4.5mm of asm] (newt)
+    {\textbf{Newton} surface balance at $S(t^{n+1})$\\
+     {\scriptsize\color{dim}anchored at $T_0^{n+1}$ after sweep 0
+      (implicit coupling)}};
+  \node[box, below=4.5mm of newt] (bc)
+    {\textbf{boundary rows}: trapezoidal surface ghost\\
+     $\tfrac12\alpha(T_s^{n}{+}T_s^{n+1})$;\; basal $+\Delta t\,Q_b/C$};
+  \node[box, below=4.5mm of bc] (thomas)
+    {\textbf{Thomas solve} $\rightarrow$ $T^{n+1}$ candidate};
+
+  \draw[arr] (props) -- (asm);
+  \draw[arr] (asm) -- (newt);
+  \draw[arr] (newt) -- (bc);
+  \draw[arr] (bc) -- (thomas);
+  % Picard corrector loop (left channel)
+  \path (thomas.west) -- ++(-1.35,0) coordinate (turn);
+  \draw[arr, draw=teal] (thomas.west) -- (turn) |-
+    node[pos=0.25, left=2pt, font=\scriptsize\color{teal},
+         align=center] {2 corrector\\sweeps}
+    (props.west);
+
+  \begin{scope}[on background layer]
+    \node[fill=black!4, rounded corners=3pt, fit=(props)(thomas),
+          inner sep=3.2mm] (stepbox) {};
+  \end{scope}
+  \node[anchor=south west, font=\small\bfseries\color{char}]
+    at ([yshift=1.5mm]stepbox.north west)
+    {ONE TIME STEP \textbullet\ $\Delta t = 1800$ s \textbullet\
+     $\times$1417 per lunation};
+
+  \node[wrap, below=7mm of thomas] (wrapstep)
+    {\textbf{the wrap step} --- one more step, $t_{n-1}\!\rightarrow\!P$,
+     forced by $S(0)$;\\ its result \emph{is} the next lunation's $t{=}0$
+     state {\scriptsize(App.~B: skipping it cost $+0.6$ mW on
+     $K_d^{*}$(A17))}};
+  \node[box, below=5mm of wrapstep, text width=76mm, draw=dim] (next)
+    {\textbf{next lunation} --- repeat until the anchor temperature
+     settles (\S\ref{sec:fixedpoint})};
+
+  \draw[arr] (stepbox.south) -- (wrapstep.north);
+  \draw[arr] (wrapstep) -- (next);
+\end{tikzpicture}

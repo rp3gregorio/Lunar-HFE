@@ -114,7 +114,7 @@ def main():
                edgecolor=C_GRID, framealpha=0.97, fontsize=FS_LEGEND,
                handlelength=1.8, borderpad=0.5)
 
-    out_fig = _REPO / "results" / "figures" / "fig_equilibrium_certification.pdf"
+    out_fig = _REPO / ".." / "figures" / "fig_equilibrium_certification.pdf"
     fig.savefig(out_fig)
     plt.close(fig)
     out_json = _REPO / "results" / "equilibrium_certification.json"

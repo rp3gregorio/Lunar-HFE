@@ -30,7 +30,7 @@ from lunar.solver import standard_insolation, periodic_time_grid
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.plotting.style import JGR_FULL, C_A15, C_HAYNE, C_CHAR, C_DIM, C_GRID
 
-DOC = _REPO / "results" / "anim"
+DOC = _REPO / ".." / "figures" / "anim"
 SITE = SITES["A15"]; KD = 4.60e-3; Z0 = 0.55; ZMAX = 3.0
 
 
@@ -159,7 +159,7 @@ def filmstrip():
     fig.suptitle(r"Reconstructing the deep profile: from the anchor, walk down using $dT/dz=Q_b/K$",
                  fontsize=11.5, color=C_CHAR, fontweight="bold")
     fig.tight_layout(rect=[0, 0.08, 1, 0.95])
-    out = (_REPO / "results" / "figures") / "reconstruct_filmstrip.pdf"
+    out = (_REPO / ".." / "figures") / "reconstruct_filmstrip.pdf"
     fig.savefig(out); plt.close(fig)
     print(f"  -> {out.relative_to(_REPO)}  (slope at anchor {slope_anch:.1f} K/m)")
 

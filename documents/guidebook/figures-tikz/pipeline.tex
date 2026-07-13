@@ -1,0 +1,104 @@
+% Fig 1.4 — the retrieval pipeline.
+% This file contains only the tikzpicture body.  Iterate via:
+%   pdflatex pipeline_standalone.tex
+% In the book it is consumed via \input{figures-tikz/pipeline} inside a
+% figure environment that supplies its own \caption and \label.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=left},
+  inb/.style={rectangle, draw=black, line width=0.5pt, fill=white,
+              inner sep=4pt, text width=46mm, minimum height=14mm,
+              anchor=north west},
+  prb/.style={rectangle, draw=black, line width=0.6pt, fill=white,
+              inner sep=4pt, text width=54mm, minimum height=14mm,
+              anchor=north west},
+  rsb/.style={rectangle, draw=black, line width=0.5pt, fill=white,
+              inner sep=4pt, text width=38mm, minimum height=14mm,
+              anchor=north west},
+  hl/.style={rsb, line width=0.9pt, fill=forest!8},
+  col/.style={font=\sffamily\bfseries\small\color{forest}, anchor=west},
+  arr/.style={-{Stealth[length=2mm]}, line width=0.6pt}
+]
+% --- column anchor x-coordinates (all in cm) ---
+% inputs:  x=0..4.6        (4.6 wide)
+% process: x=5.8..11.2      (5.4 wide, +1.2 gap)
+% results: x=12.4..16.2     (3.8 wide, +1.2 gap)
+\node[col]                  at (0,    0) (HI) {INPUTS};
+\node[col]                  at (5.8,  0) (HP) {PROCESS};
+\node[col]                  at (12.4, 0) (HR) {RESULTS};
+
+% --- INPUTS column ---
+\node[inb] at (0,-0.4)  (i1) {%
+  \textbf{1.\;Apollo HFE data}\\[1pt]
+  $T(z,t)$ at each sensor, 1971--77\\
+  {\color{dim}Nagihara (2018), restored record}};
+\node[inb, below=2mm of i1.south west, anchor=north west] (i2) {%
+  \textbf{2.\;Hayne (2017) $K(T,z)$}\\[1pt]
+  $K=\bigl[K_d-(K_d-K_s)\,e^{-z/H}\bigr]$\\
+  \hphantom{$K=$}$\times\bigl[1+\chi(T/T_{\rm ref})^3\bigr]$\\
+  {\color{dim}fixed: $K_s,H,\chi,T_{\rm ref}$;\;\; free knob: $K_d$}};
+\node[inb, below=2mm of i2.south west, anchor=north west] (i3) {%
+  \textbf{3.\;Basal heat flux $Q_b$}\\[1pt]
+  $21$ mW\,m$^{-2}$ (A15),\; $16$ (A17)\\
+  {\color{dim}Langseth et al.\ (1976)}};
+
+% --- PROCESS column ---
+\node[prb] at (5.8,-0.4)  (pA) {%
+  \textbf{A.\; Stable window\; $\to T_{\rm eq}$}\\[1pt]
+  {\color{dim}deep sensors ($z>80$ cm): 7 (A15), 16 (A17)}};
+\node[prb, below=3mm of pA.south west, anchor=north west,
+      minimum height=22mm] (pB) {%
+  \textbf{B.\; Forward solve\; $\to T(z;K_d)$}\\[1pt]
+  solve the heat equation\\[-1pt]
+  \hfill$\rho\,c_p\,\partial_t T=\partial_z(K\,\partial_z T)$\hfill\null\\[-1pt]
+  to a certified periodic steady state (flux-anchored)\\
+  {\color{dim}\texttt{src/lunar/\{solver,equilibrium\}.py}}};
+\node[prb, below=3mm of pB.south west, anchor=north west] (pC) {%
+  \textbf{C.\; Sweep $K_d$, minimise RMSE}\\[1pt]
+  $\mathrm{RMSE}(K_d)=\sqrt{\overline{(T_{\rm model}-T_{\rm eq})^2}}$\\
+  parabolic vertex $\to K_d^{*}$};
+\node[prb, below=3mm of pC.south west, anchor=north west] (pD) {%
+  \textbf{D.\; Uncertainty}\\[1pt]
+  bootstrap (1500$\times$), MCMC, AICc, error budget};
+
+% --- RESULTS column ---
+\node[hl]  at (12.4,-0.4)  (r1) {%
+  retrieved $K_d^{*}$\\[1pt]
+  \textbf{\itshape A15:\; 4.60}\\
+  \textbf{\itshape A17:\; 7.08}};
+\node[rsb, below=2mm of r1.south west, anchor=north west] (r2) {%
+  95\% bootstrap CI\\
+  \itshape A15:\,[4.18,\,6.96]\\
+  \itshape A17:\,[6.16,\,8.07]};
+\node[rsb, below=2mm of r2.south west, anchor=north west] (r3) {%
+  inter-site contrast\\
+  \itshape A17 $-$ A15 $= 2.31$\\
+  {\color{dim}$p\approx 0.031$}};
+\node[rsb, below=2mm of r3.south west, anchor=north west] (r4) {%
+  total $1\sigma$ budget\\
+  \itshape A15: $\pm 1.88$\\
+  \itshape A17: $\pm 3.78$};
+
+% --- arrows: inputs to process ---
+\draw[arr] (i1.east) -- (pA.west);
+\draw[arr] (i2.east) -- (pB.west);
+\draw[arr] (i3.east) -- ($(pB.west)+(0,-2mm)$);
+
+% --- arrows: process flow downward ---
+\draw[arr] (pA.south) -- (pB.north);
+\draw[arr] (pB.south) -- (pC.north);
+\draw[arr] (pC.south) -- (pD.north);
+
+% --- arrows: process to results ---
+% Fix (2026-07): a direct diagonal (pC.east)--(r1.west) cut straight across
+% the top of box D and crossed the three (pD.east)--(rN.west) arrows below
+% it, producing a tangled X in the gap between the PROCESS and RESULTS
+% columns. Routed instead as two parallel orthogonal "bus" trunks — one at
+% +3mm off the process column for C's single result, one at +7mm for D's
+% three — so each source box gets its own vertical lane and no two arrows
+% cross.
+\draw[arr] (pC.east) -- ++(3mm,0) |- (r1.west);
+\draw[arr] (pD.east) -- ++(7mm,0) |- (r2.west);
+\draw[arr] (pD.east) -- ++(7mm,0) |- (r3.west);
+\draw[arr] (pD.east) -- ++(7mm,0) |- (r4.west);
+\end{tikzpicture}

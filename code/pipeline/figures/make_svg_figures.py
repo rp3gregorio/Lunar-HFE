@@ -19,7 +19,7 @@ from reportlab.graphics import renderPDF
 
 _HERE = pathlib.Path(__file__).resolve().parent
 SVG_DIR = _HERE / "svg"
-OUT = _HERE.parents[1] / "results" / "figures"
+OUT = _HERE.parents[1] / ".." / "figures"
 
 
 def main() -> None:

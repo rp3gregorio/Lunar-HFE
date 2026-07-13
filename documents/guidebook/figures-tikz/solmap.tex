@@ -1,0 +1,38 @@
+% Fig — the App C worked solution as a process: every box carries the real
+% number computed at that step (all values quoted from the Solution text).
+\begin{tikzpicture}[font=\footnotesize, node distance=3.5mm,
+  box/.style={draw=char, line width=0.8pt, rounded corners=2pt, align=left,
+              text width=112mm, inner sep=5pt},
+  chk/.style={box, draw=forest, fill=forest!8},
+  ans/.style={box, draw=teal, fill=teal!8},
+  lab/.style={font=\scriptsize\bfseries\color{dim}, anchor=east},
+  arr/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, color=dim, line cap=round}]
+  \node[box] (s1) {\textbf{the equation} --- below the skin $u_{\rm rect}\approx0$, so
+    $\;d\Tm/dz \approx Q_b/K(\Tm,z)$: a first-order ODE, walked \emph{down} by RK2};
+  \node[box, below=of s1] (s2) {\textbf{conductivity at the anchor} ($z_0=0.55$ m,
+    $\Tm=255.11$ K) --- contact part already at $K_d$: $K_c=7.079$; radiative factor
+    $1+2.7(255.11/350)^3=2.046$ $\Rightarrow$ $K=14.48$ mW\,m$^{-1}$\,K$^{-1}$};
+  \node[box, below=of s2] (s3) {\textbf{slope at the anchor} ---
+    $s_0=Q_b/K=16/14.48=1.105$ K\,m$^{-1}$};
+  \node[box, below=of s3] (s4) {\textbf{one RK2 step} (0.30 m) --- predict midpoint
+    $255.276$ K at $0.70$ m $\to$ re-slope $s_{1/2}=1.104$ $\to$ step:
+    $\Tm_1=255.11+0.30\,(1.104)=255.441$ K};
+  \node[ans, below=of s4] (s5) {\textbf{repeat, cell by cell} --- four steps carry
+    $255.11\to256.43$ K over $0.55\to1.75$ m; the slope eases $1.105\to1.098$
+    because $K$ rises as the column warms \hfill \emph{Answer (a)}};
+  \node[chk, below=of s5] (s6) {\textbf{certify the flux} ---
+    $K\,\Delta\Tm/\Delta z = 14.48\times1.104 = 16.0$ mW\,m$^{-2}=Q_b$
+    \;$\checkmark$ the profile carries the basal flux \hfill \emph{Answer (b)}};
+  \node[chk, below=of s6] (s7) {\textbf{certify convergence} --- outer-loop drifts
+    $0.027\to0.015\to0.008\to0.004$ K ($\sim\!60\%$ contraction);
+    $0.004<0.005$ tolerance \;$\checkmark$ converged at cycle 5 \hfill \emph{Answer (c)}};
+  \foreach \a/\b in {s1/s2, s2/s3, s3/s4, s4/s5, s5/s6, s6/s7}
+    \draw[arr] (\a.south) -- (\b.north);
+  \node[lab] at ([xshift=-2mm]s1.west) {1};
+  \node[lab] at ([xshift=-2mm]s2.west) {2};
+  \node[lab] at ([xshift=-2mm]s3.west) {3};
+  \node[lab] at ([xshift=-2mm]s4.west) {4};
+  \node[lab] at ([xshift=-2mm]s5.west) {5};
+  \node[lab] at ([xshift=-2mm]s6.west) {6};
+  \node[lab] at ([xshift=-2mm]s7.west) {7};
+\end{tikzpicture}

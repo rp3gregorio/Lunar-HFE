@@ -1,0 +1,68 @@
+% Fig — how the MCMC cross-check works (bayesian_crosscheck.py: emcee, 32
+% walkers x 4000 steps, 1000 burn-in; likelihood = bilinear read of the
+% DIRECTLY SOLVED RMSE(K_d, Q_b) surface (audit F-9 killed the proportional
+% K_eff shortcut); Q_b prior ±15%).
+% Body only; the standalone wrapper supplies \documentclass + _preamble.
+\begin{tikzpicture}[
+  font=\sffamily\footnotesize,
+  every node/.style={align=center},
+  io/.style={rectangle, rounded corners=10pt, draw=dim, line width=0.9pt,
+             fill=black!3, inner sep=5pt, text width=7.6cm},
+  box/.style={rectangle, rounded corners=2pt, draw=dim, line width=0.8pt,
+              fill=white, inner sep=5pt, text width=7.0cm},
+  tbox/.style={box, draw=teal},
+  res/.style={rectangle, rounded corners=3pt, draw=forest, fill=forest!12,
+              line width=1pt, inner sep=5pt, text width=7.6cm},
+  arrow/.style={-{Stealth[length=2.4mm]}, line width=0.9pt, draw=dim,
+                rounded corners=3pt}]
+
+  \node[io] (start)
+    {\textbf{Setup.} 32 walkers scattered over $(K_d, Q_b)$; the question:
+     which pairs are \emph{jointly} consistent with the sensors, letting
+     $Q_b$ float instead of fixing it?};
+
+  \node[box, below=11mm of start] (m1)
+    {\textbf{propose} a move to a new pair $(K_d,\,Q_b)$\\
+     {\scriptsize (ensemble ``stretch'' move, one walker at a time)}};
+  \node[tbox, below=4.5mm of m1] (m2)
+    {\textbf{score it --- prior}:\quad $Q_b \sim \mathcal{N}(\text{published},\,15\%)$;
+     \; $K_d$ flat in $\log$ over $[1, 30]$ mW\,m$^{-1}$\,K$^{-1}$};
+  \node[tbox, below=4.5mm of m2] (m3)
+    {\textbf{score it --- likelihood}: read RMSE$(K_d, Q_b)$ off a surface
+     of $\sim$200 \emph{real} solves (13 $K_d$ $\times$ 9 $Q_b$ grid;
+     outside it: reject, never extrapolate);\;
+     $\log L = -\tfrac12 N\,(\mathrm{RMSE}/\sigma)^2$};
+  \node[box, below=4.5mm of m3] (m4)
+    {\textbf{accept or reject} by the scores; the walker settles where the
+     posterior is high};
+
+  \node[io, below=11mm of m4] (post)
+    {\textbf{After 4000 steps} (first 1000 discarded as warm-up), the walker
+     positions \emph{are} the posterior: a cloud over $(K_d, Q_b)$.};
+  \node[res, below=5mm of post]
+    {the cloud is a \emph{ridge} whose tilt is measured, not assumed:\\
+     at A15 higher $Q_b$ trades against \emph{higher} $K_d$, at A17 against
+     \emph{lower} --- and $P(K_d^{\rm A17}>K_d^{\rm A15})\approx99\%$
+     however wide the $Q_b$ prior};
+
+  \draw[arrow] (start) -- (m1);
+  \draw[arrow] (m1) -- (m2);
+  \draw[arrow] (m2) -- (m3);
+  \draw[arrow] (m3) -- (m4);
+  \draw[arrow] (m4) -- (post)
+    node[midway, right=2pt, font=\sffamily\scriptsize\color{dim}] {after 4000 steps};
+  \draw[arrow] (post) -- ($(post.south)+(0,-4.5mm)$);
+
+  % loop-back: next step (left channel)
+  \path (m4.west) -- ++(-1.15,0) coordinate (turn);
+  \draw[arrow] (m4.west) --
+    node[above=1pt, font=\sffamily\scriptsize\color{dim}] {next step}
+    (turn) |- (m1.west);
+
+  \begin{scope}[on background layer]
+    \node[fill=black!4, rounded corners=3pt, fit=(m1)(m4), inner sep=3mm] (cont) {};
+  \end{scope}
+  \node[anchor=south west, font=\sffamily\small\bfseries\color{teal}]
+    at ([yshift=1.5mm]cont.north west) {ONE MCMC STEP \textbullet\ 32 walkers in parallel};
+
+\end{tikzpicture}

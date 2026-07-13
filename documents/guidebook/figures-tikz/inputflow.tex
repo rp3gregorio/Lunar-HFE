@@ -1,0 +1,53 @@
+% Fig — is this input founded? The decision walk every constant must survive.
+% Mirrors guidebook ch:inputs §challenge (the four-step audit recipe).
+% Body only; the book supplies \caption/\label.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=center},
+  io/.style={rectangle, rounded corners=10pt, draw=dim, line width=0.9pt,
+             fill=black!3, inner sep=5pt, text width=64mm},
+  q/.style={rectangle, rounded corners=2pt, draw=teal, line width=0.9pt,
+            fill=teal!7, inner sep=5pt, text width=62mm},
+  good/.style={rectangle, rounded corners=2pt, draw=forest, line width=0.9pt,
+               fill=forest!10, inner sep=4pt, text width=44mm},
+  bad/.style={rectangle, rounded corners=3pt, draw=coral, line width=1.1pt,
+              fill=coral!12, inner sep=5pt, text width=62mm},
+  arr/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, draw=dim,
+              rounded corners=3pt, line cap=round},
+  yes/.style={font=\scriptsize\color{forest}},
+  no/.style={font=\scriptsize\color{dim}}]
+
+  \node[io] (start) at (0,0)
+    {\textbf{you meet a number in the code}\\
+     {\scriptsize\color{dim}a constant, a tolerance, a grid setting, a criterion}};
+
+  \node[q] (q1) at (0,-1.7)
+    {\textbf{1} \; does it cite a source you can open?\\
+     {\scriptsize\color{dim}paper + page, next to the value, in \code{config.py}}};
+  \node[good] (g1) at (6.4,-1.7) {literature-founded\\{\scriptsize e.g.\ $Q_b$, $K_s$, $\chi$}};
+
+  \node[q] (q2) at (0,-3.5)
+    {\textbf{2} \; does a test in \code{results/} show the\\
+     \textbf{reported answer} stopped depending on it?\\
+     {\scriptsize\color{dim}convergence scan or discretization check, in $K_d^{*}$ space}};
+  \node[good] (g2) at (6.4,-3.5) {convergence-founded\\{\scriptsize e.g.\ $n_{\rm inner}$, grid, dt}};
+
+  \node[q] (q3) at (0,-5.3)
+    {\textbf{3} \; does a sensitivity row quantify\\ the damage if it is wrong?\\
+     {\scriptsize\color{dim}an error-budget $\sigma$ from \code{compute\_error\_budget}}};
+  \node[good] (g3) at (6.4,-5.3) {budgeted\\{\scriptsize e.g.\ albedo, $\rho$, window}};
+
+  \node[bad] (bad) at (0,-7.15)
+    {\textbf{treat it as WRONG until proven otherwise}\\
+     {\scriptsize this posture found the $Q_b$ bug, the $n_{\rm inner}$ bias,
+      the forcing duplication, and the dt error --- ``it has always been that
+      value'' hid every one of them}};
+
+  \draw[arr] (start) -- (q1);
+  \draw[arr] (q1) -- node[no, right=1pt] {no} (q2);
+  \draw[arr] (q2) -- node[no, right=1pt] {no} (q3);
+  \draw[arr] (q3) -- node[no, right=1pt] {no} (bad);
+  \draw[arr] (q1.east) -- node[yes, above=1pt] {yes} (g1.west);
+  \draw[arr] (q2.east) -- node[yes, above=1pt] {yes} (g2.west);
+  \draw[arr] (q3.east) -- node[yes, above=1pt] {yes} (g3.west);
+\end{tikzpicture}

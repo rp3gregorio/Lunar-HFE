@@ -71,7 +71,7 @@ from lunar.config import SITES
 from lunar.plotting.style import (C_CORAL, C_CORAL_L, C_TEAL, C_FOREST,
                                   C_PLUM, C_CHAR, assert_no_overlap)
 
-OUT = ROOT / "results" / "figures"
+OUT = ROOT / ".." / "figures"
 
 # ─── archive-measured design constants ───────────────────────────────
 # The letter's original predates lunar.plotting.style; the tones below do

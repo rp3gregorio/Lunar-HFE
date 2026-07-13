@@ -1,0 +1,76 @@
+% Fig 1.5 — equation flow from inputs to the final K_d* (simplified 2026-07-02).
+% One vertical spine, eight boxes, equations NAMED rather than typeset in full —
+% the complete equation reference now lives in the App. B roadmap table, so this
+% figure only has to carry the STORY. (The old 14-box version with inline math
+% and two margin-length feed rails is archived in reference/guidebook-extended.)
+% This file contains only the tikzpicture body; the book supplies
+% \caption/\label via \input{figures-tikz/eqnflow}.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=left},
+  box/.style={rectangle, draw=black, line width=0.5pt, inner sep=5pt,
+              text width=104mm, fill=white},
+  inbox/.style={rectangle, draw=black, line width=0.5pt, inner sep=4pt,
+                text width=32mm, minimum height=15mm, fill=white},
+  hl/.style={rectangle, draw=black, line width=0.9pt, inner sep=5pt,
+             fill=forest!8, align=center},
+  arr/.style={-{Stealth[length=2mm]}, line width=0.6pt, rounded corners=2.5pt,
+              line cap=round}
+]
+
+% ---------- INPUTS (one row of three) ----------
+\node[inbox] (in1) at (0,0)
+  {\textbf{Data}\\[1pt]
+   $T_{\rm obs}(z,t)$, Nagihara (2018)\\
+   $Q_b$, Langseth (1976)};
+\node[inbox, right=4mm of in1] (in2)
+  {\textbf{Physics, fixed}\\[1pt]
+   Hayne $K(T,z)$; $\rho(z)$, $c_p(T)$;\\
+   forcing $S(t)$, $A$, $\varepsilon$};
+\node[inbox, right=4mm of in2, line width=1pt, fill=forest!8] (in3)
+  {\textbf{The knob}\\[1pt]
+   trial $K_d$ --- the \emph{only}\\
+   free parameter};
+
+% ---------- the spine ----------
+\node[box, below=7mm of in2.south, anchor=north] (prep)
+  {\textbf{1 \; Extract the targets.} Stable-window mean $T_{{\rm eq},i}$ at the
+   $N$ deep sensors ($z\geq80$ cm) \hfill {\color{dim}\texttt{find\_stable\_window}}};
+\node[box, below=4mm of prep] (ingr)
+  {\textbf{2 \; Assemble the four ingredient equations:}\enspace
+   contact $K_c(z)$ \textnormal{\ref{eq:Kc}} \textbullet\enspace full $K(T,z)$
+   \textnormal{\ref{eq:Khayne}} \textbullet\enspace surface BC
+   \textnormal{\ref{eq:surfbc}} \textbullet\enspace basal BC
+   \textnormal{\ref{eq:bottombc}}\\
+   {\color{dim}each derived in App.~B; everything fixed except the $K_d$ inside
+   $K_c$}};
+\node[box, below=4mm of ingr] (solve)
+  {\textbf{3 \; Forward solve, once per trial $K_d$.} The heat equation
+   \textnormal{\ref{eq:heat}}, run to the certified periodic steady state
+   (flux-anchored) $\rightarrow$ cycle mean $\langle T\rangle(z;K_d)$
+   \hfill {\color{dim}\texttt{solver.py}, \texttt{equilibrium.py}}};
+\node[box, below=4mm of solve] (score)
+  {\textbf{4 \; Score and pick.} Deep-sensor misfit RMSE$(K_d)$
+   \textnormal{\ref{eq:rmse}} for every trial; the parabola vertex
+   \textnormal{\ref{eq:vertex}} finds the sub-grid minimum
+   \hfill {\color{dim}\texttt{retrieve\_kd.py}}};
+\node[hl, below=5mm of score, text width=62mm] (kd)
+  {$K_d^{*}$ \; {\color{dim}\footnotesize per-site best-fit conductivity}};
+\node[box, below=5mm of kd, anchor=north] (unc)
+  {\textbf{5 \; How sure?} bootstrap $\times$1500 $\rightarrow$ 95\% CI
+   \textbullet\enspace quadrature error budget \textbullet\enspace paired
+   contrast $\rightarrow$ $p \approx 0.031$ \hfill {\color{dim}Ch.~7}};
+\node[hl, below=5mm of unc, text width=112mm] (head)
+  {\textbf{Headline} {\color{dim}\scriptsize (value [95\% bootstrap CI])}\\[2pt]
+   $K_d^{*}({\rm A15})=4.60\,[4.18,6.96]$\quad
+   $K_d^{*}({\rm A17})=7.08\,[6.16,8.07]$\;\;mW\,m$^{-1}$K$^{-1}$};
+
+% ---------- connectors: one straight spine ----------
+\draw[arr] (in2.south) -- (prep.north);
+\draw[arr] (prep.south) -- (ingr.north);
+\draw[arr] (ingr.south) -- (solve.north);
+\draw[arr] (solve.south) -- (score.north);
+\draw[arr] (score.south) -- (kd.north);
+\draw[arr] (kd.south) -- (unc.north);
+\draw[arr] (unc.south) -- (head.north);
+\end{tikzpicture}

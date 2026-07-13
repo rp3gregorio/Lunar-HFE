@@ -24,7 +24,7 @@ from matplotlib.lines import Line2D
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-OUT = ROOT / "results" / "figures"
+OUT = ROOT / ".." / "figures"
 RESULTS = ROOT / "results"
 sys.path.insert(0, str(ROOT / "src"))
 

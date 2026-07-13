@@ -23,7 +23,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from lunar.plotting.style import (JGR_HALF, C_A17, C_CHAR, C_DIM, C_GRID,
                                   C_FOREST, fmt_axis, assert_no_overlap)
 
-OUT = ROOT / "results" / "figures"
+OUT = ROOT / ".." / "figures"
 
 
 def main():

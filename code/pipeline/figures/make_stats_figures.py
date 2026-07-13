@@ -28,7 +28,7 @@ from lunar.plotting.style import (JGR_HALF, C_A15, C_A17, C_PLUM, C_CHAR, C_DIM,
                                   C_GRID, fmt_axis, assert_no_overlap)
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-OUT = ROOT / "results" / "figures"
+OUT = ROOT / ".." / "figures"
 
 
 def _load():

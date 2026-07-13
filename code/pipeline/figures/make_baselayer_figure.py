@@ -33,7 +33,7 @@ from lunar.apollo_helpers import extract_sensor_stability
 from lunar.plotting.style import (JGR_HALF, C_A15, C_HAYNE, C_A17, C_CHAR, C_DIM, C_GRID,
                                   assert_no_overlap)
 
-FIG = _REPO / "results" / "figures"; FIG.mkdir(parents=True, exist_ok=True)
+FIG = _REPO / ".." / "figures"; FIG.mkdir(parents=True, exist_ok=True)
 SITE = SITES["A15"]; Qb = SITE["Q_BASAL"]; KD = 4.60e-3
 ZBASE, KROCK, T0 = 5.0, 1.7, 251.8       # bedrock below 5 m; real A15 anchor at 0.55 m
 

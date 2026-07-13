@@ -34,7 +34,7 @@ from lunar.plotting.style import (   # type: ignore
     FS_TICK, FS_LABEL, FS_LEGEND, fmt_axis,
 )
 
-OUT = _REPO / "results" / "figures"
+OUT = _REPO / ".." / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 C_HOT = "#C0573B"
 C_COLD = "#2A6F8E"

@@ -30,8 +30,8 @@ from lunar.solver import PixelInputs, solve_pixel, standard_insolation, periodic
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM, C_GRID
 
-DOC = _REPO / "results" / "anim"
-FIG = _REPO / "results" / "figures"
+DOC = _REPO / ".." / "figures" / "anim"
+FIG = _REPO / ".." / "figures"
 FIG.mkdir(parents=True, exist_ok=True)
 
 SITE = SITES["A15"]; KD = 4.60e-3

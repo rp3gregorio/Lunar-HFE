@@ -1,0 +1,1180 @@
+% ============================================================================
+% PhD THESIS — FULL MANUSCRIPT DRAFT (living document)
+%
+%   "Site-Resolved Thermal Conductivity of the Lunar Meter-Scale Regolith:
+%    A Flux-Anchored Retrieval at the Apollo 15 and 17 Heat-Flow Boreholes"
+%
+% House rules (same as letter + guidebook):
+%   * every number quoted here traces to results/*.json — never edit a value
+%     by hand without re-deriving it from the pipeline;
+%   * citations only from references.bib (symlinked to the letter's);
+%   * figures via the figures/ symlink -> results/figures (single source);
+%   * [TODO-...] markers flag passages only the author can write.
+%   * amssymb must NOT be loaded (clashes with newtxmath on \Bbbk).
+%
+% Build:  latexmk -pdf thesis.tex        (from docs/thesis/)
+%
+% Certified numbers baked in (2026-07-06 final audit):
+%   K_d*(A15) = 4.60 (+0.86/-0.21),  K_d*(A17) = 7.08 (+0.53/-0.52)
+%   contrast median +2.31, 95% CI [-0.12, 3.56], p = 0.031 (marginal)
+%   MCMC ordering P(A17 > A15) = 99.3% at any prior width
+%   RMSE site-fit 1.00 / 0.40 K  vs global-3.4 fit 1.09 / 0.89 K
+%   error-budget totals sigma = 1.88 / 3.78 mW m^-1 K^-1
+%   speed: brute 522.6 ms/lun (~26 min/solve); anchored 74.7 s; kernel 0.636 s
+% ============================================================================
+\documentclass[11pt,a4paper,oneside]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newtxtext,newtxmath}          % Times, matching the letter
+\usepackage[margin=2.9cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,bm}
+\usepackage{siunitx}
+\usepackage[round,authoryear]{natbib}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,
+            urlcolor=blue!45!black]{hyperref}
+\usepackage{setspace}
+\onehalfspacing
+
+% ---- shared notation (canon of the letter; see project conventions) --------
+\newcommand{\Kd}{\ensuremath{K_d}}
+\newcommand{\Kds}{\ensuremath{K_d^{*}}}
+\newcommand{\Ks}{\ensuremath{K_s}}
+\newcommand{\Qb}{\ensuremath{Q_b}}
+\newcommand{\Tm}{\ensuremath{\langle T\rangle}}
+\newcommand{\urect}{\ensuremath{u_{\mathrm{rect}}}}
+\newcommand{\mWmK}{\si{\milli\watt\per\meter\per\kelvin}}
+\newcommand{\mWm}{\si{\milli\watt\per\square\meter}}
+\newcommand{\todo}[1]{\textcolor{red!70!black}{[TODO-#1]}}
+
+\title{\bfseries Site-Resolved Thermal Conductivity of the Lunar
+  Meter-Scale Regolith:\\[4pt]
+  \Large A Flux-Anchored Retrieval at the Apollo 15 and 17
+  Heat-Flow Boreholes}
+\author{Ramon III P.\ Gregorio\\[6pt]
+  \normalsize Instituto Superior T\'ecnico / National Institute of
+  Information and\\ \normalsize Communications Technology (NICT)\\[4pt]
+  \normalsize \todo{confirm-affiliation-lines-and-supervisors}}
+\date{Draft of \today\ --- living document}
+
+\begin{document}
+\maketitle
+
+% ============================================================================
+\begin{abstract}
+\noindent
+Lunar subsurface thermal models rely almost universally on a single,
+globally averaged deep-regolith conductivity, most commonly the
+$\Kd=3.4$~\mWmK\ of the \citet{hayne2017} Diviner calibration. This
+thesis asks whether that number survives contact with the only in-situ
+subsurface temperature measurements ever made on the Moon --- the Apollo
+15 and 17 Heat Flow Experiment (HFE) borehole records --- and finds that
+it does not, at either site. Holding the \citet{hayne2017} conductivity
+form fixed and sweeping its deep asymptote \Kd\ alone against the
+deep-sensor ($80$--$234$~cm) misfit, the retrieval gives
+$\Kds(\mathrm{A15})=4.60^{+0.86}_{-0.21}$ and
+$\Kds(\mathrm{A17})=7.08^{+0.53}_{-0.52}$~\mWmK\ ($1\sigma$ bootstrap),
+placing the global value outside both sites' 95\% intervals. The
+inter-site contrast, $+2.31$~\mWmK\ (95\% CI $[-0.12, 3.56]$,
+$p=0.031$), is marginal at 95\% yet directionally robust: on a directly
+solved RMSE$(\Kd,\Qb)$ surface the ordering
+$\Kds(\mathrm{A17})>\Kds(\mathrm{A15})$ holds with 99.3\% posterior
+probability for basal-flux priors from $\pm10\%$ to $\pm40\%$, because
+the two sites respond to flux revisions in opposite directions. The
+methodological contribution is a flux-anchored equilibrium solver that
+collapses the two-variable heat equation to a one-variable closure ODE
+below the diurnal skin, accelerating each periodic-equilibrium solve
+from ${\sim}26$ minutes to ${\sim}0.6$ seconds and thereby making the
+full uncertainty analysis (1500-draw bootstrap, MCMC cross-checks,
+direct degeneracy maps) routine. The retrieved per-site \Kds\ values
+supply the meter-scale boundary condition required by upcoming
+subsurface radiative-transfer missions, in particular the TSUKIMI
+terahertz surveyor \citep{tsukimi2022}.
+\end{abstract}
+
+\chapter*{Acknowledgments}
+\todo{write-personally --- supervisors, NICT/TSUKIMI team (Kasai, Yamada,
+Larsson), family, funding lines.}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+% ============================================================================
+\chapter{Introduction}\label{ch:intro}
+
+\section{One number for a whole Moon}
+The temperature of the Moon's subsurface is not measured; it is modeled.
+Every orbital instrument that looks below the optical surface --- from
+the Diviner radiometer \citep{paige2010,williams2017diviner} to any
+future microwave or terahertz sounder --- sees radiation whose emission
+depth exceeds the reach of direct measurement, and must therefore invert
+its observations through a forward model of the subsurface temperature
+column $T(z)$. The single most leveraged input to that column, below the
+top few centimeters, is the deep thermal conductivity of the regolith,
+\Kd.
+
+The standard source for \Kd\ is the global calibration of
+\citet{hayne2017}, which fits a two-layer conductivity--density model to
+Diviner nighttime cooling curves and arrives at
+$\Kd = 3.4$~\mWmK\ --- one value for the entire Moon. This is a
+reasonable choice for a global product built from surface-sensitive
+observations, but the diurnal wave that Diviner sees penetrates only a
+few skin depths (${\sim}30$~cm); the value of \Kd\ at one to two meters
+is an extrapolation, not a measurement. Laboratory measurements of
+returned Apollo soils span $0.7$--$2$~\mWmK\
+\citep{cremers1971,hemingway1973,horai1981}, the original in-situ HFE
+reductions gave $1$--$3$~\mWmK\ \citep{langseth1972,langseth1976},
+later reanalyses revised these upward \citep{keihm1984,grott2010}, and
+orbital estimates reach ${\sim}7$~\mWmK\ \citep{vasavada2012}: five
+decades of estimates disagreeing by an order of magnitude
+(Fig.~\ref{fig:prior}).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.8\linewidth]{figures/fig_prior_estimates.pdf}
+  \caption[Five decades of meter-scale \Kd\ estimates]{Five decades of
+  meter-scale \Kd\ estimates. Laboratory soils, original in-situ
+  reductions, reanalysis arrows, orbital estimates, the
+  \citet{hayne2017} global fit, and the per-site values retrieved in
+  this work.}
+  \label{fig:prior}
+\end{figure}
+
+\section{The only ground truth there is}
+Two experiments constrain the meter-scale thermal state of the Moon in
+situ: the Apollo 15 and Apollo 17 Heat Flow Experiments
+\citep{langseth1972,langseth1976}, fiberglass-epoxy borestems carrying
+platinum-resistance sensor bridges to depths of $1.4$ and $2.3$~m,
+which returned five and a half years (1971--1977) of subsurface
+temperatures, restored to modern usability by \citet{nagihara2018}.
+This thesis treats those two boreholes as what they are --- the only
+ground truth available --- and asks the narrowest useful question:
+\emph{holding the community-standard conductivity model fixed in every
+other respect, what deep conductivity does each borehole actually
+require?}
+
+\section{Why per-site values matter}\label{sec:intro-tsukimi}
+We use the term \emph{meter-scale regolith} throughout for the layer
+constrained by the deep HFE sensors ($80$--$234$~cm). Below the diurnal
+skin the modeled column is controlled by \Kd\ through both the
+rectified annual mean and the steady geothermal gradient $\Qb/\Kd$, so
+the $T(z)$ ingested by any subsurface radiative-transfer (RTM)
+retrieval inherits its \Kd\ dependence; a factor-of-two error in \Kd\
+propagates through the meter-scale temperature profile into any product
+built on it. A concrete consumer is the upcoming TSUKIMI mission (Lunar
+Terahertz SUrveyor for KIlometer-scale MappIng; \citealp{tsukimi2022}),
+a NICT/JAXA-led terahertz surveyor for subsurface water and resource
+mapping whose forward model requires precisely the sub-diurnal-skin
+temperature column that only an in-situ-anchored \Kd\ can provide.
+
+\section{Contributions and thesis outline}
+This thesis makes three contributions.
+\begin{enumerate}
+  \item \textbf{A method}: the flux-anchored equilibrium solver
+    (Chapter~\ref{ch:method}), which converts the periodic
+    steady-state problem from thousands of time-stepped lunations into
+    a skin-only time-step plus a one-variable closure ODE --- a
+    measured $21\times$ acceleration per solve at the algorithmic
+    level, growing to ${\sim}2500\times$ with the compiled kernel, at
+    certified-equal answers.
+  \item \textbf{A measurement}: per-site deep conductivities
+    $\Kds(\mathrm{A15})=4.60$ and $\Kds(\mathrm{A17})=7.08$~\mWmK\
+    with a defensible, bootstrap-based uncertainty budget
+    (Chapters~\ref{ch:retrieval}--\ref{ch:results}).
+  \item \textbf{A robustness case}: a direct (assumption-free) map of
+    the $\Kd$--$\Qb$ degeneracy showing the two sites respond to
+    basal-flux revisions in opposite directions, which makes the
+    \emph{sign} of the inter-site contrast robust across the entire
+    published flux envelope even though its magnitude is marginal
+    (Chapter~\ref{ch:robustness}).
+\end{enumerate}
+Chapter~\ref{ch:data} describes the data; Chapter~\ref{ch:model} the
+thermal model; Chapter~\ref{ch:discussion} interprets the contrast
+geologically and states the honest caveats; Chapter~\ref{ch:conclusion}
+closes with implications for future missions.
+Appendix~\ref{app:derivation} derives the closure ODE in full;
+Appendix~\ref{app:numerics} records the numerical scheme and its
+certification, including the audit trail of the three input errors
+found and fixed on the way to the final numbers;
+Appendix~\ref{app:repro} gives reproducibility instructions.
+
+% ============================================================================
+\chapter{Data: the Apollo Heat Flow Experiments}\label{ch:data}
+
+\section{Instrument and geometry}
+Each HFE site carries two probes ${\sim}9$~m apart, each probe a
+fiberglass-epoxy borestem with gradient-bridge (TG) and ring-bridge
+(TR) platinum-resistance sensors (Fig.~\ref{fig:probes}). A gradient
+bridge reads the temperature difference across a known vertical
+baseline (${\sim}50$~cm), which is what makes the experiment a
+\emph{heat-flow} experiment: with a conductivity model, $q =
+-K\,\partial T/\partial z$ follows directly. Apollo 15 (Hadley Rille)
+reaches $1.39$~m; Apollo 17 (Taurus--Littrow) reaches $2.34$~m. Sensor
+placement depths carry a ${\sim}2.5$~cm uncertainty
+\citep{nagihara2018}, which the bootstrap of
+Chapter~\ref{ch:retrieval} propagates explicitly.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{figures/fig_probe_geometry.pdf}
+  \caption[Apollo 15 borehole geometry and the gradient bridge]{Apollo
+  15 borehole geometry and the gradient-bridge sensing principle.
+  Shallow sensors (open) are excluded by the $80$~cm borestem cut; deep
+  sensors (filled) constrain \Kds.}
+  \label{fig:probes}
+\end{figure}
+
+\section{From six years of records to one equilibrium temperature per
+  sensor}\label{sec:stable-window}
+The retrieval does not fit the raw time series. For each sensor we
+select a late-mission stability window --- after the drilling
+disturbance has decayed and outside eclipse/season anomalies --- and
+reduce the record to an equilibrium temperature $T_{\rm eq}$ with a
+per-sensor standard deviation (code:
+\texttt{lunar.apollo\_helpers.extract\_sensor\_stability}). The
+resulting mean-temperature profiles (Fig.~\ref{fig:meanT}) are the
+observable this thesis fits: a set of late-window equilibrium estimates,
+not a movie.
+
+More precisely, these points are estimates of the undisturbed
+periodic-equilibrium profile, not direct proof that every sensor record
+had reached exact zero-drift steady state. The Apollo boreholes were
+heated by drilling and then relaxed toward the surrounding regolith;
+where the strict flat-window criterion is not met, the late-record mean
+is retained as the best available asymptotic-temperature estimate and
+its residual drift is treated as a data systematic. The thermal model
+therefore asks a physically specific question: what steady regolith
+column would produce the late Apollo temperature profile after the
+emplacement transient has decayed?
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig_apollo_mean_T_profile.pdf}
+  \caption[Mean temperature profiles at both sites]{Stable-window mean
+  temperatures against depth at both sites, with the borestem exclusion
+  zone shaded and the smooth model profiles for context. Deep TG/TR
+  sensors (filled) enter the retrieval; shallow sensors (open) are
+  excluded.}
+  \label{fig:meanT}
+\end{figure}
+
+\section{Why only the deep sensors}\label{sec:deep-cut}
+Two independent reasons set the $z \ge 80$~cm cut.
+\emph{Physics:} the diurnal wave attenuates exponentially with depth;
+by ${\sim}80$~cm its amplitude is far below the sensor noise, so deep
+sensors read the cycle-mean state that \Kd\ controls, uncontaminated by
+shallow-skin dynamics governed by \Ks\
+(Fig.~\ref{fig:amplitude}). \emph{Instrument:} the borestem itself
+conducts the surface wave downward, disturbing shallow readings --- the
+long-recognized borestem problem of the original reductions
+\citep{langseth1976,keihm1984,grott2010}. The cut leaves $N=7$ deep
+sensors at Apollo 15 and $N=16$ at Apollo 17; the sensitivity of \Kds\
+to the exact cut depth is swept in the error budget
+(Table~\ref{tab:budget}).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig_amplitude_vs_depth.pdf}
+  \caption[Diurnal amplitude vs.\ depth]{Observed diurnal amplitude
+  against depth at both sites, compared with model attenuation curves.
+  Below the shaded borestem zone the measured amplitudes collapse
+  toward the digitization floor: the deep sensors see the cycle-mean
+  column, which is what \Kd\ sets.}
+  \label{fig:amplitude}
+\end{figure}
+
+\section{Basal heat flux}
+The lower boundary condition is the revised borehole heat flux of
+\citet{langseth1976}: $\Qb = 21$~\mWm\ (A15) and $16$~\mWm\ (A17).
+These values are themselves debated --- \citet{saito2007} argue A15
+lower by ${\sim}30\%$, and \citet{nagihara2018} discuss the record's
+limitations --- which is why Chapter~\ref{ch:robustness} treats \Qb\
+not as a fixed truth but as the dominant, explicitly mapped
+systematic.
+
+% ============================================================================
+\chapter{The thermal model}\label{ch:model}
+
+\section{Governing equation and properties}
+The subsurface temperature obeys the one-dimensional heat equation
+\begin{equation}
+  \rho(z)\, c_p(T)\, \frac{\partial T}{\partial t}
+  = \frac{\partial}{\partial z}\!\left[K(T,z)\,
+    \frac{\partial T}{\partial z}\right],
+  \label{eq:heat}
+\end{equation}
+with the \citet{hayne2017} property set: density
+$\rho(z)$ relaxing from a surface to a deep value on the compaction
+scale $H$, specific heat $c_p(T)$ from the standard polynomial, and
+conductivity
+\begin{equation}
+  K(T,z) = \underbrace{\left[\Kd - (\Kd-\Ks)\,
+      e^{-z/H}\right]}_{\text{contact conduction } K_c(z)}
+    \underbrace{\left[1+\chi\left(\frac{T}{T_{\rm ref}}\right)^{3}
+      \right]}_{\text{radiative term}},
+  \label{eq:conductivity}
+\end{equation}
+with $\Ks=7.4\times10^{-4}$~\si{\watt\per\meter\per\kelvin},
+$H=6$~cm, $\chi=2.7$, $T_{\rm ref}=350$~K \citep{hayne2017}. \Kd\ ---
+the deep asymptote of $K_c$ --- is the single free parameter of this
+work; every other constant is held at its published value precisely so
+that the retrieved \Kds\ is interpretable \emph{within} the standard
+model rather than as a new model. Figure~\ref{fig:kTz} shows the
+resulting $K(T,z)$ field under the retrieved conductivities: five
+orders of magnitude of variation compressed into the top few
+centimeters, then the flat deep asymptote that the HFE sensors sample.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/fig_book_kTz.pdf}
+  \caption[The $K(T,z)$ field under the retrieved conductivities]{The
+  \citet{hayne2017} conductivity field $K(T,z)$ evaluated with the
+  retrieved per-site \Kds. The steep near-surface rise is the
+  compaction term on the scale $H$; the temperature dependence is the
+  radiative $\chi (T/T_{\rm ref})^3$ term.}
+  \label{fig:kTz}
+\end{figure}
+
+\section{Boundary conditions}
+At the surface, insolation ($S_0=1361$~\si{\watt\per\square\meter};
+\citealp{kopp2011}), albedo, and thermal emission
+($\varepsilon=0.95$) balance the conducted flux; the resulting
+nonlinear equation for the surface temperature is solved by Newton
+iteration at every time step. At the base ($z_{\max}=5$~m) the
+geothermal flux is imposed as a Neumann condition $K\,\partial_z T =
+\Qb$ through a ghost cell. A fixed-temperature or zero-flux base would
+be wrong: the deep profile \emph{keeps rising} at the geothermal
+gradient $\Qb/K$, which is physics, not drift.
+
+\section{The two-timescale structure of the problem}
+\label{sec:twotimescale}
+Figure~\ref{fig:skinwave} displays the structure that everything in
+Chapter~\ref{ch:method} exploits: over one lunation the surface swings
+by ${\sim}280$~K, yet the swing collapses within the first half-meter.
+Above that depth the column is a driven oscillator; below it, the
+column is effectively steady, carrying only the geothermal flux and
+the rectified imprint of the oscillation. The diurnal skin depth and
+the meter-scale sensors live on opposite sides of this divide --- which
+is precisely why the deep sensors constrain \Kd\ cleanly, and why
+time-stepping the whole 5~m column is wasteful.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/fig_book_skinwave.pdf}
+  \caption[The diurnal wave collapsing with depth]{One lunation of
+  modeled temperature at increasing depths: the ${\sim}280$~K surface
+  swing collapses within the first half-meter. Below the skin the
+  column is quasi-steady.}
+  \label{fig:skinwave}
+\end{figure}
+
+\section{Why brute force is not enough}
+The observable is the \emph{periodic steady state}: the temperature
+column after the drilling transient has relaxed, repeating cycle after
+cycle. Reached naively --- time-stepping Eq.~\eqref{eq:heat} until the
+deep column stops drifting --- this costs ${\sim}3000$ simulated
+lunations at $522.6$~ms per lunation, i.e.\ ${\sim}26$ minutes per
+solve, because the deep-column relaxation time scales as $z^2/\kappa$.
+The sweep-plus-bootstrap program of Chapter~\ref{ch:retrieval}
+requires tens of thousands of solves; by brute force the uncertainty
+analysis alone would cost months of CPU time. The flux-anchored
+solver reduces a 61-solve sweep from a projected $26.6$~hours to
+$39$~seconds.
+
+% ============================================================================
+\chapter{The flux-anchored equilibrium method}\label{ch:method}
+
+\section{The idea in one paragraph}
+Only the top few skin depths of the column ever feel the diurnal
+forcing; below the rectification zone the cycle-averaged column is
+already in a steady state fully determined by the basal flux. So:
+time-step \emph{only the skin} (Step~A), anchor the solution at a depth
+$z_0=0.55$~m where the diurnal amplitude has fallen to ${\sim}0.15$~K,
+and \emph{reconstruct} everything below the anchor by integrating a
+one-variable steady-state ODE (Step~B). Iterate A--B until the anchor
+temperature stops moving. The fixed point of this composition is the
+periodic steady state of the full problem.
+
+\section{Step B: the closure ODE}\label{sec:closure}
+Averaging Eq.~\eqref{eq:heat} over one lunation $P$ in periodic steady
+state kills the storage term (the enthalpy returns to its starting
+value each cycle), so the cycle-mean flux is constant in depth and
+pinned by the bottom boundary to \Qb. Writing the mean flux in terms of
+the mean temperature introduces one correction --- the rectified flux
+$\urect \equiv \langle K\,\partial_z T\rangle -
+K(\Tm)\,\partial_z\Tm$, the covariance of the oscillating conductivity
+and gradient --- and yields the closure
+\begin{equation}
+  \boxed{\;\frac{d\Tm}{dz} = \frac{\Qb - \urect(z)}{K(\Tm, z)}\;}
+  \label{eq:closure}
+\end{equation}
+(the sign convention is $\Qb-\urect$; Appendix~\ref{app:derivation}
+gives every algebraic step). Above the anchor, $\urect$ is evaluated
+from the Step~A skin solution; below it, $\urect$ is negligible
+($<1\%$ of \Qb) and Eq.~\eqref{eq:closure} integrates downward as an
+ordinary initial-value problem from the anchored temperature, by
+second-order Runge--Kutta on the same geometric grid. Two variables
+($z,t$) have become one ($z$): this is the entire speed-up.
+Figure~\ref{fig:anatomy} shows the anatomy of one converged solve: the
+full $T(z)$ column with the anchor marked, and the cycle-mean flux
+holding at \Qb\ below the skin --- the physical fact the method is
+named after.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig_anchor_anatomy.pdf}
+  \caption[Anatomy of one flux-anchored solve]{Anatomy of one converged
+  solve. (a)~The mean temperature column with the anchor depth marked;
+  (b)~below the skin the cycle-mean flux equals \Qb\ at every depth ---
+  the invariant that Step~B integrates along.}
+  \label{fig:anatomy}
+\end{figure}
+
+\section{Step A: time-step the skin only}\label{sec:stepA}
+Step~A advances the full time-dependent equation, but \emph{only} on a
+truncated sub-grid reaching just below the anchor
+($[0,\,z_0+0.15~\mathrm{m}]$); everything deeper is reconstructed by
+Step~B each outer cycle. This truncation is structural, not merely an
+optimization: when Step~A time-steps the full 5~m column, the slow
+deep-column relaxation leaks into the anchor and the retrieval
+acquires a spurious dependence on the inner-loop length (the
+$n_{\rm inner}$ bias dissected in Appendix~\ref{app:numerics}). With
+the truncation, the retrieved \Kds\ is independent of $n_{\rm inner}$
+at the certified settings and the convergence cost drops by a further
+factor of ${\sim}4$.
+
+\section{The outer loop as a fixed-point iteration}
+\label{sec:fixedpoint}
+The composition (Step~A on the skin) $\circ$ (Step~B below the anchor)
+is a contraction: Step~A relaxes any starting skin toward the true skin
+solution within a few lunations (the skin's diffusive timescale is
+short), and Step~B is \emph{exact} below the anchor given a correct
+anchor temperature. The loop therefore converges geometrically; in the
+production configuration the anchor drift falls $27 \to 15 \to 8 \to
+4$~mK over four outer cycles, entering the $\pm 5$~mK tolerance at
+cycle four to five (Fig.~\ref{fig:anchorconv}). Convergence is judged
+on the \emph{anchor drift}, never on a fixed cycle count --- the
+fixed-count trap and its consequences are part of the certification
+record (Appendix~\ref{app:numerics}).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/fig_anchor_convergence.pdf}
+  \caption[Outer-loop convergence of the anchor temperature]{The
+  two-stage anchor settling within four outer cycles (top) and the
+  cycle-to-cycle drift falling below both stage tolerances (bottom),
+  from the real production trace.}
+  \label{fig:anchorconv}
+\end{figure}
+
+\section{Measured cost}\label{sec:cost}
+Table~\ref{tab:speed} and Fig.~\ref{fig:speedup} give the measured
+wall-clock numbers (median of three runs, Apple silicon laptop). The
+algorithmic gain (anchored vs.\ brute force, both interpreted) is
+$21\times$ per solve; compiling the Step-A march (a
+\texttt{numba} kernel transcribed from a verified C++ reference)
+multiplies this by a further $117\times$, to $0.636$~s per solve and
+$39$~s for the full 61-point sweep. The C++ reference itself runs at
+$3.24$~ms per lunation against $4.71$ for the compiled Python kernel
+and $538$ for the interpreted solver --- confirming that the remaining
+gap between Python and C++ is a constant factor of ${\sim}1.45$, not
+an algorithmic difference. All three implementations agree to
+$1.4\times10^{-12}$~K.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Measured cost of one periodic-equilibrium solve and of the
+  61-point \Kd\ sweep (from \texttt{results/speedup\_benchmark.json}
+  and \texttt{results/cpp\_benchmark.json}).}
+  \label{tab:speed}
+  \begin{tabular}{lccc}
+    \toprule
+    & brute force & flux-anchored & flux-anchored \\
+    & (interpreted) & (interpreted) & (compiled kernel) \\
+    \midrule
+    one solve & ${\sim}26$~min & $74.7$~s & $0.636$~s \\
+    61-solve sweep & $26.6$~h (proj.) & $76$~min & $39$~s \\
+    speed-up per solve & $1\times$ & $21\times$ & ${\sim}2500\times$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/fig_speedup.pdf}
+  \caption[Measured speed-up]{Measured wall-clock comparison of brute
+  force against the flux-anchored solver, per solve and for the full
+  sweep.}
+  \label{fig:speedup}
+\end{figure}
+
+\section{Certification, in brief}
+Speed bought by a wrong answer is worthless, so equality with the
+ground truth is certified rather than assumed, at three levels:
+(i)~a fully converged brute-force run reaches the same profile;
+(ii)~the discretization was pushed down a time-step ladder until the
+\emph{retrieved} \Kds\ --- the quantity actually reported --- stopped
+moving, a process that exposed and eliminated a first-order defect in
+the time march (the missing wrap step); and (iii)~an independent C++
+implementation reproduces the solver to $10^{-12}$~K. The full record,
+including the three input errors found along the way and their effect
+on the headline number, is Appendix~\ref{app:numerics}.
+
+% ============================================================================
+\chapter{Retrieval and uncertainty}\label{ch:retrieval}
+
+\section{The sweep}
+For each site, \Kd\ is swept across a dense grid (denser near the
+minimum), each grid point solved to periodic equilibrium, the model
+column interpolated to the deep-sensor depths, and the root-mean-square
+misfit RMSE$(\Kd)$ recorded. The retrieved \Kds\ is the vertex of a
+parabola through the bracketing minimum (Fig.~\ref{fig:sweep}); grid
+convergence of the vertex was verified against coarser and denser
+grids (a uniform coarse grid biases the vertex by ${\sim}0.04$~\mWmK\
+--- one of the certification items of Appendix~\ref{app:numerics}).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/fig_kd_sweep.pdf}
+  \caption[Deep-sensor RMSE against \Kd\ at both sites]{Deep-sensor
+  RMSE as a function of \Kd\ at both sites. Stars: retrieved \Kds;
+  horizontal bars: 95\% bootstrap intervals; vertical lines: the
+  \citet{hayne2017} global value and the \citet{feng2020} deep value.}
+  \label{fig:sweep}
+\end{figure}
+
+Figure~\ref{fig:sweepworked} walks the Apollo 17 case as a worked
+example: the bowl from the real sweep, the three grid points that
+bracket its minimum, and the parabola vertex that defines
+$\Kds = 7.08$~\mWmK.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/fig_sweep_worked.pdf}
+  \caption[The A17 retrieval as a worked example]{The certified Apollo
+  17 retrieval as a worked example: the RMSE bowl, the three bracketing
+  grid points, and the parabolic vertex at $\Kds=7.08$~\mWmK.}
+  \label{fig:sweepworked}
+\end{figure}
+
+\section{Bootstrap uncertainty}\label{sec:bootstrap}
+The primary uncertainty estimate is a non-parametric bootstrap
+\citep{efron1993}: 1500 resamples of the deep-sensor set, each with
+sensor depths jittered by the $2.5$~cm placement uncertainty
+\citep{nagihara2018}, each re-retrieved through the full sweep --- an
+analysis that only became affordable with the fast solver. The
+bootstrap propagates exactly the two quantities measured at the
+boreholes (which sensors exist and where they sit) and assumes nothing
+about the basal flux. The result (Fig.~\ref{fig:boot}):
+\begin{equation}
+  \Kds(\mathrm{A15}) = 4.60^{+0.86}_{-0.21}\,[4.18,\,6.96], \qquad
+  \Kds(\mathrm{A17}) = 7.08^{+0.53}_{-0.52}\,[6.16,\,8.07]\ \mWmK
+\end{equation}
+($1\sigma$ asymmetric about the point estimate; brackets 95\%). The
+inter-site contrast, formed by pairing bootstrap draws, has median
+$+2.31$~\mWmK, 95\% CI $[-0.12, 3.56]$, $p = 0.031$:
+\emph{marginal} at the 95\% level --- the interval touches zero --- a
+statement this thesis reports plainly rather than papers over.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/fig_bootstrap.pdf}
+  \caption[Bootstrap distributions and the contrast]{(a)~Per-site
+  bootstrap distributions of \Kds\ (1500 draws each) with the
+  \citet{hayne2017} global value marked; (b)~the inter-site contrast
+  distribution with its 95\% interval and $p=0.031$.}
+  \label{fig:boot}
+\end{figure}
+
+\section{Where every input comes from}\label{sec:register}
+A retrieval is only as defensible as its inputs, so every input is
+classified by the kind of evidence behind it and treated accordingly
+(Table~\ref{tab:register}): published measurements carry their
+literature envelope into the error budget; numerical knobs must show a
+demonstrated \Kds\ convergence plateau; discretionary choices are
+swept and reported as sensitivity rows; derived quantities carry their
+derivation.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{The input register, condensed: every input to the headline
+  number, by evidence class.}
+  \label{tab:register}
+  \begin{tabular}{lll}
+    \toprule
+    Class & Inputs & Treatment \\
+    \midrule
+    Published measurement & $\Qb$, \Ks, $H$, $\chi$, $\rho(z)$, $c_p(T)$, & envelope $\to$ error \\
+      & albedo, emissivity, $S_0$, sensor depths & budget row \\
+    Numerical knob & $\Delta t$, $n_{\rm inner}$, spatial grid, \Kd-grid & convergence plateau \\
+      & & certified (App.~\ref{app:numerics}) \\
+    Discretionary choice & $80$~cm cut, anchor $z_0$, stability & swept; sensitivity \\
+      & threshold & row in budget \\
+    Derived & $z_0$ below the rectification zone & derivation shown \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Systematic error budget}
+Every fixed input is perturbed through its literature envelope and the
+retrieval repeated; Table~\ref{tab:budget} summarizes. The dominant
+systematic at both sites is \Qb\ itself --- evaluated on the
+\emph{direct} degeneracy map of Chapter~\ref{ch:robustness}, not on an
+assumed scaling --- and at Apollo~17 the albedo and
+surface-conductivity terms are also material. The quadrature totals
+are $\sigma = 1.88$ (A15) and $3.78$ (A17)~\mWmK. Two rows are
+\emph{conditional}, not summed: the radiative coefficient $\chi$ and
+the compaction scale $H$ are held at published values, and \Kds\ is
+reported as conditional on them (\S\ref{sec:caveats}).
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Systematic error budget for \Kds\ (\mWmK). Values are
+  half-ranges of the retrieval across each input's literature envelope;
+  the \Qb\ row uses the direct degeneracy map of
+  Chapter~\ref{ch:robustness}.}
+  \label{tab:budget}
+  \begin{tabular}{lcc}
+    \toprule
+    Source & A15 & A17 \\
+    \midrule
+    Statistical (bootstrap $1\sigma$) & 0.53 & 0.52 \\
+    Basal flux \Qb                    & 1.61 & 1.66 \\
+    Albedo                            & 0.72 & 2.96 \\
+    Surface conductivity \Ks          & 0.36 & 1.55 \\
+    Solver/discretization             & 0.04 & 0.04 \\
+    Sensor-depth / threshold / density (each) & $\le$0.12 & $\le$0.33 \\
+    \midrule
+    \textbf{Total (quadrature)}       & \textbf{1.88} & \textbf{3.78} \\
+    \midrule
+    Conditional: $H$ ($3$--$10$~cm)   & 0.51 & 3.47 \\
+    Conditional: $\chi$               & \multicolumn{2}{c}{reported conditional on $\chi=2.7$} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ============================================================================
+\chapter{Results}\label{ch:results}
+
+\section{The headline}
+Figure~\ref{fig:headline} is the thesis in one panel: the two per-site
+retrievals with their 95\% intervals, and the global $3.4$~\mWmK\
+outside both.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/fig_headline.pdf}
+  \caption[Per-site \Kds\ with 95\% intervals]{Per-site \Kds\ with 95\%
+  bootstrap intervals against the \citet{hayne2017} global value.}
+  \label{fig:headline}
+\end{figure}
+
+The fitted columns against the data are shown in
+Fig.~\ref{fig:profiles}. The global-\Kd\ forward model misfits the
+deep sensors by $1.09$~K (A15) and $0.89$~K (A17); the site fits
+reduce this to $1.00$ and $0.40$~K. The Apollo 17 improvement is
+dramatic and visually obvious in the deep-sensor zoom; the Apollo 15
+improvement is modest in RMSE but moves the profile's \emph{slope}
+into agreement --- the deep gradient, which is the physically loaded
+feature.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig_thermal_profiles.pdf}
+  \caption[Modeled columns vs.\ the deep sensors]{Modeled temperature
+  columns against the HFE sensors at both sites (top), with deep-sensor
+  zooms (bottom). Site-fitted Hayne profiles (solid) against the
+  \citet{martinez2021} forward evaluation (dashed).}
+  \label{fig:profiles}
+\end{figure}
+
+\section{Model selection}
+Information-criterion accounting (AICc; \citealp{burnham2002})
+supports the site-resolved description honestly rather than uniformly:
+at Apollo 17 the site fit is decisively preferred over the global
+value ($\Delta\mathrm{AICc} \approx 23$); at Apollo 15, where the RMSE
+improvement is small, parsimony alone would keep the global value
+($\Delta\mathrm{AICc} \approx -3$); jointly the two-value description
+is preferred by $\Delta\mathrm{AICc} \approx 20$. A discrete
+three-layer alternative model fitted per site does not outperform the
+site-fitted Hayne form at either site (Table~\ref{tab:aicc}).
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Model selection on the deep sensors
+  (\texttt{results/model\_selection.json}). Lower AICc is better;
+  differences within a site are the meaningful quantity.}
+  \label{tab:aicc}
+  \begin{tabular}{lcccc}
+    \toprule
+    & \multicolumn{2}{c}{A15} & \multicolumn{2}{c}{A17} \\
+    Model & RMSE (K) & AICc & RMSE (K) & AICc \\
+    \midrule
+    Hayne, global $\Kd=3.4$ & 1.09 & 4.1 & 0.89 & $-1.4$ \\
+    Hayne, site-fit \Kds    & 1.00 & 7.0 & 0.40 & $-24.6$ \\
+    3-layer, site-fit       & 0.98 & 6.7 & 0.92 & 2.4 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Internal validation}
+Two held-out checks confirm the retrieval is not driven by any single
+sensor or sensor type (Fig.~\ref{fig:holdout}): fitting on
+gradient-bridge sensors alone and predicting ring-bridge sensors (and
+vice versa) reproduces held-out temperatures within ${\sim}0.26$~K of
+in-sample; withholding the deepest sensor at each site and refitting
+predicts it to $0.21$~K (A15) and $0.09$~K (A17).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig_holdout.pdf}
+  \caption[Held-out validation]{Held-out validation: (a)~TG/TR
+  cross-prediction RMSEs against in-sample values; (b)~leave-one-
+  deepest-out prediction residuals.}
+  \label{fig:holdout}
+\end{figure}
+
+\section{A second globally calibrated model fails the same way}
+An independent forward evaluation of the \citet{martinez2021}
+conductivity model, with its published coefficients, misses the deep
+sensors by $1.05$~K (A15) and $0.63$~K (A17) --- the same direction as
+the global Hayne value. Recalibrating its amplitude per site (best
+factors $1.19$ and $1.04$) recovers $0.91$ and $0.60$~K. Both globally
+calibrated forms underpredict the deep column at these boreholes,
+supporting the interpretation that the deficiency lies in globally
+averaged calibration rather than in any one functional form.
+
+% ============================================================================
+\chapter{Robustness: the \texorpdfstring{$\Kd$--$\Qb$}{Kd-Qb}
+  degeneracy, measured not assumed}\label{ch:robustness}
+
+\section{Why the obvious shortcut is wrong}
+\Kd\ and \Qb\ enter the deep gradient together ($d\Tm/dz \simeq
+\Qb/K$), suggesting the proportional invariance $(\alpha\Kd,
+\alpha\Qb) \to$ same profile --- an assumption under which a basal-flux
+error rescales both sites equally and cancels in the contrast. Direct
+re-retrieval \emph{disproves} this invariance for the present problem:
+the radiative $K(T)^3$ coupling and the skin-column temperature offset
+break it. Figure~\ref{fig:qbdeg} shows the realized $\Kds(\Qb)$
+relations, one full re-retrieval per point: $\Kds(\mathrm{A15})$
+\emph{rises} with its flux (from $2.07$ to $5.44$~\mWmK\ across
+$\Qb=14$--$26$~\mWm) while $\Kds(\mathrm{A17})$ \emph{falls} (from
+$10.13$ to $6.80$ across $10$--$18$~\mWm) --- opposite site responses
+that no proportional model can represent.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/fig_qb_degeneracy.pdf}
+  \caption[The measured $\Kds(\Qb)$ relations]{The measured
+  $\Kds(\Qb)$ relation at each site (one full re-retrieval per grid
+  point). The two sites respond to a flux revision in opposite
+  directions, which is what makes the contrast's sign
+  envelope-robust.}
+  \label{fig:qbdeg}
+\end{figure}
+
+\section{The direct map}
+We therefore map the degeneracy by brute honesty: the contrast
+$\Delta\Kds$ over the full published flux envelope
+($\Qb^{\mathrm{A15}}\in[14,25]$, $\Qb^{\mathrm{A17}}\in[10,18]$~\mWm),
+interpolated from the measured curves of Fig.~\ref{fig:qbdeg}, no
+degeneracy model at all (Fig.~\ref{fig:robustness}a). The contrast is
+positive over the \emph{entire} measured domain (minimum
+$+1.4$~\mWmK); the most adverse envelope corner compresses it to
+$+1.5$ (${\sim}1.6\sigma$), the favorable corner expands it to
+$+8.1$. Notably, a $-33\%$ revision of $\Qb^{\mathrm{A17}}$ alone ---
+the direction the reanalysis debate points --- \emph{raises} the
+contrast.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig_robustness.pdf}
+  \caption[Robustness of the contrast]{Robustness of the contrast.
+  (a)~Full-width direct contrast map over the plausible \Qb\ domain
+  with the MCMC flux posterior overlaid (teal 68/95\% credible regions,
+  median star); the contrast is positive everywhere and the
+  posterior-implied ordering holds with $P(\Delta\Kds>0)=99.3\%$.
+  (b),(c)~Joint $(\Kd,H)$ misfit surfaces showing the shallow
+  trade-off valley.}
+  \label{fig:robustness}
+\end{figure}
+
+\section{Bayesian cross-check}
+As an independent check on the \emph{direction} of the contrast (not a
+second estimate of its magnitude), a Bayesian inversion on the same
+directly solved RMSE$(\Kd,\Qb)$ surfaces, propagating the
+\citet{saito2007}/\citet{nagihara2018} flux priors via MCMC
+\citep{foreman_mackey2013emcee}, keeps
+$P\!\left[\Kds(\mathrm{A17})>\Kds(\mathrm{A15})\right] = 99.3\%$ for
+prior widths from $\pm10\%$ to $\pm40\%$, with the contrast median
+\emph{growing} with prior width (from $+3.5$ to $+5.0$~\mWmK) --- the
+ordering is insensitive to the very systematic that dominates the
+error budget, because the two sites move oppositely under it.
+Figure~\ref{fig:postcompare} sets the two uncertainty views side by
+side: the flux-agnostic bootstrap (contrast straddling zero at its
+2.5th percentile) and the flux-prior Bayesian posterior (firmly
+positive); together they bracket the honest statement. The flux
+posteriors themselves pull below the published values at both sites
+(medians $17.7$ and $13.7$~\mWm), independently favoring the
+\citet{saito2007} direction; a firm per-site \Qb\ from future landed
+measurements remains the single most valuable external input this
+retrieval could receive.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig_posterior_compare.pdf}
+  \caption[Bootstrap vs.\ Bayesian posteriors]{The two uncertainty
+  views compared: per-site posterior overlays (left) and the contrast
+  posterior (right) from the MCMC cross-check, to be read against the
+  bootstrap distributions of Fig.~\ref{fig:boot}.}
+  \label{fig:postcompare}
+\end{figure}
+
+% ============================================================================
+\chapter{Discussion}\label{ch:discussion}
+
+\section{Why would two sites differ?}
+A factor-${\sim}1.5$ conductivity contrast between Hadley Rille and
+Taurus--Littrow is physically unremarkable. Apollo cores span bulk
+porosities $\phi\sim0.30$--$0.45$ \citep{mitchell1973,carrier1991};
+the effective-medium scaling $K_{\rm eff}\propto(1-\phi)^2$
+\citep{wood2020} yields a factor ${\sim}1.5$ across that range alone.
+Compositionally, solid basalt conducts ${\sim}30\%$ better than
+anorthosite \citep{horai1972}, and Apollo 17 sits in a basaltic
+embayment while Apollo 15 straddles a mare/highland margin
+\citep{korotev2005,wieczorek2006,crawford2015}. The product of the two
+mechanisms (${\sim}1.9$) covers the retrieved ratio without requiring
+either at its extreme.
+
+\section{Honest caveats}\label{sec:caveats}
+\begin{enumerate}
+  \item \textbf{Marginal significance.} The bootstrap contrast CI
+    touches zero ($p=0.031$); the claim defended here is the
+    \emph{ordering and its robustness}, not a 95\%-significant
+    magnitude.
+  \item \textbf{Conditionality on $\chi$.} The radiative coefficient is
+    held at the global $\chi=2.7$; \Kds\ trades against it, and a
+    per-site $\chi$ cannot be excluded with two boreholes.
+  \item \textbf{Conditionality on $H$.} The $(\Kd,H)$ surface is a
+    shallow valley (Fig.~\ref{fig:robustness}b,c); at fixed published
+    $H=6$~cm, \Kd\ is well identified, but the pair is jointly
+    identified only up to the valley direction.
+  \item \textbf{\Qb\ circularity.} The published fluxes derive from the
+    same records; the direct map and flux-agnostic bootstrap are the
+    mitigations.
+  \item \textbf{Two points, not a map.} Two boreholes cannot constrain
+    global variability --- they demonstrate that at least this much
+    site-to-site variation exists.
+  \item \textbf{Topography.} Taurus--Littrow's valley walls modify the
+    radiation environment relative to the flat-terrain forcing assumed
+    here.
+\end{enumerate}
+
+\section{Relation to prior estimates}
+The per-site values land inside the historical spread
+(Fig.~\ref{fig:prior}) and reconcile its extremes: laboratory soils
+(uncompacted, radiative term small at laboratory conditions) bound
+from below; the \citet{vasavada2012} deep orbital estimate and
+\citet{feng2020} sit near the A17 and A15 values respectively. The
+original \citet{langseth1976} reductions and this work differ chiefly
+in the forward model's radiative term and the treatment of borestem
+disturbance --- the same directions identified by \citet{keihm1984}
+and \citet{grott2010}.
+
+\section{On numerical integrity}
+Three of this project's inputs were, at different times, silently
+wrong: a stale basal flux, an under-resolved inner loop, and a
+first-order defect in the time march. Each was found by the same
+discipline --- \emph{certify the quantity you report, not a proxy for
+it} --- and their combined effect moved the Apollo 17 headline from
+$8.12$ to $7.08$~\mWmK. The full audit trail is preserved in
+Appendix~\ref{app:numerics} (Table~\ref{tab:audittrail}) both as
+provenance for the final numbers and because the failure modes are
+generic to borehole-scale thermal modeling.
+
+% ============================================================================
+\chapter{Conclusions and outlook}\label{ch:conclusion}
+
+\begin{itemize}
+  \item The Apollo 15 and 17 boreholes require deep conductivities of
+    $4.60^{+0.86}_{-0.21}$ and $7.08^{+0.53}_{-0.52}$~\mWmK; the
+    global $3.4$~\mWmK\ lies outside both 95\% intervals. Meter-scale
+    lunar thermal modeling should carry site-resolved, not global,
+    \Kd.
+  \item The inter-site contrast ($+2.31$~\mWmK\ median) is marginal in
+    magnitude but directionally robust across the entire published
+    basal-flux envelope, with MCMC ordering probability 99.3\%
+    regardless of prior width --- a consequence of the two sites'
+    opposite responses to flux revision, discovered by mapping the
+    degeneracy directly instead of assuming its usual proportional
+    form.
+  \item The flux-anchored solver makes exhaustive uncertainty analysis
+    of borehole-constrained thermal models routine
+    ($0.636$~s per solve), and is certified against brute force,
+    against a discretization ladder, and against an independent C++
+    implementation to $10^{-12}$~K.
+  \item For TSUKIMI \citep{tsukimi2022} and successor subsurface
+    sounders, the retrieved per-site columns supply the forward-model
+    boundary condition orbital instruments cannot measure; conversely,
+    a single firm per-site \Qb\ from future landed heat-flow
+    measurements \citep{nagihara2018} is the one external input that
+    would most tighten this retrieval.
+\end{itemize}
+
+\todo{future-work-section --- personal research plan: Chang'E/ChaSTE
+comparison, per-site Martinez recalibration, polar extension for
+TSUKIMI coverage, joint chi-Kd retrieval with added constraints.}
+
+% ============================================================================
+\appendix
+
+\chapter{Derivation of the closure ODE}\label{app:derivation}
+
+This appendix derives Eq.~\eqref{eq:closure} from the heat equation in
+five moves, none skipped.
+
+\section*{Move 1 --- average over one lunation}
+Define the cycle mean $\langle\,\cdot\,\rangle \equiv
+\frac{1}{P}\int_0^P (\cdot)\, dt$ over one lunation $P$. In periodic
+steady state the column repeats every cycle, $T(z, t+P) = T(z,t)$.
+Apply $\langle\,\cdot\,\rangle$ to both sides of Eq.~\eqref{eq:heat}.
+
+\section*{Move 2 --- the storage term vanishes}
+Write the volumetric enthalpy $h(T) = \int \rho\, c_p\, dT$, so that
+$\rho c_p\, \partial_t T = \partial_t h$. Then
+\begin{equation}
+  \left\langle \rho c_p\, \frac{\partial T}{\partial t} \right\rangle
+  = \frac{1}{P}\int_0^P \frac{\partial h}{\partial t}\, dt
+  = \frac{h(P) - h(0)}{P} = 0,
+\end{equation}
+because $h$ returns to its starting value after a full cycle. In
+steady state nothing accumulates heat on average --- time drops out of
+the problem. This move is legal \emph{only} in periodic steady state,
+which is why Step~A must first drive the skin to that state before
+Step~B is invoked.
+
+\section*{Move 3 --- the depth derivative passes through the average}
+On the right-hand side, $z$ and $t$ are independent variables, so the
+average commutes with $\partial_z$:
+\begin{equation}
+  0 = \left\langle \frac{\partial}{\partial z}
+      \left( K\, \frac{\partial T}{\partial z}\right)\right\rangle
+    = \frac{\partial}{\partial z}
+      \left\langle K\, \frac{\partial T}{\partial z}\right\rangle
+  \quad\Longrightarrow\quad
+  \left\langle K\, \frac{\partial T}{\partial z}\right\rangle
+  = \text{constant in } z.
+\end{equation}
+No $t$ remains: the averaged equation is an equation in depth alone.
+
+\section*{Move 4 --- pin the constant with the bottom boundary}
+The basal boundary condition fixes the constant: at $z_{\max}$ the
+conducted flux is \Qb, hence
+\begin{equation}
+  \left\langle K\, \frac{\partial T}{\partial z}\right\rangle = \Qb
+  \qquad\text{at every depth.}
+\end{equation}
+The cycle-mean column carries the geothermal flux all the way up.
+
+\section*{Move 5 --- peel the average off the product}
+The mean of a product is not the product of the means; name the gap
+\begin{equation}
+  \urect(z) \;\equiv\;
+  \left\langle K\,\frac{\partial T}{\partial z}\right\rangle
+  - K(\Tm, z)\, \frac{d\Tm}{dz},
+  \label{eq:urect}
+\end{equation}
+the \emph{rectified flux} --- the covariance of the oscillating
+conductivity and the oscillating gradient, nonzero only where the
+diurnal wave lives. Substituting Move~4 into Eq.~\eqref{eq:urect} and
+solving for the mean gradient gives the closure,
+\begin{equation}
+  \frac{d\Tm}{dz} = \frac{\Qb - \urect(z)}{K(\Tm, z)},
+\end{equation}
+a first-order ODE in depth alone. Above the anchor, $\urect$ is
+evaluated from the Step~A skin solution; below the anchor it decays
+rapidly (at $z_0 = 0.55$~m the diurnal amplitude is ${\sim}0.15$~K and
+$\urect < 1\%$ of \Qb), so the deep integration is effectively
+$d\Tm/dz = \Qb/K$.
+
+\section*{Step B in practice}
+Equation~\eqref{eq:closure} is integrated downward from the anchored
+temperature $\Tm(z_0)$ by second-order Runge--Kutta on the same
+geometric grid used by Step~A, with $K$ evaluated at the current mean
+temperature at each half-step. Because the ODE \emph{is} the
+steady-state equation, Step~B is exact below the anchor given a
+correct anchor temperature --- the outer loop's only job is to make
+the anchor temperature correct.
+
+% ============================================================================
+\chapter{Numerical scheme and certification}\label{app:numerics}
+
+\section{Spatial discretization}
+\emph{Grid.} The column $[0, 5~\mathrm{m}]$ is divided into 69
+finite-volume cells whose widths grow geometrically ($\Delta z_0 =
+2$~mm, growth 8\%): millimeter resolution where the ${\sim}280$~K
+diurnal swing lives, centimeter-to-decimetre cells in the smooth deep
+column. Temperatures live at cell centres; fluxes cross cell faces.
+Integrating the heat equation over a cell and telescoping the interior
+fluxes conserves energy to machine precision.
+
+\emph{Face conductivity.} Heat crossing the face between cells $i$ and
+$i{+}1$ passes through two half-cells in series, so thermal
+resistances add and the face value is the \emph{harmonic} mean,
+\begin{equation}
+  K_{i+1/2} = \frac{2\,K_i\,K_{i+1}}{K_i + K_{i+1}},
+\end{equation}
+the physically correct choice where $K$ jumps steeply through the
+compaction zone (an arithmetic mean would let a high-$K$ cell
+short-circuit its low-$K$ neighbor).
+
+\section{Time integration}
+\emph{Scheme.} Crank--Nicolson (the $\theta=\tfrac12$ scheme):
+unconditionally stable --- the amplification factor per diffusive mode
+is $\xi = (1-\beta/2)/(1+\beta/2)$ with $\beta \ge 0$, so $|\xi| \le
+1$ for every mode and any $\Delta t$ --- and second-order accurate.
+Explicit Euler at the 2~mm surface cell would demand $\Delta t
+\lesssim 200$~s for stability alone; CN frees the step to be chosen by
+\emph{accuracy}, certified below at $\Delta t = 1800$~s.
+
+\emph{Nonlinearity.} Properties depend on $T$, so each step performs
+midpoint-Picard corrector sweeps: properties are re-evaluated at
+$\tfrac12(T^{\,n} + T^{\,n+1})$ and the tridiagonal solve repeated.
+The production setting of two sweeps was fixed by a measured scan of
+the periodic attractor's residual drift per time-step halving:
+$-8.6 / -4.2 / -2.2 / -2.0$~mK at $1/2/4/8$ sweeps.
+
+\emph{Surface.} The nonlinear radiative surface balance is solved by
+Newton iteration each step, re-anchored at the implicit surface
+temperature.
+
+\emph{Linear algebra.} Each step assembles one tridiagonal system
+$A\,T^{\,n+1} = d$: every interior row is the CN stencil; the surface
+row is a Dirichlet ghost (the Newton-solved surface temperature moves
+to the right-hand side); the basal row is a Neumann ghost
+($b_{N-1} \to b_{N-1} - \tfrac12\alpha$,
+$d_{N-1} \to d_{N-1} + \Delta t\, \Qb / C$). The Thomas algorithm
+solves it in $O(N)$.
+
+\section{Certification of the reported quantity}
+The convergence criterion throughout is the stability of the
+\emph{retrieved} \Kds\ --- the quantity the letter reports --- never a
+proxy such as a fixed cycle count or the flux-closure residual alone.
+Three certification campaigns are on record.
+
+\paragraph{The fixed-count trap.} An early configuration declared
+convergence after a fixed number of spin-up lunations. The skin
+settles in ${\sim}10$ lunations while the deep column is still tens of
+kelvin away, so the cycle-to-cycle test passes long before the profile
+has arrived (Fig.~\ref{fig:f1bug}). The cure is the anchor-drift
+tolerance of \S\ref{sec:fixedpoint}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/fig_book_f1_bug.pdf}
+  \caption[The fixed-count convergence trap]{The fixed-count trap: the
+  shallow column equilibrates quickly while the deep column is still
+  relaxing, so a cycle-to-cycle test on the skin passes prematurely.}
+  \label{fig:f1bug}
+\end{figure}
+
+\paragraph{Inner-loop resolution and the truncated Step A.} The
+retrieved \Kds\ drifts monotonically with the inner spin-up length
+$n_{\rm inner}$ when Step~A time-steps the full column --- the deep
+relaxation leaks into the anchor. The structural fix is the truncation
+of \S\ref{sec:stepA}; with it, Apollo 15 (the slower-converging site,
+lower $K$ hence lower diffusivity) reads
+$4.600/4.605/4.606$~\mWmK\ at $n_{\rm inner} = 64/96/128$, and the
+truncated solve was validated unbiased against the full-column solve
+($4.606$ vs.\ $4.608$ at $n=128$). Production uses $n_{\rm inner}=96$.
+
+\paragraph{The time-step ladder and the wrap step.} Halving the time
+step $1800 \to 900 \to 450$~s moves \Kds(A17) by $0.018$ then
+$0.007$~\mWmK\ ($7.0795 / 7.0975 / 7.1045$;
+Fig.~\ref{fig:dtladder}) --- inside the $0.05$ acceptance band and
+consistent with second order. This ladder is itself the instrument
+that caught the deepest defect of the project: the original march
+looped over a periodic grid spanning $[0, P-\Delta t]$ and relabeled
+the $P-\Delta t$ state as $t=0$, a phase slip of exactly $\Delta t$
+per lunation that made the periodic attractor first-order in $\Delta
+t$ (${+}61$~mK per halving) regardless of the second-order stepper
+inside. The fix is a wrap step closing each cycle. As a cross-check,
+Richardson extrapolation of the \emph{defective} scheme's ladder
+converges to $7.104$~\mWmK\ --- the fixed scheme's finest-rung value
+to four digits: two different discretizations, one continuum limit.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\linewidth]{figures/fig_dt_ladder.pdf}
+  \caption[The $\Delta t$ certification ladder]{The time-step
+  certification ladder for \Kds(A17) under the wrap-corrected scheme.}
+  \label{fig:dtladder}
+\end{figure}
+
+\paragraph{Independent implementation.} A faithful C++ port of the
+solver (same grid, scheme, and wrap step) agrees with the Python
+implementation to $1.4\times10^{-12}$~K over full retrievals, and
+benchmarks the language gap at $3.24$ vs.\ $4.71$~ms per lunation
+(C++ vs.\ compiled Python kernel) --- a constant factor, confirming no
+algorithmic slack remains.
+
+\section{The audit trail}
+Table~\ref{tab:audittrail} records the three input errors found during
+the project's audits and their effect on the Apollo 17 headline value
+--- preserved because each is a generic failure mode of
+borehole-constrained thermal modeling: duplicated constants drift,
+convergence criteria certify proxies, and time marches acquire
+off-by-one phase defects that only an end-to-end ladder on the
+\emph{reported} quantity exposes.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{The audit trail: input errors found, their fixes, and the
+  resulting moves in \Kds(A17) (\mWmK).}
+  \label{tab:audittrail}
+  \begin{tabular}{llll}
+    \toprule
+    Error & Symptom & Fix & \Kds(A17) \\
+    \midrule
+    stale $\Qb$ (15 vs.\ 16~\mWm) & none (ran silently) &
+      single source of truth & $8.12 \to 7.51$ \\
+    $n_{\rm inner}$ under-resolved & \Kds\ drifts with $n_{\rm inner}$ &
+      truncated Step A + plateau test & $7.51 \to 7.16$ \\
+    missing wrap step & attractor first-order in $\Delta t$ &
+      wrap step + $\Delta t$ ladder & $7.16 \to 7.08$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ============================================================================
+\chapter{Reproducibility}\label{app:repro}
+All results derive from the pipeline in the \texttt{Lunar-HFE}
+repository, in three stages:
+\begin{enumerate}
+  \item \texttt{pipeline/compute/retrieve\_kd.py} --- the sweep,
+    bootstrap, joint $(\Kd,H)$ grids, and holdout checks, writing
+    \texttt{results/kd\_retrieval\_results.json};
+  \item the auxiliary computes (degeneracy map, Bayesian cross-check,
+    error budget, sensitivities, benchmarks, discretization checks),
+    each writing its own \texttt{results/*.json};
+  \item \texttt{pipeline/make\_all\_figures.py} --- every figure in
+    this thesis regenerates from those artifacts; no figure computes
+    physics directly.
+\end{enumerate}
+The test suite (49 tests) covers the physics invariants (boundary
+conditions, harmonic faces, closure sign, wrap step, fast-path
+equivalence) and must be green before any result is quoted. The HFE
+records are the \citet{nagihara2018} restorations; ephemerides follow
+\citet{acton1996,acton2018,mazarico2011}. \todo{add --- Zenodo DOI on
+archive; exact commit hash of the certified baseline.}
+
+% ============================================================================
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

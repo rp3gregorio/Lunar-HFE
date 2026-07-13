@@ -132,8 +132,8 @@ _ROOT         = pathlib.Path(__file__).parents[2]   # Lunar-V2/
 # CI [3.8,13.3] instead of [-3.2,16.6]) -- so the figures disagreed
 # with the text. Do not point this back at phase2_results.json.
 RESULTS       = _ROOT / "results" / "kd_retrieval_results.json"
-LETTER_FIGS   = _ROOT / "results" / "figures"
-APPENDIX_FIGS = _ROOT / "results" / "figures"  # (legacy alias; unused)
+LETTER_FIGS   = _ROOT / ".." / "figures"
+APPENDIX_FIGS = _ROOT / ".." / "figures"  # (legacy alias; unused)
 
 
 def fmt_axis(ax, *, xlabel="", ylabel="", title=""):

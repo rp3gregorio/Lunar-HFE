@@ -25,7 +25,7 @@ from lunar.equilibrium import solve_periodic_equilibrium, _rectified_flux
 from lunar.plotting.style import (JGR_HALF, C_A17, C_TEAL, C_DIM, C_GRID,
                                   C_CHAR, C_CORAL_L, fmt_axis)
 
-OUT = pathlib.Path(__file__).resolve().parents[2] / "results" / "figures"
+OUT = pathlib.Path(__file__).resolve().parents[2] / ".." / "figures"
 
 
 def main():

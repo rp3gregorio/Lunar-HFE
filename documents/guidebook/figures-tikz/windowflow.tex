@@ -1,0 +1,55 @@
+% Fig — how one sensor's equilibrium temperature is extracted.
+% Mirrors apollo_helpers.find_stable_window (slope 0.08 K/yr, scan 55-85%,
+% fallback last 25%) + extract_sensor_stability (>= 80 cm cut).
+% Body only; the book supplies \caption/\label.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=center},
+  io/.style={rectangle, rounded corners=10pt, draw=dim, line width=0.9pt,
+             fill=black!3, inner sep=5pt, text width=74mm},
+  box/.style={rectangle, rounded corners=2pt, draw=dim, line width=0.8pt,
+              fill=white, inner sep=5pt, text width=72mm},
+  q/.style={rectangle, rounded corners=2pt, draw=teal, line width=0.9pt,
+            fill=teal!7, inner sep=5pt, text width=52mm},
+  res/.style={rectangle, rounded corners=3pt, draw=forest, fill=forest!12,
+              line width=1pt, inner sep=5pt, text width=74mm},
+  arr/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, draw=dim,
+              rounded corners=3pt, line cap=round}]
+
+  \node[io] (rec) at (0,0)
+    {\textbf{one sensor's full record} $T_{\rm obs}(t)$, 1971--77\\
+     {\scriptsize\color{dim}restored by Nagihara (2018); early years still
+      recovering from drilling heat}};
+
+  \node[box] (scan) at (0,-1.75)
+    {\textbf{scan candidate window starts} across 55--85\% of the record\\
+     {\scriptsize\color{dim}the early record is disturbed; only the trailing
+      tail can be trusted}};
+
+  \node[q] (test) at (0,-3.45)
+    {trailing linear fit:\\ $|\mathrm{slope}| < 0.08$ K yr$^{-1}$ ?};
+
+  \node[box, text width=52mm] (earliest) at (-3.0,-5.2)
+    {\textbf{keep the EARLIEST start that passes}\\
+     {\scriptsize\color{dim}longest clean window $\rightarrow$ smallest
+      statistical error}};
+  \node[box, text width=40mm, draw=coral, fill=coral!7] (fallback) at (3.6,-5.2)
+    {\textbf{none pass:} fall back to the last 25\%\\
+     {\scriptsize\color{dim}flagged, not silent}};
+
+  \node[res] (teq) at (0,-7.0)
+    {$T_{{\rm eq},i}$ = mean over the window\quad
+     {\scriptsize (kept only if the sensor sits $\geq 80$ cm deep:
+      7 at A15, 16 at A17)}};
+
+  \draw[arr] (rec) -- (scan);
+  \draw[arr] (scan) -- (test);
+  \draw[arr] (test.south) -- ($(test.south)+(0,-3.5mm)$) -| (earliest.north);
+  \draw[arr] (test.south) -- ($(test.south)+(0,-3.5mm)$) -| (fallback.north);
+  \node[font=\scriptsize\color{forest}, anchor=south east]
+    at ($(earliest.north)+(0.55,0.15)$) {some start passes};
+  \node[font=\scriptsize\color{dim}, anchor=south west]
+    at ($(fallback.north)+(-0.5,0.15)$) {none};
+  \draw[arr] (earliest.south) -- ($(earliest.south)+(0,-4.5mm)$) -| ($(teq.north)+(-1.6,0)$);
+  \draw[arr] (fallback.south) -- ($(fallback.south)+(0,-4.5mm)$) -| ($(teq.north)+(1.6,0)$);
+\end{tikzpicture}

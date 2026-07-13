@@ -1,0 +1,38 @@
+% Fig — the control volume behind the heat equation: what flows in minus
+% what flows out is what gets stored. Mirrors App B's Fourier -> heat-eq
+% derivation. Body only; the book supplies \caption/\label.
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=center},
+  arr/.style={-{Stealth[length=2.6mm]}, line width=1.3pt, line cap=round}]
+
+  % the slab
+  \fill[teal!12, rounded corners=1pt] (0,0) rectangle (5.2,-1.5);
+  \draw[teal, line width=1pt, rounded corners=1pt] (0,0) rectangle (5.2,-1.5);
+  \node[color=char] at (2.6,-0.75)
+    {slab of regolith\\[-1pt]{\scriptsize area $A$, thickness $\Delta z$,
+     heat capacity $\rho c_p$}};
+
+  % depth axis
+  \draw[-{Stealth[length=2mm]}, dim] (-1.1,0.9) -- (-1.1,-2.4)
+    node[below, color=dim] {$z$ (down)};
+  \node[left, font=\scriptsize\color{dim}] at (-0.15,0) {$z$};
+  \node[left, font=\scriptsize\color{dim}] at (-0.15,-1.5) {$z+\Delta z$};
+
+  % fluxes
+  \draw[arr, coral] (2.6,1.1) -- (2.6,0.05)
+    node[pos=0.4, right=3pt, color=coral]
+    {$q(z)$ \scriptsize flux in};
+  \draw[arr, coral!70!black] (2.6,-1.55) -- (2.6,-2.6)
+    node[pos=0.6, right=3pt, color=coral!70!black]
+    {$q(z{+}\Delta z)$ \scriptsize flux out};
+
+  % the bookkeeping, to the right of the slab
+  \node[rectangle, rounded corners=3pt, draw=forest, fill=forest!10,
+        line width=1pt, inner sep=5pt, text width=52mm, anchor=west]
+    at (6.2,-0.75)
+    {\textbf{energy bookkeeping}\\[2pt]
+     stored per second $=$\\ $\big[q(z)-q(z{+}\Delta z)\big]\,A$\\[3pt]
+     {\scriptsize divide by $A\,\Delta z$, let $\Delta z\!\to\!0$:}\\[1pt]
+     $\rho c_p\,\partial_t T = -\,\partial_z q$};
+\end{tikzpicture}

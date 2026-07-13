@@ -192,7 +192,7 @@ def main():
                ncols=3, frameon=True, edgecolor=C_GRID, framealpha=0.97,
                fontsize=FS_LEGEND, handlelength=2.0, borderpad=0.5)
 
-    fig_path = _REPO / "results" / "figures" / "fig_diviner_closure.pdf"
+    fig_path = _REPO / ".." / "figures" / "fig_diviner_closure.pdf"
     fig.savefig(fig_path, dpi=300)
     plt.close(fig)
     print(f"wrote {fig_path}", flush=True)

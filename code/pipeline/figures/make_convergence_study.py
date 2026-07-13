@@ -28,7 +28,7 @@ from lunar.plotting.style import (  # noqa: E402
 )
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-OUT = ROOT / "results" / "figures"
+OUT = ROOT / ".." / "figures"
 N_PROD = 96      # production EQ_N_INNER
 KD_TOL = 0.005   # convergence criterion on K_d* [mW/m/K]
 CLO_THR = 0.5    # flux-closure reporting threshold [% of Q_b]

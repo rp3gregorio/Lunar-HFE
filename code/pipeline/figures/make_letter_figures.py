@@ -112,7 +112,7 @@ TL_RHO_REF  = 1800.0          # Hayne (2017) nominal deep density
 
 from lunar.config import SITES  # single source of truth
 
-LETTER_FIGS = _REPO / "results" / "figures"
+LETTER_FIGS = _REPO / ".." / "figures"
 PHASE_A     = _REPO / "results" / "kd_retrieval_results.json"
 
 

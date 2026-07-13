@@ -31,7 +31,7 @@ from lunar.solver import periodic_time_grid
 from lunar.equilibrium import solve_periodic_equilibrium
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
-_OUT = _REPO / "results" / "figures"
+_OUT = _REPO / ".." / "figures"
 
 
 def _trace(site_key="A15"):

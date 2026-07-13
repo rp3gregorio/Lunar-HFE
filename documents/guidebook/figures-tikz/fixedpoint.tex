@@ -1,0 +1,26 @@
+% Fig — the outer loop as a fixed-point search: anchor iterates contract
+% geometrically into the tolerance band. Drift values are the REAL App-C
+% worked-example sequence. Body only; the book supplies \caption/\label.
+\begin{tikzpicture}[font=\footnotesize, every node/.style={align=center},
+  hop/.style={-{Stealth[length=2mm]}, line width=0.9pt, draw=teal, line cap=round},
+  lbl/.style={font=\scriptsize\color{dim}}]
+  % T-axis
+  \draw[line width=0.9pt, color=char, -{Stealth[length=2mm]}] (0,0) -- (11.6,0)
+    node[below=2pt, font=\scriptsize\color{char}] {$\Tm(z_0)$ [K]};
+  % tolerance band around the fixed point
+  \fill[forest!14] (9.55,-0.28) rectangle (10.45,0.85);
+  \draw[forest, line width=1pt] (10.0,-0.28) -- (10.0,0.85);
+  \node[lbl, color=forest, anchor=south] at (10.0,0.9)
+    {fixed point $T^{*}$\\[-1pt]{\scriptsize band: $\pm$tol $=0.005$ K}};
+  % iterates (positions to scale of drifts 27,15,8,4 mK, exaggerated)
+  \foreach \x/\k in {2.2/1, 5.9/2, 8.0/3, 9.1/4, 9.65/5}
+    \draw[color=char] (\x,-0.09) -- (\x,0.09) node[below=6pt, font=\scriptsize] {$T^{(\k)}$};
+  \foreach \a/\b/\d in {2.2/5.9/27, 5.9/8.0/15, 8.0/9.1/8, 9.1/9.65/4}
+    \draw[hop] (\a,0.14) to[bend left=42]
+      node[lbl, above=1pt] {\d\,mK} (\b,0.14);
+  \node[lbl, anchor=north] at (5.8,-0.75)
+    {each outer cycle (Step A $+$ Step B) moves the anchor $\sim$60\% less
+     than the last --- geometric contraction;\\
+     the loop stops when the drift enters the band
+     ($4 < 5$ mK at cycle 5 in the worked example of App.~C)};
+\end{tikzpicture}

@@ -29,7 +29,7 @@ from lunar.plotting.style import (JGR_FULL, C_A15, C_A17, C_DIM, C_GRID,
                                   C_CHAR, fmt_axis, assert_no_overlap)
 
 SRC = ROOT / "results" / "qb_degeneracy.json"
-OUT = ROOT / "results" / "figures"
+OUT = ROOT / ".." / "figures"
 PUB = {"A15": 21.0, "A17": 16.0}   # published Q_b [mW m^-2] (Langseth 1976)
 
 

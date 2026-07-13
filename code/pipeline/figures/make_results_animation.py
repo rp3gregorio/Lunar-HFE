@@ -35,8 +35,8 @@ sys.path.insert(0, str(ROOT / "src"))
 from lunar.plotting.style import (C_A15, C_A17, C_CHAR, C_DIM, C_GRID,
                                   fmt_axis, assert_no_overlap)
 
-ANIM_OUT = ROOT / "results" / "anim"
-FIG_OUT = ROOT / "results" / "figures"
+ANIM_OUT = ROOT / ".." / "figures" / "anim"
+FIG_OUT = ROOT / ".." / "figures"
 
 N_SWEEP = 40      # frames: curves drawing in
 N_STAR = 14       # frames: stars + labels

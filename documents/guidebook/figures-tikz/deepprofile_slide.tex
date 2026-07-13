@@ -1,0 +1,55 @@
+% Fig (slide) — why the deep column is (almost) free: the cycle-mean profile is
+% curved in the skin but a straight line below the anchor (slope Q_b/K).
+% Body only; the standalone wrapper supplies \documentclass + _preamble.
+\begin{tikzpicture}[font=\sffamily\footnotesize, >={Stealth[length=2mm]},
+                    every node/.style={align=center}]
+
+  % ---- title ----
+  \node[font=\sffamily\bfseries\color{char}, anchor=west] at (0.30,0.75)
+    {Why the deep column is (almost) free};
+
+  % ---- skin / deep bands (color echo of the anchor-method figure) ----
+  \fill[coral!12]  (0.70,0) rectangle (5.60,-0.90);
+  \fill[forest!8]  (0.70,-0.90) rectangle (5.60,-4.70);
+
+  % ---- axes (schematic) ----
+  \draw[dim, line width=0.7pt] (0.70,0.05) -- (0.70,-4.70);
+  \draw[dim, line width=0.7pt, ->] (0.70,-4.70) -- (5.85,-4.70);
+  \node[anchor=east, font=\sffamily\scriptsize\color{dim}] at (0.60,-0.02) {0};
+  \node[anchor=east, font=\sffamily\scriptsize\color{dim}] at (0.60,-4.60) {5\,m};
+  \node[rotate=90, anchor=south, font=\sffamily\scriptsize\color{dim}] at (0.18,-2.35)
+    {depth};
+  \node[font=\sffamily\scriptsize\color{dim}] at (3.1,-5.02)
+    {$\langle T\rangle$\quad(warmer $\rightarrow$)};
+
+  % ---- the cycle-mean profile: curved skin, then straight below the anchor ----
+  \draw[teal, line width=1.5pt]
+    (1.55,0) .. controls (1.60,-0.40) and (1.95,-0.72) .. (2.20,-0.90)
+    -- (4.80,-4.55);
+
+  % ---- anchor marker ----
+  \draw[dashed, dim, line width=0.7pt] (0.70,-0.90) -- (5.05,-0.90);
+  \fill[char] (2.20,-0.90) circle (1.9pt);
+  \node[anchor=west, font=\sffamily\scriptsize\color{dim}] at (5.10,-0.90)
+    {anchor $z_{0}=0.55$ m};
+
+  % ---- skin annotation (upper right, clear of the curve) ----
+  \node[font=\sffamily\footnotesize\color{char}, anchor=west] at (3.05,-0.42)
+    {curved in the skin};
+  \node[font=\sffamily\scriptsize\color{dim}, anchor=west] at (3.05,-0.66)
+    {Step A diffuses this --- slow};
+  \draw[dim, line width=0.6pt] (2.98,-0.52) -- (2.10,-0.60);
+
+  % ---- deep annotation (mid-left, clear of the descending line) ----
+  \node[font=\sffamily\footnotesize\color{teal}, anchor=west] at (0.95,-2.30)
+    {slope $Q_{b}/K$};
+  \node[font=\sffamily\scriptsize\color{dim}, anchor=west] at (0.95,-2.55)
+    {Step B --- instant};
+  \draw[dim, line width=0.6pt] (2.95,-2.42) -- (3.28,-2.42);
+
+  % ---- caption ----
+  \node[font=\sffamily\footnotesize\color{char}, text width=8.9cm, anchor=west]
+    at (0.30,-5.55)
+    {Below the anchor the mean profile is a straight line, so Step B replaces
+     $\sim$10$^{3}$ lunations of time-stepping with a single downward integration.};
+\end{tikzpicture}

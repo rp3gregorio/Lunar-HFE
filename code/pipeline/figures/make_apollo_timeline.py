@@ -33,7 +33,7 @@ from lunar.plotting.style import (JGR_FULL, C_A15, C_A17, C_CHAR, C_DIM,
                                   C_GRID, C_FOREST_L, C_CORAL_L,
                                   fmt_axis, assert_no_overlap)
 
-OUT = ROOT / "results" / "figures"
+OUT = ROOT / ".." / "figures"
 
 
 def _deepest(pdata):

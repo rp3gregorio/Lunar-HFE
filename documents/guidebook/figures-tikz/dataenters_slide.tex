@@ -1,0 +1,54 @@
+% Fig (slide) — the forward model runs blind; Apollo data enters at exactly one step.
+% Body only; the standalone wrapper supplies \documentclass + _preamble.
+\begin{tikzpicture}[font=\sffamily\footnotesize, >={Stealth[length=2mm]},
+  mbox/.style={draw=dim, fill=black!2, rounded corners=2pt, line width=0.8pt,
+               align=center, inner sep=4pt},
+  fitbox/.style={draw=teal, fill=teal!8, rounded corners=2pt, line width=1pt,
+                 align=center, inner sep=4pt},
+  databox/.style={draw=coral, fill=coral!14, rounded corners=2pt, line width=1pt,
+                  align=center, inner sep=4pt},
+  resbox/.style={draw=forest, fill=forest!12, rounded corners=3pt, line width=1pt,
+                 align=center, inner sep=5pt},
+  pill/.style={draw=dim, fill=black!2, rounded corners=6pt, line width=0.8pt,
+               align=center, inner sep=4pt},
+  flow/.style={->, line width=0.9pt, dim},
+  dflow/.style={->, line width=1.2pt, teal}]
+
+  % ---- title ----
+  \node[font=\sffamily\bfseries\color{char}] at (4.15,0.35)
+    {The model runs blind --- Apollo data enters only at the fit};
+
+  % ---- blind forward-model spine ----
+  \node[pill] (kd) at (3.2,-0.55) {trial $K_{d}$ \;---\; one of a $\sim$30-value sweep};
+  \node[mbox, text width=4.0cm] (fm) at (3.2,-2.0)
+    {\textbf{forward model --- runs blind}\\[1pt]
+     {\scriptsize flux-anchored solve, Hayne $K(T,z)$, 5\,m grid, $Q_{b}$, sunlight
+      --- \emph{no Apollo data}}};
+  \node[mbox, text width=3.6cm] (pp) at (3.2,-3.45)
+    {predicted deep profile\\$\langle T\rangle(z)$};
+  \node[fitbox, text width=3.6cm] (fit) at (3.2,-4.7)
+    {fit --- misfit\\RMSE$(K_{d})$};
+
+  % ---- Apollo data enters here (the one place) ----
+  \node[databox, text width=2.5cm] (obs) at (7.35,-4.7)
+    {Apollo deep sensors\\$T_{\mathrm{obs}}$};
+
+  % ---- result ----
+  \node[resbox] (res) at (3.2,-6.15)
+    {$K_{d}^{*} = 7.08~\mathrm{mW\,m^{-1}\,K^{-1}}$};
+
+  % ---- flow ----
+  \draw[flow] (kd) -- (fm);
+  \draw[flow] (fm) -- (pp);
+  \draw[flow] (pp) -- (fit);
+  \draw[dflow] (obs) -- (fit);
+  \draw[flow] (fit) -- (res);
+  \node[font=\sffamily\scriptsize\color{dim}, anchor=west] at (3.42,-5.45)
+    {keep the smallest RMSE};
+
+  % ---- caption ----
+  \node[font=\sffamily\footnotesize\color{char}, text width=8.6cm, align=center]
+    at (4.15,-6.95)
+    {Apollo data touches the pipeline at exactly one step --- the fit that scores each
+     trial $K_{d}$; the physics never sees it.};
+\end{tikzpicture}

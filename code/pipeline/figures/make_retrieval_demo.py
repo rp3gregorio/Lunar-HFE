@@ -26,7 +26,7 @@ from lunar.plotting.style import (                                # noqa: E402
     assert_no_overlap, legend_below,
 )
 
-OUT = _REPO / "results" / "figures"
+OUT = _REPO / ".." / "figures"
 ANCHOR_M = 0.55
 KD_FAN = [5.0e-3, 6.0e-3, 7.08e-3, 8.5e-3, 10.0e-3]      # candidate K_d for panel (a)
 # misfit curve for panel (b): the REAL dense retrieval grid (restricted to the bowl

@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 from lunar.plotting.style import JGR_HALF, C_CORAL, C_FOREST, C_CHAR, C_DIM, C_GRID
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
-_OUT = _REPO / "results" / "figures"
+_OUT = _REPO / ".." / "figures"
 
 _BENCH = json.loads((_REPO / "results" / "speedup_benchmark.json").read_text())
 T_ANCH = float(_BENCH["t_anchored_s"])    # s, one flux-anchored solve (measured)

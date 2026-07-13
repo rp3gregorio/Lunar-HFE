@@ -35,7 +35,7 @@ from lunar.plotting.style import (JGR_HALF, C_A15, C_A17, C_HAYNE, C_PLUM,
                                   C_DIM, C_CHAR, C_GRID, fmt_axis,
                                   assert_no_overlap)
 
-OUT = ROOT / "results" / "figures"
+OUT = ROOT / ".." / "figures"
 
 
 def main():

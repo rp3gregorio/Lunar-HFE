@@ -48,8 +48,8 @@ from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.plotting.style import (JGR_FULL, C_A15, C_HAYNE, C_CORAL, C_CHAR,
                                   C_DIM, C_GRID, C_FOREST)
 
-ANIM = _REPO / "results" / "anim"
-FIG = _REPO / "results" / "figures"
+ANIM = _REPO / ".." / "figures" / "anim"
+FIG = _REPO / ".." / "figures"
 SITE = SITES["A15"]
 KD = 4.60e-3
 Z0 = 0.55

@@ -1,0 +1,37 @@
+% Fig — the closure's one confusing move: splitting the averaged flux into
+% mean-field + fluctuation-correlation (u_rect). Body only.
+\begin{tikzpicture}[font=\footnotesize, every node/.style={align=center},
+  box/.style={draw=char, line width=0.8pt, rounded corners=2pt, inner sep=5pt},
+  arr/.style={-{Stealth[length=2.2mm]}, line width=0.9pt, color=dim, line cap=round}]
+  \node[box] (top) at (0,0)
+    {$\bigl\langle K\,\partial_z T\bigr\rangle = Q_b$ at every depth\\[1pt]
+     {\scriptsize\color{dim} the flux identity --- but $K$ and $\partial_z T$
+      both wiggle over the cycle}};
+  \node[box, draw=teal] (mf) at (-3.4,-3.0)
+    {\textbf{mean field}\\ $K(\Tm)\,\partial_z\Tm$\\[1pt]
+     {\scriptsize\color{dim} what a steady column at the}\\[-2pt]
+     {\scriptsize\color{dim} average temperature would carry}};
+  \node[box, draw=coral] (ur) at (3.4,-3.0)
+    {\textbf{the wiggles' correlation}\\
+     $u_{\rm rect}\equiv\langle\delta K\;\delta(\partial_z T)\rangle$\\[1pt]
+     {\scriptsize\color{dim} survives the average because hot moments}\\[-2pt]
+     {\scriptsize\color{dim} have both higher $K$ and steeper gradients}};
+  \node[box, line width=1.1pt] (ode) at (0,-5.5)
+    {set the sum equal to $Q_b$ and solve for the mean gradient:\quad
+     $\dfrac{d\Tm}{dz}=\dfrac{Q_b-u_{\rm rect}}{K(\Tm,z)}$};
+  \draw[arr, rounded corners=3pt] (top.south) -- ++(0,-0.30) -| (mf.north);
+  \draw[arr, rounded corners=3pt] (top.south) -- ++(0,-0.30) -| (ur.north);
+  \node[font=\scriptsize\color{dim}, text width=56mm] at (0,-1.55)
+    {split $K=K(\Tm)+\delta K$,\;
+     $\partial_z T=\partial_z\Tm+\delta(\partial_z T)$;
+     single-$\delta$ cross-terms average to zero};
+  \draw[line width=0.9pt, color=dim, line cap=round, rounded corners=3pt]
+    (mf.south) |- ($(ode.north)+(0,0.32)$) -| (ur.south);
+  \draw[arr] ($(ode.north)+(0,0.32)$) -- (ode.north);
+  \node[font=\scriptsize\color{coral}, text width=60mm] at (3.6,-6.9)
+    {$u_{\rm rect}\propto\delta T^{2}$, so it lives in the skin: a few percent
+     of $Q_b$ at the anchor (0.55 m), numerical noise below $\sim$1 m};
+  \node[font=\scriptsize\color{teal}, text width=54mm] at (-3.6,-6.9)
+    {below the skin the mean field is the whole story --- Step B integrates
+     this ODE downward};
+\end{tikzpicture}

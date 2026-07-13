@@ -1,0 +1,60 @@
+% Fig (slide) — Brute force vs Anchor method: what each method actually time-steps.
+% Pedagogical / slide version of truncation.tex. Body only; the standalone
+% wrapper supplies \documentclass + _preamble (palette, fonts, arrows.meta).
+\begin{tikzpicture}[font=\sffamily\footnotesize, every node/.style={align=center},
+                    >={Stealth[length=2mm]}]
+  \def\sc{0.82}            % cm per metre
+  \def\base{-4.1}          % 5 m * \sc
+
+  % ===== depth axis (only 0 m and 5 m) =====
+  \draw[dim, line width=0.6pt] (0.70,0) -- (0.85,0);
+  \draw[dim, line width=0.6pt] (0.70,\base) -- (0.85,\base);
+  \node[anchor=east, font=\sffamily\scriptsize\color{dim}] at (0.64,0) {0 m};
+  \node[anchor=east, font=\sffamily\scriptsize\color{dim}] at (0.64,\base) {5 m};
+
+  % ===== BRUTE FORCE column =====
+  \fill[coral!30] (0.85,0) rectangle (2.15,\base);
+  \draw[coral, line width=1pt] (0.85,0) rectangle (2.15,\base);
+  \draw[dashed, dim, line width=0.8pt, ->] (1.50,-0.28) -- (1.50,-3.80);
+  \node[font=\sffamily\bfseries\color{char}] at (1.50,0.85) {Brute force};
+  \node[font=\sffamily\scriptsize\color{dim}] at (1.50,0.50) {step the whole column};
+  \node[font=\sffamily\footnotesize\color{dim}] at (3.35,-1.90)
+    {every cell\\stepped,\\$\sim\!10^{3}$ lunations};
+
+  % ===== ANCHOR METHOD column =====
+  % skin (time-stepped) above, deep (reconstructed) below, thin gap at the anchor
+  \fill[coral!30] (6.15,0) rectangle (7.45,-0.40);
+  \draw[coral, line width=1pt] (6.15,0) rectangle (7.45,-0.40);
+  \node[font=\sffamily\footnotesize\color{char}] at (6.80,-0.20) {skin};
+  \fill[forest!14] (6.15,-0.50) rectangle (7.45,\base);
+  \draw[forest, line width=1pt] (6.15,-0.50) rectangle (7.45,\base);
+  \draw[dim, line width=0.9pt, ->] (6.80,-0.78) -- (6.80,-3.80);
+  \node[font=\sffamily\bfseries\color{char}] at (6.80,0.85) {Anchor method};
+  \node[font=\sffamily\scriptsize\color{dim}] at (6.80,0.50) {step the skin, solve the deep};
+  % anchor dot + leader + label
+  \fill[char] (6.80,-0.45) circle (2pt);
+  \draw[dashed, dim, line width=0.6pt] (7.45,-0.45) -- (7.72,-0.45);
+  \node[anchor=west, font=\sffamily\scriptsize\color{char}] at (7.78,-0.37) {anchor $z_{0}=0.55$ m};
+  \node[anchor=west, font=\sffamily\scriptsize\color{dim}] at (7.78,-0.63) {(below rect.\ zone)};
+  % sensors bracket (left of column)
+  \draw[dim, line width=0.7pt] (5.95,-0.50) -- (5.85,-0.50) -- (5.85,-1.97) -- (5.95,-1.97);
+  \node[anchor=east, font=\sffamily\scriptsize\color{dim}] at (5.75,-1.23) {sensors};
+
+  % ===== Q_b flux arrows into the base =====
+  \draw[dim, line width=0.9pt, ->] (1.50,-4.55) -- (1.50,-4.20);
+  \node[anchor=west, font=\sffamily\scriptsize\color{dim}] at (1.72,-4.40) {$Q_{b}$};
+  \draw[dim, line width=0.9pt, ->] (6.80,-4.55) -- (6.80,-4.20);
+  \node[anchor=west, font=\sffamily\scriptsize\color{dim}] at (7.02,-4.40) {$Q_{b}$};
+
+  % ===== legend =====
+  \fill[coral!30] (1.10,-4.90) rectangle (1.34,-5.12);
+  \draw[coral, line width=0.8pt] (1.10,-4.90) rectangle (1.34,-5.12);
+  \node[anchor=west, font=\sffamily\footnotesize\color{char}] at (1.46,-5.01) {time-stepped (CN + Thomas)};
+  \fill[forest!14] (5.15,-4.90) rectangle (5.39,-5.12);
+  \draw[forest, line width=0.8pt] (5.15,-4.90) rectangle (5.39,-5.12);
+  \node[anchor=west, font=\sffamily\footnotesize\color{char}] at (5.51,-5.01) {reconstructed from the flux ODE};
+
+  % ===== closure caption =====
+  \node[font=\sffamily\footnotesize\color{char}] at (4.55,-5.52)
+    {deep column (steady):\quad $d\langle T\rangle/dz=(Q_{b}-u_{\mathrm{rect}})/K(\langle T\rangle,z)$};
+\end{tikzpicture}

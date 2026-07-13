@@ -233,7 +233,7 @@ def run(**kw):
     # dashed line), not merely trend toward it.
     kw.setdefault("n_grid", (50, 100, 200, 400, 800, 1500, 3000))
     res = compute_curves(**kw)
-    plot_curves(res, save=_REPO / "results" / "figures" / "fig_equilibrium_demo.pdf")
+    plot_curves(res, save=_REPO / ".." / "figures" / "fig_equilibrium_demo.pdf")
     sc = res["shortcut"]
     print(f"\nshortcut: {sc['wall']:.1f} s (drift {sc['drift']*1e3:.1f} mK, "
           f"closure {sc['closure']:.2%})")

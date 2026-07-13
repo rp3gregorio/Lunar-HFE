@@ -1,0 +1,199 @@
+# Flag Report — physics, code, and figure audit
+
+> **Status update (third pass, 2026-06-11): F1 RESOLVED.**
+> `lunar/equilibrium.py` replaces the fixed-length spin-up with a
+> flux-anchored periodic-equilibrium iteration (skin spin-ups alternated
+> with exact mean-flux reconstruction d⟨T⟩/dz = (Q_b − u_rect)/K, the
+> rectified flux u_rect measured from the resolved cycle). Certified:
+> initial guesses 240 vs 260 K agree to ≤0.023 K over the full column
+> (previously 1.6–4.5 K, swinging Kd\* 1.75→11.00); a 120-lunation
+> honest run from the converged profile drifts ≤0.08 K at sensor depths
+> (solver systematic ≲0.15 mW m⁻¹ K⁻¹ in Kd\*, an order below the
+> bootstrap σ). Regression tests in `tests/test_equilibrium.py`.
+> **F4 closed (final):** Table 4 regenerated end-to-end with the
+> converged solver; χ and H are now reported as conditionality of the
+> held-fixed Hayne form (χ=1.48 drives the minimum off-grid at both
+> sites — a new finding), totals 1.75 / 4.61 mW/m/K, solver row added.
+> Converged headline values shift: Kd\*(A15) 4.86→4.58, Kd\*(A17)
+> 11.23→8.12 mW m⁻¹ K⁻¹ — the old A17 value was inflated by its warm
+> 255 K anchor; the inter-site ordering survives with a smaller
+> contrast (~3.5). Full pipeline re-run + manuscript number update in
+> progress. Also resolved this pass: Diviner hemisphere bug (southern
+> GCP bands fetched for northern sites), reproducible closure script
+> (`compute_diviner_closure.py`) replacing the notebook stub, and the
+> missing `paper/appendix/appendix.tex`.
+>
+> **Status update (second pass, 2026-06-11):** F2 resolved by rewriting
+> §1/§2.2 to describe the implemented idealized forcing with bounded
+> neglected terms (tracked changes). F3 resolved: figure script fixed
+> (radiative term, consistent ρc_p) and regenerated; text/caption now
+> describe the √2σ proxy. F4 largely resolved: `compute_error_budget.py`
+> fixed (z_b ∈ {70,80,90}, ±0.02 albedo), JSON regenerated, Table 4 and
+> all dependent prose updated to the reproducible values (totals
+> 1.73/5.81) — remaining: commit the χ/H/Ks/ρ generating sweeps. Stale
+> numbers in F5/F6 (grids, H range, thresholds, 55–80 %, kd-sweep
+> caption) corrected in tracked changes.
+
+Audit of the Lunar-HFE repository against the manuscript
+(`docs/letter/letter.tex`), performed 2026-06-11. Every flag below was
+verified by reading the released code and, where marked **measured**, by
+re-running the released pipeline. Matching `\note{}` comments are embedded
+at the relevant locations in `letter.tex`.
+
+Status summary: the **statistical machinery is sound and the committed
+JSON results match the manuscript's headline numbers**, but there are
+**two critical physics/implementation flags (F1, F2)** and several
+reproducibility gaps that must be resolved before submission.
+
+---
+
+## F1 — CRITICAL: spin-up does not converge; hard-coded per-site initial anchor controls the retrieval
+
+> **STATUS: RESOLVED.** Replaced by the flux-anchored equilibrium solver
+> (`lunar/equilibrium.py`); result is now certified anchor-independent
+> (≤0.023 K). See the top banner. The original finding is kept below for
+> the record.
+
+`pipeline/compute/retrieve_kd.py` initialises every solver run at
+`T(z) = T_MEAN_EFF + Q_b * cumsum(dz / K)` with hard-coded, uncited
+anchors `T_MEAN_EFF = 250.0` (A15) and `255.0` (A17), then spins up for
+30 lunations to a 5e-2 K/cycle tolerance. With a 5-m column under a flux
+bottom boundary, the deep relaxation time is ~10^3 lunations, so the
+sensor-depth (0.8–2.4 m) mean temperatures retain strong memory of the
+anchor.
+
+**Measured with the released code:**
+
+| Experiment (A15, production settings) | Result |
+|---|---|
+| Anchor 245 K → ⟨T⟩(0.8 m / 1.4 m) | 249.25 / 249.35 K |
+| Anchor 250 K (production) | 252.12 / 253.42 K |
+| Anchor 255 K | 255.61 / 257.89 K |
+| 400 lunations, tol 1e-4, anchors 245 vs 255 | still differ by 1.6–2.6 K |
+| **End-to-end Kd\* at anchor 245 / 250 / 255 K** | **1.75 / 4.86 / 11.00 mW m⁻¹ K⁻¹** |
+
+A ±5 K perturbation of the anchor swings the retrieved Kd\* by a factor
+of ~6 — larger than the headline inter-site contrast — and the two sites
+are assigned *different* anchors (250 vs 255 K). As released, T_MEAN_EFF
+acts as an undeclared per-site free parameter. This also invalidates the
+k=1 AICc accounting and the bootstrap CIs as stated.
+
+The manuscript's claim that tightening to 60 lunations / 5e-3 K shifts
+Kd\* by <0.1 mW m⁻¹ K⁻¹ is not reproducible from the released code and is
+inconsistent with the measured relaxation timescale.
+
+**Required fix:** run to a demonstrated periodic steady state
+(shorter column, warm-started sweeps, or an analytically anchored deep
+mean derived from the converged diurnal-mean surface temperature), then
+show Kd\* is anchor-independent; or derive T_MEAN_EFF self-consistently
+and document it. Re-run the entire pipeline afterwards.
+
+## F2 — MAJOR: manuscript describes SPICE/DE440 forcing; pipeline uses idealized cosine insolation
+
+> **STATUS: RESOLVED.** §1 and §2.2 rewritten (tracked) to describe the
+> implemented idealized cosine forcing, with the neglected terms bounded.
+
+Manuscript §1 and §2.2 state each Apollo timestamp is propagated through
+SPICE (DE440, light-time + aberration), "eliminating the ~1 lunar-hour
+drift inherent in sinusoidal local-solar-time approximations." The
+released retrieval (`retrieve_kd.py::run_with`) forces the solver with
+`S0 * cos(lat) * max(0, cos(2π t / P))` over one synodic lunation — no
+SPICE call, no solar declination (±1.5°), no eccentricity (±3.3 % flux),
+no site longitude. `lunar/ephem.py` (a correct SPICE implementation)
+exists but is never invoked by the Kd pipeline.
+
+**Fix:** wire the ephemeris chain into the pipeline and re-run, or
+rewrite the methods text to describe the idealized forcing and bound the
+neglected terms.
+
+## F3 — MAJOR: amplitude figure does not implement the stated method
+
+> **STATUS: RESOLVED.** Figure script fixed (radiative term restored,
+> consistent ρc_p); caption and §2.4 now describe the √2σ window proxy.
+
+`make_letter_figures.py::fig_amplitude_vs_depth` plots √2 × the
+within-stability-window standard deviation as "diurnal amplitude" (the
+code comment admits the approximation), while the caption/methods claim
+the half-range of the SPICE LST-folded median. Additionally its Hayne
+attenuation curve uses K = 3.4e-3 *without* the radiative multiplier
+(≈2.0× at 250 K) and a hard-coded ρc_p = 1500 × 850 that matches neither
+the caption (ρ = 1800) nor the model c_p(250 K) ≈ 670 J kg⁻¹ K⁻¹. The
+plotted model curves differ by ~50 % in skin depth, not the "~10 %"
+claimed. The qualitative borestem conclusion survives.
+
+## F4 — MAJOR: error-budget table (manuscript Table 4) is not reproducible from the archive
+
+> **STATUS: RESOLVED.** Table 4 regenerated end-to-end
+> (`compute_fixed_input_sensitivities.py` + `compute_error_budget.py`,
+> committed JSON); χ and H now reported as conditionality of the held-fixed
+> Hayne form. Totals 1.75 / 4.61 mW m⁻¹ K⁻¹.
+
+`results/kd_error_budget.json` vs the manuscript: σ_Qb 1.27/3.00 vs
+1.47/3.45; σ_A 0.56/0.95 (±0.04 albedo sweep) vs 0.07/0.54 (stated
+±0.01); σ_χ 0.73/1.73 vs 0.69/2.03; σ_zb at A17 3.81 vs <0.05 (the
+script includes the 60-cm outlier the text excludes); σ_ρ 0.02/0.06 vs
+"identically zero by structure"; totals 1.80/7.01 vs 1.86/6.17. The
+σ_χ/σ_H/σ_Ks/σ_ρ values are hard-coded constants in
+`compute_error_budget.py` with no generating sweep committed, while the
+table claims re-retrievals.
+
+## F5 — Reproducibility gaps (must fix before the Open Research statement is true)
+
+> **STATUS: RESOLVED.** Diviner closure rebuilt as
+> `compute_diviner_closure.py` (hemisphere bug fixed) with committed JSON;
+> Bayesian outputs + posterior figures committed; `paper/appendix/appendix.tex`
+> created; stale methods numbers corrected in tracked changes.
+
+- **Diviner closure (Fig. 9, §3.3 numbers):** the notebook cell in
+  `03_results.ipynb` is a stub that defers to "the Lunar-V2 dev repo"
+  and carries placeholder parameters (negative latitudes, albedo/emissivity
+  contradicting Table 1, and `growth=1.05` passed to an API that expects a
+  fractional growth — i.e. 2.05× per layer). No closure JSON is committed.
+- **Bayesian cross-check (§3.3):** `bayesian_crosscheck.py` exists but its
+  output JSON and posterior figures are not committed; the quoted medians
+  (3.9/13.1, contrast +9.2, P≈96 %) are unverifiable.
+- **Appendix:** the letter header references companion `appendix.tex`;
+  no appendix source exists in the repo (only `fig_holdout.pdf`).
+- **Stale methods text:** sweep grids (paper: 20 pts 1.5–9.0 / 24 pts
+  3.0–18.0; code: 28 pts 1.0–15.0 / 30 pts 3.0–25.0 — the extrapolation
+  caveat no longer applies); joint H sweep (paper: 1–11 cm, 11×8; code:
+  3–10 cm, 8×8); threshold-sensitivity numbers (paper 0.03/0.11; JSON
+  0.02/0.07).
+
+## F6 — Minor
+
+> **STATUS: ADDRESSED.** Caption fixed; stability-window range stated as
+> 55–80%; headline now quoted from one source; `amssymb` corruption
+> superseded by the revised draft. (`fig_kd_sweep_v2` dead code left in
+> place but unused.)
+
+- `find_stable_window` never evaluates candidate start fractions >80 %
+  (min-tail guard), so the stated "55–85 %" is effectively 55–80 %.
+- `fig_kd_sweep` caption said "shaded band: 95 % CI"; the figure draws
+  horizontal error bars (caption fixed in tracked changes).
+- Headline Kd\* is grid-dependent at the 0.03 mW level
+  (`headline_rmse.json` 4.885 vs `kd_retrieval_results.json` 4.860, two
+  different sweep grids) — consistent with the stated robustness, but
+  quote one source.
+- `make_results_figures.py::fig_kd_sweep_v2` is dead code with a
+  hard-coded stale x-grid; safe only because unused — consider deleting.
+- Working tree at clone time contained a single-character corruption in
+  `docs/letter/letter.tex` (`amssymb}` → `amssymb)`); superseded by the
+  new draft.
+
+## What checks out (verified clean)
+
+- Crank–Nicolson assembly, harmonic-mean face conductivities, Newton
+  surface balance (residual and analytic derivative), geothermal-flux
+  Neumann bottom BC: all mathematically correct.
+- Geometric grid (Δz₀ = 2 mm, ratio 1.08, z_max = 5 m) matches the paper.
+- Hayne (2017) K(T,z), ρ(z), c_p(T) and Martínez & Siegler (2021)
+  K(T,ρ) coefficients verified against cited sources (incl. the B1
+  missing-zero correction, documented).
+- All committed headline numbers match the manuscript: RMSE table,
+  Kd\* point estimates and bootstrap CIs, contrast (6.63, CI [−3.2, 16.6],
+  p = 0.05), borestem-cut sweep (incl. the 60-cm outlier values),
+  model-selection table (M1/M2/M3 RMSE and ΔAICc), α-retrieval
+  (1.12/2010 and 1.83/3300), hold-out diagnostics (LOO 0.31/0.16 K).
+- Test suite: 35/35 pass.
+- Bib: every cited key resolves; letter compiles cleanly.

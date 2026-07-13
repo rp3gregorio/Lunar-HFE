@@ -43,7 +43,7 @@ plt.rcParams.update({
 })
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-OUT  = ROOT / "results" / "figures"
+OUT  = ROOT / ".." / "figures"
 
 # Apollo-core admissible deep bulk density envelope (Mitchell 1973;
 # Carrier 1991). 1700-2000 kg/m^3 maps to alpha = [1700/1800, 2000/1800].

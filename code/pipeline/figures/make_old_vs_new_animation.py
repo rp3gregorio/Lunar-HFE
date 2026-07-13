@@ -40,8 +40,8 @@ from lunar.equilibrium import (solve_periodic_equilibrium,
                                _rectified_flux, _reconstruct_subskin)
 from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM, C_GRID
 
-DOC = _REPO / "results" / "anim"
-FIG = _REPO / "results" / "figures"; FIG.mkdir(parents=True, exist_ok=True)
+DOC = _REPO / ".." / "figures" / "anim"
+FIG = _REPO / ".." / "figures"; FIG.mkdir(parents=True, exist_ok=True)
 
 SITE = SITES["A15"]; KD = 4.60e-3; GUESS = 240.0
 Z0 = 0.55; ZMAX = 3.0; PROBE_Z = 1.0

@@ -56,8 +56,8 @@ CMAP    = cm.inferno      # perceptual cold->hot temperature ramp
 TMIN, TMAX = 90.0, 390.0  # K color range (night -> subsolar noon)
 
 NY = NX = 440             # disk raster resolution
-N_FRAMES = 132            # one lunar day
-FPS = 20
+N_FRAMES = 100            # one lunar day
+FPS = 18
 VIEW_LAT, VIEW_LON = 7.0, 0.0    # nearside, slight tilt
 
 
@@ -220,7 +220,7 @@ def _sun_screen(sslon):
     side; behind = the near side is in night)."""
     X, Y, fr = _forward_ortho(0.0, sslon, VIEW_LAT, VIEW_LON)
     r = float(np.hypot(X, Y))
-    R = 1.24
+    R = 1.19
     if r < 0.18:
         return 0.0, R, fr
     return R * X / r, R * Y / r, fr
@@ -228,18 +228,18 @@ def _sun_screen(sslon):
 
 def build():
     sc = Scene()
-    fig = plt.figure(figsize=(8.6, 6.4), dpi=100)
+    fig = plt.figure(figsize=(7.9, 5.5), dpi=100)
     fig.patch.set_facecolor(BG)
 
-    ax = fig.add_axes([0.045, 0.235, 0.60, 0.66])            # globe
+    ax = fig.add_axes([0.0, 0.04, 0.63, 0.82])               # globe (hero, left)
     ax.set_facecolor(BG); ax.set_aspect("equal"); ax.set_axis_off()
-    ax.set_xlim(-1.5, 1.5); ax.set_ylim(-1.35, 1.35)
+    ax.set_xlim(-1.45, 1.45); ax.set_ylim(-1.35, 1.45)
 
-    cax = fig.add_axes([0.70, 0.30, 0.020, 0.52])            # colorbar
-    dax = fig.add_axes([0.10, 0.075, 0.52, 0.115])           # diurnal strip
-    iax = fig.add_axes([0.775, 0.30, 0.205, 0.52])           # readout panel
+    cax = fig.add_axes([0.645, 0.315, 0.020, 0.46])          # colorbar
+    iax = fig.add_axes([0.745, 0.55, 0.245, 0.33])           # readout (top-right)
     iax.set_facecolor(BG); iax.set_axis_off()
     iax.set_xlim(0, 1); iax.set_ylim(0, 1)
+    dax = fig.add_axes([0.755, 0.135, 0.225, 0.26])          # diurnal (bottom-right)
 
     # limb ring + soft ground shadow for a seated, 3-D feel
     ring = plt.Circle((0, 0), 1.0, fill=False, ec=C_DIM, lw=1.0, zorder=5)
@@ -252,9 +252,9 @@ def build():
                    interpolation="bilinear", zorder=2)
 
     # Sun glyph (halo + core + rays), updated each frame
-    halo = ax.scatter([], [], s=2600, c=SUN_C, alpha=0.14, zorder=1,
+    halo = ax.scatter([], [], s=1500, c=SUN_C, alpha=0.14, zorder=1,
                       edgecolors="none")
-    core = ax.scatter([], [], s=430, c=SUN_C, alpha=1.0, zorder=6,
+    core = ax.scatter([], [], s=360, c=SUN_C, alpha=1.0, zorder=6,
                       edgecolors="white", linewidths=0.8)
     rays = [ax.plot([], [], color=SUN_C, lw=1.4, alpha=0.5, zorder=1)[0]
             for _ in range(12)]
@@ -277,23 +277,27 @@ def build():
     cax.tick_params(colors=INK, labelsize=9)
     cb.outline.set_edgecolor(C_DIM)
 
-    # readout panel text (site temps + phase), updated each frame
-    iax.text(0.0, 0.98, "Heat-flow sites", fontsize=10.5, color=INK,
+    # readout panel: site temps inline + phase, updated each frame
+    iax.text(0.0, 1.0, "Heat-flow sites", fontsize=10, color=INK,
              fontweight="bold", va="top")
     site_txt = {}
-    yy = 0.86
+    yy = 0.74
     for k in ("A15", "A17"):
         col = sc.sites[k]["color"]
-        iax.text(0.0, yy, f"Apollo {k[1:]}", fontsize=10, color=col,
+        iax.plot([0.02], [yy - 0.05], "o", ms=7, mfc=col, mec="white", mew=1.0,
+                 transform=iax.transData, clip_on=False)
+        iax.text(0.13, yy, f"Apollo {k[1:]}", fontsize=9.5, color=col,
                  fontweight="bold", va="top")
-        site_txt[k] = iax.text(0.0, yy - 0.075, "", fontsize=13, color=INK,
-                               va="top")
-        yy -= 0.20
-    phase_txt = iax.text(0.0, 0.30, "", fontsize=10, color=C_DIM, va="top")
+        site_txt[k] = iax.text(1.0, yy, "", fontsize=12.5, color=INK,
+                               va="top", ha="right", fontweight="bold")
+        yy -= 0.24
+    phase_txt = iax.text(0.0, 0.18, "", fontsize=9, color=C_DIM, va="top",
+                         style="italic")
 
-    # diurnal strip: each site's own real diurnal curve + moving marker
+    # diurnal panel: each site's real diurnal curve (A17 dashed so both show)
     n_t = sc.T_field.shape[1]
     lt_h = np.linspace(0, 24, n_t, endpoint=False)
+    dstyle = {"A15": dict(ls="-", lw=2.0), "A17": dict(ls=(0, (3.5, 2)), lw=1.7)}
     dcurve = {}
     for k in ("A15", "A17"):
         la = sc.sites[k]["lat"]
@@ -301,30 +305,33 @@ def build():
                         sc.lat_ladder, sc.T_field)
         clock = (lt_h + 12) % 24
         o = np.argsort(clock)
-        dax.plot(clock[o], curve[o], color=sc.sites[k]["color"], lw=1.8,
-                 label=f"Apollo {k[1:]}")
+        dax.plot(clock[o], curve[o], color=sc.sites[k]["color"],
+                 label=f"A{k[1:]}", **dstyle[k])
         dcurve[k] = (clock[o], curve[o])
     dmark = {k: dax.plot([], [], "o", color=sc.sites[k]["color"], mec="white",
-                         mew=1.0, ms=8, zorder=6)[0] for k in ("A15", "A17")}
+                         mew=0.9, ms=6.5, zorder=6)[0] for k in ("A15", "A17")}
     dax.set_xlim(0, 24); dax.set_ylim(TMIN, TMAX)
     dax.set_xticks([0, 6, 12, 18, 24])
-    dax.set_xticklabels(["midnight", "sunrise", "noon", "sunset", "midnight"],
-                        fontsize=8.5)
-    dax.set_ylabel("T (K)", fontsize=9, color=INK)
-    dax.tick_params(colors=INK, labelsize=8.5)
+    dax.set_xticklabels(["0", "6", "12", "18", "24"], fontsize=8)
+    dax.set_xlabel("local time (h)", fontsize=8, color=INK, labelpad=1.5)
+    dax.set_ylabel("T (K)", fontsize=8, color=INK, labelpad=1.5)
+    dax.set_yticks([100, 200, 300])
+    dax.tick_params(colors=INK, labelsize=8, length=2.5, pad=1.5)
     for sp in ("top", "right"):
         dax.spines[sp].set_visible(False)
     for sp in ("left", "bottom"):
         dax.spines[sp].set_color(C_DIM)
-    dax.grid(True, color=C_GRID, lw=0.6)
-    dax.legend(loc="upper right", fontsize=8, frameon=True, edgecolor=C_GRID,
-               handlelength=1.4, borderpad=0.4)
+    dax.grid(True, color=C_GRID, lw=0.5)
+    dax.legend(loc="upper left", fontsize=7.5, frameon=False, handlelength=1.7,
+               labelspacing=0.2, borderpad=0.1, handletextpad=0.5)
+    dax.set_title("Surface T over one day", fontsize=8.5, color=INK,
+                  loc="left", pad=2)
 
     # titles (figure coords, clear of the disk)
-    fig.text(0.045, 0.955, "How the Sun drives the Moon's surface temperature",
-             fontsize=15, fontweight="bold", color=INK)
-    fig.text(0.045, 0.915, "one lunar day — model skin temperature draped "
-             "on Clementine albedo and LOLA relief", fontsize=10, color=C_DIM)
+    fig.text(0.02, 0.955, "How the Sun drives the Moon's surface temperature",
+             fontsize=12.5, fontweight="bold", color=INK)
+    fig.text(0.02, 0.905, "one lunar day — model skin temperature on Clementine "
+             "albedo + LOLA relief", fontsize=8.5, color=C_DIM)
 
     phases = ["Noon over 0°E", "afternoon", "sunset terminator",
               "night on the near side", "before dawn", "sunrise terminator"]
@@ -336,7 +343,7 @@ def build():
         # sun glyph
         sx, sy, fr = _sun_screen(sslon)
         core.set_offsets([[sx, sy]]); halo.set_offsets([[sx, sy]])
-        core.set_sizes([430 if fr else 150])
+        core.set_sizes([360 if fr else 130])
         core.set_alpha(1.0 if fr else 0.4)
         halo.set_alpha(0.16 if fr else 0.05)
         sun_txt.set_position((sx, sy - 0.17)); sun_txt.set_alpha(1.0 if fr else 0.4)
@@ -371,7 +378,7 @@ def render():
     try:
         from PIL import Image, ImageSequence
         im = Image.open(gif)
-        frames = [f.convert("RGB").quantize(colors=128, method=Image.MEDIANCUT)
+        frames = [f.convert("RGB").quantize(colors=64, method=Image.MEDIANCUT)
                   for f in ImageSequence.Iterator(im)]
         frames[0].save(gif, save_all=True, append_images=frames[1:],
                        loop=0, duration=int(1000 / FPS), optimize=True,

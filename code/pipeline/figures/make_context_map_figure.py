@@ -32,6 +32,7 @@ import matplotlib.pyplot as plt
 from matplotlib.image import imread
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
+from matplotlib.colors import LightSource
 
 # Shared design tokens
 JGR_FULL = 7.48
@@ -147,16 +148,37 @@ def draw_global(ax, img):
     ax.set_facecolor(C_PAPER)
 
 
+RELIEF_DIR = ROOT / "data" / "lola_relief"
+
+
 def draw_zoom(ax, img, site_key):
     """Regional zoom crop: ±ZOOM_DLON longitude, ±ZOOM_DLAT latitude
-    centred on the named site."""
+    centred on the named site. Prefers LOLA shaded relief (so the
+    Apennine front at A15 and the Taurus-Littrow massifs at A17 are
+    visible); falls back to the Clementine albedo crop if the cached
+    DEM crop is absent."""
     s = SITES[site_key]
     lon0, lat0 = s["lon"], s["lat"]
     extent = (lon0 - ZOOM_DLON, lon0 + ZOOM_DLON,
               lat0 - ZOOM_DLAT, lat0 + ZOOM_DLAT)
-    ax.imshow(img, extent=(-180, 180, -90, 90),
-              cmap="gray", origin="upper", aspect="equal",
-              interpolation="bilinear", zorder=1)
+
+    relief = RELIEF_DIR / f"{site_key}.npy"
+    if relief.exists():
+        dem = np.load(relief)                      # km, N-up rows
+        ls = LightSource(azdeg=315, altdeg=30)
+        # grayscale hillshade: cohesive with the Clementine global panel,
+        # publication-serious, and no land/water colour connotation. The
+        # terrain (Apennine front / Taurus-Littrow massifs) reads through
+        # the shading alone.
+        shaded = ls.shade(dem, cmap=plt.get_cmap("gray"),
+                          blend_mode="soft", vert_exag=55,
+                          dx=1.0, dy=1.0)
+        ax.imshow(shaded, extent=extent, origin="upper",
+                  aspect="equal", interpolation="bilinear", zorder=1)
+    else:
+        ax.imshow(img, extent=(-180, 180, -90, 90),
+                  cmap="gray", origin="upper", aspect="equal",
+                  interpolation="bilinear", zorder=1)
     ax.set_xlim(extent[0], extent[1])
     ax.set_ylim(extent[2], extent[3])
 

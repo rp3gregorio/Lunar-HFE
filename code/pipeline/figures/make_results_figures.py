@@ -109,7 +109,7 @@ C_GRID     = "#E8E5E0"   # very pale warm gray
 C_A15      = C_FOREST
 C_A17      = C_CORAL
 C_HAYNE    = C_TEAL
-C_MS       = "#9E2A1F"     # deep red, distinguishable from coral
+C_MS       = "#6C4CA6"     # violet: distinct from A17 coral (audit 2026-07-13)
 C_LAB      = C_PLUM
 
 # Custom colormap for Q_b heatmap: cool→neutral→warm
@@ -812,7 +812,7 @@ def fig_thermal_profiles(d, out_path):
     # The long explanatory note that used to be the legend title now
     # lives in the LaTeX caption, so the legend box stays compact.
     fig = plt.figure(figsize=(JGR_FULL, 5.6))
-    gs  = fig.add_gridspec(2, 2, height_ratios=[1.15, 0.85],
+    gs  = fig.add_gridspec(2, 2, height_ratios=[0.82, 1.18],
                            hspace=0.46, wspace=0.32,
                            left=0.10, right=0.97, top=0.94, bottom=0.215)
     axes_full = [fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])]

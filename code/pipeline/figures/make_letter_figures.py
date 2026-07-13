@@ -569,10 +569,10 @@ def fig_kd_sweep():
 
     fmt_axis(ax,
              xlabel=r"Deep conductivity  $K_d$  (mW m$^{-1}$ K$^{-1}$)",
-             ylabel=r"Deep-sensor RMSE  (K)",
+             ylabel=r"Meter-scale-sensor RMSE  (K)",
              title="")
     ax.set_xlim(0, 16)
-    ax.set_ylim(0, 4)
+    ax.set_ylim(0, 2.6)   # zoom into the RMSE bowls; steep left branch clips
     ax.grid(which="major", color=C_GRID, lw=0.4, alpha=0.7)
     ax.set_axisbelow(True)
 

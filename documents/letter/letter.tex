@@ -381,14 +381,16 @@ Both use the same Hayne-form $\rho(z)$.}
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_context_map.pdf}
-\caption{Apollo Heat-Flow Experiment landing-site context on the Clementine
-global albedo mosaic (USGS/NASA, public domain). \textbf{(a)} Global
-equirectangular map showing the two HFE boreholes; dashed colored
-rectangles mark the zoom regions of panels (b) and (c). \textbf{(b)} Apollo
-15 regional zoom ($\pm 15^\circ$ longitude, $\pm 10^\circ$ latitude),
-Imbrium--Apennine boundary, mare/highland margin. \textbf{(c)} Apollo 17
-regional zoom, basaltic embayment of Mare Serenitatis at the
-Taurus--Littrow highlands edge
+\caption{Apollo Heat-Flow Experiment landing-site context. \textbf{(a)}
+Global equirectangular map (Clementine albedo mosaic, USGS/NASA, public
+domain) showing the two HFE boreholes; dashed colored rectangles mark the
+zoom regions of panels (b) and (c). \textbf{(b)} Apollo 15 regional zoom
+($\pm 15^\circ$ longitude, $\pm 10^\circ$ latitude) and \textbf{(c)} Apollo
+17 regional zoom, both rendered as LOLA topographic shaded relief
+(LDEM, $1/16^\circ$; hillshade azimuth $315^\circ$, elevation $30^\circ$) so
+that the terrain reads directly: (b) the Imbrium--Apennine boundary at the
+mare/highland margin, and (c) the basaltic embayment of Mare Serenitatis at
+the Taurus--Littrow highlands edge
 \citep{korotev2005,wieczorek2006,crawford2015}. Borehole coordinates from
 the ALSEP gazetteer.}
 \label{fig:context-map}
@@ -1619,7 +1621,7 @@ ceiling and the solid-basalt upper bound.}\new{The A17 retrieval bottoms
 at $\rho_d^{*}\approx 1877$ kg m$^{-3}$, comfortably inside the
 Apollo-core envelope (1700--2000 kg m$^{-3}$): the published
 $K(T,\rho)$ is physically admissible at both boreholes.
-Figure~\ref{fig:alpha-sweep} visualizes the result --- both
+Figure~S1 (Supporting Information) visualizes the result --- both
 RMSE($\alpha$) bowls bottom inside or at the edge of the admissible
 band. The flat A17 bowl also exposes the limitation: because the bowl
 bottoms near the published density, no admissible density adjustment
@@ -1630,21 +1632,11 @@ the density input. A full per-site recalibration of the
 \citet{martinez2021} coefficients against the HFE record is the
 natural follow-on study.}
 
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_alpha_sweep.pdf}
-\caption{Diagnostic per-site retrieval under the \citet{martinez2021}
-$K(T,\rho)$ form. \old{Deep-sensor }\new{Meter-scale-sensor }RMSE as a
-function of the per-site density scalar $\alpha$ (eq.~\ref{eq:alpha})
-\old{at \textbf{(a)} Apollo 15 and \textbf{(b)} Apollo 17}\new{for
-both sites, with the retrieved $\alpha^{*}$ starred}. Dashed teal: published
-Martinez baseline ($\alpha=1$, $\rho_d=1800$ kg m$^{-3}$). Green
-\old{band}\new{verticals}:
-Apollo-core admissible density range ($\rho_d=1700$--$2000$ kg m$^{-3}$;
-\citealp{mitchell1973,carrier1991}). Dotted gray: solid-basalt upper bound
-(3000 kg m$^{-3}$; \citealp{wieczorek2006}).}
-\label{fig:alpha-sweep}
-\end{figure}
+% fig_alpha_sweep moved to Supporting Information (Figure S1) in the
+% 2026-07-14 figure-cosmetics pass: it is a diagnostic sensitivity check,
+% not a headline result, and demoting it brings the main text closer to
+% the AGU publication-unit guideline. Main-text references now point to
+% "Figure S1 (Supporting Information)".
 
 The inferred ratio
 $K_d^{\mathrm{A17}}/K_d^{\mathrm{A15}}\approx \old{2}\new{1.5}$ is
@@ -1837,7 +1829,7 @@ inadmissible for any regolith. The published Martinez
 density-dependence cannot reach the A17 meter-scale temperature
 gradient under any physical density input, regardless of basal-flux
 assumption.}\new{A complementary test against the \citet{martinez2021}
-$K(T,\rho)$ form (\S\ref{sec:disc-prior}, Fig.~\ref{fig:alpha-sweep})
+$K(T,\rho)$ form (\S\ref{sec:disc-prior}, Fig.~S1, Supporting Information)
 is consistent: the density that form requires at A17,
 $\rho_d^{*}\approx 1877$ kg m$^{-3}$, lies inside the Apollo-core
 envelope, independently corroborating that the A17 meter-scale column

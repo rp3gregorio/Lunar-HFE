@@ -28,6 +28,7 @@ from matplotlib.lines import Line2D
 # ── shared design tokens (match make_results_figures.py) ────────────────────────
 JGR_FULL = 7.48
 C_CORAL  = "#B85B3A"
+C_MS     = "#6C4CA6"   # Martinez-Siegler (violet, distinct from coral)
 C_CORAL_L= "#E5A88A"
 C_TEAL   = "#2A6478"
 C_TEAL_L = "#7CA3B0"
@@ -359,7 +360,7 @@ def _draw_kz_comparison(ax):
     ax.set_facecolor(C_PAPER)
     ax.plot(K_hayne, z_cm, color=C_TEAL, lw=2.4,
             label=r"Hayne (2017): $K_d^\mathrm{publ.}=3.4$")
-    ax.plot(K_mart,  z_cm, color=C_CORAL, lw=2.2, ls="--",
+    ax.plot(K_mart,  z_cm, color=C_MS, lw=2.2, ls="--",
             label="Martínez & Siegler (2021): " r"$K(T,\rho)$")
 
     # mark the K_s (surface) and K_d^publ. (deep) anchor values lightly

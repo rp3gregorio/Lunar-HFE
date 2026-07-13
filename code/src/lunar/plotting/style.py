@@ -83,7 +83,7 @@ C_GRID = "#E8E5E0"
 C_A15 = C_FOREST
 C_A17 = C_CORAL
 C_HAYNE = C_TEAL
-C_MS = "#9E2A1F"
+C_MS = "#6C4CA6"  # Martinez violet
 C_LAB = C_PLUM
 
 ANTH_DIVERGE = LinearSegmentedColormap.from_list(

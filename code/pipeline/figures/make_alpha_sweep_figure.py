@@ -105,7 +105,7 @@ def main():
     ax.set_xlabel(r"Density scalar $\alpha$  "
                   r"($\rho_d=\alpha\cdot 1800$ kg m$^{-3}$)",
                   fontsize=FS_LABEL)
-    ax.set_ylabel(r"Deep-sensor RMSE  (K)", fontsize=FS_LABEL)
+    ax.set_ylabel(r"Meter-scale-sensor RMSE  (K)", fontsize=FS_LABEL)
     # Trim to the populated range: both retrieved minima now sit near
     # alpha ~ 1 and the solid-basalt reference (1.67) bounds the right;
     # the legacy 2.2 limit (sized for the superseded A17 minimum at

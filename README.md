@@ -23,7 +23,7 @@ and sweeping $K_d$ against the deep-sensor RMSE. The retrieval yields
 Langseth et al. (1976) basal heat fluxes; inter-site contrast median 2.31,
 95% CI [-0.12, 3.56] — includes zero, so the contrast is marginal —
 p ≈ 0.031). The forward model is solved to a certified periodic steady
-state (see `code/src/lunar/equilibrium.py` and `deliverables/documents/notes/FLAG_REPORT.md`).
+state (see `code/src/lunar/equilibrium.py` and `documents/notes/FLAG_REPORT.md`).
 
 These per-site values reduce the meter-scale-sensor RMSE relative to the
 published global $K_d = 3.4$ (halving it at Apollo 17) and supply the
@@ -33,7 +33,7 @@ radiative-transfer retrievals.
 ## Reproducing the paper
 
 The full reproduction recipe is in
-[`deliverables/documents/notes/REPRODUCING.md`](deliverables/documents/notes/REPRODUCING.md).
+[`documents/notes/REPRODUCING.md`](documents/notes/REPRODUCING.md).
 There is a `Makefile` with one-word entry points — run `make help` to list
 them. Short version:
 
@@ -46,7 +46,7 @@ python code/pipeline/fetch_diviner.py  # ~310 MB from PDS-Geosciences (one-time)
 
 make retrieve                # core retrieval + bootstrap  -> code/results/*.json
 make aux                     # all sensitivity sweeps, model selection, MCMC, closure
-make figures                 # regenerate every figure (paper + guidebook) -> code/results/figures/
+make figures                 # regenerate every figure (paper + guidebook) -> figures/
 make paper                   # compile all PDFs
 # or simply:  make all
 ```
@@ -70,10 +70,10 @@ clang++ -O3 -std=c++17 -o code/cpp/lunar_solver code/cpp/solver.cpp \
 
 Data flows one way: `code/data/` (inputs) → `code/pipeline/compute/`
 (writes `code/results/*.json`) → `code/pipeline/figures/` (writes
-`code/results/figures/`) → the documents (via `figures/` symlinks).
+`figures/`) → the documents (via each document’s local `figures/` link).
 Figures never compute physics; documents never hold hand-typed numbers.
 To restyle any figure without touching logic, see
-`deliverables/documents/notes/FIGURE_STYLING.md` and the self-serve knobs
+`documents/notes/FIGURE_STYLING.md` and the self-serve knobs
 in `code/src/lunar/plotting/style_overrides.py`.
 
 ### How the code is organised (start here)
@@ -94,10 +94,10 @@ exactly one definition of everything:
 
 New to the code? Two guides, by purpose:
 
-- **[`docs/CODE_TOUR.md`](docs/CODE_TOUR.md)** — how the *repository* works:
+- **[`documents/CODE_TOUR.md`](documents/CODE_TOUR.md)** — how the *repository* works:
   the four layers, who calls whom, a walkthrough of one number from raw data
   to the manuscript, and "how do I…?" recipes. Start here.
-- **[`deliverables/documents/guidebook/`](deliverables/documents/guidebook/)** (`guidebook.pdf`; rebuild with
+- **[`documents/guidebook/`](documents/guidebook/)** (`guidebook.pdf`; rebuild with
   `make paper`) — how the *physics and statistics* work, taught from zero.
 
 Then run the 5 notebooks in order:
@@ -125,33 +125,33 @@ direct verification.
 
 ## Repository layout
 
-Two umbrellas at the top level — `deliverables/` (what you read/look at) and
-`code/` (the machinery + inputs). See `STRUCTURE.md` for the full map.
+Four folders at the top level — `documents/` (what you read), `figures/`
+(every graph, one copy), `code/` (the engine + inputs), and `aogs/` (the
+self-contained AOGS conference bundle). See `STRUCTURE.md` for the full map.
 
 ```
 Lunar-HFE/
-├── deliverables/               # WHAT YOU LOOK AT
-│   ├── documents/
-│   │   ├── letter/             # the JGR:Planets manuscript (LaTeX + PDF, SI)
-│   │   ├── guidebook/          # full teaching + developer guide
-│   │   ├── thesis/             # the PhD thesis manuscript
-│   │   └── slides/  notes/     # progress deck; REPRODUCING/FLAG/audit notes
-│   ├── figures/     -> code/results/figures   # the graphs (symlink)
-│   └── animations/  -> code/results/anim        # the GIFs (symlink)
-├── code/                       # THE MACHINERY (logic + code + inputs)
-│   ├── src/lunar/              # 1-D heat solver + conductivity models (the engine)
-│   ├── pipeline/
-│   │   ├── compute/            # batch retrieval + sweeps (write code/results/*.json)
-│   │   └── figures/            # matplotlib figure generators (write code/results/figures/)
+├── documents/                  # WHAT YOU READ
+│   ├── letter/                 # the JGR:Planets manuscript (LaTeX + PDF, SI)
+│   ├── guidebook/              # full teaching + developer guide
+│   ├── thesis/  abstract/      # the PhD thesis; the GEDES abstract
+│   ├── slides/  notes/         # progress deck; REPRODUCING/FLAG/audit notes
+│   └── <doc>/figures -> ../../figures    # local link into the one figure folder
+├── figures/                    # EVERY GENERATED FIGURE (one physical copy)
+│   ├── *.pdf   anim/   _archive/
+├── code/                       # THE ENGINE (logic + inputs, no figures)
+│   ├── src/lunar/              # 1-D heat solver + conductivity models
+│   ├── pipeline/{compute,figures}/   # sweeps -> code/results/*.json; generators -> figures/
 │   ├── cpp/  tests/  notebooks/
-│   ├── data/                   # INPUTS: apollo/ diviner/ spice/ records
-│   ├── references/             # INPUTS: cited-paper PDFs
-│   └── results/                # OUTPUTS: canonical *.json + figures/ + anim/
+│   ├── data/  references/      # INPUTS: apollo/diviner/spice records; cited-paper PDFs
+│   └── results/                # OUTPUTS: canonical *.json (figures now live in figures/)
+├── aogs/                       # THE AOGS BUNDLE (self-contained)
+│   ├── poster/  code/  results/  data/lola/  talk_figures/  briefing/
 └── README.md  Makefile  pyproject.toml  STRUCTURE.md  CLAUDE.md  LICENSE
 ```
 
 Every document reaches figures through a `figures/` symlink to
-`code/results/figures/`, so there is exactly one physical copy of each figure.
+`figures/`, so there is exactly one physical copy of each figure.
 
 ## Citing this work
 
@@ -174,7 +174,7 @@ If you use this code or data, please cite both the paper and the repository:
 
 - **Code** (`code/src/lunar/`, `code/pipeline/`, `code/tests/`, `notebooks/`): MIT License
   (see [`LICENSE`](LICENSE))
-- **Paper text, figures, and tabular results** (`paper/`, `code/results/figures/`):
+- **Paper text, figures, and tabular results** (`paper/`, `figures/`):
   Creative Commons Attribution 4.0 International (CC-BY-4.0)
   (see [`LICENSE-CC-BY-4.0`](LICENSE-CC-BY-4.0))
 - **Bundled HFE data** (`code/data/apollo/`): public domain via NASA PDS-Geosciences

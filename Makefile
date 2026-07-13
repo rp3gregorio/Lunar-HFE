@@ -30,16 +30,20 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) code/pipeline/compute/bayesian_crosscheck.py
 	$(PY) code/pipeline/compute/compute_diviner_closure.py
 
-figures:             ## regenerate every figure (writes results/figures/) for the paper + guidebook
+figures:             ## regenerate every figure (writes figures/) for the paper + guidebook
 	$(PY) code/pipeline/make_all_figures.py
 
 paper:               ## compile the letter and the teaching guidebook
-	cd deliverables/documents/letter        && latexmk -pdf -interaction=nonstopmode letter.tex
-	cd deliverables/documents/letter        && latexmk -pdf -interaction=nonstopmode letter_clean.tex
-	cd deliverables/documents/guidebook      && latexmk -pdf -interaction=nonstopmode guidebook.tex
+	cd documents/letter        && latexmk -pdf -interaction=nonstopmode letter.tex
+	cd documents/letter        && latexmk -pdf -interaction=nonstopmode letter_clean.tex
+	cd documents/guidebook      && latexmk -pdf -interaction=nonstopmode guidebook.tex
+	cd documents/thesis         && latexmk -pdf -interaction=nonstopmode thesis.tex
+	cd documents/abstract       && latexmk -pdf -interaction=nonstopmode gedes_abstract.tex
 
 all: retrieve aux figures paper  ## full reproduction from scratch
 
 clean:               ## remove LaTeX build artifacts
-	cd deliverables/documents/letter        && latexmk -C 2>/dev/null || true
-	cd deliverables/documents/guidebook      && latexmk -C 2>/dev/null || true
+	cd documents/letter        && latexmk -C 2>/dev/null || true
+	cd documents/guidebook      && latexmk -C 2>/dev/null || true
+	cd documents/thesis         && latexmk -C 2>/dev/null || true
+	cd documents/abstract       && latexmk -C 2>/dev/null || true

@@ -1,0 +1,38 @@
+{
+  "method": "importance reweighting of the Jacobian-corrected chains (bayesian_chains.npz) to alternative Gaussian Q_b prior widths; run width 15% of Q_b",
+  "run_width_frac": 0.15,
+  "rows": [
+    {
+      "width_frac": 0.1,
+      "p_gt": 0.9921,
+      "contrast_median": 3.426,
+      "contrast_q025": 0.627,
+      "ess_A15": 78391.0,
+      "ess_A17": 74473.0
+    },
+    {
+      "width_frac": 0.15,
+      "p_gt": 0.9925,
+      "contrast_median": 3.922,
+      "contrast_q025": 0.75,
+      "ess_A15": 96000.0,
+      "ess_A17": 96000.0
+    },
+    {
+      "width_frac": 0.25,
+      "p_gt": 0.9934,
+      "contrast_median": 4.492,
+      "contrast_q025": 0.927,
+      "ess_A15": 80053.0,
+      "ess_A17": 48788.0
+    },
+    {
+      "width_frac": 0.4,
+      "p_gt": 0.9942,
+      "contrast_median": 4.795,
+      "contrast_q025": 1.063,
+      "ess_A15": 64307.0,
+      "ess_A17": 21256.0
+    }
+  ]
+}

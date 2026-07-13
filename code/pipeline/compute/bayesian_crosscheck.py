@@ -47,7 +47,7 @@ from lunar.plotting.style import (   # type: ignore
 )
 
 PHASE_A = pathlib.Path(__file__).resolve().parents[2] / "results/kd_retrieval_results.json"
-OUT_FIG = pathlib.Path(__file__).resolve().parents[2] / "results/figures/fig_kd_qb_posterior.pdf"
+OUT_FIG = pathlib.Path(__file__).resolve().parents[3] / "figures/fig_kd_qb_posterior.pdf"
 OUT_JSON = pathlib.Path(__file__).resolve().parents[2] / "results/bayesian_crosscheck_samples.json"
 
 # ── Site parameters ──────────────────────────────────────────────────────────
@@ -136,7 +136,12 @@ def make_log_posterior(surface, qb_prior_mean, qb_prior_sigma,
         rm = float(interp((kd, qb)))
         if not np.isfinite(rm):  return -np.inf
         log_L = -0.5 * N_obs * (rm / sigma_data) ** 2
-        log_pr = -0.5 * ((qb - qb_prior_mean) / qb_prior_sigma) ** 2
+        # Gaussian prior on LINEAR qb, sampled in log qb: the change of
+        # variables requires the Jacobian |d qb / d log qb| = qb, i.e.
+        # +log qb in log density (audit 2026-07-13, codex F7 -- omitting
+        # it under-weighted high-Q_b posterior mass; ordering moved
+        # 99.3% -> 99.2%, medians by <0.2 mW).
+        log_pr = -0.5 * ((qb - qb_prior_mean) / qb_prior_sigma) ** 2 + log_qb
         return log_L + log_pr
 
     return log_post
@@ -451,7 +456,7 @@ def make_comparison_figure(samples, summary):
                labelspacing=0.3,
                title=contrast_stats, title_fontsize=8.5)
 
-    out = pathlib.Path(__file__).resolve().parents[2] / "results/figures/fig_posterior_compare.pdf"
+    out = pathlib.Path(__file__).resolve().parents[3] / "figures/fig_posterior_compare.pdf"
     fig.savefig(out)
     plt.close(fig)
     print(f"Saved: {out}", flush=True)

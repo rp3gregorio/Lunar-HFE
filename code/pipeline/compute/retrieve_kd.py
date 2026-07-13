@@ -532,9 +532,15 @@ def main():
     cmed, clo, chi_ = np.percentile(contrast, [50, 2.5, 97.5])
     results['contrast_bootstrap'] = dict(
         median=float(cmed), ci_lo=float(clo), ci_hi=float(chi_),
-        p_value=float((contrast <= 0).mean()))
+        # NB this is the bootstrap tail proportion P_boot(contrast <= 0)
+        # computed from the FITTED (non-null-centered) bootstrap draws --
+        # report it as such, never as a conventional null-centered p-value
+        # (audit 2026-07-13, codex F5). Key name kept for compatibility;
+        # p_boot_leq0 is the honest alias.
+        p_value=float((contrast <= 0).mean()),
+        p_boot_leq0=float((contrast <= 0).mean()))
     print(f"   contrast = {cmed*1e3:.2f} (95% CI [{clo*1e3:.2f}, {chi_*1e3:.2f}]),  "
-          f"p={(contrast<=0).mean():.4g}", flush=True)
+          f"P_boot(dK<=0)={(contrast<=0).mean():.4g}", flush=True)
     print(f"   [t={time.time()-t0:.0f}s]", flush=True)
 
     # ── A2: 8x8 joint K_d × H grid ────────────────────────────────────────

@@ -1,0 +1,46 @@
+<svg viewBox="0 80 640 220" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <title>Sun–Moon orbital geometry</title>
+  <desc>Schematic: Sun on the left (filled), Earth at centre, Moon on its dashed orbit; parallel arrows show sunlight striking the day side; a dashed vertical line marks the terminator; a small marker shows the borehole site on the lit half.</desc>
+  <defs>
+    <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#000"/>
+    </marker>
+    <pattern id="lit" patternUnits="userSpaceOnUse" width="5" height="5">
+      <line x1="0" y1="0" x2="5" y2="5" stroke="#000" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <ellipse cx="370" cy="170" rx="180" ry="68" fill="none" stroke="#000" stroke-width="0.9" stroke-dasharray="5 4"/>
+
+  <circle cx="80" cy="170" r="30" fill="#000"/>
+  <text x="80" y="222" font-size="14" font-style="italic" fill="#000" text-anchor="middle">Sun</text>
+
+  <circle cx="370" cy="170" r="9" fill="none" stroke="#000" stroke-width="1.2"/>
+  <text x="370" y="200" font-size="13" font-style="italic" fill="#000" text-anchor="middle">Earth</text>
+
+  <g stroke="#000" stroke-width="1.2" fill="none">
+    <line x1="120.0" y1="135.0" x2="513.0" y2="135.0" /><polygon points="520.0,135.0 513.0,139.0 513.0,131.0" fill="#000"/>
+    <line x1="120.0" y1="170.0" x2="513.0" y2="170.0" /><polygon points="520.0,170.0 513.0,174.0 513.0,166.0" fill="#000"/>
+    <line x1="120.0" y1="205.0" x2="513.0" y2="205.0" /><polygon points="520.0,205.0 513.0,209.0 513.0,201.0" fill="#000"/>
+  </g>
+
+  <g transform="translate(550,170)">
+    <circle cx="0" cy="0" r="32" fill="none" stroke="#000" stroke-width="1.4"/>
+    <path d="M0,-32 a32,32 0 0 0 0,64 Z" fill="url(#lit)" stroke="none"/>
+    <line x1="0" y1="-32" x2="0" y2="32" stroke="#000" stroke-width="1.1"/>
+
+    <line x1="-22" y1="-23" x2="-12" y2="-13" stroke="#000" stroke-width="1.4"/>
+    <circle cx="-22" cy="-23" r="2.5" fill="#000"/>
+
+    <text x="-22" y="-58" font-size="12" font-style="italic" fill="#000" text-anchor="middle">borehole site</text>
+    <line x1="-22" y1="-52" x2="-22" y2="-30" stroke="#000" stroke-width="0.8"/>
+  </g>
+  <text x="550" y="222" font-size="14" font-style="italic" fill="#000" text-anchor="middle">Moon</text>
+
+  <text x="520" y="135" font-size="13" font-style="italic" fill="#000" text-anchor="end" dy="-8">S(t)</text>
+
+  <text x="540" y="105" font-size="12" font-style="italic" fill="#555" text-anchor="end">day side</text>
+  <text x="560" y="105" font-size="12" font-style="italic" fill="#555">night side</text>
+
+  <text x="370" y="275" font-size="12" font-style="italic" fill="#000" text-anchor="middle">orbit period: one lunar day  (P = 29.5 days)</text>
+</svg>

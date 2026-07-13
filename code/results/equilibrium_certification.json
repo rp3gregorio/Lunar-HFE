@@ -1,0 +1,12 @@
+{
+  "A15": {
+    "guess_independence_max_K": 5.057359572901987e-06,
+    "drift_120lun_sensorband_max_K": 0.002402129539490261,
+    "kd_star_W_m_K": 0.004603
+  },
+  "A17": {
+    "guess_independence_max_K": 5.90932813793188e-09,
+    "drift_120lun_sensorband_max_K": 0.002382119415131001,
+    "kd_star_W_m_K": 0.00716
+  }
+}

@@ -1,0 +1,115 @@
+<svg viewBox="0 0 720 446" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <title>Apollo 15 HFE probe geometry (site)</title>
+  <desc>Side-view of the two Apollo 15 boreholes at Hadley Rille. Real sensor depths from the restored Nagihara 2018 record: probe 1 carries 8 sensors to 139 cm (3 shallow open circles, 5 deep filled circles); probe 2 carries 4 sensors to 97 cm (2 shallow, 2 deep). The top 30 cm of each probe is the hatched epoxy borestem; the dashed line at 80 cm marks the borestem-disturbed cut. Cables connect both probes to the HFE electronics box at the surface. Diagram is not to horizontal scale (real probe separation ~8.8 m).</desc>
+  <defs>
+    <pattern id="borestem" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#000" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+
+  <!-- Regolith hatching (single direction) -->
+  <line x1="100" y1="86" x2="90" y2="96" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="122" y1="86" x2="90" y2="118" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="144" y1="86" x2="90" y2="140" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="166" y1="86" x2="90" y2="162" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="188" y1="86" x2="90" y2="184" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="210" y1="86" x2="90" y2="206" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="232" y1="86" x2="90" y2="228" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="254" y1="86" x2="90" y2="250" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="276" y1="86" x2="90" y2="272" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="298" y1="86" x2="90" y2="294" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="320" y1="86" x2="90" y2="316" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="342" y1="86" x2="90" y2="338" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="364" y1="86" x2="90" y2="360" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="386" y1="86" x2="90" y2="382" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="408" y1="86" x2="108" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="430" y1="86" x2="130" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="452" y1="86" x2="152" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="474" y1="86" x2="174" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="496" y1="86" x2="196" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="518" y1="86" x2="218" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="540" y1="86" x2="240" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="562" y1="86" x2="262" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="570" y1="100" x2="284" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="570" y1="122" x2="306" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="570" y1="144" x2="328" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="570" y1="166" x2="350" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="570" y1="188" x2="372" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="570" y1="210" x2="394" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="570" y1="232" x2="416" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="570" y1="254" x2="438" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="570" y1="276" x2="460" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+  <line x1="570" y1="298" x2="482" y2="386" stroke="#000" stroke-width="0.4" opacity="0.32"/>
+
+  <!-- surface line -->
+  <line x1="90" y1="86" x2="570" y2="86" stroke="#000" stroke-width="1.6"/>
+  <text x="576" y="90" font-size="13" font-style="italic" fill="#000">surface</text>
+
+  <!-- HFE electronics + cables (straighter) -->
+  <rect x="230" y="50" width="100" height="26" fill="#FFFFFF" stroke="#000" stroke-width="1.1"/>
+  <text x="280" y="68" font-size="12" fill="#000" text-anchor="middle">HFE electronics</text>
+  <line x1="240" y1="76" x2="200" y2="86" stroke="#000" stroke-width="0.9"/>
+  <line x1="320" y1="76" x2="360" y2="86" stroke="#000" stroke-width="0.9"/>
+
+  <!-- Depth ruler -->
+  <line x1="88" y1="86" x2="88" y2="386" stroke="#000" stroke-width="1"/>
+  <g font-size="12" fill="#000" text-anchor="end">
+    <line x1="80" y1="86.0"   x2="93" y2="86.0"   stroke="#000" stroke-width="1.1"/><text x="76" y="90.0">0</text>
+    <line x1="80" y1="148.5"  x2="93" y2="148.5"  stroke="#000" stroke-width="1"/><text x="76" y="152.5">50</text>
+    <line x1="80" y1="211.0" x2="93" y2="211.0" stroke="#000" stroke-width="1.1"/><text x="76" y="215.0">100</text>
+    <line x1="80" y1="273.5" x2="93" y2="273.5" stroke="#000" stroke-width="1"/><text x="76" y="277.5">150</text>
+    <line x1="80" y1="336.0" x2="93" y2="336.0" stroke="#000" stroke-width="1.1"/><text x="76" y="340.0">200</text>
+    <text x="76" y="404" font-style="italic">z (cm)</text>
+  </g>
+
+  <!-- dashed 80 cm cut line -->
+  <line x1="90" y1="186.0" x2="570" y2="186.0" stroke="#000" stroke-width="0.9" stroke-dasharray="4 3"/>
+
+  <!-- PROBE 1 -->
+  <rect x="196" y="86.0" width="8" height="37.5" fill="url(#borestem)" stroke="#000" stroke-width="0.8"/>
+  <line x1="200" y1="123.5" x2="200" y2="259.8" stroke="#000" stroke-width="1.7"/>
+  <polygon points="196,256.8 204,256.8 200,267.8" fill="#000"/>
+  <circle cx="200" cy="129.8" r="3.8" fill="#FFF" stroke="#000" stroke-width="1.1"/>
+  <circle cx="200" cy="142.2" r="3.8" fill="#FFF" stroke="#000" stroke-width="1.1"/>
+  <circle cx="200" cy="177.2" r="3.8" fill="#FFF" stroke="#000" stroke-width="1.1"/>
+  <circle cx="200" cy="191.0" r="4" fill="#000"/>
+  <circle cx="200" cy="199.8" r="4" fill="#000"/>
+  <circle cx="200" cy="212.2" r="4" fill="#000"/>
+  <circle cx="200" cy="247.2" r="4" fill="#000"/>
+  <circle cx="200" cy="259.8" r="4" fill="#000"/>
+  <text x="200" y="416" font-size="14" font-style="italic" fill="#000" text-anchor="middle">Probe 1</text>
+
+  <!-- PROBE 2 -->
+  <rect x="356" y="86.0" width="8" height="37.5" fill="url(#borestem)" stroke="#000" stroke-width="0.8"/>
+  <line x1="360" y1="123.5" x2="360" y2="207.2" stroke="#000" stroke-width="1.7"/>
+  <polygon points="356,204.2 364,204.2 360,215.2" fill="#000"/>
+  <circle cx="360" cy="147.2" r="3.8" fill="#FFF" stroke="#000" stroke-width="1.1"/>
+  <circle cx="360" cy="159.8" r="3.8" fill="#FFF" stroke="#000" stroke-width="1.1"/>
+  <circle cx="360" cy="194.8" r="4" fill="#000"/>
+  <circle cx="360" cy="207.2" r="4" fill="#000"/>
+  <text x="360" y="416" font-size="14" font-style="italic" fill="#000" text-anchor="middle">Probe 2</text>
+
+  <!-- compact Key (single column, smaller, on the right) -->
+  <rect x="595" y="92" width="120" height="156" fill="#FFFFFF" stroke="#000" stroke-width="0.9"/>
+  <text x="655" y="110" font-size="12" font-weight="700" fill="#000" text-anchor="middle">KEY</text>
+  <line x1="608" y1="115" x2="702" y2="115" stroke="#000" stroke-width="0.5"/>
+
+  <rect x="606" y="125" width="14" height="14" fill="url(#borestem)" stroke="#000" stroke-width="0.7"/>
+  <text x="626" y="136" font-size="11" fill="#000">epoxy</text>
+  <text x="626" y="148" font-size="11" fill="#000">borestem</text>
+
+  <circle cx="613" cy="170" r="3.8" fill="#FFF" stroke="#000" stroke-width="1.1"/>
+  <text x="626" y="174" font-size="11" fill="#000">shallow</text>
+  <text x="626" y="186" font-size="11" fill="#000">(excluded)</text>
+
+  <circle cx="613" cy="207" r="4" fill="#000"/>
+  <text x="626" y="211" font-size="11" fill="#000">deep</text>
+  <text x="626" y="223" font-size="11" fill="#000">(sets Kd)</text>
+
+  <line x1="606" y1="237" x2="620" y2="237" stroke="#000" stroke-width="0.9" stroke-dasharray="3 2"/>
+  <text x="626" y="240" font-size="11" fill="#000">z=80 cm</text>
+
+  <!-- scale note bottom-right -->
+  <text x="700" y="424" font-size="11" font-style="italic" fill="#555" text-anchor="end">Not to horizontal scale</text>
+  <text x="700" y="438" font-size="11" font-style="italic" fill="#555" text-anchor="end">(probes ~8.8 m apart in reality)</text>
+</svg>

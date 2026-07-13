@@ -16,13 +16,14 @@ We retrieve the deep-regolith thermal conductivity $K_d$ separately at each
 Apollo HFE borehole by holding the Hayne (2017) $K(T,z)$ functional form fixed
 and sweeping $K_d$ against the deep-sensor RMSE. The retrieval yields
 
-- $K_{d,\text{A15}}^{*} = 4.58^{+1.33}_{-0.28}$ mW m⁻¹ K⁻¹
-- $K_{d,\text{A17}}^{*} = 8.12^{+0.49}_{-0.61}$ mW m⁻¹ K⁻¹
+- $K_{d,\text{A15}}^{*} = 4.60^{+2.36}_{-0.42}$ mW m⁻¹ K⁻¹
+- $K_{d,\text{A17}}^{*} = 7.08^{+0.99}_{-0.92}$ mW m⁻¹ K⁻¹
 
-(1σ non-parametric bootstrap, $N_\text{boot}=1500$, conditional on the
-published basal heat fluxes; inter-site contrast 3.31, 95% CI [0.37, 4.58],
-p ≈ 0.011). The forward model is solved to a certified periodic steady
-state (see `src/lunar/equilibrium.py` and `docs/notes/FLAG_REPORT.md`).
+(95% non-parametric bootstrap, $N_\text{boot}=1500$, conditional on the
+Langseth et al. (1976) basal heat fluxes; inter-site contrast median 2.31,
+95% CI [-0.12, 3.56] — includes zero, so the contrast is marginal —
+p ≈ 0.031). The forward model is solved to a certified periodic steady
+state (see `code/src/lunar/equilibrium.py` and `deliverables/documents/notes/FLAG_REPORT.md`).
 
 These per-site values reduce the meter-scale-sensor RMSE relative to the
 published global $K_d = 3.4$ (halving it at Apollo 17) and supply the
@@ -31,7 +32,8 @@ radiative-transfer retrievals.
 
 ## Reproducing the paper
 
-The full reproduction recipe is in [`docs/REPRODUCING.md`](docs/REPRODUCING.md).
+The full reproduction recipe is in
+[`deliverables/documents/notes/REPRODUCING.md`](deliverables/documents/notes/REPRODUCING.md).
 There is a `Makefile` with one-word entry points — run `make help` to list
 them. Short version:
 
@@ -40,39 +42,63 @@ git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd Lunar-HFE
 python3 -m venv .venv && source .venv/bin/activate
 make install                 # editable install of the `lunar` package + dev deps
-python pipeline/fetch_diviner.py  # ~310 MB from PDS-Geosciences (one-time)
+python code/pipeline/fetch_diviner.py  # ~310 MB from PDS-Geosciences (one-time)
 
-make retrieve                # core retrieval + bootstrap  -> results/*.json
+make retrieve                # core retrieval + bootstrap  -> code/results/*.json
 make aux                     # all sensitivity sweeps, model selection, MCMC, closure
-make figures                 # regenerate every figure (paper + guidebook) -> results/figures/
+make figures                 # regenerate every figure (paper + guidebook) -> code/results/figures/
 make paper                   # compile all PDFs
 # or simply:  make all
 ```
 
-Prefer notebooks? `jupyter lab notebooks/` and run the five in order
-(they call the same pipeline). Prefer scripts? Each file under
-`pipeline/compute/` and `pipeline/figures/` runs standalone.
+Prefer notebooks? `jupyter lab code/notebooks/` and run the five in order
+— but note the notebooks are **demonstrations**, not the source of truth:
+every published number comes from the `code/pipeline/` scripts via `make`,
+which is what reviewers should run. Each file under
+`code/pipeline/compute/` and `code/pipeline/figures/` runs standalone.
+
+### For reviewers: how it all runs, in five commands
+
+```bash
+make install                                 # editable install into .venv
+.venv/bin/python -m pytest -q                # 49 tests (physics invariants + fast path)
+make retrieve                                # headline K_d* + bootstrap -> code/results/*.json
+make figures && make paper                   # figures + all three PDFs
+clang++ -O3 -std=c++17 -o code/cpp/lunar_solver code/cpp/solver.cpp \
+  && .venv/bin/python code/pipeline/compute/benchmark_cpp.py   # C++ <-> Python to ~1e-12 K
+```
+
+Data flows one way: `code/data/` (inputs) → `code/pipeline/compute/`
+(writes `code/results/*.json`) → `code/pipeline/figures/` (writes
+`code/results/figures/`) → the documents (via `figures/` symlinks).
+Figures never compute physics; documents never hold hand-typed numbers.
+To restyle any figure without touching logic, see
+`deliverables/documents/notes/FIGURE_STYLING.md` and the self-serve knobs
+in `code/src/lunar/plotting/style_overrides.py`.
 
 ### How the code is organised (start here)
 
-All configuration and the physics engine live in the **`src/lunar/` package**;
-the **`pipeline/`** scripts are thin command-line drivers that call it. There is
+All configuration and the physics engine live in the **`code/src/lunar/` package**;
+the **`code/pipeline/`** scripts are thin command-line drivers that call it. There is
 exactly one definition of everything:
 
 | Where | What |
 |---|---|
-| `src/lunar/config.py` | **single source of truth** — site table (`SITES`), grid, Hayne bundle, solver + sweep settings |
-| `src/lunar/constants.py` | cited physical constants |
-| `src/lunar/properties.py` | conductivity / density / specific-heat models |
-| `src/lunar/grid.py`, `solver.py`, `equilibrium.py` | the 1-D heat-equation engine |
-| `src/lunar/plotting/style.py` | shared figure palette + layout helpers |
-| `pipeline/compute/` | retrieval, bootstrap, sensitivity sweeps, MCMC (write `results/*.json`) |
-| `pipeline/figures/` | figure generators; `pipeline/make_all_figures.py` runs them all |
+| `code/src/lunar/config.py` | **single source of truth** — site table (`SITES`), grid, Hayne bundle, solver + sweep settings |
+| `code/src/lunar/constants.py` | cited physical constants |
+| `code/src/lunar/properties.py` | conductivity / density / specific-heat models |
+| `code/src/lunar/grid.py`, `solver.py`, `equilibrium.py` | the 1-D heat-equation engine |
+| `code/src/lunar/plotting/style.py` | shared figure palette + layout helpers |
+| `code/pipeline/compute/` | retrieval, bootstrap, sensitivity sweeps, MCMC (write `code/results/*.json`) |
+| `code/pipeline/figures/` | figure generators; `code/pipeline/make_all_figures.py` runs them all |
 
-New to the code? Read the full developer guidebook in
-[`docs/guidebook/`](docs/guidebook/) (`guidebook.tex`; build the PDF with
-`make paper`) — physics derivations from first principles, module reference,
-data flow, and worked recipes.
+New to the code? Two guides, by purpose:
+
+- **[`docs/CODE_TOUR.md`](docs/CODE_TOUR.md)** — how the *repository* works:
+  the four layers, who calls whom, a walkthrough of one number from raw data
+  to the manuscript, and "how do I…?" recipes. Start here.
+- **[`deliverables/documents/guidebook/`](deliverables/documents/guidebook/)** (`guidebook.pdf`; rebuild with
+  `make paper`) — how the *physics and statistics* work, taught from zero.
 
 Then run the 5 notebooks in order:
 
@@ -83,6 +109,9 @@ Then run the 5 notebooks in order:
 | `02_retrieval.ipynb` | Per-site $K_d^*$ retrieval, bootstrap CIs, error budget |
 | `03_results.ipynb` | Figs 4–8 (mean-T, $K_d$ sweep, bootstrap, thermal profiles, Diviner closure), Tables 2–3 |
 | `04_discussion.ipynb` | Figs 9–10 (robustness, $\alpha$-sweep), Table 4 |
+| `06_figure_editor.ipynb` | Self-serve figure restyling from the cached results JSONs |
+| `07_cpp_solver.ipynb` | Drives + verifies the standalone C++ solver port |
+| `08_aogs_study.ipynb` | AOGS study, complete: Part I LOLA-DEM horizon shadowing + 3-layer density sensitivity; Part II 650-solve density study, winner bootstrap, pure-$K_d$ check, terrain-radiation terms, geology + degeneracy (reads `results/aogs_*.json`; regenerate with `pipeline/compute/aogs_sensitivity.py` + `aogs_density_study.py`) |
 
 Optional: [`equilibrium_demo.ipynb`](notebooks/equilibrium_demo.ipynb) is a
 standalone demonstration (not part of the reproduction set) that a long
@@ -90,32 +119,39 @@ brute-force spin-up converges onto the fast flux-anchored solver — it
 parallelises the independent runs across CPU cores.
 
 Each notebook is idempotent: re-running it overwrites the corresponding
-figures and any JSON it produces in `results/`. The canonical retrieval JSON
-([`results/kd_retrieval_results.json`](results/kd_retrieval_results.json)) is committed for
+figures and any JSON it produces in `code/results/`. The canonical retrieval JSON
+([`code/results/kd_retrieval_results.json`](code/results/kd_retrieval_results.json)) is committed for
 direct verification.
 
 ## Repository layout
 
+Two umbrellas at the top level — `deliverables/` (what you read/look at) and
+`code/` (the machinery + inputs). See `STRUCTURE.md` for the full map.
+
 ```
 Lunar-HFE/
-├── src/lunar/              # 1-D heat solver + conductivity models (the engine)
-├── pipeline/
-│   ├── compute/            # batch retrieval + sensitivity sweeps (write results/*.json)
-│   └── figures/            # matplotlib figure generators (write results/figures/)
-├── notebooks/              # 5 reproduction notebooks (run in order)
-├── data/
-│   ├── apollo/             # HFE 1971–1977 record (Nagihara 2018, bundled)
-│   ├── diviner/            # GCP cache (fetched on demand)
-│   └── spice/              # SPICE kernels (DE440, lunar frames)
-├── results/                # canonical JSON results + figures/ (single source of truth)
-├── paper/
-│   └── letter/             # the manuscript: LaTeX source + compiled PDF (figures/ -> results/figures)
-├── tests/                  # pytest suite (run with `pytest`)
-└── docs/
-    ├── guidebook/          # guidebook.tex/pdf — full teaching + developer guide
-    ├── notes/              # REPRODUCING.md, FLAG_REPORT.md, NUMBA_VS_CPP_*.md
-    └── slides/             # progress deck + assets
+├── deliverables/               # WHAT YOU LOOK AT
+│   ├── documents/
+│   │   ├── letter/             # the JGR:Planets manuscript (LaTeX + PDF, SI)
+│   │   ├── guidebook/          # full teaching + developer guide
+│   │   ├── thesis/             # the PhD thesis manuscript
+│   │   └── slides/  notes/     # progress deck; REPRODUCING/FLAG/audit notes
+│   ├── figures/     -> code/results/figures   # the graphs (symlink)
+│   └── animations/  -> code/results/anim        # the GIFs (symlink)
+├── code/                       # THE MACHINERY (logic + code + inputs)
+│   ├── src/lunar/              # 1-D heat solver + conductivity models (the engine)
+│   ├── pipeline/
+│   │   ├── compute/            # batch retrieval + sweeps (write code/results/*.json)
+│   │   └── figures/            # matplotlib figure generators (write code/results/figures/)
+│   ├── cpp/  tests/  notebooks/
+│   ├── data/                   # INPUTS: apollo/ diviner/ spice/ records
+│   ├── references/             # INPUTS: cited-paper PDFs
+│   └── results/                # OUTPUTS: canonical *.json + figures/ + anim/
+└── README.md  Makefile  pyproject.toml  STRUCTURE.md  CLAUDE.md  LICENSE
 ```
+
+Every document reaches figures through a `figures/` symlink to
+`code/results/figures/`, so there is exactly one physical copy of each figure.
 
 ## Citing this work
 
@@ -136,12 +172,12 @@ If you use this code or data, please cite both the paper and the repository:
 
 ## Licenses
 
-- **Code** (`src/lunar/`, `pipeline/`, `tests/`, `notebooks/`): MIT License
+- **Code** (`code/src/lunar/`, `code/pipeline/`, `code/tests/`, `notebooks/`): MIT License
   (see [`LICENSE`](LICENSE))
-- **Paper text, figures, and tabular results** (`paper/`, `results/figures/`):
+- **Paper text, figures, and tabular results** (`paper/`, `code/results/figures/`):
   Creative Commons Attribution 4.0 International (CC-BY-4.0)
   (see [`LICENSE-CC-BY-4.0`](LICENSE-CC-BY-4.0))
-- **Bundled HFE data** (`data/apollo/`): public domain via NASA PDS-Geosciences
+- **Bundled HFE data** (`code/data/apollo/`): public domain via NASA PDS-Geosciences
   (Nagihara et al. 2018 release)
 
 ## Contact

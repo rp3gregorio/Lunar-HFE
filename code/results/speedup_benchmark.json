@@ -1,0 +1,40 @@
+{
+ "config": {
+  "EQ_N_INNER": 96,
+  "EQ_Z_ANCHOR": 0.55,
+  "truncated_step_A": true,
+  "site": "A15",
+  "Kd": 0.00459953095401091
+ },
+ "t_anchored_s": 74.68,
+ "anchored_runs_s": [
+  74.68,
+  74.44,
+  74.73
+ ],
+ "t_anchored_fast_s": 0.636,
+ "anchored_fast_runs_s": [
+  0.633,
+  0.636,
+  0.644
+ ],
+ "speedup_kernel_over_generic": 117.4,
+ "brute_ms_per_lun": 522.6,
+ "brute_runs_ms_per_lun": [
+  525.4,
+  522.6,
+  521.2
+ ],
+ "N_converge_lun": 3000,
+ "t_brute_s": 1567.7,
+ "speedup_per_solve": 21.0,
+ "N_solves": 61,
+ "sweep_anchored_min": 75.9,
+ "sweep_fast_min": 0.65,
+ "speedup_fast_per_solve": 2465.0,
+ "sweep_brute_h": 26.56,
+ "njit_on_ms_per_lun": 83.2,
+ "njit_off_ms_per_lun": 128.0,
+ "njit_speedup": 1.5,
+ "note_njit": "only _thomas and _face_harmonic_mean carry @njit; measured 2026-06-28, per-lunation (n_inner-independent)"
+}

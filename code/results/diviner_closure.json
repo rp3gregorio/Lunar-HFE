@@ -1,0 +1,30 @@
+{
+  "A15": {
+    "lat": 26.13,
+    "channel": "tbol",
+    "kd_star_W_m_K": 0.00459953095401091,
+    "hayne_site_fit": {
+      "rmse_K": 4.129976466794028,
+      "bias_K": 2.643939838831519
+    },
+    "martinez_forward": {
+      "rmse_K": 3.5824860902348945,
+      "bias_K": 0.07664343388766603
+    },
+    "n_gcp_points": 96
+  },
+  "A17": {
+    "lat": 20.19,
+    "channel": "tbol",
+    "kd_star_W_m_K": 0.007079375461192863,
+    "hayne_site_fit": {
+      "rmse_K": 6.297218508972147,
+      "bias_K": 4.0957888965883855
+    },
+    "martinez_forward": {
+      "rmse_K": 3.6220913426879764,
+      "bias_K": -0.7772429750505334
+    },
+    "n_gcp_points": 96
+  }
+}

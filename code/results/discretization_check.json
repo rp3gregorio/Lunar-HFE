@@ -1,0 +1,40 @@
+{
+ "config": {
+  "dt_nominal_s": 1800.0,
+  "grid_nominal": {
+   "z_max": 5.0,
+   "dz0": 0.002,
+   "growth": 0.08
+  },
+  "site": "A15",
+  "Kd": 0.00459953095401091,
+  "sensor_depths_m": [
+   0.8,
+   1.0,
+   1.4,
+   2.4
+  ]
+ },
+ "T_sensor_nominal_K": [
+  252.5226,
+  252.9754,
+  253.8773,
+  256.1108
+ ],
+ "dT_dt_half_K": [
+  -0.0042,
+  -0.0042,
+  -0.0041,
+  -0.0041
+ ],
+ "max_abs_dT_dt_half_K": 0.004182741660372358,
+ "dT_grid_fine_K": [
+  -0.0002,
+  -0.0002,
+  -0.0002,
+  -0.0002
+ ],
+ "max_abs_dT_grid_fine_K": 0.0001894866075531354,
+ "pass_criterion": "max |dT| at sensor depths << 0.05 K (the guess-independence certification scale)",
+ "passed": true
+}

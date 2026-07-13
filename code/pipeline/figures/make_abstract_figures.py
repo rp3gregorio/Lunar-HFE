@@ -33,8 +33,13 @@ import matplotlib.pyplot as plt
 from lunar._bootstrap import find_repo_root
 
 ROOT = find_repo_root()                       # .../code
-ABS_FIGS = (ROOT.parent / "deliverables" / "documents" / "abstract"
-            / "figures")
+# The abstract keeps its OWN self-contained figures dir (Overleaf-ready,
+# no symlink) so its custom figures -- the three-orthographic-globe context
+# map, the A4-sized timeline/sweep/robustness -- never collide with the
+# letter's identically named figures in the shared top-level figures/.
+# (The 2026-07-13 reorg had briefly symlinked this to ../../figures, which
+# let the letter's 2D fig_context_map.pdf overwrite the abstract's globes.)
+ABS_FIGS = ROOT.parent / "documents" / "abstract" / "figures"
 
 ABSTRACT_W = 6.69                             # A4 text width (170 mm), inches
 

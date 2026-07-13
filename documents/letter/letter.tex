@@ -1134,6 +1134,28 @@ likelihood sharpness.}%
 % results/qb_prior_width_scan.json): P(A17>A15) = 99.21/99.25/99.34/99.42 %
 % at prior sigma = 10/15/25/40 % of Q_b; contrast median +3.43/+3.92/+4.49/
 % +4.79, 95% CrI low edge +0.63/+0.75/+0.93/+1.06.
+\paragraph*{Common-epoch sensitivity.}
+\new{The stability windows end at different calendar epochs while the
+record still warms: at A17 the retained sensors at 130--178 cm carry
+mid-1977 windows while every sensor below 180 cm carries a 1974 window
+(a 3.1-yr spread aligned with depth); at A15 the spread is 1.0 yr with
+trailing slopes $\le$0.22 K yr$^{-1}$. Rebuilding every retained
+sensor's $T_\mathrm{eq}$ from one shared 1974 calendar window (every
+sensor has data there --- no extrapolation) leaves A15 unchanged
+($|\Delta K_d^{*}|\le 0.01$) but moves A17 to
+$K_d^{*}=6.16$ mW m$^{-1}$ K$^{-1}$ ($-0.89$; bootstrap 95\% CI
+$[5.92, 6.81]$) --- and \emph{improves} the fit (RMSE
+$0.40\rightarrow0.36$ K), as expected if the mixed-epoch profile was
+internally inconsistent. A slope-translated construction agrees to
+0.03 mW m$^{-1}$ K$^{-1}$. The contrast under the common epoch is
+$+1.55$ mW m$^{-1}$ K$^{-1}$ (95\% CI $[-0.11, 2.31]$,
+$P_{\rm boot}(\Delta K_d^{*}{\le}0)=0.04$): still positive, still
+rejecting the global value at both sites, but more marginal than at the
+certified windows. Epoch mixing is therefore the largest single
+methodological systematic at A17 and is carried as $\sigma_{\rm epoch}$
+in Table~\ref{tab:errorbudget}
+(archived: \texttt{results/common\_epoch\_sensitivity.json}).}
+
 The bootstrap interval
 on the contrast
 magnitude (\old{$\Delta K_d^{*}=6.6$, 95\% CI $[-3.2,16.6]$}\new{$\Delta
@@ -1331,8 +1353,12 @@ $\sigma_{z_b}$
   & $z_b\!\in\!\{70,80,90\}$\,cm
   & cut sweep, half-range of $K_d^{*}$
   & 0.12 & $<\!0.05$ \\
+$\sigma_\mathrm{epoch}$
+  & common-1974 vs certified windows
+  & re-fit at common-epoch $T_\mathrm{eq}$ (\S\ref{sec:consistency}; one-sided: A17 $-0.89$)
+  & $<\!0.05$ & 0.89 \\
 \midrule
-\textbf{Total (quadrature)} & & & \textbf{1.88} & \textbf{3.78} \\
+\textbf{Total (quadrature)} & & & \textbf{1.88} & \textbf{3.88} \\
 Bootstrap median $K_d^{*}$  & & & 4.63 & 7.08 \\
 \midrule
 \multicolumn{5}{@{}l}{\textit{Conditionality of the held-fixed form (reported, not summed)}} \\[2pt]
@@ -1375,8 +1401,8 @@ methodological rows. The worked arithmetic is
 \end{equation*}
 \begin{equation*}
 \sigma_{\rm tot}^{\rm A17} =
-\big(0.52^{2}+0.04^{2}+1.66^{2}+2.96^{2}+1.55^{2}+0.33^{2}+0.03^{2}+0^{2}\big)^{1/2}
-\approx 3.78~\text{mW m}^{-1}\,\text{K}^{-1}.
+\big(0.52^{2}+0.04^{2}+1.66^{2}+2.96^{2}+1.55^{2}+0.33^{2}+0.03^{2}+0^{2}+0.89^{2}\big)^{1/2}
+\approx 3.88~\text{mW m}^{-1}\,\text{K}^{-1}.
 \end{equation*}
 We flag one residual correlation: $\sigma_\mathrm{stat}$ and $\sigma_{Q_b}$
 both propagate along the $K_d/Q_b$ degeneracy ridge of
@@ -1408,7 +1434,7 @@ $\sigma_A$ and $\sigma_{K_s}$: at A17 the lunation-mean response to $K_d$ is
 nearly flat over part of the sweep range, so even the $\pm0.01$ albedo
 envelope moves the minimum substantially --- the statistical precision of
 the A17 retrieval (CI half-width $\sim$1.0) is real, but its accuracy is
-systematics-limited at the $\pm$3.7 level (the quadrature total less its
+systematics-limited at the $\pm$3.8 level (the quadrature total less its
 statistical row). Second, $\sigma_\rho$ is
 structurally suppressed under the Hayne $K(T,z)$ form (eq.~\ref{eq:K}),
 which contains no explicit $\rho$ dependence: $\rho(z)$ enters only the
@@ -1416,7 +1442,9 @@ volumetric heat capacity $\rho c_p$ and perturbs the rectified lunation-mean
 column at the $\lesssim$0.4 mW m$^{-1}$ K$^{-1}$ level. Third, the
 methodological-choice rows $\sigma_\mathrm{thr}$ and $\sigma_{z_b}$ sit
 one to two orders of magnitude below the data-side terms, indicating
-robustness against both discretionary cuts.
+robustness against both discretionary cuts\new{; the exception is
+$\sigma_\mathrm{epoch}$ at A17, the epoch-mixing systematic quantified in
+\S\ref{sec:consistency}, which rivals the statistical and $K_s$ rows}.
 
 \paragraph*{Behavior of the inter-site contrast under independent $Q_b$ revision.}
 How the contrast responds to a basal-flux revision cannot be read off a
@@ -1913,10 +1941,13 @@ re-analysis.} \new{\emph{(vii)} The stability windows end at different
 epochs across sensors while the record is still warming at depth
 \citep{nagihara2018}, so the per-sensor $T_\mathrm{eq}$ values mix
 epochs; the bootstrap resamples sensors as exchangeable, ignoring
-probe-level calibration offsets and common temporal drift. A common-epoch
-reconstruction with probe-clustered uncertainty is the identified next
-analysis step; the internal checks of \S\ref{sec:consistency} bound but
-do not eliminate this systematic.}
+probe-level calibration offsets and common temporal drift. The
+common-epoch sensitivity is now quantified
+(\S\ref{sec:consistency}): A15 is unaffected, while A17 moves by
+$-0.89$ mW m$^{-1}$ K$^{-1}$ (carried as $\sigma_\mathrm{epoch}$ in
+Table~\ref{tab:errorbudget}) and the contrast becomes more marginal
+($P_{\rm boot}=0.04$) while retaining its sign. A probe-clustered
+(hierarchical) uncertainty treatment remains follow-on work.}
 
 % =====================================================================
 \FloatBarrier

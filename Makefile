@@ -28,6 +28,8 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) code/pipeline/compute/compute_model_selection.py
 	$(PY) code/pipeline/compute/compute_error_budget.py
 	$(PY) code/pipeline/compute/bayesian_crosscheck.py
+	$(PY) code/pipeline/compute/qb_prior_width_scan.py
+	$(PY) code/pipeline/compute/compute_common_epoch.py
 	$(PY) code/pipeline/compute/compute_diviner_closure.py
 
 figures:             ## regenerate every figure (writes figures/) for the paper + guidebook

@@ -1,0 +1,335 @@
+{
+  "meta": {
+    "n_boot": 1500,
+    "depth_jitter_cm": 2.5,
+    "common_windows": {
+      "A15": [
+        "1973-12-01",
+        "1974-12-31"
+      ],
+      "A17": [
+        "1974-01-01",
+        "1974-12-31"
+      ]
+    },
+    "note": "sensitivity study (audit F2); does not re-baseline the headline retrieval. Model grid solved once at production settings; variants differ only in T_eq construction."
+  },
+  "A15": {
+    "sensors": [
+      {
+        "sensor": "TG11B",
+        "depth_cm": 84.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.127,
+        "T_certified": 253.1955851109768,
+        "T_common": 253.02461468141593,
+        "T_translated": 253.0737061785344,
+        "n_common": 5650
+      },
+      {
+        "sensor": "TR22B",
+        "depth_cm": 87.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.189,
+        "T_certified": 250.87748771241831,
+        "T_common": 250.87326594936707,
+        "T_translated": 250.87692192744876,
+        "n_common": 158
+      },
+      {
+        "sensor": "TG12A",
+        "depth_cm": 91.0,
+        "method": "trend_flat",
+        "slope_K_yr": 0.027,
+        "T_certified": 253.1517964890102,
+        "T_common": 253.10055732661007,
+        "T_translated": 253.12732511715018,
+        "n_common": 5652
+      },
+      {
+        "sensor": "TG22B",
+        "depth_cm": 97.0,
+        "method": "trend_flat",
+        "slope_K_yr": 0.078,
+        "T_certified": 251.1569616435004,
+        "T_common": 251.07119925738726,
+        "T_translated": 251.08751617703354,
+        "n_common": 5144
+      },
+      {
+        "sensor": "TR12A",
+        "depth_cm": 101.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.221,
+        "T_certified": 253.13832261437904,
+        "T_common": 253.13773597402593,
+        "T_translated": 253.14174518452262,
+        "n_common": 154
+      },
+      {
+        "sensor": "TR12B",
+        "depth_cm": 129.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.186,
+        "T_certified": 253.36387163398695,
+        "T_common": 253.3634048051948,
+        "T_translated": 253.3667583717503,
+        "n_common": 154
+      },
+      {
+        "sensor": "TG12B",
+        "depth_cm": 139.0,
+        "method": "trend_flat",
+        "slope_K_yr": 0.065,
+        "T_certified": 253.52912627879135,
+        "T_common": 253.46545453113941,
+        "T_translated": 253.4710435509644,
+        "n_common": 5652
+      }
+    ],
+    "certified": {
+      "kd_star_mW": 4.632,
+      "rmse_K": 0.9998,
+      "boot_median_mW": 4.664,
+      "ci95_mW": [
+        4.217,
+        6.771
+      ]
+    },
+    "common_1974": {
+      "kd_star_mW": 4.62,
+      "rmse_K": 1.0114,
+      "boot_median_mW": 4.652,
+      "ci95_mW": [
+        4.214,
+        6.374
+      ]
+    },
+    "translated_1974": {
+      "kd_star_mW": 4.627,
+      "rmse_K": 1.0102,
+      "boot_median_mW": 4.654,
+      "ci95_mW": [
+        4.196,
+        6.424
+      ]
+    }
+  },
+  "A17": {
+    "sensors": [
+      {
+        "sensor": "TG11A",
+        "depth_cm": 130.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.322,
+        "T_certified": 256.4796575993992,
+        "T_common": 255.5146699640045,
+        "T_translated": 255.49590573659884,
+        "n_common": 8890
+      },
+      {
+        "sensor": "TG21A",
+        "depth_cm": 131.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.219,
+        "T_certified": 256.5902100597901,
+        "T_common": 256.1770852013083,
+        "T_translated": 255.92013321629682,
+        "n_common": 8867
+      },
+      {
+        "sensor": "TR11A",
+        "depth_cm": 140.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.466,
+        "T_certified": 255.6723718987342,
+        "T_common": 255.57618635714286,
+        "T_translated": 255.58991825619853,
+        "n_common": 140
+      },
+      {
+        "sensor": "TR21A",
+        "depth_cm": 140.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.226,
+        "T_certified": 256.2357726582278,
+        "T_common": 256.1989011971831,
+        "T_translated": 256.19175097150685,
+        "n_common": 142
+      },
+      {
+        "sensor": "TR11B",
+        "depth_cm": 167.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.325,
+        "T_certified": 255.88253645569608,
+        "T_common": 255.8232149285714,
+        "T_translated": 255.8250172237505,
+        "n_common": 140
+      },
+      {
+        "sensor": "TR21B",
+        "depth_cm": 169.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.146,
+        "T_certified": 256.37886126582276,
+        "T_common": 256.3587955633803,
+        "T_translated": 256.3505061749019,
+        "n_common": 142
+      },
+      {
+        "sensor": "TG11B",
+        "depth_cm": 177.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.216,
+        "T_certified": 256.59824677708707,
+        "T_common": 255.91075410348708,
+        "T_translated": 255.93797271111848,
+        "n_common": 8890
+      },
+      {
+        "sensor": "TG21B",
+        "depth_cm": 178.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.114,
+        "T_certified": 256.74369628297865,
+        "T_common": 256.43952886883955,
+        "T_translated": 256.39348204214934,
+        "n_common": 8867
+      },
+      {
+        "sensor": "TG12A",
+        "depth_cm": 185.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.222,
+        "T_certified": 256.0586835042735,
+        "T_common": 256.02255161366446,
+        "T_translated": 256.0139616264019,
+        "n_common": 8899
+      },
+      {
+        "sensor": "TG22A",
+        "depth_cm": 186.0,
+        "method": "trend_flat",
+        "slope_K_yr": 0.059,
+        "T_certified": 256.5238647223726,
+        "T_common": 256.52472627225603,
+        "T_translated": 256.52614098034473,
+        "n_common": 8874
+      },
+      {
+        "sensor": "TR12A",
+        "depth_cm": 195.0,
+        "method": "fallback_last25",
+        "slope_K_yr": 0.185,
+        "T_certified": 256.1297992682927,
+        "T_common": 256.1022097142857,
+        "T_translated": 256.0988496806232,
+        "n_common": 140
+      },
+      {
+        "sensor": "TR22A",
+        "depth_cm": 196.0,
+        "method": "trend_flat",
+        "slope_K_yr": 0.056,
+        "T_certified": 256.54762106382975,
+        "T_common": 256.54762106382975,
+        "T_translated": 256.5492140395236,
+        "n_common": 141
+      },
+      {
+        "sensor": "TR12B",
+        "depth_cm": 223.0,
+        "method": "trend_flat",
+        "slope_K_yr": 0.074,
+        "T_certified": 256.378585170068,
+        "T_common": 256.37973114285717,
+        "T_translated": 256.38251855844146,
+        "n_common": 140
+      },
+      {
+        "sensor": "TR22B",
+        "depth_cm": 224.0,
+        "method": "trend_flat",
+        "slope_K_yr": 0.027,
+        "T_certified": 256.73925226950354,
+        "T_common": 256.73925226950354,
+        "T_translated": 256.7400234432417,
+        "n_common": 141
+      },
+      {
+        "sensor": "TG12B",
+        "depth_cm": 233.0,
+        "method": "trend_flat",
+        "slope_K_yr": 0.06,
+        "T_certified": 256.4790588432071,
+        "T_common": 256.4796447701989,
+        "T_translated": 256.4813640950573,
+        "n_common": 8899
+      },
+      {
+        "sensor": "TG22B",
+        "depth_cm": 234.0,
+        "method": "trend_flat",
+        "slope_K_yr": 0.011,
+        "T_certified": 256.8383777649096,
+        "T_common": 256.83854878746905,
+        "T_translated": 256.83880984792756,
+        "n_common": 8874
+      }
+    ],
+    "certified": {
+      "kd_star_mW": 7.047,
+      "rmse_K": 0.3982,
+      "boot_median_mW": 7.011,
+      "ci95_mW": [
+        6.154,
+        8.145
+      ]
+    },
+    "common_1974": {
+      "kd_star_mW": 6.157,
+      "rmse_K": 0.3641,
+      "boot_median_mW": 6.169,
+      "ci95_mW": [
+        5.923,
+        6.81
+      ]
+    },
+    "translated_1974": {
+      "kd_star_mW": 6.134,
+      "rmse_K": 0.3503,
+      "boot_median_mW": 6.123,
+      "ci95_mW": [
+        5.898,
+        6.509
+      ]
+    }
+  },
+  "contrast": {
+    "certified": {
+      "median_mW": 2.293,
+      "ci95_mW": [
+        0.08,
+        3.538
+      ],
+      "p_boot_leq0": 0.024
+    },
+    "common_1974": {
+      "median_mW": 1.546,
+      "ci95_mW": [
+        -0.114,
+        2.307
+      ],
+      "p_boot_leq0": 0.0387
+    },
+    "translated_1974": {
+      "median_mW": 1.483,
+      "ci95_mW": [
+        -0.333,
+        2.082
+      ],
+      "p_boot_leq0": 0.062
+    }
+  }
+}

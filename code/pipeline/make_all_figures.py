@@ -52,6 +52,8 @@ JOBS = [
     ("make_old_vs_new_animation", ["main"]),  # old-vs-new filmstrip + GIF (was
                                               # unregistered -> went stale across
                                               # two solver revisions; audit 2026-07-04)
+    ("make_surface_temp_animation", ["render"]),  # outreach: Sun-driven surface-T
+                                                  # globe GIF + filmstrip (figures/anim)
     ("make_speedup_figure",      ["main"]),    # measured wall-clock speed-up
     ("make_baselayer_figure",    ["main"]),    # with/without bedrock base layer
     ("make_equilibrium_demo",    ["main"]),   # guess-independence proof

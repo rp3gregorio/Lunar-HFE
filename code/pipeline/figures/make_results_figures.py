@@ -152,7 +152,7 @@ def fmt_axis(ax, *, xlabel="", ylabel="", title=""):
 def fig_bootstrap(d, out_path):
     """JGR:Planets full-width. Two panels stacked; SINGLE shared
     legend below the figure so no in-axes legend competes with data."""
-    fig = plt.figure(figsize=(JGR_FULL, 5.5))
+    fig = plt.figure(figsize=(JGR_FULL, 5.9))
     gs = fig.add_gridspec(2, 1, hspace=0.45,
                           left=0.10, right=0.97, top=0.94, bottom=0.22)
     ax0 = fig.add_subplot(gs[0])
@@ -248,13 +248,22 @@ def fig_bootstrap(d, out_path):
         Patch(facecolor=C_A17, alpha=0.10,
               label=f"contrast 95% CI  [{clo:.2f}, {chi_:.2f}]"),
     ]
-    fig.legend(handles=handles, loc="lower center",
+    leg = fig.legend(handles=handles, loc="lower center",
                bbox_to_anchor=(0.5, 0.005), ncols=2, frameon=True,
                edgecolor=C_GRID, framealpha=0.97, fontsize=9.5,
                handlelength=1.8, borderpad=0.55, columnspacing=2.0,
                labelspacing=0.45,
                title=f"Bootstrap distributions  ($N_{{\\rm boot}} = {len(boot15)}$)",
                title_fontsize=10.0)
+
+    # Measure the (tall, 5-entry) legend and reserve a bottom band that
+    # clears panel (b)'s x-axis label — a fixed bottom=0.22 was too small,
+    # so the legend box was landing on the contrast-axis tick labels.
+    fig.canvas.draw()
+    leg_h_frac = leg.get_window_extent().height / fig.bbox.height
+    gs.update(bottom=leg_h_frac + 0.11)      # legend height + x-axis clearance
+    leg.set_bbox_to_anchor((0.5, 0.008), transform=fig.transFigure)
+    fig.canvas.draw()
 
     fig.savefig(out_path)
     plt.close(fig)

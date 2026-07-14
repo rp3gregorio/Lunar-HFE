@@ -161,17 +161,20 @@ def main():
         (lst_obs, T_obs, lst_h, T_h, lst_m, T_m,
          rmse_h, bias_h, rmse_m, bias_m) = curves[name]
         x_obs = to_centered(lst_obs)
-        ax.plot(x_obs, T_obs, "o", color=C_DIM, markersize=2.2, alpha=0.5,
-                label="Diviner GCP composite", rasterized=True, zorder=1)
-        for lst, T, color, ls, lab in (
-                (lst_h, T_h, C_HAYNE, "-",
-                 "Hayne form at per-site $K_d^{*}$"),
-                (lst_m, T_m, C_MS, "--",
-                 "Martínez & Siegler (2021) forward")):
-            x = to_centered(lst)
-            order = np.argsort(x)
-            ax.plot(x[order], T[order], ls, color=color, lw=1.8,
-                    label=lab, zorder=3)
+        xh = to_centered(lst_h); oh = np.argsort(xh)
+        xm = to_centered(lst_m); om = np.argsort(xm)
+
+        def _draw(a, ms, lbl=True):
+            """Plot the three closure series onto axes `a` (main or inset)."""
+            a.plot(x_obs, T_obs, "o", color=C_DIM, markersize=ms, alpha=0.5,
+                   rasterized=True, zorder=1,
+                   label="Diviner GCP composite" if lbl else None)
+            a.plot(xh[oh], T_h[oh], "-", color=C_HAYNE, lw=1.8, zorder=3,
+                   label="Hayne form at per-site $K_d^{*}$" if lbl else None)
+            a.plot(xm[om], T_m[om], "--", color=C_MS, lw=1.8, zorder=3,
+                   label="Martínez & Siegler (2021) forward" if lbl else None)
+
+        _draw(ax, 2.2)
         ax.axvspan(6.0, 18.0, color="0.88", alpha=0.45, zorder=0)  # night
         ax.text(0.985, 0.97,
                 f"Hayne fit: {rmse_h:.1f} K / {bias_h:+.1f} K\n"
@@ -186,6 +189,31 @@ def main():
         fmt_axis(ax, xlabel="Local solar time (h)",
                  ylabel="Surface temperature (K)" if name == "A15" else "",
                  title=f"({'ab'[name == 'A17']})  {SITES[name]['label']}")
+
+        # ── inset: zoom the bunched nighttime trough (LST 19-05) ────────
+        # All three curves collapse to <~135 K through the night, so their
+        # separation is invisible at full scale. The inset magnifies it in
+        # the empty upper-centre band, above the trough and left of the
+        # stats box; a zoom indicator ties it to the shaded night region.
+        axins = ax.inset_axes([0.27, 0.38, 0.40, 0.34])
+        _draw(axins, 1.7, lbl=False)
+        axins.set_xlim(7.0, 17.0)                       # LST 19 -> 05
+        lo, hi = np.inf, -np.inf
+        for xx, TT in ((x_obs, T_obs), (xh, T_h), (xm, T_m)):
+            m = (xx >= 7.0) & (xx <= 17.0)
+            if np.any(m):
+                lo = min(lo, float(np.min(TT[m])))
+                hi = max(hi, float(np.max(TT[m])))
+        axins.set_ylim(lo - 2.0, hi + 3.0)
+        axins.set_facecolor("white")
+        axins.set_xticks([8, 12, 16]); axins.set_xticklabels(["20", "0", "4"])
+        axins.tick_params(axis="both", labelsize=6.0, length=2.0)
+        axins.grid(True, color=C_GRID, lw=0.4)
+        axins.set_axisbelow(True)
+        for sp in axins.spines.values():
+            sp.set_edgecolor(C_DIM); sp.set_linewidth(0.7); sp.set_visible(True)
+        axins.set_title("nighttime detail", fontsize=6.5, color=C_DIM, pad=2.0)
+        ax.indicate_inset_zoom(axins, edgecolor=C_DIM, alpha=0.5, lw=0.8)
 
     h, l = axes[0].get_legend_handles_labels()
     fig.legend(h, l, loc="lower center", bbox_to_anchor=(0.5, 0.0),

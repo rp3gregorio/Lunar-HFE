@@ -261,10 +261,12 @@ def _draw_block(fig, blk, res, events, cmap, dnorm, xlabel=False):
     up.set_ylabel("$T$ (K)", fontsize=9.5)
 
     # ── overlay: title pill + event labels ──────────────────────────
+    # Plain colored text (no filled pill) — the section header reads as text
+    # in the panel's own site color; its spine/trace color carry the panel
+    # identity, so the solid backdrop is redundant.
     ov.text(0.5, 1.0 + 6.4 / up_h, f"Apollo {site[1:]} — Probe {probe}",
             transform=ov.transAxes, ha="center", va="center", fontsize=10.5,
-            color="white",
-            bbox=dict(boxstyle="round,pad=0.32", fc=color, ec="none"))
+            color=color, fontweight="bold")
     for t0, t1, label, _note in events[site]:
         ov.text(0.5 * (t0 + t1), 0.998, label, ha="center", va="top",
                 fontsize=6.2, color=C_CORAL, linespacing=0.87, clip_on=False)

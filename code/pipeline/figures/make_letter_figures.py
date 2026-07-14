@@ -487,8 +487,9 @@ def fig_amplitude_vs_depth():
         ax.set_xlim(*XLIM)
 
     h, l = axes[0].get_legend_handles_labels()
+    # extra clearance so the legend box clears the x-axis labels
     legend_below(fig, h, l, ncols=2, fontsize=FS_LEGEND,
-                 handlelength=2.2, columnspacing=1.6)
+                 handlelength=2.2, columnspacing=1.6, pad_in=0.30)
 
     fig.canvas.draw()
     assert_no_overlap(axes[0])

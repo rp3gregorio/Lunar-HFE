@@ -270,6 +270,11 @@ def _draw_probe_schematic(ax):
                 ax.plot(xc + dx, z, "o", ms=5.0, mfc="white", mec=C_DIM,
                         mew=1.2, zorder=4)
 
+        # label the two probe strings (probe 1 nudged left, probe 2 right)
+        for dx, plab in ((-1.7, "P1"), (1.7, "P2")):
+            ax.text(xc + dx, 7.0, plab, fontsize=FS_TICK - 3.5, color=col,
+                    ha="center", va="center", fontweight="bold", zorder=5)
+
         # site name above the tube; deepest reach + count below it
         ax.text(xc, Z_TOP + 3, name, fontsize=FS_LABEL, fontweight="bold",
                 color=col, ha="center", va="bottom", zorder=5)

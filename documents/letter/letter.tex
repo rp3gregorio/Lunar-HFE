@@ -8,9 +8,9 @@
 %
 %  CHANGE TRACKING
 %  ---------------
-%  \new{...}  inserted / revised text  (green)
-%  \old{...}  removed text, struck through for the record  (red)
-%  \note{...} author query / to-do  (orange)
+%  ...  inserted / revised text  (green)
+%    removed text, struck through for the record  (red)
+%   author query / to-do  (orange)
 %  DISPLAY MODE: set \def\displaymode{...} below to one of
 %    review  | newonly | clean   (see the block before the title).
 %    review  = full markup;  newonly = only the new wording, highlighted;
@@ -86,7 +86,7 @@
 %  Change-tracking macros (replace the latexdiff \DIFadd/\DIFdel machinery)
 % =====================================================================
 \usepackage[normalem]{ulem}
-% let \sout survive inline math inside \old{...}
+% let \sout survive inline math inside 
 \makeatletter
 \let\sout@orig\sout
 \renewcommand{\sout}[1]{\ifmmode\text{\sout@orig{\ensuremath{#1}}}\else\sout@orig{#1}\fi}
@@ -108,30 +108,17 @@
 %  file (or run ./build_clean.sh) to force `clean` mode and get a
 %  flattened, markup-free PDF ready to print/submit.
 % =====================================================================
-% A wrapper may \def\displaymode BEFORE \input-ing this file; only fall
-% back to the default below if it has not already been set.
-\ifdefined\displaymode\else \def\displaymode{newonly}\fi  % review | newonly | clean
-
-\def\modereview{review}
-\def\modenewonly{newonly}
-\ifx\displaymode\modereview        % ---- full review markup ----
-  \newcommand{\new}[1]{\textcolor{green!60!black}{#1}}
-  \newcommand{\old}[1]{\textcolor{red!70!black}{\sout{#1}}}
-  \newcommand{\note}[1]{\textcolor{orange!90!black}{[\,#1\,]}}
-\else\ifx\displaymode\modenewonly  % ---- new lines only, highlighted ----
-  \newcommand{\new}[1]{\textcolor{green!60!black}{#1}}
-  \newcommand{\old}[1]{}
-  \newcommand{\note}[1]{}
-\else                              % ---- clean submission ----
-  \newcommand{\new}[1]{#1}
-  \newcommand{\old}[1]{}
-  \newcommand{\note}[1]{}
-\fi\fi
+% Final draft: all tracked changes accepted and flattened into the text.
+% These no-op definitions remain only so the file compiles if a stray
+% \new/\old/\note ever reappears from a copy-paste; they render plainly.
+\newcommand{\new}[1]{#1}
+\newcommand{\old}[1]{}
+\newcommand{\note}[1]{}
 
 % --- Title ------------------------------------------------------------------
 % Alt title kept for reference:
 % Estimates of Lunar Regolith Thermal Conductivity K_d at the Apollo 15 and 17 Heat-Flow Boreholes
-\title{\bfseries \old{Estimates} \new{Difference} of Lunar Regolith Thermal Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes}
+\title{\bfseries  Difference of Lunar Regolith Thermal Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes}
 
 
 % --- Author block -----------------------------------------------------------
@@ -140,9 +127,9 @@
 % \authors{} + \affiliation{} + \correspondingauthor{}.
 \author{%
   Ramon~III~P.~Gregorio$^{1,2,3}$,\quad
-  \new{Richard}~Larsson$^{1}$,\quad
-  \new{Takayoshi}~Yamada$^{2}$,\quad
-  \new{Yasuko}~Kasai$^{1,2}$%
+  Richard~Larsson$^{1}$,\quad
+  Takayoshi~Yamada$^{2}$,\quad
+  Yasuko~Kasai$^{1,2}$%
 }
 
 % --- Manual affiliation footer (the AGU class will absorb this) -------------
@@ -160,7 +147,7 @@
       Technology (NICT), Tokyo, Japan.%
       \\
      $^{3}$Ateneo de Davao University, Davao, Philippines.\\
-      Correspondence to: \texttt{\old{rp3gregorio@gmail.com} \new{Yasuko Kasai, kasai.y.aa@m.titech.ac.jp}}.%
+      Correspondence to: \texttt{ Yasuko Kasai, kasai.y.aa@m.titech.ac.jp}.%
     }%
     \vskip 1em {\@date}%
   \end{center}\par \vskip 1.5em%
@@ -187,87 +174,65 @@
 % =====================================================================
 \begin{abstract}
 \noindent
-The Apollo 15 and 17 landing sites are the only locations on the Moon
-where subsurface regolith temperatures have been measured in situ. The
-restored 1971--1977 Heat-Flow Experiment (HFE) record provides the sole
-direct constraint on the meter-scale regolith thermal conductivity,
-$K_d$, yet current thermal models apply a single Moon-wide value
-\citep{hayne2017,martinez2021}. We retrieve $K_d$ separately
-at each borehole from the restored record \citep{nagihara2018} by
-sweeping $K_d$ against the meter-scale-sensor RMSE (80--234 cm) under
-the \citet{hayne2017} form, with per-sensor stability windows selected
-automatically and borestem-contaminated shallow sensors excluded
-\emph{a priori}. Conditional on
-the published basal heat fluxes ($21$ and $16$ mW m$^{-2}$;
-\citealp{langseth1976}), the retrieval yields
+Apollo 15 and 17 are the only sites on the Moon where subsurface
+regolith temperatures have been measured in situ. The restored
+1971--1977 Heat-Flow Experiment (HFE) record is the sole direct
+constraint on the meter-scale regolith thermal conductivity $K_d$, yet
+current thermal models apply a single Moon-wide value
+\citep{hayne2017,martinez2021}. We retrieve $K_d$ separately at each
+borehole from the restored record \citep{nagihara2018} by sweeping it
+against the meter-scale-sensor RMSE (80--234 cm) under the
+\citet{hayne2017} form, excluding borestem-contaminated shallow
+sensors. Conditional on the published basal heat fluxes ($21$ and $16$
+mW m$^{-2}$; \citealp{langseth1976}), the retrieval yields
 $K_{d,\mathrm{A15}}^{*}=4.60^{+0.86}_{-0.21}$ and
 $K_{d,\mathrm{A17}}^{*}=7.08^{+0.53}_{-0.52}$ mW m$^{-1}$ K$^{-1}$
-($1\sigma$ bootstrap; systematics in Table~4), reducing the sensor
-RMSE by 8\% (Apollo 15) and 55\% (Apollo 17) relative to the global
-$K_d=3.4$. The inter-site contrast,
-$\Delta K_d^{*}=2.3^{+0.7}_{-0.9}$ mW m$^{-1}$ K$^{-1}$ (95\% CI
-$[-0.1,\,3.6]$), marginally includes zero at the published basal heat
-fluxes ($P_{\rm boot}(\Delta K_d^{*}{\le}0)\approx 0.03$). On the
-separate systematic axis, the \emph{ordering}
-$K_{d,\mathrm{A17}}^{*}\!>\!K_{d,\mathrm{A15}}^{*}$ is robust to the
-basal-flux reanalysis ($\ge$99\% across the published $Q_b$ envelope,
-sensor set held fixed) at the cost of the absolute values; the sensor
-and basal-flux axes are reported separately, not combined into one
-joint probability. Both retrievals lie
-within porosity, composition, and orbital benchmarks, and supply the
-meter-scale boundary condition required by future subsurface
-radiative-transfer retrievals, including the TSUKIMI terahertz mission.
+($1\sigma$ bootstrap), reducing the sensor RMSE by 8\% at Apollo 15 and
+55\% at Apollo 17 relative to the global $K_d=3.4$. The inter-site
+contrast, $\Delta K_d^{*}=2.3^{+0.7}_{-0.9}$ mW m$^{-1}$ K$^{-1}$ (95\%
+CI $[-0.1,\,3.6]$), marginally includes zero
+($P_{\rm boot}\approx 0.03$); the ordering
+$K_{d,\mathrm{A17}}^{*}\!>\!K_{d,\mathrm{A15}}^{*}$ nonetheless survives
+the basal-flux reanalysis ($\ge$99\% across the published $Q_b$
+envelope), though the absolute values do not. Both retrievals lie
+within porosity, composition, and orbital benchmarks and supply the
+meter-scale boundary condition needed by subsurface radiative-transfer
+retrievals such as the upcoming TSUKIMI terahertz mission.
 \end{abstract}
 
 \begin{plainlanguagesummary}
 The Moon's interior is insulated from the daily surface heating by the
 compacted regolith (broken rock and dust) in roughly the top meter. The
 numbers describing that insulation come from formulas fit to satellite
-measurements of the lunar surface temperature, not to any direct
-sub-surface data. Sub-surface temperatures were measured at only two
-locations, by thermometers emplaced \old{more than two meters
-deep}\new{up to 1.4 m (Apollo 15) and 2.3 m (Apollo 17) deep} by the
-Apollo 15 and 17 astronauts in 1971--1972, and the complete records were
-recently recovered from the original mission tapes. We use those two
-records to determine, separately at each borehole, the regolith
-conductivity \old{at depths below about 30 cm,}\new{in the meter-scale
-subsurface (80--139 cm for Apollo 15 and 130--234 cm for Apollo 17),} where
-the daily surface temperature swing has died away and the
-contact (grain-to-grain) part of the model conductivity has reached its
-deep, constant value (its temperature-dependent part remains). The Hayne (2017) global value misses the
-\old{deep }\new{meter-scale equilibrium }temperatures by about
-\old{1.4 K at Apollo 15 and 3.0 K at Apollo 17; site-by-site refitting
-reduces those errors to $\lesssim$1 K}\new{1.1 K at Apollo 15 and
-0.9 K at Apollo 17; site-by-site refitting reduces those errors,
-halving the Apollo 17 mismatch}, and the two sites disagree on the
-\old{deep }\new{meter-scale }conductivity by roughly a factor of
-\old{two}\new{1.5}. The
-site-fit values provide the
-\old{deep-temperature }\new{meter-scale temperature }input that upcoming
-lunar sub-surface mapping missions will need to interpret what their
-instruments observe through the regolith.
+measurements of the surface temperature, not to any direct sub-surface
+data. Sub-surface temperatures were measured at only two locations --- by
+thermometers the Apollo 15 and 17 astronauts emplaced up to 1.4 and
+2.3 m deep in 1971--1972 --- and the complete records were recently
+recovered from the original mission tapes. We use those records to
+measure, at each borehole, the regolith conductivity about a meter down,
+where the daily temperature swing has died away and the grain-to-grain
+part of the conductivity has reached its deep, constant value. The
+Hayne (2017) global value misses these temperatures by about 1.1 K at
+Apollo 15 and 0.9 K at Apollo 17; refitting each site separately halves
+the Apollo 17 mismatch, and the two sites disagree on the conductivity
+by roughly a factor of 1.5. These site-specific values provide the
+sub-surface temperature input that upcoming lunar mapping missions need
+to interpret what their instruments see through the regolith.
 \end{plainlanguagesummary}
 
 \medskip
 \noindent\textbf{Key Points}
 \begin{itemize}\itemsep2pt
-  \item \old{Deep $K_d$ (80--234 cm) retrieved per-site at Apollo 15 and
-        17 after per-sensor stability-window selection of the restored
-        1971--1977 HFE record.}\new{Meter-scale regolith conductivity
+  \item Meter-scale regolith conductivity
         $K_d$ is retrieved per site from the restored Apollo 15 and 17
-        heat-flow records (80--234 cm).}
-  \item \old{The Apollo 15 and 17 HFE retrieval givesregolith
-        $K_d^{\mathrm{A15}}=4.86^{+1.12}_{-0.54}$ and
-        $K_d^{\mathrm{A17}}=11.23^{+8.12}_{-0.77}$
-        mW m$^{-1}$ K$^{-1}$ ($1\sigma$ bootstrap).}\new{Apollo 15 gives
+        heat-flow records (80--234 cm).
+  \item Apollo 15 gives
         $K_d=4.60^{+0.86}_{-0.21}$ and Apollo 17 gives
         $7.08^{+0.53}_{-0.52}$ mW m$^{-1}$ K$^{-1}$ ($1\sigma$
-        bootstrap).}
-  \item \old{A single Moon-wide $K_d$ is statistically rejected; future
-        lunar thermal models and missions require site-specific
-        values.}\new{Both sites reject the Hayne et al.\ (2017) global $K_d{=}3.4$
+        bootstrap).
+  \item Both sites reject the Hayne et al.\ (2017) global $K_d{=}3.4$
         at 95\%; the contrast is marginal ($p{\approx}0.03$) but its
-        ordering is robust ($\ge$99\%).}
+        ordering is robust ($\ge$99\%).
 \end{itemize}
 
 
@@ -276,21 +241,19 @@ instruments observe through the regolith.
 
 Lunar sub-surface thermal modeling presently relies on globally averaged
 conductivity parameterizations. We use the term
-\emph{\old{deep }\new{meter-scale }regolith} throughout to mean
-\old{depths $z\gtrsim 30$ cm, where the daily surface heat wave has damped
-to undetectable amplitude}\new{the subsurface layer constrained by the
+\emph{meter-scale regolith} throughout to mean
+the subsurface layer constrained by the
 Apollo HFE temperature sensors used in this retrieval---specifically,
 80--139 cm for Apollo 15 and 130--234 cm for Apollo 17. At these depths the
 daily and annual thermal skins ($\lesssim 10$ cm and $\sim 50$ cm
-respectively) have damped to negligible amplitude,} and the conductivity in
+respectively) have damped to negligible amplitude, and the conductivity in
 both standard parameterizations has
-\old{effectively reached }\new{converged on }its depth-independent asymptote
-$K_d$; \old{the daily skin itself spans $\lesssim 10$ cm. The
-deep-regolith }\new{under the Hayne (2017) form, the same $K_d$ value
-extrapolates to all greater depths within the regolith column. The meter-scale regolith }conductivity is supplied by formulations
+converged on its depth-independent asymptote
+$K_d$; under the Hayne (2017) form, the same $K_d$ value
+extrapolates to all greater depths within the regolith column. The meter-scale regolith conductivity is supplied by formulations
 calibrated against orbital Diviner brightness temperatures: the
 smooth-exponential $K(T,z)$ of \citet{hayne2017}, in which a single
-\old{deep-regolith }\new{meter-scale }asymptote $K_d$ is fit to a global
+meter-scale asymptote $K_d$ is fit to a global
 average and applied moon-wide, and the temperature- and density-dependent
 $K(T,\rho)$ of \citet{martinez2021}, which extends the same functional
 family with additional physical content but is itself calibrated globally
@@ -308,15 +271,15 @@ measured (Fig.~\ref{fig:intro-probe}). The restored 1971--1977 HFE record
 \citep{nagihara2018} provides the data used here. Each borehole also
 carries a published basal heat flux \citep{langseth1976,nagihara2018}
 which, together with the local $K_d$, sets the
-\old{deep }\new{meter-scale }temperature gradient. The site-specific inputs
+meter-scale temperature gradient. The site-specific inputs
 (latitudes, albedos, emissivities, basal fluxes) are collected with their
 original sources in Table~\ref{tab:params}.
 
 We retrieve $K_d$ separately at each site by holding the \citet{hayne2017}
 functional form fixed and sweeping $K_d$ alone against the
-\old{deep-sensor }\new{meter-scale-sensor }RMSE. The retrieval is placed in
+meter-scale-sensor RMSE. The retrieval is placed in
 context by two additional forward evaluations against the same
-\old{deep-sensor }\new{meter-scale-sensor }set: the \citet{hayne2017} form
+meter-scale-sensor set: the \citet{hayne2017} form
 at its published global $K_d$, and the \citet{martinez2021} $K(T,\rho)$
 model at its published coefficients (Table~\ref{tab:headline}). Neither
 published model is refit here, so the \citet{martinez2021} comparison
@@ -327,42 +290,32 @@ $K_d$ and is deferred to a follow-on study (\S\ref{sec:disc-prior}).
 
 The per-site $K_d^{*}$ values matter for any sub-surface radiative-transfer
 (RTM) retrieval that observes the Moon at wavelengths penetrating below the
-diurnal skin: future \old{microwave, terahertz, and infrared}\new{microwave
-and terahertz} sub-surface
-sounders all need a \old{deep }\new{meter-scale }temperature column $T(z)$
+diurnal skin: future microwave
+and terahertz sub-surface
+sounders all need a meter-scale temperature column $T(z)$
 as a forward-model boundary condition that orbital instruments cannot
 measure directly. One concrete example is the upcoming TSUKIMI mission
 (Lunar Terahertz Surveyor for Kilometer-scale Mapping,
-\citealp{tsukimi2022}), whose \old{terahertz radiometer will probe depths
-comparable to the Apollo HFE sensors and so depends explicitly on
-$K_d$}\new{forward model requires the sub-diurnal-skin temperature column
-that only the in-situ $K_d$ can anchor}.
+\citealp{tsukimi2022}), whose forward model requires the sub-diurnal-skin temperature column
+that only the in-situ $K_d$ can anchor.
 
-\old{Because the emission-weighting kernel of any such instrument reaches
-depths at which the conductivity has approached its asymptote $K_d$, the
-retrieved $T(z)$ depends on $K_d$ and not only on the shallow-skin
-$K_s$; a}\new{Below the diurnal skin the modeled column is controlled by
+Below the diurnal skin the modeled column is controlled by
 $K_d$ through both the rectified lunation mean and the steady gradient
 $Q_b/K_d$, so the $T(z)$ ingested by any such retrieval inherits its
-$K_d$ dependence; a}
+$K_d$ dependence; a
 factor-of-two error in $K_d$ propagates through the
-\old{deep }\new{meter-scale }temperature profile and into any retrieval
+meter-scale temperature profile and into any retrieval
 that uses it. The values reported here, evaluated in the \citet{hayne2017}
 thermal column, supply that boundary condition from the only in-situ data
 available.\label{sec:intro-tsukimi}
 
-\old{The retrieval is driven by an ephemeris-accurate solar-forcing chain
-(JPL DE440 lunar and solar positions accessed through SPICE; Acton 1996,
-2018), which eliminates the $\sim$1 lunar-hour
-drift inherent in sinusoidal local-solar-time approximations and is
-required by the phase-folded diurnal-amplitude profile underlying the
-borestem cut (\S 3.1).}\new{The retrieval is driven by an
+The retrieval is driven by an
 idealized synodic insolation cycle evaluated at each site's latitude
 (\S\ref{sec:methods}); because only stability-window mean temperatures
 enter the fit, sub-cycle timing plays no role, and the neglected
 ephemeris terms (solar declination, orbital eccentricity) perturb the
 cycle-mean insolation at or below the percent level
-(\S\ref{sec:methods}).} The remaining sections present the
+(\S\ref{sec:methods}). The remaining sections present the
 data and methods (\S\ref{sec:methods}), the per-site retrieval with the
 headline RMSE table (\S\ref{sec:results}), the interpretation with its
 uncertainty limits (\S\ref{sec:discussion}), and the conclusions.
@@ -407,11 +360,11 @@ excluded. For each sensor we extract automatically the longest trailing
 segment that is statistically indistinguishable from a flat steady state
 and average within it.
 
-For each sensor, candidate start points covering 55--\old{85}\new{80}\%
+For each sensor, candidate start points covering 55--80\%
 of the record
-(13 equally-spaced candidates\new{; those retaining less than 20\% of the
+(13 equally-spaced candidates; those retaining less than 20\% of the
 record are excluded by a minimum-tail guard, capping the effective range
-at 80\%}) are evaluated by ordinary-least-squares linear
+at 80\%) are evaluated by ordinary-least-squares linear
 fit to all temperatures between the candidate point and the end of the
 record. The accepted \emph{stability window} is the earliest candidate for
 which the linear-fit slope satisfies
@@ -422,21 +375,21 @@ threshold is approximately $4.6\times$ stricter than the
 $10^{-3}\,\si{\kelvin\per\day}$ value sometimes used in HFE analyses, and
 was chosen to suppress bias from residual post-disturbance drift. If no
 candidate satisfies the criterion, the last 25\% of the record is used as a
-fallback. \new{The strict criterion is met by 3 of 7 retained sensors at
+fallback. The strict criterion is met by 3 of 7 retained sensors at
 A15 and 6 of 16 at A17; the remainder take the fallback window, with
 residual trailing slopes of 0.11--0.47 K yr$^{-1}$. The threshold sweep
-below bounds the sensitivity to the \emph{choice} of criterion, but
+below bounds the sensitivity to the choice of criterion, but
 residual common-epoch drift itself is not propagated as a systematic, and
 the within-window scatter reported as the per-sensor uncertainty
 characterizes short-term stability only --- it does not weight the
-headline RMSE or the bootstrap (\S\ref{sec:limitations}).} We report the window-mean equilibrium temperature
+headline RMSE or the bootstrap (\S\ref{sec:limitations}). We report the window-mean equilibrium temperature
 $T_\mathrm{eq}=\langle T(z)\rangle_{\Delta t}$ together with its
 within-window standard deviation, which serves as the per-sensor
 measurement uncertainty in downstream statistics. Sensors with central
 depth $z<\zborestem$ (the borestem-contaminated zone;
 \S\ref{sec:borestem}) are plotted but excluded from the RMSE.
 
-\new{This construction should not be read as a claim that every archived
+This construction should not be read as a claim that every archived
 Apollo trace had reached exact zero-drift steady state. It is an estimator
 for the undisturbed periodic-equilibrium temperature of the regolith after
 the borehole disturbance has vanished. In the nominal reduction the strict
@@ -444,8 +397,8 @@ flat-trend criterion is satisfied by 3/7 Apollo~15 and 6/16 Apollo~17
 meter-scale sensors; the remaining retained sensors use the late-record
 fallback tail and therefore carry residual post-emplacement drift as a
 systematic component of $T_\mathrm{eq}$. The forward model below is thus
-compared to equilibrium-temperature \emph{estimates}, not to raw
-instantaneous measurements.}
+compared to equilibrium-temperature estimates, not to raw
+instantaneous measurements.
 
 Figure~\ref{fig:timeline} shows the full per-probe temperature record at
 each site, with the documented disturbance intervals shaded
@@ -455,10 +408,10 @@ long-term drift $d\langle T\rangle/dt$ reported per sensor.
 The retrieval is insensitive to the precise threshold. Sweeping the
 threshold over $0.04$--$\SI{0.16}{\kelvin\per\year}$ (a factor of four
 around the adopted value) shifts $K_d^{*}$ by at most
-$\old{0.03}\new{0.02}\,\si{\milli\watt\per\meter\per\kelvin}$ at A15
-(\old{0.7}\new{0.4}\% of nominal) and
-$\old{0.11}\new{0.05}\,\si{\milli\watt\per\meter\per\kelvin}$ at A17
-(\old{1.0}\new{0.6}\%), in both cases
+$0.02\,\si{\milli\watt\per\meter\per\kelvin}$ at A15
+(0.4\% of nominal) and
+$0.05\,\si{\milli\watt\per\meter\per\kelvin}$ at A17
+(0.6\%), in both cases
 an order of magnitude below the bootstrap $1\sigma$ uncertainty
 (\S\ref{sec:results-kd}). The adopted threshold therefore lies within the
 flat band of the threshold response.
@@ -477,22 +430,18 @@ $T_\mathrm{eq}$ are described in \S\ref{sec:methods}.}
 \end{figure}
 
 \subsection{Surface solar geometry and incident insolation}
-\old{Each Apollo Unix timestamp is propagated through SPICE (Acton 1996,
-2018) using the JPL DE440 planetary ephemeris and the
-IAU-defined mean-Earth/polar-axis lunar body-fixed reference frame, with
-light-time and stellar-aberration corrections applied, to obtain the solar
-zenith angle $\theta_\odot(t)$ at each site.}\new{The solver is forced
+The solver is forced
 with an idealized synodic insolation cycle: the daytime solar zenith
 angle at each site is approximated by
 $\cos\theta_\odot(t)=\cos\phi\,\cos(2\pi t/P)$, with $\phi$ the site
 latitude and $P=29.531$ d the mean synodic period. Because the retrieval
-compares stability-window \emph{mean} temperatures (\S\ref{sec:methods})
+compares stability-window mean temperatures (\S\ref{sec:methods})
 rather than time-resolved phases, ephemeris-level timing corrections do
 not enter the fit. The neglected solar declination ($\pm1.54^\circ$) and
 orbital eccentricity ($\pm3.3\%$ peak-to-peak in instantaneous flux,
 $<0.1\%$ in the cycle mean) perturb the mean insolation at or below the
 percent level, comparable to and subsumed by the Bond-albedo sensitivity
-of Table~\ref{tab:errorbudget}.} The Moon has no atmosphere, so
+of Table~\ref{tab:errorbudget}. The Moon has no atmosphere, so
 the solar irradiance incident on the local horizontal surface is
 \begin{equation}
 F_\odot(t) = \max\bigl(0,\ S_0\cos\theta_\odot(t)\bigr),
@@ -521,24 +470,23 @@ conductive flux into the column,
 \label{eq:bc-top}
 \end{equation}
 with $\sigma=5.6704\times10^{-8}$ W m$^{-2}$ K$^{-4}$ the Stefan--Boltzmann
-constant\old{. }\new{; equation~(\ref{eq:bc-top}) is }solved iteratively
+constant; equation~(\ref{eq:bc-top}) is solved iteratively
 for $T_s$ at each time step. At the lower boundary a constant geothermal
 flux is imposed,
 \begin{equation}
-\old{-K\,\partial_z T\big|_{z_\mathrm{max}} = Q_b.}\new{K\,\partial_z T\big|_{z_\mathrm{max}} = Q_b,}
+K\,\partial_z T\big|_{z_\mathrm{max}} = Q_b,
 \label{eq:bc-bot}
 \end{equation}
-\new{with $z$ positive downward: the upward geothermal flux maintains a
+with $z$ positive downward: the upward geothermal flux maintains a
 positive (warming-with-depth) temperature gradient, matching the solver's
-basal ghost condition.} The PDE is discretized on a geometric grid ($\Delta z_0=2$ mm, growth ratio
+basal ghost condition. The PDE is discretized on a geometric grid ($\Delta z_0=2$ mm, growth ratio
 1.08) and integrated with a Crank--Nicolson scheme at
 $\Delta t = \SI{1800}{\second}$ on a lunation-commensurate time grid whose
 final (cycle-closing) step is marched explicitly, with material properties
 re-evaluated at the time-step midpoint by two corrector sweeps
 (the implicit-midpoint prescription; both details are required for the
-periodic state to converge at second order in $\Delta t$)\old{,
-with a spin-up of 30 lunations to $\max|\Delta T|<5\times10^{-2}$ K}.
-\new{The periodic steady state is computed by a flux-anchored outer
+periodic state to converge at second order in $\Delta t$).
+The periodic steady state is computed by a flux-anchored outer
 iteration rather than a fixed-length spin-up: short multi-lunation
 integrations converge the diurnal skin, after which the sub-skin
 mean profile is reconstructed from the steady-state mean-flux closure
@@ -575,7 +523,7 @@ discretizations agreeing on the continuum limit. The solver is further
 verified against an independent line-for-line C++ implementation, with
 which it agrees to $10^{-12}$ K over multi-lunation integrations; all
 certification artifacts are archived with the pipeline
-(\S\ref{sec:openresearch}).} The
+(\S\ref{sec:openresearch}). The
 \citet{hayne2017} thermophysical inputs are adopted as given in Appendix A
 of the original paper:
 \begin{align}
@@ -584,14 +532,14 @@ K(T,z) &= \Bigl\{K_s + (K_d-K_s)\bigl[1-e^{-z/H}\bigr]\Bigr\}
 \rho(z) &= \rho_d - (\rho_d-\rho_s)\,e^{-z/H}, \label{eq:rho}\\
 c_p(T)  &= c_0 + c_1 T + c_2 T^2 + c_3 T^3 + c_4 T^4. \label{eq:cp}
 \end{align}
-\new{Throughout, $K_d$ denotes the deep asymptote of the \emph{contact}
+Throughout, $K_d$ denotes the deep asymptote of the \emph{contact}
 component $K_c(z)$ of equation~(\ref{eq:K}); the total conductivity
 $K(T,z)$ carries in addition the radiative factor
 $1+\chi(T/T_\mathrm{ref})^3$, which at the retained-sensor temperatures
 ($\approx$252--257 K) multiplies the contact term by $\approx$2.0. At the
 retrieved $K_d^{*}$ the mean \emph{effective} conductivity at the sensors
 is 9.3 (A15) and 14.6 (A17) mW m$^{-1}$ K$^{-1}$; literature comparisons
-must respect this distinction (\S\ref{sec:disc-prior}).}
+must respect this distinction (\S\ref{sec:disc-prior}).
 Numerical values and sources for every coefficient, together with the
 site-specific measured quantities (latitude, albedo, emissivity, basal heat
 flux), are listed in Table~\ref{tab:params}. The basal heat flux
@@ -686,7 +634,7 @@ prediction (Table~\ref{tab:headline}). To diagnose, in the discussion
 (\S\ref{sec:disc-prior}), whether the published \citet{martinez2021} form
 could fit both sites if it were granted one per-site lever analogous to the
 Hayne $K_d$, we additionally perform an alternative retrieval in which the
-\old{deep }asymptote of the Hayne-form density profile entering
+asymptote of the Hayne-form density profile entering
 equation~(\ref{eq:K-ms}) is rescaled by a single per-site scalar $\alpha$,
 \begin{equation}
 \rho_d^{\,\text{site}} \;=\; \alpha\cdot 1800\ \mathrm{kg\,m^{-3}},
@@ -697,24 +645,23 @@ coefficients $(A_1,A_2,B_1,B_2)$ and $k_\mathrm{am}(T)$ held fixed;
 $\alpha=1$ recovers the published forward prediction. The scalar $\alpha$
 is our diagnostic construction (the \citet{martinez2021} model itself is
 not refit, only re-evaluated at a per-site density), and its physical
-interpretation is the per-site \old{deep }\new{asymptotic }bulk density that
+interpretation is the per-site asymptotic bulk density that
 the published $K(T,\rho)$ would require to reproduce the in-situ data. The
 $\alpha$ retrieval is not part of the headline $K_d$ result; it is
 interpreted in \S\ref{sec:disc-prior}.
 
 \subsection{Borestem diagnostic and the meter-scale-sensor cut}%
 \label{sec:results-amp}\label{sec:borestem}
-The \old{deep }\new{meter-scale }($z>\zborestem$) sensor set used in the
+The meter-scale ($z>\zborestem$) sensor set used in the
 $K_d$ retrieval is defined by a physics-based amplitude diagnostic, not by
 the residuals it would produce. The amplitude of the diurnal wave serves as
 a frequency-domain check independent of the lunation-mean comparison. The
-per-sensor diurnal amplitude is \old{computed as the half-range of the
-local-solar-time-folded median temperature}\new{estimated as
+per-sensor diurnal amplitude is estimated as
 $\sqrt{2}\,\sigma_{\Delta t}$, where $\sigma_{\Delta t}$ is the
 within-stability-window standard deviation; the proxy equals the
 half-range exactly for a sinusoidal signal, is diurnal-dominated for
 shallow sensors, and saturates at the digitization noise floor below the
-skin depth --- precisely the contrast the diagnostic requires}
+skin depth --- precisely the contrast the diagnostic requires
 (Fig.~\ref{fig:amplitude}). Two
 features are diagnostic. Above $z=\zborestem$, observed amplitudes exceed
 the modeled regolith-attenuation curve by an order of magnitude or more,
@@ -724,14 +671,14 @@ regolith \citep{nagihara2018}. Below $\zborestem$, both published $K(z)$
 forms predict diurnal amplitudes $\lesssim 10^{-7}$ K ($\sim$18 e-foldings
 of the diurnal skin depth $\delta\sim 3$--5 cm), two to three orders of
 magnitude below the 0.05--0.2 K digitization noise floor of the restored
-record. \old{Deep-sensor }\new{Meter-scale-sensor }amplitudes therefore do
+record. Meter-scale-sensor amplitudes therefore do
 not constrain the thermal diffusivity $\kappa = K/(\rho c_p)$ at the
 in-situ scale; the Hayne and \citet{martinez2021} attenuation curves
 plotted in Figure~\ref{fig:amplitude} agree to within $\sim$10\% in skin
 depth and overlap visually below the noise floor, both indicating ``deep
 $=$ unresolved''. The shallow-sensor amplitude excess, evaluated against a
 prediction that depends only on $K(T,z)$, $\rho(z)$, and $c_p(T)$, defines
-the \old{deep }\new{meter-scale }($z>\zborestem$) validation set used in the
+the meter-scale ($z>\zborestem$) validation set used in the
 retrieval.
 
 \begin{figure}[!htbp]
@@ -752,25 +699,19 @@ shallow-sensor excess is the borestem heat-short signature.}
 \subsection{Per-site $K_d$ retrieval (Hayne shape held fixed)}%
 \label{sec:methods-kd}
 $K_d$ is retrieved separately at each site by minimizing the
-\old{deep-sensor }\new{meter-scale-sensor }RMSE while holding the remainder
+meter-scale-sensor RMSE while holding the remainder
 of the Hayne functional form (eqs.~\ref{eq:K}--\ref{eq:cp}) fixed.
 $(K_s,H,\chi,T_\mathrm{ref})$ and the density and $c_p$ functions are held
 at their published values, and $K_d$ is swept across site-specific grids:
-\old{20 points spanning
-1.5--$9.0\times10^{-3}\,\si{\watt\per\meter\per\kelvin}$ at A15 and 24
-points spanning
-3.0--$18.0\times10^{-3}\,\si{\watt\per\meter\per\kelvin}$ at A17. The upper
-end of the A17 grid bounds the parabolic minimum; the bootstrap upper tail
-(Fig.~\ref{fig:bootstrap}) extends slightly beyond the swept range through
-parabolic extrapolation.}\new{29 points spanning
+29 points spanning
 1.0--$15.0\times10^{-3}\,\si{\watt\per\meter\per\kelvin}$ at A15 and 32
 points spanning
 3.0--$25.0\times10^{-3}\,\si{\watt\per\meter\per\kelvin}$ at A17, sized so
 that both parabolic minima and the bootstrap upper percentiles fall inside
-the swept range (Fig.~\ref{fig:bootstrap}).}
+the swept range (Fig.~\ref{fig:bootstrap}).
  At each $K_d$ a full Crank--Nicolson spin-up is
 run to convergence, and the
-\old{deep-sensor }\new{meter-scale-sensor }RMSE is evaluated as
+meter-scale-sensor RMSE is evaluated as
 \begin{equation}
 \mathrm{RMSE}(K_d) = \Bigl\langle\bigl[T_\mathrm{model}(z_i;K_d) - T_\mathrm{eq}^\mathrm{HFE}(z_i)\bigr]^2\Bigr\rangle_{z_i\ge\zborestem}^{1/2}.
 \label{eq:rmse-kd}
@@ -778,31 +719,31 @@ run to convergence, and the
 The point estimate $K_d^{*}$ is the parabolic minimum through the three
 grid values bracketing the RMSE minimum. Its uncertainty is
 quantified by a non-parametric bootstrap with $N_\mathrm{boot}=1500$
-resamples of the \old{deep-sensor }\new{meter-scale-sensor }set drawn with
+resamples of the meter-scale-sensor set drawn with
 replacement, with the $\pm 2.5$ cm sensor-placement uncertainty
 \citep{nagihara2018} propagated as a per-resample Gaussian depth jitter,
 following standard small-sample regression practice \citep{press2007}. The
 bootstrap distribution defines 95\% confidence intervals on $K_d^{*}$ and
 on the inter-site contrast $\Delta K_d^{*}$, and provides the
-\old{null-hypothesis test for inter-site equality}\new{bootstrap tail
+bootstrap tail
 proportion $P_{\rm boot}(\Delta K_d^{*}{\le}0)$, the fraction of
 fitted (non-null-centered) resample draws with a non-positive contrast,
-reported in place of a conventional null-centered $p$-value}
+reported in place of a conventional null-centered $p$-value
 (Fig.~\ref{fig:bootstrap}).
 Percentile-method intervals are reported throughout; bias-corrected
 accelerated (BCa) intervals \citep{efron1993} agree with the percentile
 endpoints to within $1.3\,\si{\milli\watt\per\meter\per\kelvin}$ at both
 sites and on the contrast, and do not alter any qualitative conclusion
-\new{--- a difference comparable to the CI half-widths themselves
+--- a difference comparable to the CI half-widths themselves
 ($\sim$1.4 at A15, $\sim$1.0 at A17), so the percentile intervals
-should be read as approximate at these sample sizes ($N=7$ and $16$)}. The
+should be read as approximate at these sample sizes ($N=7$ and $16$). The
 retrieval has one free parameter.
 
 Models with different free-parameter counts on the same
-\old{deep-sensor }\new{meter-scale-sensor }set are compared using the
+meter-scale-sensor set are compared using the
 small-sample-corrected Akaike information criterion \citep{burnham2002},
 $\mathrm{AICc}=N\ln(\mathrm{RSS}/N)+2k+2k(k{+}1)/(N{-}k{-}1)$, where RSS is
-the \old{deep-sensor }\new{meter-scale-sensor }residual sum of squares and
+the meter-scale-sensor residual sum of squares and
 $k$ counts the fitted parameters plus one for the residual-variance
 estimate ($k=1$ for fixed-$K_d$ rows, $k=2$ for each retrieval). Differences $\Delta\mathrm{AICc}$ are reported relative
 to the best model at each site; following \citet{burnham2002},
@@ -819,27 +760,24 @@ selection in this context.
 
 \subsection{Annual-mean subsurface profile and the global-model gap}%
 \label{sec:results-mean}
-\old{Neither published global model reproduces both Apollo boreholes
-without per-site adjustment.}\new{Both published global models
+Both published global models
 reproduce the lunation-mean borehole profiles to within $\sim$1 K, but
-systematic per-site residuals remain.} Figure~\ref{fig:meanT} compares
+systematic per-site residuals remain. Figure~\ref{fig:meanT} compares
 the two modeled time-averaged $\langle T(z)\rangle$ profiles,
 \citet{hayne2017} at the global
 $K_d=3.4\,\si{\milli\watt\per\meter\per\kelvin}$ and
 \citet{martinez2021} $K(T,\rho)$ evaluated forward, against the
 stability-window means. The published Hayne value runs warm relative to the
-HFE record by a mean of \old{$+1.03$ K at A15 and $+2.88$ K at
-A17}\new{$+0.62$ K at A15 and $+0.54$ K at A17, with RMSE 1.09 and
+HFE record by a mean of $+0.62$ K at A15 and $+0.54$ K at A17, with RMSE 1.09 and
 0.89 K --- the residual structure, not the mean offset, carries the
-per-site information}; the \citet{martinez2021} prediction
-\old{is closer at both sites but underpredicts A17 by $\sim$2 K}\new{is
-comparable (RMSE 1.05 and 0.63 K)} (Table~\ref{tab:headline}). The
+per-site information; the \citet{martinez2021} prediction
+is
+comparable (RMSE 1.05 and 0.63 K) (Table~\ref{tab:headline}). The
 shaded band ($z<\zborestem$) marks the borestem-contaminated zone,
 excluded \emph{a priori} from the quantitative comparison
-(\S\ref{sec:borestem}). The residual \old{that remains
-motivates}\new{structure that remains --- in particular the
+(\S\ref{sec:borestem}). The residual structure that remains --- in particular the
 under-predicted temperature gradient between the 80-cm and deepest
-sensors at A17 --- motivates} the per-site $K_d$ retrieval of
+sensors at A17 --- motivates the per-site $K_d$ retrieval of
 \S\ref{sec:results-kd}.
 
 \begin{figure}[!htbp]
@@ -859,9 +797,9 @@ within-window standard deviation). Shaded band: the borestem zone
 \centering
 \small
 \setlength{\tabcolsep}{5pt}
-\caption{\textbf{Headline \old{deep-sensor }\new{meter-scale-sensor }RMSE
-table.} \old{Deep-sensor }\new{Meter-scale-sensor }(\old{$z>80$ }%
-\new{$z=80$--$234$ }cm) validation statistics for the three forward
+\caption{\textbf{Headline meter-scale-sensor RMSE
+table.} Meter-scale-sensor (%
+$z=80$--$234$ cm) validation statistics for the three forward
 configurations confronted with the same Apollo HFE record: the \Hayne\ form
 at its published global $K_d$, the \Hayne\ form with $K_d$ refit per site
 (the retrieval of \S\ref{sec:results-kd}), and the \citet{martinez2021}
@@ -890,74 +828,63 @@ Apollo 17 & \citet{martinez2021} forward  & ---                              & 1
 \label{sec:headline-table}
 
 \subsection{Per-site $K_d$ retrieval}\label{sec:results-kd}
-The \old{deep-sensor }\new{meter-scale-sensor }RMSE exhibits a well-resolved
+The meter-scale-sensor RMSE exhibits a well-resolved
 minimum at each site:
 \[
-K_{d,\mathrm{A15}}^{*}=\old{4.86^{+1.12}_{-0.54}\,[3.94,\,14.36]}\new{4.60^{+0.86}_{-0.21}\,[4.18,\,6.96]}\,\si{\milli\watt\per\meter\per\kelvin},\qquad
-K_{d,\mathrm{A17}}^{*}=\old{11.23^{+8.12}_{-0.77}\,[10.18,\,21.62]}\new{7.08^{+0.53}_{-0.52}\,[6.16,\,8.07]}\,\si{\milli\watt\per\meter\per\kelvin},
+K_{d,\mathrm{A15}}^{*}=4.60^{+0.86}_{-0.21}\,[4.18,\,6.96]\,\si{\milli\watt\per\meter\per\kelvin},\qquad
+K_{d,\mathrm{A17}}^{*}=7.08^{+0.53}_{-0.52}\,[6.16,\,8.07]\,\si{\milli\watt\per\meter\per\kelvin},
 \]
 with asymmetric $1\sigma$ bootstrap uncertainties and 95\% confidence
 intervals in brackets (Fig.~\ref{fig:bootstrap}). The
-\old{deep-sensor }\new{meter-scale-sensor }RMSE decreases from
-\old{1.37 K and 2.96 K}\new{1.09 K and 0.89 K} under the published
-global $K_d$ to \old{0.91 K and 0.30 K}\new{1.00 K and 0.40 K} under the
+meter-scale-sensor RMSE decreases from
+1.09 K and 0.89 K under the published
+global $K_d$ to 1.00 K and 0.40 K under the
 per-site retrieval ($N=7$ at A15, $N=16$ at A17;
-Table~\ref{tab:headline})\old{, and the residual bias falls to
-$\le 0.03$ K}\new{; at A17 the refit halves the RMSE and removes the
+Table~\ref{tab:headline}); at A17 the refit halves the RMSE and removes the
 gradient misfit (bias $+0.12$ K), while at A15 the improvement is
 modest and the global value is not excluded by the RMSE criterion
 alone --- it is excluded by the bootstrap CI, whose lower bound
-(4.18) lies above 3.4}.
+(4.18) lies above 3.4.
 $K_d$ is therefore the dominant identifiable lever between the Hayne form
-and the in-situ HFE record once the borestem zone is excluded\new{,
+and the in-situ HFE record once the borestem zone is excluded,
 with the caveat that the per-site evidence is decisive at A17
 ($\Delta\mathrm{AICc}\approx 23$ against the global value) but not at
 A15 alone ($\Delta\mathrm{AICc}\approx 3$ in favor of the
-\emph{global} value once the parameter penalty is paid; the inter-site
-contrast, not the A15 refit, carries the \emph{statistical} result}.
+global value once the parameter penalty is paid; the inter-site
+contrast, not the A15 refit, carries the statistical result.
 
 The minimum is not an artifact of the sweep grid. Extending the sweep
 beyond the fitting envelope reveals that each RMSE curve rises
 monotonically on the high-$K_d$ side (Fig.~\ref{fig:kdsweep}), confirming
-bracketed minima rather than descending shoulders. \old{A fivefold
-refinement of the grid around each minimum, combined with a
-factor-of-two tightening of the spin-up length and convergence
-tolerance (60 lunations to $5\times10^{-3}$ K versus the production 30
-lunations to $5\times10^{-2}$ K), shifts $K_d^{*}$ by less than
-$0.10\,\si{\milli\watt\per\meter\per\kelvin}$ at both sites, well
-within the bootstrap uncertainty quoted above.}\new{Nor is it an
+bracketed minima rather than descending shoulders. Nor is it an
 artifact of the thermal-state initialization: the equilibrium
 construction of \S\ref{sec:solver} is certified independent of its
 initial guess to $\le 0.03$ K, and a grid-and-timestep convergence study
 (halving $\Delta z_0$ and $\Delta t$) bounds the solver contribution to
 $K_d^{*}$ at $\lesssim 0.05\,\si{\milli\watt\per\meter\per\kelvin}$,
-an order of magnitude below the bootstrap uncertainty quoted above.}
+an order of magnitude below the bootstrap uncertainty quoted above.
 
 The \citet{martinez2021} model, evaluated forward at each site with its
 published global coefficients, serves as the global-baseline comparison:
-\old{deep-sensor }\new{meter-scale-sensor }RMSE of \old{1.10 K at A15
-and 2.47 K at A17, with mean biases of $+0.6$ K and $+2.3$ K}\new{1.05 K
-at A15 and 0.63 K at A17, with mean biases of $+0.54$ K and $+0.09$ K}
-(Table~\ref{tab:headline}). \old{It reproduces A15 to within a factor
-of $\sim$1.2 of the Hayne site-fit RMSE but underpredicts A17 by an
-amount comparable to the Hayne global miss, as expected for a globally
-calibrated $K(T,\rho)$ without per-site freedom.}\new{It reproduces
+meter-scale-sensor RMSE of 1.05 K
+at A15 and 0.63 K at A17, with mean biases of $+0.54$ K and $+0.09$ K
+(Table~\ref{tab:headline}). It reproduces
 both sites to within $\sim$1 K without any per-site freedom ---
 comparable to the Hayne site-fit at A15, though still a factor of
-$\sim$1.6 above it at A17.} A diagnostic per-site retrieval under
+$\sim$1.6 above it at A17. A diagnostic per-site retrieval under
 this form is presented in \S\ref{sec:disc-prior}, where the implications
 for the $K(T,\rho)$ parameterization are discussed.
 
 \paragraph*{Sensitivity to the borestem exclusion depth.}
 The retrieval is repeated with the borestem exclusion depth $z_b$ swept
 over 60--90 cm. The retrieved values remain stable across all admissible
-cuts: $K_{d,\mathrm{A15}}^{*}=\old{4.7--4.9}\new{4.6--4.9}$ and
-$K_{d,\mathrm{A17}}^{*}=\old{11.2}\new{7.2}\,\si{\milli\watt\per\meter\per\kelvin}$ for
+cuts: $K_{d,\mathrm{A15}}^{*}=4.6--4.9$ and
+$K_{d,\mathrm{A17}}^{*}=7.2\,\si{\milli\watt\per\meter\per\kelvin}$ for
 $z_b=70$, 80, and 90 cm, yielding a contrast of
-\old{6.3--6.5}\new{2.6--3.0}$\,\si{\milli\watt\per\meter\per\kelvin}$,
+2.6--3.0$\,\si{\milli\watt\per\meter\per\kelvin}$,
 unchanged within rounding from the nominal value. The 60 cm cut alone
 deviates
-($K_{d,\mathrm{A17}}^{*}=\old{18.8}\new{8.8}$, contrast \old{14.2}\new{3.9}),
+($K_{d,\mathrm{A17}}^{*}=8.8$, contrast 3.9),
 because at this depth a
 sensor inside the borestem-affected zone re-enters the A17 set and inflates
 the retrieved gradient, precisely the contamination that the
@@ -982,33 +909,30 @@ Dashed vertical: \citet{hayne2017} global $K_d=3.4$; dotted:
 
 Two summary statistics must be distinguished. The $K_d^{*}$ values quoted
 above are parabolic point estimates of the RMSE minimum; the bootstrap
-medians of the same quantities are \old{4.88 and 11.51}\new{4.63 and 7.08}$\,\si{\milli\watt\per\meter\per\kelvin}$
-(Table~\ref{tab:errorbudget})\old{, marginally higher because each
-bootstrap distribution is right-skewed}. The inter-site contrast is
+medians of the same quantities are 4.63 and 7.08$\,\si{\milli\watt\per\meter\per\kelvin}$
+(Table~\ref{tab:errorbudget}). The inter-site contrast is
 defined as the bootstrap median of the paired within-resample difference,
-$\Delta K_d^{*} = \old{6.63^{+7.43}_{-1.25}}\new{2.31^{+0.68}_{-0.90}}\,\si{\milli\watt\per\meter\per\kelvin}$
-($1\sigma$, asymmetric; 95\% CI \old{$[-3.2,\,16.6]$, $p\approx 0.05$}%
-\new{$[-0.12,\,3.56]$, $P_{\rm boot}(\Delta K_d^{*}{\le}0)\approx 0.031$};
-Fig.~\ref{fig:bootstrap}). \old{The paired
-construction preserves the resample-level correlation between sites and is
-therefore the statistically appropriate estimator; this}\new{The two sites
-share no sensors, so the contrast draws combine \emph{independent}
+$\Delta K_d^{*} = 2.31^{+0.68}_{-0.90}\,\si{\milli\watt\per\meter\per\kelvin}$
+($1\sigma$, asymmetric; 95\% CI %
+$[-0.12,\,3.56]$, $P_{\rm boot}(\Delta K_d^{*}{\le}0)\approx 0.031$;
+Fig.~\ref{fig:bootstrap}). The two sites
+share no sensors, so the contrast draws combine independent
 per-site resamples; an all-pairs convolution of the two bootstrap
 distributions reproduces the paired interval to rounding precision. The
-median-of-differences construction} is also the reason
-\old{6.63}\new{2.31} differs slightly from the difference of the point
-estimates (\old{$11.23-4.86=6.37$}\new{$7.08-4.60=2.48$}). The
-\old{broad }A15 upper tail reflects a weakly constrained
-shoulder in RMSE$(K_d)$ at A15 for $N=7$ \old{deep }\new{meter-scale }%
+median-of-differences construction is also the reason
+2.31 differs slightly from the difference of the point
+estimates ($7.08-4.60=2.48$). The
+A15 upper tail reflects a weakly constrained
+shoulder in RMSE$(K_d)$ at A15 for $N=7$ meter-scale %
 sensors, even though the central parabolic minimum is firmly at
-\old{4.86}\new{4.60}. The
+4.60. The
 reported $1\sigma$ intervals propagate sensor-set composition, the
 $\pm 2.5$ cm depth-placement uncertainty \citep{nagihara2018}, and the
 parabolic curve-fit error; component-by-component impacts of the remaining
 Hayne inputs are tabulated in Table~\ref{tab:errorbudget}. Both retrievals
 reject the global $K_d=3.4\,\si{\milli\watt\per\meter\per\kelvin}$ of
-\citet{hayne2017} at the 95\% level\new{ (bootstrap CI lower bounds 4.18
-and 6.16)}.
+\citet{hayne2017} at the 95\% level (bootstrap CI lower bounds 4.18
+and 6.16).
 
 \begin{figure}[!htbp]
 \centering
@@ -1023,7 +947,7 @@ bound just below zero ($p\!\approx\!0.031$).}
 \end{figure}
 
 Applied at each site, the retrieved $K_d^{*}$ values yield
-\old{deep-sensor }\new{meter-scale-sensor }profiles that track the HFE
+meter-scale-sensor profiles that track the HFE
 observations within the $\sim 1$ K spread of the data
 (Fig.~\ref{fig:thermal-profiles}). The \citet{martinez2021} forward,
 plotted alongside, matches the Hayne site-fit RMSE at A15 to within
@@ -1057,13 +981,13 @@ further internal checks follow.
 \emph{(i) TG vs.\ TR cross-prediction.} Fitting $K_d$ on the
 gradient-bridge sensors (TG) alone and predicting the ring-bridge (TR)
 sensors, and vice versa, yields held-out RMSEs within
-$\sim$\old{0.26}\new{0.11} K of the
+$\sim$0.11 K of the
 in-sample values at both sites.
 \emph{(ii) Leave-one-deepest-out.} Withholding the deepest sensor
 ($z=139$ cm at A15, $z=234$ cm at A17) and refitting $K_d$ on the remainder
 predicts the held-out temperature to within
-$|\Delta|=\old{0.21}\new{0.37}$ K and
-$|\Delta|=\old{0.09}\new{0.25}$ K respectively. Both internal checks
+$|\Delta|=0.37$ K and
+$|\Delta|=0.25$ K respectively. Both internal checks
 confirm that the
 retrieval is not driven by a single sensor or sensor type; neither
 constitutes an independent test of the inter-site contrast.
@@ -1075,34 +999,32 @@ boreholes (sensor-set composition and placement depth). As an independent
 cross-check on the \emph{direction} of the contrast, not as a second
 estimate of its magnitude, we also ran a Bayesian inversion propagating the
 \citet{saito2007,nagihara2018} prior on $Q_b$
-\new{(Fig.~\ref{fig:robustness}a)}. Its marginal MCMC medians
-are $K_{d,\mathrm{A15}}=\old{3.9}\new{4.3}$ and
-$K_{d,\mathrm{A17}}=\old{13.1}\new{8.3}$
-mW m$^{-1}$ K$^{-1}$ (contrast median \old{$+9.2$}\new{$+3.9$}).
-\new{The corresponding $Q_b$ marginals pull below their priors at both
+(Fig.~\ref{fig:robustness}a). Its marginal MCMC medians
+are $K_{d,\mathrm{A15}}=4.3$ and
+$K_{d,\mathrm{A17}}=8.3$
+mW m$^{-1}$ K$^{-1}$ (contrast median $+3.9$).
+The corresponding $Q_b$ marginals pull below their priors at both
 sites --- medians 17.8 (A15, prior $21\pm3.2$) and 13.9 mW m$^{-2}$
 (A17, prior $16\pm2.4$) --- i.e., the HFE record itself mildly favors
 the lower, \citet{saito2007}-direction fluxes, independently at the two
 boreholes; a firmer per-site $Q_b$ remains the single most valuable
-external input this retrieval could receive.} These
+external input this retrieval could receive. These
 differ from the
-bootstrap point estimates (\old{4.86, 11.23; contrast $+6.6$}\new{4.60,
-7.08; contrast $+2.5$}) by construction,
+bootstrap point estimates (4.60,
+7.08; contrast $+2.5$) by construction,
 not by disagreement: the $Q_b$ prior slides each marginal along the
 $K_d/Q_b$ degeneracy ridge (\S\ref{sec:disc-kd}), so the two methods are
-not independent measurements of the absolute $K_d$. \old{They agree on
-the ordering, $P(K_d^{\rm A17}>K_d^{\rm A15})\approx 97\%$, since the
-degeneracy ridge shifts both sites together.}\new{The ordering not only survives
+not independent measurements of the absolute $K_d$. The ordering not only survives
 the $Q_b$ smearing --- it is insensitive to it: on the directly solved
 RMSE$(K_d,Q_b)$ surface (no proportional-degeneracy surrogate;
 \S\ref{sec:disc-degeneracy}), $P(K_d^{\rm A17}>K_d^{\rm A15})$ stays at
 $99.2$--$99.4\%$ for Gaussian $Q_b$ priors from $\pm$10\% to
 $\pm$40\% (archived scan: \texttt{results/qb\_prior\_width\_scan.json}),
-and the contrast median \emph{grows} with prior width (from
+and the contrast median grows with prior width (from
 $+3.4$ to $+4.8$ mW m$^{-1}$ K$^{-1}$) because the two sites respond to a
 flux revision in opposite directions. The Bayesian and bootstrap views
 therefore bracket the honest statement: conditional on the published
-basal fluxes the contrast magnitude is only \emph{marginally} resolved
+basal fluxes the contrast magnitude is only marginally resolved
 ($P_{\rm boot}{\approx}0.03$, bootstrap 95\% interval spanning zero), while once the
 basal-flux debate itself is propagated the \emph{ordering} becomes
 decisive (99\%, with the credible interval on the contrast excluding
@@ -1112,14 +1034,14 @@ conditional on the assumed per-sensor noise scale (0.5 K, chosen at the
 scale of the residual model--data RMSE of Table~\ref{tab:headline}
 rather than the 0.03--0.05 K within-window thermometer precision, which
 characterizes short-term stability only) that sets the
-likelihood sharpness.}%
+likelihood sharpness.%
 % Q_b prior-width scan, Jacobian-corrected posterior (2026-07-13, codex F7
 % fix; reproducible artifact: pipeline/compute/qb_prior_width_scan.py ->
 % results/qb_prior_width_scan.json): P(A17>A15) = 99.21/99.25/99.34/99.42 %
 % at prior sigma = 10/15/25/40 % of Q_b; contrast median +3.43/+3.92/+4.49/
 % +4.79, 95% CrI low edge +0.63/+0.75/+0.93/+1.06.
 \paragraph*{Common-epoch sensitivity.}
-\new{The stability windows end at different calendar epochs while the
+The stability windows end at different calendar epochs while the
 record still warms: at A17 the retained sensors at 130--178 cm carry
 mid-1977 windows while every sensor below 180 cm carries a 1974 window
 (a 3.1-yr spread aligned with depth); at A15 the spread is 1.0 yr with
@@ -1128,7 +1050,7 @@ sensor's $T_\mathrm{eq}$ from one shared 1974 calendar window (every
 sensor has data there --- no extrapolation) leaves A15 unchanged
 ($|\Delta K_d^{*}|\le 0.01$) but moves A17 to
 $K_d^{*}=6.16$ mW m$^{-1}$ K$^{-1}$ ($-0.89$; bootstrap 95\% CI
-$[5.92, 6.81]$) --- and \emph{improves} the fit (RMSE
+$[5.92, 6.81]$) --- and improves the fit (RMSE
 $0.40\rightarrow0.36$ K), as expected if the mixed-epoch profile was
 internally inconsistent. A slope-translated construction agrees to
 0.03 mW m$^{-1}$ K$^{-1}$. The contrast under the common epoch is
@@ -1138,12 +1060,12 @@ rejecting the global value at both sites, but more marginal than at the
 certified windows. Epoch mixing is therefore the largest single
 methodological systematic at A17 and is carried as $\sigma_{\rm epoch}$
 in Table~\ref{tab:errorbudget}
-(archived: \texttt{results/common\_epoch\_sensitivity.json}).}
+(archived: \texttt{results/common\_epoch\_sensitivity.json}).
 
 The bootstrap interval
 on the contrast
-magnitude (\old{$\Delta K_d^{*}=6.6$, 95\% CI $[-3.2,16.6]$}\new{$\Delta
-K_d^{*}=2.3$, 95\% CI $[-0.1,3.6]$}) is carried forward
+magnitude ($\Delta
+K_d^{*}=2.3$, 95\% CI $[-0.1,3.6]$) is carried forward
 as the headline measurement.
 
 
@@ -1153,29 +1075,23 @@ as the headline measurement.
 
 \subsection{The two boreholes require different meter-scale temperature gradients}%
 \label{sec:disc-kd}
-The HFE record does not admit a single \old{deep }\new{meter-scale }%
+The HFE record does not admit a single meter-scale %
 conductivity that fits both sites. Under the Hayne form at the published
-basal heat fluxes, the value that \old{zeroes}\new{fits} the A17
-\old{deep-sensor }\new{meter-scale-sensor }residual
-(\old{11.23}\new{7.08}) \old{overcorrects A15 to $-0.50$ K}\new{degrades
-A15 to a $+0.70$ K bias (RMSE 1.16 K)}, and the value that
-\old{zeroes}\new{fits} A15 (\old{4.86}\new{4.60}) \old{leaves A17 warm
-by $+1.63$ K}\new{degrades the A17 RMSE from 0.40 to 0.54 K}. The
+basal heat fluxes, the value that fits the A17
+meter-scale-sensor residual
+(7.08) degrades
+A15 to a $+0.70$ K bias (RMSE 1.16 K), and the value that
+fits A15 (4.60) degrades the A17 RMSE from 0.40 to 0.54 K. The
 published global value of \citet{hayne2017}, applied
-unchanged, runs warm at both sites \old{but by significantly different
-amounts ($+1.03$ K at A15, $+2.88$ K at A17;
-Table~\ref{tab:headline})}\new{($+0.62$ K at A15, $+0.54$ K at A17;
+unchanged, runs warm at both sites ($+0.62$ K at A15, $+0.54$ K at A17;
 Table~\ref{tab:headline}) and, more importantly, under-predicts the
-A17 meter-scale temperature gradient}. The
-per-site retrievals are $K_d^{\mathrm{A15}}=\old{4.86}\new{4.60}$ and
-$K_d^{\mathrm{A17}}=\old{11.23}\new{7.08}\,\si{\milli\watt\per\meter\per\kelvin}$ (95\%
-bootstrap CIs \old{$[3.94,\,14.36]$ and $[10.18,\,21.62]$}\new{$[4.18,\,6.96]$
-and $[6.16,\,8.07]$}). The lower 95\% bound
+A17 meter-scale temperature gradient. The
+per-site retrievals are $K_d^{\mathrm{A15}}=4.60$ and
+$K_d^{\mathrm{A17}}=7.08\,\si{\milli\watt\per\meter\per\kelvin}$ (95\%
+bootstrap CIs $[4.18,\,6.96]$
+and $[6.16,\,8.07]$). The lower 95\% bound
 on the contrast distribution (Fig.~\ref{fig:bootstrap}b)
-\old{coincides with zero ($p\approx 0.05$); the \emph{magnitude} of the
-contrast is therefore not established at the 95\% level by two
-boreholes alone, but the \emph{requirement} of different meter-scale
-temperature gradients is}\new{spans zero
+spans zero
 ($\Delta K_d^{*}=2.31$, 95\% CI $[-0.12,\,3.56]$,
 $P_{\rm boot}(\Delta K_d^{*}{\le}0)\approx 0.031$):
 conditional on the published basal heat fluxes, the \emph{requirement} of
@@ -1185,39 +1101,33 @@ conductivity contrast is favored by $\sim$97\% of draws but not resolved
 at the 95\% level. The conditionality matters --- under the $K_d/Q_b$
 degeneracy of \S\ref{sec:disc-degeneracy} the attribution to
 conductivity rather than basal flux still rests on the $Q_b$
-assumption}.
+assumption.
 
 The pooled three-model comparison (Table~\ref{tab:modelcomp})
-\old{confirms this conclusion directly}\new{has, at the certified
-numerics, no discriminating power at all}: \old{a per-site $K_d$ with
-$Q_b$ fixed at the published values (M1) is preferred over a shared
-$K_d$ with per-site $Q_b$ free within the published envelope (M2,
-$\Delta\mathrm{AICc}=4.0$) and over the strict null of shared $K_d$ and
-fixed $Q_b$ (M3, $\Delta\mathrm{AICc}=2.7$). Under the standard
-interpretation of the small-sample AIC, this constitutes only
-weak-to-moderate pooled evidence;}\new{all three models --- per-site
+has, at the certified
+numerics, no discriminating power at all: all three models --- per-site
 $K_d$ (M1), shared $K_d$ with free per-site $Q_b$ (M2), and the strict
 shared-$K_d$ null (M3) --- fall within $\Delta\mathrm{AICc}\le 0.5$ of
-one another, a statistical tie.} \new{This is expected rather than
-troubling:} the pooled statistic dilutes the A17 signal with the
+one another, a statistical tie. This is expected rather than
+troubling: the pooled statistic dilutes the A17 signal with the
 less-informative A15 set ($N=7$), whereas the per-site comparison is
 decisive at A17 ($\Delta\mathrm{AICc}\approx 23$ for the site fit over
 the global value) and the bootstrap favors a positive
 contrast ($P_{\rm boot}{\approx}0.03$; its 95\% interval spans zero). The
 data therefore favor a per-site difference in
-\old{deep }\new{meter-scale temperature }gradient without excluding a
+meter-scale temperature gradient without excluding a
 uniform-conductivity alternative in which the two basal heat fluxes differ.
 
 \begin{table}[!htbp]
 \centering
 \small
-\caption{Pooled \old{deep-sensor }\new{meter-scale-sensor }model comparison
+\caption{Pooled meter-scale-sensor model comparison
 ($N=23$: $7$ at A15, $16$ at A17). M1 retrieves a per-site $K_d$; M2 shares
 one $K_d$ and frees the per-site $Q_b$ within the published envelope; M3
-fixes both. \new{The three models are compared on a shared coarse
+fixes both. The three models are compared on a shared coarse
 ($1$\,mW) $K_d$ grid, so their tabulated $K_d$ are rounded relative to
 the dense per-site headline retrieval ($4.60/7.08$); the pooled test
-probes model \emph{structure}, not the vertex location.} $\Delta$AICc
+probes model \emph{structure}, not the vertex location. $\Delta$AICc
 is relative to the best model. $K_d$ in
 mW\,m$^{-1}$\,K$^{-1}$, $Q_b$ in mW\,m$^{-2}$.}
 \label{tab:modelcomp}
@@ -1235,11 +1145,7 @@ M3\ \ uniform $K_d$, $Q_b$ fixed  & $6.0$ (shared)  & $21$\,/\,$16$ (fixed) & 0.
 \subsection{The retrieved absolute $K_d$ values are degeneracy-limited}%
 \label{sec:disc-degeneracy}
 The absolute $K_d^{*}$ values must be interpreted as conditional on the
-adopted basal heat flux, not as free-standing measurements. \old{At steady
-state, the meter-scale temperature gradient
-$|\partial_z T|=Q_b/K_d$ is invariant under any rescaling
-$(K_d,Q_b)\!\to\!(\alpha K_d,\alpha Q_b)$: a single borehole cannot resolve
-these two products independently.}\new{At leading order the meter-scale
+adopted basal heat flux, not as free-standing measurements. At leading order the meter-scale
 temperature gradient $|\partial_z T|=Q_b/K_d$ suggests the familiar
 proportional degeneracy $(K_d,Q_b)\!\to\!(\alpha K_d,\alpha Q_b)$; the
 retrieval, however, also matches the \emph{absolute} sensor temperatures,
@@ -1247,28 +1153,20 @@ whose offset through the low-conductivity skin column depends on $Q_b/K$
 non-proportionally --- a direct test (rescaling $Q_b$ and $K_d$ together
 by $10/16$ at A17 shifts the whole sensor band by a depth-uniform
 $-1.3$~K) shows the invariance fails, so the realized trade-off must be
-mapped by re-retrieval rather than assumed.} The degeneracy is mapped
+mapped by re-retrieval rather than assumed. The degeneracy is mapped
 quantitatively in Fig.~\ref{fig:robustness}a and is visible in the joint
 Bayesian posteriors. Adopting the canonical
 $Q_b^{\mathrm{A17}}=16\,\si{\milli\watt\per\meter\squared}$
-\citep{langseth1976,nagihara2018} yields $K_d=\old{11.23}\new{7.08}$;
-\old{substituting the
-lower $\sim$10 mW m$^{-2}$ value of \citet{saito2007,nagihara2018} rescales
-$K_d$ downward to $\sim$7.7 mW m$^{-1}$ K$^{-1}$, while
-the upper bound
-$\sim$18 mW m$^{-2}$ shifts it upward to
-$\sim$13.8 mW m$^{-1}$ K$^{-1}$.}\new{re-retrieving at the
+\citep{langseth1976,nagihara2018} yields $K_d=7.08$;
+re-retrieving at the
 lower $\sim$10 mW m$^{-2}$ value of \citet{saito2007,nagihara2018} moves
-the minimum \emph{up} to $\sim$10.1 mW m$^{-1}$ K$^{-1}$ --- and deepens
+the minimum up to $\sim$10.1 mW m$^{-1}$ K$^{-1}$ --- and deepens
 it (RMSE 0.29 vs 0.40 K) --- while the upper bound $\sim$18 mW m$^{-2}$
-lowers it to $\sim$6.8 mW m$^{-1}$ K$^{-1}$.}
+lowers it to $\sim$6.8 mW m$^{-1}$ K$^{-1}$.
 The A17 $K_d^{*}$ therefore carries a
-$\sim$\old{$\pm 40\%$}\new{$^{+43}_{-4}\%$} envelope determined
-entirely by the basal-flux debate\old{; A15 carries a comparable
-envelope. The
-quantity constrained tightly at each borehole is the product $Q_b/K_d$,
-equivalently the deep gradient itself.}\new{. A15
-responds in the \emph{opposite} sense --- its steeper gradient dominates
+$\sim$$^{+43}_{-4}\%$ envelope determined
+entirely by the basal-flux debate. A15
+responds in the opposite sense --- its steeper gradient dominates
 the fit, so $K_d^{*}$ falls from 5.4 to 2.7 as $Q_b^{\mathrm{A15}}$ is
 revised from $+25\%$ to $-25\%$ of the published 21 mW m$^{-2}$. Because
 the two sites respond oppositely, the inter-site \emph{contrast} is more
@@ -1278,7 +1176,7 @@ independently (worst pairing, both fluxes at their upper bounds: $6.8-5.3=+1.5$ 
 the boreholes cannot deliver is each site's \emph{absolute} $K_d$ --- and
 fit quality alone cannot arbitrate the flux debate, since at A17 the
 \citet{saito2007} flux actually fits the HFE record slightly better than
-the published value.}
+the published value.
 This represents the intrinsic limit of what two boreholes can deliver.
 
 \begin{table}[!htbp]
@@ -1287,18 +1185,18 @@ This represents the intrinsic limit of what two boreholes can deliver.
 \setlength{\tabcolsep}{3.4pt}
 \renewcommand{\arraystretch}{1.10}
 \caption{\textbf{Per-component sensitivity budget for $K_d^{*}$.}
-\new{Entries are half-range sensitivity indices from scenario sweeps, not
+Entries are half-range sensitivity indices from scenario sweeps, not
 calibrated Gaussian standard deviations; the quadrature total is an
-independence-idealized summary (see text).}
+independence-idealized summary (see text).
 Values in mW m$^{-1}$ K$^{-1}$; entries below 0.05 are reported as
-$<\!0.05$. \new{All components are re-derived with the certified
+$<\!0.05$. All components are re-derived with the certified
 equilibrium solver. The quadrature total covers the statistical and
 measured-input components; $\chi$ and $H$ parameterize the
 \citet{hayne2017} functional form that the retrieval holds fixed, and
 are reported separately as conditionality terms (see text) rather than
 summed --- re-retrieving at the \citet{vasavada2012} normalization
 $\chi=1.48$ drives the RMSE minimum outside the physical sweep range at
-both sites.}}
+both sites.}
 \label{tab:errorbudget}
 \begin{tabular}{@{}l p{0.19\linewidth} p{0.27\linewidth} r r@{}}
 \toprule
@@ -1395,10 +1293,10 @@ methodological rows. The worked arithmetic is
 We flag one residual correlation: $\sigma_\mathrm{stat}$ and $\sigma_{Q_b}$
 both propagate along the $K_d/Q_b$ degeneracy ridge of
 Fig.~\ref{fig:robustness}a, so the totals are independence-idealized
-rather than fully decorrelated standard errors\new{; more generally,
+rather than fully decorrelated standard errors; more generally,
 several rows are half-ranges of strongly asymmetric or nonlinear
 responses (the A17 albedo row especially), so the totals are sensitivity
-summaries, not calibrated $1\sigma$ uncertainties}.
+summaries, not calibrated $1\sigma$ uncertainties.
 
 \emph{The conditionality terms.} The $\chi$ and $H$ rows are deliberately
 excluded from the quadrature: they are not measured inputs with Gaussian
@@ -1430,9 +1328,9 @@ volumetric heat capacity $\rho c_p$ and perturbs the rectified lunation-mean
 column at the $\lesssim$0.4 mW m$^{-1}$ K$^{-1}$ level. Third, the
 methodological-choice rows $\sigma_\mathrm{thr}$ and $\sigma_{z_b}$ sit
 one to two orders of magnitude below the data-side terms, indicating
-robustness against both discretionary cuts\new{; the exception is
+robustness against both discretionary cuts; the exception is
 $\sigma_\mathrm{epoch}$ at A17, the epoch-mixing systematic quantified in
-\S\ref{sec:consistency}, which rivals the statistical and $K_s$ rows}.
+\S\ref{sec:consistency}, which rivals the statistical and $K_s$ rows.
 
 \paragraph*{Behavior of the inter-site contrast under independent $Q_b$ revision.}
 How the contrast responds to a basal-flux revision cannot be read off a
@@ -1442,37 +1340,24 @@ explicitly by re-retrieving $K_d^{*}$ at each site across the full
 adopted reanalysis envelope ($Q_{b,\mathrm{A15}}\in[14,25]$,
 $Q_{b,\mathrm{A17}}\in[10,18]$ mW m$^{-2}$; Fig.~\ref{fig:robustness}a,
 one direct re-retrieval per grid point).
-\old{Along the global-rescaling diagonal, the contrast is invariant at
-its nominal value of 6.6 mW m$^{-1}$ K$^{-1}$. Off the diagonal, the
-most adverse combination, A15 at the upper end of its $Q_b$ envelope
-and A17 at the lower end, compresses the contrast to $\Delta
-K_d^{*}\approx 1.9$ mW m$^{-1}$ K$^{-1}$ ($\sim$0.4 $\sigma$); the
-opposite extreme expands it to $\sim$10.6. The sign of the contrast is
-preserved throughout the published $Q_b$ envelope: A17 remains the more
-conductive site under every admissible per-site basal-flux assignment.
-The contrast magnitude is therefore not statistically significant under
-arbitrary independent $Q_b$ revisions, a $-33\%$ revision of
-$Q_{b,\mathrm{A17}}$ alone, for instance, suffices to reduce it below
-$1\sigma$, but its sign is robust, and that sign underpins the central
-conclusion that no single globally uniform $K_d$ reproduces both
-records.}\new{Because the two sites respond in opposite directions
+Because the two sites respond in opposite directions
 (A15's $K_d^{*}$ rises with its flux, A17's falls), the corners of the
 envelope reorganize relative to the proportional picture. The
-favorable corner is BOTH fluxes at their lower bounds
+favorable corner is both fluxes at their lower bounds
 ($Q_{b,\mathrm{A15}}=14$, $Q_{b,\mathrm{A17}}=10$ mW m$^{-2}$), where
 the contrast expands to $+8.1$ mW m$^{-1}$ K$^{-1}$
 ($\sim$8.6$\sigma$); the most adverse corner is both at their upper
 bounds ($25$, $18$), where it compresses to $+1.5$
 ($\sim$1.6$\sigma$) --- reduced, but not erased. A $-33\%$ revision of
-$Q_{b,\mathrm{A17}}$ alone \emph{raises} the contrast to $\sim$$+5.2$.
+$Q_{b,\mathrm{A17}}$ alone raises the contrast to $\sim$$+5.2$.
 The conductivity contrast is therefore only marginally resolved at the
 published basal fluxes ($p\approx 0.03$, its 95\% interval spanning
-zero), but its \emph{sign} survives every admissible independent
+zero), but its sign survives every admissible independent
 basal-flux assignment in the published envelope: A17 remains the more
-conductive site at every grid point of the direct map.}
+conductive site at every grid point of the direct map.
 
 \paragraph*{Contrast under the remaining leading systematics.}
-\new{The same direct-map logic extends to the two systematics that
+The same direct-map logic extends to the two systematics that
 rival $\sigma_{Q_b}$ in Table~\ref{tab:errorbudget}. The sites again
 respond in opposite directions: raising the Bond albedo by 0.01 lowers
 $K_d^{*}$ at A15 (4.60$\rightarrow$3.20) but raises it at A17
@@ -1482,16 +1367,12 @@ independently (most adverse pairing $+1.3$ mW m$^{-1}$ K$^{-1}$); the
 $\pm$30\% $K_s$ envelope behaves identically (most adverse pairing
 $+1.6$). Like the basal-flux debate, these systematics limit each
 site's \emph{absolute} $K_d^{*}$ without threatening the sign of the
-contrast.}
+contrast.
 
-A joint $(K_d, H)$ fit over the swept range \old{$H=1$--$11$ cm}\new{$H
-= 3$--$10$ cm}
+A joint $(K_d, H)$ fit over the swept range $H
+= 3$--$10$ cm
 (Fig.~\ref{fig:robustness}b,c) confirms that $H$ is effectively
-unconstrained: \old{the RMSE surface varies by $<\!0.02$ K across
-$H=3$--11 cm, with shallow interior minima at $H\approx 10$ cm (A15)
-and 4 cm (A17). The retrieved $K_d$ is
-nonetheless stable, the joint minimum and the 1-parameter retrieval at
-$H=6$ cm agree in $K_d$ to within the 0.5 K RMSE contour.}\new{$K_d$
+unconstrained: $K_d$
 and $H$ trade off along a shallow valley: at A15 the interior minimum,
 $(4.3\,\mathrm{mW\,m^{-1}\,K^{-1}},\,8\,\mathrm{cm})$, improves on the
 1-parameter retrieval at the published $H=6$ cm by only 0.10 K of RMSE;
@@ -1500,10 +1381,10 @@ $(11.3\,\mathrm{mW\,m^{-1}\,K^{-1}},\,8\,\mathrm{cm})$, improves on the
 $H=6$ slice by only 0.09 K. The reported $K_d^{*}$ is
 therefore conditional on the published $H$, and the $K_d$--$H$
 trade-off is propagated into the error budget as $\sigma_H$
-(Table~\ref{tab:errorbudget}).} $K_d$, not
+(Table~\ref{tab:errorbudget}). $K_d$, not
 $H$, is the identified
-parameter\new{ at fixed $H$; the pair is jointly identified only up to
-the valley direction}.
+parameter at fixed $H$; the pair is jointly identified only up to
+the valley direction.
 
 \begin{figure}[!htbp]
 \centering
@@ -1527,16 +1408,7 @@ $11.3$ mW m$^{-1}$ K$^{-1}$ at $H\approx8$ cm (coral diamond). Teal circle:
 
 \subsection{Comparison with Mart{\'\i}nez \& Siegler (2021) and prior estimates}%
 \label{sec:disc-prior}
-\old{A second globally calibrated $K(T,\rho)$ form fails in the same
-direction as the first when evaluated forward. The Mart\'inez \& Siegler (2021)
-model, with its published coefficients, yields a deep-sensor RMSE of
-1.10 K at A15 and 2.47 K at A17 (the headline table and profile figure): A15 within a factor of $\sim$1.2 of
-the Hayne site-fit, A17 underpredicted by an amount comparable to the
-Hayne global miss. Both models inherit the same globally averaged
-thermal structure (both are calibrated against the same family of
-orbital Diviner products), and the implication for any single global
-$K(T,z)$ is identical: per-site freedom is required to reproduce both
-Apollo boreholes simultaneously.}\new{The second globally calibrated
+The second globally calibrated
 form fares notably better. The \citet{martinez2021} $K(T,\rho)$ model,
 with its published coefficients and no per-site freedom, yields a
 meter-scale-sensor RMSE of 0.99 K at A15 and 0.64 K at A17
@@ -1547,7 +1419,7 @@ temperature-dependent decomposition evidently transfers from the
 diurnal-skin calibration to the meter-scale regolith more faithfully
 than the Hayne smooth-exponential at its global $K_d$. The per-site
 Hayne retrieval nonetheless remains the sharper instrument at A17,
-where it halves the residual RMSE.}
+where it halves the residual RMSE.
 
 \paragraph*{Diagnostic: Martinez per-site density retrieval.}
 The fairness of the forward Martinez comparison can be tested by granting
@@ -1557,46 +1429,30 @@ that \citet{martinez2021} calibrated their four coefficients against surface
 brightness-temperature observations and did not validate the extrapolation
 to depths of order one meter; the test we run here is therefore a check of
 whether the published surface-calibrated form, when extended to the
-\old{deep }\new{meter-scale }regolith, can fit the in-situ HFE data with one
-per-site lever (the \old{deep }\new{asymptotic }bulk density entering the
+meter-scale regolith, can fit the in-situ HFE data with one
+per-site lever (the asymptotic bulk density entering the
 model). We do so under the construction of \S\ref{sec:methods-kd}
-(eq.~\ref{eq:alpha}): rescale the \old{deep }asymptote of the Hayne-form
+(eq.~\ref{eq:alpha}): rescale the asymptote of the Hayne-form
 $\rho(z)$ entering equation~(\ref{eq:K-ms}) by a single per-site scalar
 $\alpha$, leaving the four Martinez coefficients fixed, and sweep $\alpha$
-against the same \old{deep-sensor }\new{meter-scale-sensor }RMSE. The
-retrieved values are $\alpha^{*}_{\mathrm{A15}}=\old{1.12}\new{1.19}$
-(\old{deep }\new{asymptotic }bulk density
-$\rho_d^{*}\approx \old{2010}\new{2139}$
+against the same meter-scale-sensor RMSE. The
+retrieved values are $\alpha^{*}_{\mathrm{A15}}=1.19$
+(asymptotic bulk density
+$\rho_d^{*}\approx 2139$
 kg m$^{-3}$, RMSE 0.91 K) and
-$\alpha^{*}_{\mathrm{A17}}=\old{1.83}\new{1.04}$
-($\rho_d^{*}\approx \old{3300}\new{1877}$ kg m$^{-3}$,
-RMSE \old{0.31}\new{0.60} K)\old{, both matching the
-Hayne site-fit RMSE to within $\sim$0.01 K}\new{; at A15 the density
+$\alpha^{*}_{\mathrm{A17}}=1.04$
+($\rho_d^{*}\approx 1877$ kg m$^{-3}$,
+RMSE 0.60 K); at A15 the density
 lever slightly betters the Hayne site-fit RMSE (0.91 vs 1.00 K), while
 at A17 the bowl bottoms near the \citet{hayne2017} density and the
-lever buys little ($0.63\rightarrow0.60$ K)}. The physical interpretation of
-$\alpha$ is the \old{deep }\new{asymptotic }bulk density that the published
+lever buys little ($0.63\rightarrow0.60$ K). The physical interpretation of
+$\alpha$ is the asymptotic bulk density that the published
 Martinez $K(T,\rho)$ would require to reproduce each site's in-situ profile.
 
 The A15 retrieval sits $\sim$7\% above the Apollo-core compaction ceiling
 of $\sim$2000 kg m$^{-3}$ \citep{mitchell1973,carrier1991} --- outside the
 core envelope, though far below any solid-rock bound, and best read as
-marginal rather than comfortable. \old{The A17 retrieval lies well above any
-admissible regolith density: solid lunar basalt is $\sim$3000 kg
-m$^{-3}$ (Wieczorek et al.\ 2006), and the 0.30--0.45 porosities measured
-in Apollo cores cap the meter-scale asymptote near $\sim$2100 kg
-m$^{-3}$. The published Martinez form therefore cannot reproduce the
-A17 meter-scale profile under any physically defensible density at the
-canonical $Q_b$. Within the $K_d/Q_b$ degeneracy of
-\S 4.2 this does not isolate conductivity from
-basal flux at A17, the same A17 meter-scale gradient at a lower $Q_b$
-would require less extreme densities but at the canonical $Q_b$ the
-published Martinez density-dependence is structurally insufficient on
-its own to absorb the A17 meter-scale temperature gradient.
-The alpha-sweep figure visualizes the result: the A15
-RMSE($\alpha$) bowl bottoms inside the Apollo-core admissible band,
-while the A17 bowl bottoms well outside it, between the Apollo-core
-ceiling and the solid-basalt upper bound.}\new{The A17 retrieval bottoms
+marginal rather than comfortable. The A17 retrieval bottoms
 at $\rho_d^{*}\approx 1877$ kg m$^{-3}$, comfortably inside the
 Apollo-core envelope (1700--2000 kg m$^{-3}$): the published
 $K(T,\rho)$ is physically admissible at both boreholes.
@@ -1609,7 +1465,7 @@ Hayne fit; sharpening the A17 gradient further requires freedom in the
 conductivity mechanism itself (the contact/radiative split), not in
 the density input. A full per-site recalibration of the
 \citet{martinez2021} coefficients against the HFE record is the
-natural follow-on study.}
+natural follow-on study.
 
 % fig_alpha_sweep moved to Supporting Information (Figure S1) in the
 % 2026-07-14 figure-cosmetics pass: it is a diagnostic sensitivity check,
@@ -1618,22 +1474,22 @@ natural follow-on study.}
 % "Figure S1 (Supporting Information)".
 
 The inferred ratio
-$K_d^{\mathrm{A17}}/K_d^{\mathrm{A15}}\approx \old{2}\new{1.5}$ is
-\old{large but }physically plausible if interpreted as a conductivity
+$K_d^{\mathrm{A17}}/K_d^{\mathrm{A15}}\approx 1.5$ is
+physically plausible if interpreted as a conductivity
 effect. Two
-mechanisms act in the appropriate direction\new{ and jointly cover the
-required factor}. First, Apollo cores span bulk
+mechanisms act in the appropriate direction and jointly cover the
+required factor. First, Apollo cores span bulk
 porosities $\phi\sim 0.30$--0.45 \citep{mitchell1973,carrier1991}; the
 effective-medium scaling $K_\mathrm{eff}\propto(1-\phi)^2$ of
 \citet{wood2020} accounts for a factor of $\sim$1.5 change at the upper end
 of that range. Second, solid lunar basalt is $\sim$30\% more conductive
 than solid highland anorthosite \citep{horai1972}, and A17 lies in a
 basaltic embayment while A15 occupies a mixed mare/highland margin
-\citep{korotev2005,wieczorek2006,crawford2015}\new{; the product of the
+\citep{korotev2005,wieczorek2006,crawford2015}; the product of the
 two mechanisms ($\sim$1.9) comfortably covers the retrieved ratio
-without requiring either at its extreme}.
+without requiring either at its extreme.
 
-\new{This is the physical sense in which the result is realistic despite
+This is the physical sense in which the result is realistic despite
 the steady-state model/data distinction. The solver represents the
 asymptotic regolith column that would exist under repeated solar forcing
 and the basal heat flux; the Apollo late tails are imperfect observations
@@ -1643,15 +1499,11 @@ by fractions of a kelvin, so it belongs in the systematic error budget, but
 it does not require an unphysical conductivity: the retrieved
 $K_d$ values remain in the milliwatt-per-meter-per-kelvin range expected
 for porous lunar regolith, and the A17/A15 ratio is covered by plausible
-porosity and lithology differences.}
+porosity and lithology differences.
 
 Prior in-situ estimates on the same HFE record provide the sharpest
-external reference, \emph{provided the comparison is made at matching
-definition}. \old{The original \citet{langseth1972,langseth1976}
-reductions yielded meter-scale conductivities of order
-1--3 mW m$^{-1}$ K$^{-1}$ at both sites; the \citet{keihm1984} and
-\citet{grott2010} reanalyses raise these values; the present retrievals
-extend that upward trend.}\new{The original in-situ reductions reported
+external reference, provided the comparison is made at matching
+definition. The original in-situ reductions reported
 \emph{total} effective conductivities of the compacted regolith below
 $\sim$10 cm of $10\pm1$ (A15) and $15\pm1.5$ (A17)
 mW m$^{-1}$ K$^{-1}$ \citep{langseth1976}.
@@ -1659,7 +1511,7 @@ mW m$^{-1}$ K$^{-1}$ \citep{langseth1976}.
 % conductivity below 10 cm, mW/m-K: 10 +/-10% (A15), 15 +/-10% (A17)';
 % verified from code/references/lunar_hfe_study_pack, audit 2026-07-13.
 Compared at that common definition, the present retrieval
-\emph{reproduces} the historical in-situ values: the effective
+reproduces the historical in-situ values: the effective
 $K(T,z)$ at the retained sensors, evaluated at $K_d^{*}$, is 9.3 (A15)
 and 14.6 (A17) mW m$^{-1}$ K$^{-1}$ --- within $\sim$7\% of
 \citet{langseth1976} at both sites, including the A17 $>$ A15 ordering.
@@ -1668,15 +1520,14 @@ in-situ conductivity but its re-parameterization: a Diviner-consistent
 $K(T,z)$ form with a single per-site free parameter, a defensible
 contact/radiative decomposition, and a quantified uncertainty budget;
 subsequent reanalyses of the reduction assumptions
-\citep{keihm1984,grott2010} are subsumed rather than extended.}
+\citep{keihm1984,grott2010} are subsumed rather than extended.
 Figure~\ref{fig:priorestimates} places the present values in this
-five-decade lineage\new{, keyed by definition class}. Direct laboratory
+five-decade lineage, keyed by definition class. Direct laboratory
 measurements on Apollo soils
 \citep{cremers1971,horai1981,hemingway1973} yield
-$\sim$0.7--2 mW m$^{-1}$ K$^{-1}$\new{ (total conductivity at laboratory
-conditions)}, \old{a factor of $\sim$3 below the A15
-retrieval and $\sim$5 below A17}\new{roughly an order of magnitude below
-the in-situ effective values}, the expected
+$\sim$0.7--2 mW m$^{-1}$ K$^{-1}$ (total conductivity at laboratory
+conditions), roughly an order of magnitude below
+the in-situ effective values, the expected
 lab-vs-in-situ systematic, in
 which laboratory samples lose the meter-scale grain-contact network and the
 radiative pathways that dominate the in-situ response
@@ -1687,57 +1538,50 @@ below and A17 above.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.72\linewidth]{figures/fig_prior_estimates.pdf}
-\caption{\new{Five decades of meter-scale conductivity estimates, keyed by
+\caption{Five decades of meter-scale conductivity estimates, keyed by
 definition class (open = total/effective $K$ at measurement conditions;
 filled = Hayne-form contact asymptote $K_d$). Sources: Apollo-soil laboratory
 \citep{cremers1971,hemingway1973,horai1981}, the original in-situ HFE
 reductions ($10\pm1$ / $15\pm1.5$ mW m$^{-1}$ K$^{-1}$; \citealp{langseth1976}),
 \citet{vasavada2012}, \citet{hayne2017}, and this work (stars, drawn in both
 currencies with dotted ties). At matching definition, this work's effective
-values reproduce the in-situ reductions to within $\sim$7\% at both sites.}}
+values reproduce the in-situ reductions to within $\sim$7\% at both sites.}
 \label{fig:priorestimates}
 \end{figure}
 
 \paragraph*{Surface-temperature consistency check.}
 The Diviner GCP is external to the retrieval (it enters neither the
-bootstrap nor the \old{deep-sensor }\new{meter-scale-sensor }RMSE), so it
+bootstrap nor the meter-scale-sensor RMSE), so it
 provides an independent check on the diurnal forcing chain
 (Fig.~\ref{fig:diviner}). Both parameterizations reproduce the canonical
-lunar diurnal shape, with full-cycle RMSE of \old{5.4\,K at A15 and
-12.3\,K at A17 for the Hayne site fit, and 10.2\,K and 10.7\,K for the
-Martinez forward}\new{4.1\,K at A15 and 6.3\,K at A17 for the Hayne
-site fit, and 3.6\,K at both sites for the Martinez forward}. Both
+lunar diurnal shape, with full-cycle RMSE of 4.1\,K at A15 and 6.3\,K at A17 for the Hayne
+site fit, and 3.6\,K at both sites for the Martinez forward. Both
 biases are dominated by the anisothermal-footprint and
 sub-pixel rock-population effects inherent to Diviner brightness
 temperatures \citep{bandfield2015,hayne2017}. Insolation, albedo,
 emissivity, and the upper-$\zborestem$ $K(T,z)$ are therefore correctly
 captured by both models, and the
-\old{deep-sensor }\new{meter-scale-sensor }discrepancy in
+meter-scale-sensor discrepancy in
 Table~\ref{tab:headline} is not a surface-driven artifact.
 
 At A17 the Hayne site fit runs surface-warmer than Diviner by
-\old{$+9.0$~K while the Martinez forward sits at $+7.9$~K}\new{$+4.1$~K
-while the Martinez forward sits at $-0.8$~K}. The mechanism is direct: the
-high \old{deep }\new{meter-scale }$K_d^{*}=\old{11.23}\new{7.08}$ couples
+$+4.1$~K
+while the Martinez forward sits at $-0.8$~K. The mechanism is direct: the
+high meter-scale $K_d^{*}=7.08$ couples
 more heat upward
 through the diurnal skin layer than the globally calibrated $K(T,z)$
 assumes, raising the dayside response. The per-site Hayne fit absorbs this
 penalty at the surface to fit the
-\old{deep }\new{meter-scale temperature }gradient; the surface-calibrated
-Martinez form \old{takes the equivalent penalty in the deep RMSE
-(Table~\ref{tab:headline}) to remain optimal at the
-surface}\new{remains essentially unbiased at the surface and pays a
+meter-scale temperature gradient; the surface-calibrated
+Martinez form remains essentially unbiased at the surface and pays a
 factor-of-$\sim$1.6 penalty in the meter-scale-sensor RMSE relative to
-the Hayne site fit (Table~\ref{tab:headline})}. \old{No single global
-$K(T,z)$ can simultaneously satisfy the surface-brightness constraint
-of Williams et al.\ (2017) and the meter-scale-gradient constraint
-of Nagihara et al.\ (2018) at A17.}\new{Within the Hayne $K(T,z)$ family,
+the Hayne site fit (Table~\ref{tab:headline}). Within the Hayne $K(T,z)$ family,
 no single parameter choice simultaneously optimises the
 surface-brightness constraint of \citet{williams2017diviner} and the
 meter-scale-gradient constraint of \citet{nagihara2018} at A17; the
-$K(T,\rho)$ family narrows but does not close that gap.} The inter-site
+$K(T,\rho)$ family narrows but does not close that gap. The inter-site
 difference flagged by the
-\old{deep }\new{meter-scale }retrieval reappears in the surface-temperature
+meter-scale retrieval reappears in the surface-temperature
 data, in the form of which model fits which site at the surface and by how
 much.
 
@@ -1756,72 +1600,60 @@ coefficients. Local-solar-time axis centered on midnight (shaded band LST
 \label{sec:disc-plausibility}
 
 \paragraph*{Apollo 15.} The retrieval gives
-$K_d^{\mathrm{A15}}=\old{4.86}\new{4.60}\,\si{\milli\watt\per\meter\per\kelvin}$. This value
+$K_d^{\mathrm{A15}}=4.60\,\si{\milli\watt\per\meter\per\kelvin}$. This value
 sits between the global \citet{hayne2017} value (3.4) and the regional
-\citet{vasavada2012} orbital estimate ($\sim$7)\old{, and extends the
-upward trend seen in the \citet{keihm1984} and \citet{grott2010}
-reanalyses}\new{, both parameters of the same contact family; at matching
+\citet{vasavada2012} orbital estimate ($\sim$7), both parameters of the same contact family; at matching
 definition, its implied effective conductivity at the sensors
 (9.3 mW m$^{-1}$ K$^{-1}$) reproduces the original \citet{langseth1976}
-in-situ reduction ($10\pm1$) to within $\sim$7\%}. Porosity provides the physical mechanism: the effective-medium
+in-situ reduction ($10\pm1$) to within $\sim$7\%. Porosity provides the physical mechanism: the effective-medium
 scaling $K_\mathrm{eff}\propto(1-\phi)^2$ of \citet{wood2020}, applied
 across the Apollo-core porosity envelope $\phi\!\sim\!0.30$--0.45
 \citep{mitchell1973,carrier1991} and combined with the radiative term of
 the Hayne form, brackets $\sim$3--6 mW m$^{-1}$ K$^{-1}$. The retrieved
-\old{4.86}\new{4.60} falls inside that range. The order-of-magnitude gap between the in-situ effective value and direct
+4.60 falls inside that range. The order-of-magnitude gap between the in-situ effective value and direct
 laboratory measurements \citep{cremers1971,horai1981} reflects the standard
 lab-vs-in-situ systematic: laboratory samples lose the meter-scale
 grain-contact network and the radiative pathways that dominate the in-situ
 response. A15 is physically admissible.
 
 \paragraph*{Apollo 17.} The retrieval gives
-$K_d^{\mathrm{A17}}=\old{11.23}\new{7.08}\,\si{\milli\watt\per\meter\per\kelvin}$,
-\old{roughly three times the global Hayne value and twice the A15
-retrieval}\new{roughly twice the global Hayne value and 1.5 times
-the A15 retrieval}. Two
-mechanisms acting together \old{can reach this range}\new{cover this
-range comfortably}. First, solid lunar basalt
+$K_d^{\mathrm{A17}}=7.08\,\si{\milli\watt\per\meter\per\kelvin}$,
+roughly twice the global Hayne value and 1.5 times
+the A15 retrieval. Two
+mechanisms acting together cover this
+range comfortably. First, solid lunar basalt
 is $\sim$30\% more conductive than highland anorthosite \citep{horai1972};
 A17 lies in a basaltic embayment of Mare Serenitatis while A15 occupies a
 mare/highland margin \citep{korotev2005,wieczorek2006,crawford2015}.
 Second, the porosity-driven $K$ scaling at the upper end of the Apollo-core
 range contributes a further $\sim$1.5$\times$ enhancement \citep{wood2020}.
-The product, $\sim$\old{2}\new{1.9}$\times$, comfortably covers the
-retrieved $\sim$1.5$\times$ ratio within the bootstrap uncertainty. \old{The mechanism reaches A17 only
-at the upper edge of both contributors.}\new{Neither contributor is
+The product, $\sim$1.9$\times$, comfortably covers the
+retrieved $\sim$1.5$\times$ ratio within the bootstrap uncertainty. Neither contributor is
 required at its extreme, and the value sits just above the
-\citet{vasavada2012} orbital estimate of $\sim$7.}
+\citet{vasavada2012} orbital estimate of $\sim$7.
 
-\old{A complementary test against the Mart\'inez \& Siegler (2021) $K(T,\rho)$
-form (\S 4.3, alpha-sweep figure) requires
-$\rho_d\!\approx\!3300$ kg m$^{-3}$ at A17 to reproduce the meter-scale
-temperature gradient. That is denser than solid lunar basalt and
-inadmissible for any regolith. The published Martinez
-density-dependence cannot reach the A17 meter-scale temperature
-gradient under any physical density input, regardless of basal-flux
-assumption.}\new{A complementary test against the \citet{martinez2021}
+A complementary test against the \citet{martinez2021}
 $K(T,\rho)$ form (\S\ref{sec:disc-prior}, Fig.~S1, Supporting Information)
 is consistent: the density that form requires at A17,
 $\rho_d^{*}\approx 1877$ kg m$^{-3}$, lies inside the Apollo-core
 envelope, independently corroborating that the A17 meter-scale column
 is unremarkable in density and that the enhanced conductivity is
 carried by composition and contact structure rather than by anomalous
-compaction.}
+compaction.
 
 The A17 absolute value is conditional on the adopted basal heat flux. The
 \citet{saito2007,nagihara2018} reanalyses revise $Q_b^{\rm A17}$ downward
-by up to $\sim$30\%; \old{that rescales the retrieved $K_d^{*}$ to
-$\sim$5.4 mW m$^{-1}$ K$^{-1}$}\new{on the direct map
+by up to $\sim$30\%; on the direct map
 (\S\ref{sec:disc-degeneracy}) a lower assumed flux moves the retrieved
-$K_d^{*}$ \emph{up}, to $\sim$10.1 mW m$^{-1}$ K$^{-1}$ (and fits the
+$K_d^{*}$ up, to $\sim$10.1 mW m$^{-1}$ K$^{-1}$ (and fits the
 record slightly better), while the upper bound lowers it to $\sim$6.8.
 The flux debate therefore bounds $K_d^{*}$(A17) between $\sim$6.8 and
-$\sim$10.1 --- all well above the global value}. The
+$\sim$10.1 --- all well above the global value. The
 factor-of-$\sim$2 excess over the global Hayne
 value therefore cannot be read
 as a measured absolute conductivity independent of the $Q_b$ assumption.
 
-\new{A site--depth ambiguity also deserves explicit mention: the two
+A site--depth ambiguity also deserves explicit mention: the two
 sensor sets barely overlap in depth (80--139 cm at A15, 130--234 cm at
 A17), so a conductivity that continues to increase below
 $\sim$1.5 m --- continued compaction rather than a lateral site
@@ -1836,17 +1668,14 @@ A15 set is restricted to its deepest five sensors ($z_b=90$ cm,
 \S\ref{sec:results-kd}). Depth-dependent compaction below the probed
 range cannot be excluded with two boreholes, but it is not required by
 the data, whereas the compositional difference between the sites is
-independently established.}
+independently established.
 
-A17 remains the more conductive site \old{under every admissible
-combination of $Q_b$, composition, and porosity. The inter-site
-contrast is therefore robust in sign across the full plausibility
-analysis, even where the absolute A17 value is not}\new{at the
+A17 remains the more conductive site at the
 published basal heat fluxes and across moderate revisions; only the
 most adverse corner of the independent-$Q_b$ envelope
 (\S\ref{sec:disc-degeneracy}) erases the contrast. Within every
 admissible combination of composition and porosity the sign is
-unchanged, even where the absolute A17 value is not}.
+unchanged, even where the absolute A17 value is not.
 
 \FloatBarrier
 \subsection{Limitations and caveats}\label{sec:limitations}
@@ -1855,14 +1684,11 @@ in-situ boreholes, the inter-site difference is insufficient to establish
 regional heterogeneity across the lunar surface; distinguishing genuine
 regional variability from local heterogeneity at two specific borehole
 locations requires additional landed thermometry. \emph{(ii)} The
-\old{deep }\new{meter-scale temperature }gradient constrains the ratio
+meter-scale temperature gradient constrains the ratio
 $Q_b/K_d$, not $K_d$ alone (\S\ref{sec:disc-degeneracy}); the data favor
 but do not establish a conductivity contrast over a uniform conductivity
 with differing basal flux. \emph{(iii)} The contrast magnitude
-\old{is not statistically significant at the 95\% level ($\Delta
-K_d^{*}=6.6$, bootstrap CI $[-3.2,16.6]$); only the requirement of
-different meter-scale temperature gradients and the model-comparison
-preference are robust}\new{is \emph{not} resolved at the 95\% level even at the published
+is not resolved at the 95\% level even at the published
 basal heat fluxes ($\Delta K_d^{*}=2.3$, bootstrap CI $[-0.1,3.6]$
 spanning zero, $P_{\rm boot}{\approx}0.03$; $\sim$97\% of bootstrap draws favor the
 A17 ordering). Its \emph{ordering}, however, is robust: on the directly
@@ -1877,19 +1703,18 @@ the $\sim$97\% sensor bootstrap and the $\ge$99\% $Q_b$-envelope
 ordering --- address orthogonal uncertainty axes and are not combined
 into a single joint probability; a hierarchical treatment carrying
 both simultaneously (caveat vii) would leave the sign intact but widen
-the interval}. \emph{(iv)} The
+the interval. \emph{(iv)} The
 retrieval adopts the
 \citet{hayne2017} functional form for $K(T,z)$; alternative piecewise
 parameterizations are not exhausted, and a full per-site
-\old{retrieval under the Mart\'inez \& Siegler (2021) form (which requires a
-different choice of free parameter from $K_d$)}\new{recalibration of
+recalibration of
 the \citet{martinez2021} coefficients (whose density lever is already
 admissible at both sites but saturates at A17,
-\S\ref{sec:disc-prior})} is the immediate next step. \emph{(v)} The
+\S\ref{sec:disc-prior}) is the immediate next step. \emph{(v)} The
 diurnal-amplitude depth profile (Fig.~\ref{fig:amplitude}) serves only as a
 borestem diagnostic and not as a frequency-domain validation, because below
 $\zborestem$ both models predict amplitudes well below the 1971--1977
-digitization noise floor. \new{\emph{(vi)} The insolation model is the
+digitization noise floor. \emph{(vi)} The insolation model is the
 synodic cosine forcing of \S\ref{sec:methods} with no local topography.
 This is least realistic at Apollo~17, whose probes sit on the
 Taurus--Littrow valley floor between massifs that shadow the site near
@@ -1905,7 +1730,7 @@ envelope of Table~\ref{tab:errorbudget} --- but it is partially offset
 by terrain infrared emission and reflected sunlight, which return flux
 of the same order with the opposite sign. A terrain-resolved forcing
 carrying both channels is the natural refinement for any future
-re-analysis.} \new{\emph{(vii)} The stability windows end at different
+re-analysis. \emph{(vii)} The stability windows end at different
 epochs across sensors while the record is still warming at depth
 \citep{nagihara2018}, so the per-sensor $T_\mathrm{eq}$ values mix
 epochs; the bootstrap resamples sensors as exchangeable, ignoring
@@ -1915,65 +1740,62 @@ common-epoch sensitivity is now quantified
 $-0.89$ mW m$^{-1}$ K$^{-1}$ (carried as $\sigma_\mathrm{epoch}$ in
 Table~\ref{tab:errorbudget}) and the contrast becomes more marginal
 ($P_{\rm boot}=0.04$) while retaining its sign. A probe-clustered
-(hierarchical) uncertainty treatment remains follow-on work.}
+(hierarchical) uncertainty treatment remains follow-on work.
 
 % =====================================================================
 \FloatBarrier
 \section{Conclusions}\label{sec:conclusions}
 
 The two Apollo boreholes require distinctly different
-\old{deep }\new{meter-scale }conductivities. Holding the \citet{hayne2017}
+meter-scale conductivities. Holding the \citet{hayne2017}
 functional form fixed and sweeping $K_d$ alone against the
-\old{deep-sensor }\new{meter-scale-sensor }RMSE, the per-site retrieval
+meter-scale-sensor RMSE, the per-site retrieval
 yields
-$K_{d,\mathrm{A15}}^{*}=\old{4.86^{+1.12}_{-0.54}}\new{4.60^{+0.86}_{-0.21}}$ and
-$K_{d,\mathrm{A17}}^{*}=\old{11.23^{+8.12}_{-0.77}}\new{7.08^{+0.53}_{-0.52}}\,\si{\milli\watt\per\meter\per\kelvin}$
+$K_{d,\mathrm{A15}}^{*}=4.60^{+0.86}_{-0.21}$ and
+$K_{d,\mathrm{A17}}^{*}=7.08^{+0.53}_{-0.52}\,\si{\milli\watt\per\meter\per\kelvin}$
 ($1\sigma$ non-parametric bootstrap, $N_\mathrm{boot}=1500$) at the
-published basal heat fluxes\new{, with the inter-site contrast
+published basal heat fluxes, with the inter-site contrast
 only marginally resolved ($\Delta K_d^{*}=2.3$, 95\% CI
-$[-0.1,3.6]$ spanning zero, $P_{\rm boot}{\approx}0.03$)}. The
-\old{deep-sensor }\new{meter-scale-sensor }RMSE decreases from
-\old{1.37 K and 2.96 K}\new{1.09 K and 0.89 K} under the published global
-$K_d=3.4\,\si{\milli\watt\per\meter\per\kelvin}$ to \old{0.91 K and
-0.30 K}\new{1.00 K and 0.40 K} under
+$[-0.1,3.6]$ spanning zero, $P_{\rm boot}{\approx}0.03$). The
+meter-scale-sensor RMSE decreases from
+1.09 K and 0.89 K under the published global
+$K_d=3.4\,\si{\milli\watt\per\meter\per\kelvin}$ to 1.00 K and 0.40 K under
 the per-site retrieval; the \citet{martinez2021} $K(T,\rho)$ forward
 evaluation, calibrated against the same family of orbital products,
-reproduces \old{A15 to within $\sim$1.1 K but underpredicts A17 by
-$\sim$2.5 K}\new{both sites to within $\sim$1 K without per-site
-freedom, though it cannot match the sharpened per-site A17 fit}
+reproduces both sites to within $\sim$1 K without per-site
+freedom, though it cannot match the sharpened per-site A17 fit
 (Table~\ref{tab:headline}). The inter-site requirement is robust to the
 borestem exclusion depth, the stability-window threshold, a joint
 $K_d$--$H$ fit, and the independent Diviner surface-temperature closure
 check.
 
 The absolute $K_d^{*}$ values are conditional on the adopted $Q_b$. Because
-the \old{deep }\new{meter-scale temperature }gradient constrains the ratio
+the meter-scale temperature gradient constrains the ratio
 $Q_b/K_d$ rather than $K_d$ alone, the inter-site difference admits two
 interpretations: a conductivity contrast or a basal-flux contrast. A pooled
-three-model comparison \old{favors the conductivity reading by
-$\Delta\mathrm{AICc}\approx 5$}\new{cannot separate the two readings
+three-model comparison cannot separate the two readings
 ($\Delta\mathrm{AICc}\le 0.5$ across all three models); the per-site
 evidence at A17 is what is decisive,
-$\Delta\mathrm{AICc}\approx 23$ for the site fit over the global value}
+$\Delta\mathrm{AICc}\approx 23$ for the site fit over the global value
 (Table~\ref{tab:modelcomp}) without
 excluding the alternative. The quantity constrained tightly at each
-borehole is the \old{deep }\new{meter-scale temperature }gradient itself.
+borehole is the meter-scale temperature gradient itself.
 
 The immediate application is to forward thermal models used by upcoming
 lunar sub-surface RTM retrievals. These retrievals require a
-\old{deep-}\new{meter-scale }$T(z)$ boundary condition that orbital-only
+meter-scale $T(z)$ boundary condition that orbital-only
 conductivity models cannot supply on a per-site basis. The per-site
 $K_d^{*}$ values reported here, evaluated in the Hayne thermal column,
 provide that boundary condition (\S\ref{sec:intro-tsukimi}); the upcoming
 TSUKIMI terahertz mission \citep{tsukimi2022} is one immediate beneficiary.
-A full per-site \old{retrieval under}\new{recalibration of} the
+A full per-site recalibration of the
 \citet{martinez2021} form, and the
-extension of the \old{deep-}\new{meter-scale }$T(z)$ column to include
+extension of the meter-scale $T(z)$ column to include
 surface-shadowing effects on the RTM side, are both deferred to follow-on
 work. Extending the analysis beyond two boreholes, to a regionally resolved
-treatment of the \old{deep }\new{meter-scale }lunar thermal state, is
+treatment of the meter-scale lunar thermal state, is
 fundamentally a measurement problem that requires
-\old{deep-temperature }\new{meter-scale temperature }data from additional
+meter-scale temperature data from additional
 landed instruments (e.g.\ Chang'E and ChaSTE-class experiments).
 
 % =====================================================================
@@ -1998,16 +1820,14 @@ The Diviner Lunar Radiometer Global Cumulative Product used for the
 out-of-sample surface-temperature closure \citep{williams2017diviner} is
 available from the NASA Planetary Data System Geosciences Node
 (\url{https://pds-geosciences.wustl.edu}; LRO-L-DLRE-5-GCP-V1.0,
-\url{https://doi.org/10.17189/1520650}). \old{Surface and subsurface
-geometry were computed with the NASA SPICE Toolkit (Acton 1996, 2018)
-and the JPL DE440 ephemeris.}\new{The
+\url{https://doi.org/10.17189/1520650}). The
 repository bundles the NASA SPICE Toolkit kernels (JPL DE440;
-\citealp{acton1996,acton2018}) used by its ephemeris module.} The 1-D
+\citealp{acton1996,acton2018}) used by its ephemeris module. The 1-D
 Crank--Nicolson heat solver, the
 ephemeris-driven solar-forcing routines, the $K_d$ retrieval and bootstrap
 code, the validation diagnostics, and the data and scripts needed to
 reproduce every figure and table in this manuscript are archived at
-\old{\url{https://github.com/rp3gregorio/Lunar-V2}}\new{\url{https://github.com/rp3gregorio/Lunar-HFE}}; a
+\url{https://github.com/rp3gregorio/Lunar-HFE}; a
 Zenodo-archived release with a citable DOI will be issued at the time of
 acceptance and added to the reference list.
 
@@ -2028,28 +1848,28 @@ The authors declare there are no conflicts of interest for this manuscript.
 \toprule
 \textbf{Symbol} & \textbf{Definition} & \textbf{Value / units} & \textbf{Source} \\
 \midrule
-$K_d$              & \old{deep regolith thermal conductivity (retrieved)}\new{deep asymptote of the contact $K_c$ (retrieved); effective $K$ at sensors ${\approx}2\times$}        & \old{4.86, 11.23}\new{4.60, 7.08} mW\,m$^{-1}$\,K$^{-1}$         & this work \\
+$K_d$              & deep asymptote of the contact $K_c$ (retrieved); effective $K$ at sensors ${\approx}2\times$        & 4.60, 7.08 mW\,m$^{-1}$\,K$^{-1}$         & this work \\
 $K_s$              & surface regolith thermal conductivity                  & $7.4\times10^{-4}$ W\,m$^{-1}$\,K$^{-1}$  & \citet{hayne2017} \\
 $H$                & e-folding depth of $K(z)$ transition                  & 0.06 m                                       & \citet{hayne2017} \\
 $\chi$             & radiative conductivity multiplier coefficient         & 2.7                                          & \citet{hayne2017} \\
 $T_\mathrm{ref}$   & normalization temperature for radiative term          & 350 K                                        & \citet{hayne2017} \\
-$\rho_s,\rho_d$    & surface / \old{deep }\new{asymptotic }regolith bulk density                  & 1100, 1800 kg\,m$^{-3}$                      & \citet{hayne2017} \\
+$\rho_s,\rho_d$    & surface / asymptotic regolith bulk density                  & 1100, 1800 kg\,m$^{-3}$                      & \citet{hayne2017} \\
 $c_p(T)$           & specific heat (4th-order polynomial in $T$)           & J\,kg$^{-1}$\,K$^{-1}$                       & \citet{hemingway1973,hayne2017} \\
 $Q_b$              & basal heat flux                                       & 21 (A15), 16 (A17) mW\,m$^{-2}$              & \citet{langseth1976,nagihara2018} \\
 $S_0$              & solar constant (irradiance at 1 AU)                   & 1361 W\,m$^{-2}$                             & \citet{kopp2011} \\
 $A$, $\varepsilon$ & broadband Bond albedo, emissivity                     & site-specific;\ 0.95                         & \citet{vasavada2012,bandfield2015} \\
 $\sigma$           & Stefan--Boltzmann constant                            & $5.6704\!\times\!10^{-8}$ W\,m$^{-2}$\,K$^{-4}$ & CODATA 2018 \\
-$\theta_\odot(t)$  & solar zenith angle at site                            & rad                                          & \old{SPICE/DE440}\new{synodic approximation, \S\ref{sec:methods}} \\
+$\theta_\odot(t)$  & solar zenith angle at site                            & rad                                          & synodic approximation, \S\ref{sec:methods} \\
 $F_\odot(t)$       & incident solar irradiance at surface                  & W\,m$^{-2}$                                  & this work, eq.~\ref{eq:insolation} \\
 $T(z,t),\,T_s$     & subsurface and skin ($z\!=\!0$) temperature           & K                                            & this work \\
 $z$                & depth coordinate (positive downward)                  & m                                            & --- \\
 $\zborestem$       & borestem-exclusion depth (\emph{a priori} cut)        & 80 cm                                        & this work, \S\ref{sec:borestem} \\
 $\delta$           & diurnal thermal skin depth                            & $\sim$3--5 cm                                & \citet{hayne2017} \\
-$\Delta K_d$       & inter-site contrast $K_d^{\rm A17}\!-\!K_d^{\rm A15}$ & \old{6.63}\new{2.31} mW\,m$^{-1}$\,K$^{-1}$                  & this work \\
-RMSE               & \old{deep-sensor }\new{meter-scale-sensor }root-mean-square residual                 & K                                            & this work \\
-$N$                & number of \old{deep }\new{meter-scale }sensors                                & 7 (A15), 16 (A17)                            & \citet{nagihara2018} \\
+$\Delta K_d$       & inter-site contrast $K_d^{\rm A17}\!-\!K_d^{\rm A15}$ & 2.31 mW\,m$^{-1}$\,K$^{-1}$                  & this work \\
+RMSE               & meter-scale-sensor root-mean-square residual                 & K                                            & this work \\
+$N$                & number of meter-scale sensors                                & 7 (A15), 16 (A17)                            & \citet{nagihara2018} \\
 $N_\mathrm{boot}$  & non-parametric bootstrap resamples                    & 1500                                         & \citet{efron1993} \\
-$P_{\rm boot}$     & bootstrap tail proportion $P(\Delta K_d^{*}\le 0)$ (not a null-centered $p$-value) & \old{0.05}\new{0.031}                                         & this work \\
+$P_{\rm boot}$     & bootstrap tail proportion $P(\Delta K_d^{*}\le 0)$ (not a null-centered $p$-value) & 0.031                                         & this work \\
 \bottomrule
 \end{tabular}
 
@@ -2059,7 +1879,7 @@ $P_{\rm boot}$     & bootstrap tail proportion $P(\Delta K_d^{*}\le 0)$ (not a n
 \begin{tabular}{@{}ll@{}}
 \toprule
 $s$            & surface (regolith, skin) \\
-$d$            & \old{deep regolith }\new{asymptotic (deep) regolith } \\
+$d$            & asymptotic (deep) regolith  \\
 $b$            & basal (lower BC) \\
 $\mathrm{ref}$ & reference (normalization) \\
 $\odot$        & solar \\
@@ -2094,7 +1914,7 @@ BCa          & bias-corrected accelerated bootstrap \\
 SPICE        & NASA ancillary information system for planetary geometry \\
 DE440        & JPL planetary and lunar ephemeris release 440 \\
 RTM          & radiative-transfer model \\
-TSUKIMI      & lunar mission consuming the \old{deep }\new{meter-scale }$T(z)$ retrieved here \\
+TSUKIMI      & lunar mission consuming the meter-scale $T(z)$ retrieved here \\
 \bottomrule
 \end{tabular}
 }

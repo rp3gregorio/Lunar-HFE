@@ -367,14 +367,12 @@ uncertainty limits (\S\ref{sec:discussion}), and the conclusions.
 \centering
 \includegraphics[width=\linewidth]{figures/fig_intro_probe.pdf}
 \caption{Apollo HFE measurement geometry and the two published $K(z)$ forms
-tested. \textbf{(a)} Probe schematic showing the fiberglass borestem and
-thermometer placements (Apollo~15 Probe-1). Coral band: borestem-excluded
-zone ($z<80$ cm); teal markers: \old{deep }\new{meter-scale }sensors used
-in the retrieval. \textbf{(b)} Thermal conductivity profiles $K(z)$ at
-$T=250$ K: \citet{hayne2017} smooth-exponential form at
-$K_d^{\mathrm{publ.}}=3.4$ mW m$^{-1}$ K$^{-1}$ (solid teal);
-\citet{martinez2021} $K(T,\rho)$ at published coefficients (dashed red).
-Both use the same Hayne-form $\rho(z)$.}
+tested. \textbf{(a)} Probe schematic (Apollo~15 Probe-1): coral band =
+borestem-excluded zone ($z<80$ cm); teal markers = meter-scale sensors used
+in the retrieval. \textbf{(b)} Conductivity profiles $K(z)$ at $T=250$ K:
+\citet{hayne2017} at $K_d^{\mathrm{publ.}}=3.4$ mW m$^{-1}$ K$^{-1}$ (solid
+teal) and \citet{martinez2021} $K(T,\rho)$ (dashed red), sharing the same
+Hayne-form $\rho(z)$.}
 \label{fig:intro-probe}
 \end{figure}
 
@@ -735,21 +733,14 @@ retrieval.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_amplitude_vs_depth.pdf}
-\caption{Diurnal amplitude (\old{half-range of the local-solar-time-folded
-median temperature}\new{estimated as $\sqrt{2}\times$ the
-within-stability-window standard deviation, the half-range of a
-sinusoidal signal}) versus sensor depth at both Apollo sites. \old{Black
-markers: observed}\new{Open circles: borestem-zone sensors ($z<80$~cm);
-filled circles: meter-scale sensors; dotted leaders mark each borestem
-sensor's heat-short excess above the modeled attenuation}; solid teal: \Hayne\ regolith attenuation; dashed red:
-\citet{martinez2021} attenuation, both evaluated at $T=250$ K with the
-published \old{deep-regolith }\new{meter-scale regolith }density of
-1800 kg m$^{-3}$\new{\ and $c_p(250\,\mathrm{K})\approx670$ J kg$^{-1}$
-K$^{-1}$, the Hayne form including its radiative conductivity term}. The two model curves differ by $\sim$10\% in predicted
-skin depth and are visually indistinguishable on the log axis at all
-relevant depths. The shaded band is the borestem zone ($z<80$ cm). The
-order-of-magnitude shallow-sensor excess is the borestem heat-short
-signature.}
+\caption{Diurnal amplitude ($\sqrt{2}\times$ the within-stability-window
+standard deviation) versus sensor depth at both Apollo sites. Open circles:
+borestem-zone sensors ($z<80$~cm); filled circles: meter-scale sensors;
+dotted leaders mark each borestem sensor's heat-short excess above the
+modeled attenuation. Solid teal: \Hayne\ attenuation; dashed red:
+\citet{martinez2021} --- visually indistinguishable on the log axis
+($T=250$ K, published density 1800 kg m$^{-3}$). The order-of-magnitude
+shallow-sensor excess is the borestem heat-short signature.}
 \label{fig:amplitude}
 \end{figure}
 
@@ -850,16 +841,13 @@ sensors at A17 --- motivates} the per-site $K_d$ retrieval of
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_apollo_mean_T_profile.pdf}
-\caption{Annual-mean subsurface temperature $\langle T(z)\rangle$ for the
-two published conductivity models at their nominal (un-retrieved)
-parameters, \Hayne\ smooth exponential at the global
-$K_d=3.4\,\si{\milli\watt\per\meter\per\kelvin}$ (solid), and the
-\citet{martinez2021} temperature- and density-dependent $K(T,\rho)$ forward
-(dashed), against the Apollo HFE stability-window means. Markers are coded
-by sensor type (charcoal $=$ TG, gray $=$ TR); horizontal bars are the
-within-window standard deviation. The shaded band is the
-borestem-contaminated zone ($z<\SI{80}{\centi\meter}$), excluded from the
-RMSE.}
+\caption{Annual-mean subsurface temperature $\langle T(z)\rangle$ for the two
+published models at nominal (un-retrieved) parameters --- \Hayne\ at the
+global $K_d=3.4\,\si{\milli\watt\per\meter\per\kelvin}$ (solid) and
+\citet{martinez2021} $K(T,\rho)$ forward (dashed) --- against the Apollo HFE
+stability-window means (charcoal $=$ TG, gray $=$ TR sensors; bars =
+within-window standard deviation). Shaded band: the borestem zone
+($z<\SI{80}{\centi\meter}$), excluded from the RMSE.}
 \label{fig:meanT}
 \end{figure}
 
@@ -977,15 +965,13 @@ borestem diagnostic.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_kd_sweep.pdf}
-\caption{Per-site $K_d$ retrieval under the \Hayne\ functional form, with
-all other \Hayne\ parameters held at their published values.
-\old{Deep-sensor }\new{Meter-scale-sensor }RMSE($K_d$) at each site,
-extended past the fitting grid so each curve is shown rising again on the
-high-$K_d$ side: the minima are genuine bracketed bowls, not descending
-shoulders. Markers: forward-model evaluations; stars: retrieved $K_d^{*}$;
-\old{shaded band: 95\% bootstrap CI}\new{horizontal error bars: 95\%
-bootstrap CI}. Dashed vertical: \citet{hayne2017} global
-$K_d=3.4$; dotted: the \citet{feng2020} deep value $K_d=3.8$.}
+\caption{Per-site $K_d$ retrieval under the \Hayne\ form (all other Hayne
+parameters at published values). Meter-scale-sensor RMSE($K_d$) at each site,
+extended past the fitting grid so each curve rises again on the high-$K_d$
+side --- the minima are genuine bracketed bowls. Stars: retrieved $K_d^{*}$
+(horizontal bars: 95\% bootstrap CI); markers: forward-model evaluations.
+Dashed vertical: \citet{hayne2017} global $K_d=3.4$; dotted:
+\citet{feng2020} deep value $K_d=3.8$.}
 \label{fig:kdsweep}
 \end{figure}
 
@@ -1023,14 +1009,12 @@ and 6.16)}.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_bootstrap.pdf}
-\caption{\textbf{Bootstrap distributions ($N_\mathrm{boot}=1500$,
-\old{deep-sensor }\new{meter-scale-sensor }resampling with $\pm 2.5$\,cm
-depth jitter).} (a)~Per-site $K_d^{*}$ histograms with 95\% CIs in the
-legend; dashed vertical at the \citet{hayne2017} global value.
-(b)~Inter-site contrast
-$\Delta K_d^{*}\!=\!K_d^{\rm A17}\!-\!K_d^{\rm A15}$; 95\% CI shaded,
-\old{lower bound just touching zero ($p\!\approx\!0.05$)}\new{lower
-bound now just below zero ($p\!\approx\!0.031$)}.}
+\caption{\textbf{Bootstrap distributions} ($N_\mathrm{boot}=1500$,
+meter-scale-sensor resampling with $\pm 2.5$\,cm depth jitter).
+(a)~Per-site $K_d^{*}$ histograms (95\% CIs in the legend); dashed vertical:
+the \citet{hayne2017} global value. (b)~Inter-site contrast
+$\Delta K_d^{*}\!=\!K_d^{\rm A17}\!-\!K_d^{\rm A15}$; 95\% CI shaded, lower
+bound just below zero ($p\!\approx\!0.031$).}
 \label{fig:bootstrap}
 \end{figure}
 
@@ -1044,13 +1028,11 @@ $\sim$5\% but remains a factor of $\sim$1.6 above it at A17.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_thermal_profiles.pdf}
-\caption{Annual-mean $T(z)$ at the two sites under the two conductivity
-models, against the Apollo HFE \old{deep }\new{meter-scale }sensors. Solid
-teal: \Hayne\ at the per-site retrieved $K_d^{*}$; dashed red:
-\citet{martinez2021} forward (no fitted knob). Top: full profile; bottom:
-\old{deep-sensor }\new{meter-scale-sensor }zoom. Colored markers: HFE
-\old{deep }\new{meter-scale }sensors (used in retrieval); gray markers:
-borestem-affected shallow sensors (excluded).}
+\caption{Annual-mean $T(z)$ at the two sites under the two models, against the
+Apollo HFE meter-scale sensors. Solid teal: \Hayne\ at the per-site retrieved
+$K_d^{*}$; dashed red: \citet{martinez2021} forward (no fitted knob). Top:
+full profile; bottom: meter-scale-sensor zoom. Colored markers: sensors used
+in retrieval; gray: borestem-affected shallow sensors (excluded).}
 \label{fig:thermal-profiles}
 \end{figure}
 
@@ -1697,20 +1679,14 @@ below and A17 above.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.72\linewidth]{figures/fig_prior_estimates.pdf}
-\caption{\new{Five decades of meter-scale lunar regolith conductivity
-estimates, keyed by definition class. Open markers: \emph{total /
-effective} conductivity at measurement conditions --- the Apollo-soil
-laboratory range \citep{cremers1971,hemingway1973,horai1981}, the
-original in-situ HFE reductions ($10\pm1$ and $15\pm1.5$ mW m$^{-1}$
-K$^{-1}$; \citealp{langseth1976}), and this work's effective $K(T,z)$
-at the retained sensors (open stars). Filled markers: the Hayne-form
-\emph{contact asymptote} $K_d$ --- the \citet{hayne2017} global fit and
-this work's per-site $K_d^{*}$ (filled stars, asymmetric $1\sigma$
-bootstrap); the \citet{vasavada2012} estimate (diamond) is a deep
-parameter of its own $K(T)$ normalization. Dotted ties connect the two
-currencies of this work's single retrieval: at matching definition, the
-effective values reproduce the original in-situ reductions to within
-$\sim$7\% at both sites.}}
+\caption{\new{Five decades of meter-scale conductivity estimates, keyed by
+definition class (open = total/effective $K$ at measurement conditions;
+filled = Hayne-form contact asymptote $K_d$). Sources: Apollo-soil laboratory
+\citep{cremers1971,hemingway1973,horai1981}, the original in-situ HFE
+reductions ($10\pm1$ / $15\pm1.5$ mW m$^{-1}$ K$^{-1}$; \citealp{langseth1976}),
+\citet{vasavada2012}, \citet{hayne2017}, and this work (stars, drawn in both
+currencies with dotted ties). At matching definition, this work's effective
+values reproduce the in-situ reductions to within $\sim$7\% at both sites.}}
 \label{fig:priorestimates}
 \end{figure}
 
@@ -1760,13 +1736,11 @@ much.
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_diviner_closure.pdf}
-\caption{Surface-$T$ closure against the \citet{williams2017diviner}
-Diviner GCP diurnal composite (gray markers). Teal solid: Hayne form at the
-per-site retrieved $K_d^{*}$; brick-red dashed: \citet{martinez2021} form
-at published coefficients (no fitted knob). The local-solar-time axis is
-shifted so midnight sits at panel center and noon at the edges; the shaded
-band (LST 18--06) marks the night side. Full-cycle RMSE\,/\,mean bias per
-panel are listed in the inset.}
+\caption{Surface-$T$ closure against the \citet{williams2017diviner} Diviner
+GCP diurnal composite (gray markers). Teal solid: Hayne form at the per-site
+retrieved $K_d^{*}$; brick-red dashed: \citet{martinez2021} at published
+coefficients. Local-solar-time axis centered on midnight (shaded band LST
+18--06 = night); full-cycle RMSE\,/\,mean bias per panel in the inset.}
 \label{fig:diviner}
 \end{figure}
 

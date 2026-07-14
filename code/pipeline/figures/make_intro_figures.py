@@ -188,116 +188,98 @@ def fig_intro_models():
 # FIGURE 2 of intro -- Apollo HFE probe schematic
 # ════════════════════════════════════════════════════════════════════════════
 def _draw_probe_schematic(ax):
-    """Draw the Apollo HFE probe schematic into a single axes.
-    Factored out so it can sit in a multi-panel figure."""
-    # depth axis runs 0 (surface) downward to 250 cm
-    z_top, z_bot = -18.0, 250.0
+    r"""Both Apollo HFE borestem emplacements, drawn to one depth scale.
+
+    Each site was instrumented with a fibreglass borestem carrying a
+    two-section probe. The markers are the REAL sensor depths (read from the
+    restored record via ``extract_sensor_stability`` -- never hardcoded),
+    filled where the sensor enters the K_d retrieval ($z\ge 80$ cm) and open
+    in the borestem-disturbed zone ($z<80$ cm) that the analysis excludes.
+    The two probe strings per site are nudged left/right so co-located pairs
+    (one sensor per probe) are both visible. Apollo 17 reaches 2.3 m; Apollo
+    15's deeper string stops at 1.4 m -- the depth contrast the retrieval
+    exploits."""
+    from lunar.apollo_helpers import extract_sensor_stability
+
+    Z_TOP, Z_MAX = -26.0, 258.0
     ax.set_xlim(0, 100)
-    ax.set_ylim(z_bot, z_top)
+    ax.set_ylim(Z_MAX, Z_TOP)
     ax.axis("off")
 
-    # ── sky / surface / regolith bands ──────────────────────────────────────
-    ax.add_patch(Rectangle((0, z_top), 100, -z_top, facecolor="#F4F1EC",
-                           edgecolor="none", zorder=0))                # space
-    # regolith: a continuous depth gradient (many thin slices, no gaps),
-    # darkening smoothly with depth to suggest increasing compaction
-    # Background gradient: light tan at the surface, deep warm brown at
-    # depth, to make the increasing compaction visually obvious.
-    n_slice = 160
-    edges = np.linspace(0.0, z_bot, n_slice + 1)
-    for k in range(n_slice):
-        f = k / (n_slice - 1)                       # 0 at surface, 1 deep
-        r = 0.96 - 0.30 * f
-        g = 0.91 - 0.34 * f
-        b = 0.84 - 0.36 * f
+    # regolith: a pale tan that only gently darkens with depth, so the tube,
+    # markers and labels stay legible (a strong gradient buried them before)
+    n = 120
+    edges = np.linspace(0.0, Z_MAX, n + 1)
+    for k in range(n):
+        f = k / (n - 1)
         ax.add_patch(Rectangle((0, edges[k]), 100, edges[k + 1] - edges[k],
-                               facecolor=(r, g, b),
-                               edgecolor="none", zorder=0))
+                     facecolor=(0.95 - 0.10 * f, 0.91 - 0.12 * f,
+                                0.85 - 0.13 * f),
+                     edgecolor="none", zorder=0))
+    # space band above the surface
+    ax.add_patch(Rectangle((0, Z_TOP), 100, -Z_TOP, facecolor="#F5F2EC",
+                           edgecolor="none", zorder=0))
+    # pale opaque gutter carries the depth axis, always legible
+    ax.add_patch(Rectangle((0, Z_TOP), 17.0, Z_MAX - Z_TOP,
+                           facecolor="#F7F4EF", edgecolor="none", zorder=1.5))
+
+    # borestem-disturbed zone, z < 80 cm (excluded from the retrieval)
+    ax.add_patch(Rectangle((17, 0), 83, 80, facecolor=C_CORAL, alpha=0.11,
+                           edgecolor="none", zorder=1))
+    ax.plot([17, 100], [80, 80], color=C_CORAL, lw=1.1, ls="--", zorder=3)
+    ax.text(98, 40, "borestem-disturbed zone (excluded)", rotation=270,
+            fontsize=FS_TICK - 2.5, color=C_CORAL, ha="center", va="center",
+            style="italic", zorder=3)
+
     # surface line
-    ax.plot([0, 100], [0, 0], color=C_CHAR, lw=1.6, zorder=3)
-    ax.text(2, -8, "Lunar surface", fontsize=FS_TICK, color=C_CHAR,
-            style="italic", va="center")
-    ax.text(21, 232, "compacted deep regolith", fontsize=FS_TICK - 1,
-            color="#FBFAF8", style="italic", va="center", alpha=0.95,
-            zorder=3)
+    ax.plot([17, 100], [0, 0], color=C_CHAR, lw=1.4, zorder=3)
+    ax.text(18.5, -13, "Lunar surface", fontsize=FS_TICK - 1, color=C_CHAR,
+            style="italic", va="center", zorder=3)
 
-    # ── the borestem (fibreglass tube the probe sits in) ────────────────────
-    stem_x, stem_w = 33.0, 5.0
-    ax.add_patch(FancyBboxPatch((stem_x, 2), stem_w, 224,
-                 boxstyle="round,pad=0,rounding_size=1.2",
-                 facecolor="#D9D2C6", edgecolor=C_DIM, lw=1.0, zorder=2))
-    # the borestem protrudes slightly above the surface
-    ax.add_patch(Rectangle((stem_x, -14), stem_w, 16,
-                 facecolor="#D9D2C6", edgecolor=C_DIM, lw=1.0, zorder=2))
-    ax.text(stem_x + stem_w / 2, -16, "borestem",
-            fontsize=FS_TICK - 1, color=C_DIM, ha="center", va="bottom")
-
-    # borestem-affected zone (upper 80 cm) -- the part excluded from retrieval
-    ax.add_patch(Rectangle((0, 0), 100, 80, facecolor=C_CORAL,
-                           alpha=0.10, edgecolor="none", zorder=1))
-    ax.plot([0, 100], [80, 80], color=C_CORAL, lw=1.1, ls="--", zorder=3)
-    # Borestem-zone label sits along the right edge of the panel,
-    # rotated vertically so it does not clash with the sensor-name
-    # leader lines (which terminate around x = 75).
-    ax.text(96, 40, "borestem zone ($z<80$ cm, excluded)",
-            fontsize=FS_TICK - 1.5, color=C_CORAL, ha="center",
-            va="center", style="italic", rotation=270, zorder=4)
-
-    # ── the sensor positions (representative Apollo-15 Probe-1 depths) ──────
-    # Sensors come in two electrical types:
-    #   TG = gradient-bridge (teal),
-    #   TR = ring-bridge     (blue).
-    # Shallow sensors (z < 80 cm) are excluded by the borestem cut and are
-    # drawn hollow in neutral grey to make their exclusion visible at a
-    # glance.
-    C_TG = "#2A6478"   # teal (matches phase2 figures)
-    C_TR = "#3563A1"   # cooler blue, distinct from teal
-    sensors = [
-        (35,  "TR11A",  "TR", True),
-        (45,  "TR11A'", "TR", True),
-        (84,  "TG11B",  "TG", False),
-        (91,  "TG12A",  "TG", False),
-        (101, "TR12A",  "TR", False),
-        (129, "TR12B",  "TR", False),
-        (139, "TG12B",  "TG", False),
-    ]
-    cx = stem_x + stem_w / 2
-    for depth, name, kind, excluded in sensors:
-        if excluded:
-            face, edge, txt_col = "white", C_DIM, C_DIM
-        else:
-            face = C_TG if kind == "TG" else C_TR
-            edge, txt_col = "white", C_CHAR
-        # Thicker, more visible sensor markers
-        ax.add_patch(FancyBboxPatch((cx - 3.8, depth - 2.2), 7.6, 4.4,
-                     boxstyle="round,pad=0,rounding_size=0.9",
-                     facecolor=face, edgecolor=edge, lw=1.2, zorder=4))
-        # leader line + label to the right
-        ax.annotate(f"{name}  ({depth} cm)",
-                    xy=(cx + 3.8, depth), xytext=(62, depth),
-                    fontsize=FS_TICK - 1, color=txt_col,
-                    va="center", ha="left",
-                    arrowprops=dict(arrowstyle="-", color=C_DIM, lw=0.7,
-                                    shrinkA=0, shrinkB=2))
-
-    # depth scale on the left, sitting on a pale gutter so the dark ticks
-    # and rotated label stay legible over the (dark, at depth) regolith
-    # gradient and never collide with the three-digit tick numbers
-    ax.add_patch(Rectangle((0, z_top), 17.5, z_bot - z_top,
-                 facecolor="#F6F3EE", edgecolor="none", zorder=1.6))
-    ax.plot([15, 15], [0, z_bot], color=C_CHAR, lw=0.9, zorder=3)
+    # depth axis on the gutter
+    ax.plot([15, 15], [0, Z_MAX], color=C_CHAR, lw=0.9, zorder=3)
     for zt in (0, 50, 100, 150, 200, 250):
         ax.plot([12.5, 15], [zt, zt], color=C_CHAR, lw=0.9, zorder=3)
-        ax.text(11.5, zt, f"{zt}", fontsize=FS_TICK - 1, ha="right",
+        ax.text(11.5, zt, f"{zt}", fontsize=FS_TICK - 1.5, ha="right",
                 va="center", color=C_CHAR, zorder=3)
-    ax.text(4.6, 125, "Depth  (cm)", fontsize=FS_TICK, ha="center",
+    ax.text(4.6, 128, "Depth  (cm)", fontsize=FS_TICK, ha="center",
             va="center", color=C_CHAR, rotation=90, zorder=3)
 
-    # Sensor-type legend lives in a shared figure-level strip below
-    # the panels (see fig_intro_probe); no in-panel legend box here.
+    # the two borestems, to the same depth scale
+    for mission, name, col, xc in (("a15", "Apollo 15", C_FOREST, 42.0),
+                                   ("a17", "Apollo 17", C_CORAL, 74.0)):
+        obs = extract_sensor_stability(mission, min_depth_cm=80)
+        sens = obs["sensors"]
+        z_deep = max(s["depth_cm"] for s in sens)
 
-    ax.set_title("(a)  Apollo HFE probe configuration",
-                 fontsize=FS_TITLE, fontweight="bold", pad=8)
+        # borestem tube (fibreglass rod), protruding a little above surface
+        tube_w = 8.4
+        ax.add_patch(FancyBboxPatch((xc - tube_w / 2, -15),
+                     tube_w, (z_deep + 9) + 15,
+                     boxstyle="round,pad=0,rounding_size=1.1",
+                     facecolor="#D8D1C4", edgecolor=C_DIM, lw=1.0, zorder=2))
+
+        # sensors at their real depths, one probe string nudged each way
+        for s in sens:
+            z = s["depth_cm"]
+            dx = 1.7 if s.get("probe") == 2 else -1.7
+            if z >= 80.0:                       # used in the retrieval
+                ax.plot(xc + dx, z, "o", ms=5.4, mfc=col, mec="white",
+                        mew=0.8, zorder=4)
+            else:                               # borestem zone, excluded
+                ax.plot(xc + dx, z, "o", ms=5.0, mfc="white", mec=C_DIM,
+                        mew=1.2, zorder=4)
+
+        # site name above the tube; deepest reach + count below it
+        ax.text(xc, Z_TOP + 3, name, fontsize=FS_LABEL, fontweight="bold",
+                color=col, ha="center", va="bottom", zorder=5)
+        n_used = sum(1 for s in sens if s["depth_cm"] >= 80.0)
+        ax.text(xc, z_deep + 13, f"{z_deep:.0f} cm  $\\cdot$  {n_used} used",
+                fontsize=FS_TICK - 2, color=col, ha="center", va="top",
+                zorder=5)
+
+    ax.set_title("(a)  Apollo HFE probe emplacement",
+                 fontsize=FS_TITLE, fontweight="bold", pad=10)
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -413,43 +395,18 @@ def fig_intro_probe():
     ax_probe = fig.add_axes([0.04, 0.22, 0.42, 0.70])
     ax_kz    = fig.add_axes([0.56, 0.22, 0.42, 0.70])
     _draw_kz_comparison(ax_kz)
-    # Embed the user-supplied probe schematic JPG (cropped to remove
-    # white margins) and stretch it to fill the panel. The JPG is an
-    # EXTERNAL asset (not in the repo); when it is absent, fall back to
-    # the self-contained drawn schematic so `make figures` never fails on
-    # a missing download (audit 2026-07-04). Drop the image at
-    # docs/assets/apollo_hfe_probe_configuration.jpg to restore the photo
-    # version.
-    _repo_img = (pathlib.Path(__file__).resolve().parents[2].parent / "deliverables" / "documents" /
-                 "assets" / "apollo_hfe_probe_configuration.jpg")
-    src_path = (_repo_img if _repo_img.is_file() else pathlib.Path(
-        "/Users/rp3gregorio/Downloads/Apollo HFE probe configuration.jpg"))
-    if src_path.is_file():
-        from PIL import Image, ImageChops
-        pil_img = Image.open(src_path).convert("RGB")
-        bg = Image.new("RGB", pil_img.size, (255, 255, 255))
-        diff = ImageChops.difference(pil_img, bg)
-        bbox = diff.point(lambda p: 0 if p < 15 else 255).getbbox()
-        if bbox is not None:
-            pil_img = pil_img.crop(bbox)
-        probe_img = np.asarray(pil_img)
-        ax_probe.imshow(probe_img, aspect="auto", interpolation="lanczos")
-        ax_probe.set_aspect("auto")
-        ax_probe.axis("off")
-    else:
-        print("  note: probe photo not found -- using the drawn schematic "
-              "for panel (a)")
-        _draw_probe_schematic(ax_probe)
+    # Panel (a): the self-contained, data-driven probe schematic (both sites).
+    _draw_probe_schematic(ax_probe)
 
     # Shared figure-level legend strip below both panels.
     # Two row groups: (top) panel-(a) sensor types and borestem zone;
     # (bottom) panel-(b) K(z) model curves.
-    deep_h = Line2D([0], [0], marker="s", color="white", lw=0,
-                    ms=8, markerfacecolor=C_TEAL, mec="white", mew=0.9,
-                    label="Deep sensor (used in retrieval)")
-    shal_h = Line2D([0], [0], marker="s", color="white", lw=0,
-                    ms=8, markerfacecolor=C_DIM, mec="white", mew=0.9,
-                    label="Shallow sensor (borestem, excluded)")
+    deep_h = Line2D([0], [0], marker="o", color="white", lw=0,
+                    ms=8, markerfacecolor=C_CHAR, mec="white", mew=0.8,
+                    label=r"Sensor used ($z \geq 80$ cm)")
+    shal_h = Line2D([0], [0], marker="o", color="white", lw=0,
+                    ms=8, markerfacecolor="white", mec=C_DIM, mew=1.3,
+                    label=r"Sensor excluded ($z < 80$ cm)")
     bore_h = Rectangle((0, 0), 1, 1, facecolor=C_CORAL, alpha=0.18,
                        edgecolor=C_CORAL, lw=1.1, linestyle="--",
                        label="Borestem zone ($z < 80$ cm)")

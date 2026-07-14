@@ -36,7 +36,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
 from lunar.plotting.style import (JGR_HALF, C_A15, C_A17, C_HAYNE, C_PLUM,
-                                  C_DIM, C_CHAR, C_GRID, fmt_axis,
+                                  C_DIM, C_CHAR, C_GRID, FS_LEGEND, fmt_axis,
                                   legend_below, assert_no_overlap)
 from lunar.properties import conductivity_hayne
 from lunar.apollo_helpers import extract_sensor_stability
@@ -120,17 +120,23 @@ def main():
     from matplotlib.lines import Line2D
     handles = [
         Line2D([], [], marker="o", ls="none", mfc="white", mec=C_CHAR,
-               mew=1.3, ms=7, label="open: total / effective $K$"),
+               mew=1.3, ms=7, label="total / effective $K$"),
         Line2D([], [], marker="s", ls="none", color=C_CHAR, ms=6,
-               label="filled: contact asymptote $K_d$ (Hayne form)"),
+               label="contact asymptote $K_d$"),
     ]
-    legend_below(fig, handles, [h.get_label() for h in handles], ncols=2)
-
     fmt_axis(ax, xlabel="year",
              ylabel=r"conductivity  (mW m$^{-1}$ K$^{-1}$)",
              title="Five decades of meter-scale conductivity estimates")
     ax.set_xlim(1965, 2032)
     ax.set_ylim(0, 18)
+
+    # small 2-entry key tucked into the empty upper-middle band (no
+    # below-strip -> saves page height, 2026-07-14)
+    ax.legend(handles, [h.get_label() for h in handles], ncol=1,
+              loc="upper center", bbox_to_anchor=(0.60, 0.985),
+              frameon=True, edgecolor=C_GRID, framealpha=0.95,
+              fontsize=FS_LEGEND, handletextpad=0.5, borderpad=0.5,
+              labelspacing=0.4)
 
     fig.canvas.draw()
     assert_no_overlap(ax)

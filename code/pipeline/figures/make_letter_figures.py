@@ -577,6 +577,10 @@ def fig_kd_sweep():
     ax.set_axisbelow(True)
 
     h, l = ax.get_legend_handles_labels()
+    # This legend is title + 4 long CI labels -> too large for any empty
+    # in-axes pocket (it hits the steep green descent and A15's rising
+    # branch), so it stays a measured below-strip (skill: outside-and-below
+    # when no clean interior pocket exists).
     legend_below(fig, h, l, ncols=2, fontsize=FS_LEGEND,
                  handlelength=2.4, columnspacing=2.2,
                  title=r"Stars: retrieved $K_d^{*}$;  horizontal error bars: 95% bootstrap CI",

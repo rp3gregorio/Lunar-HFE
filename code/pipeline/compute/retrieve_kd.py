@@ -552,11 +552,15 @@ def main():
     # conductivity K_d and compaction scale height H. Result: minimal trade-off,
     # K_d* is robust to H variations.
     # ──────────────────────────────────────────────────────────────────────────
-    print(f"\n=== A2: dense joint K_d × H (8×8 per site) ===", flush=True)
+    print(f"\n=== A2: dense joint K_d × H per site ===", flush=True)
     h_grid = np.linspace(0.03, 0.10, 8)
     for name, cfg in SITES.items():
         ks = results[name]['kd_star']
-        kd_g = np.linspace(0.55*ks, 1.45*ks, 8)
+        # A17's K_d-H degeneracy valley bottoms ABOVE the old 1.45x edge, so
+        # sweep it wider (to ~1.7x, ~12 mW) on a finer grid to capture the
+        # interior minimum; A15's minimum is interior already (unchanged).
+        hi, npts = (1.70, 12) if name == "A17" else (1.45, 8)
+        kd_g = np.linspace(0.55*ks, hi*ks, npts)
         rmse2d = joint_kd_h_dense(cfg, kd_g, h_grid)
         i, j = np.unravel_index(np.argmin(rmse2d), rmse2d.shape)
         results[name]['joint_kd_h'] = dict(

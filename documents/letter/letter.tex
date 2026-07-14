@@ -382,15 +382,11 @@ Both use the same Hayne-form $\rho(z)$.}
 \centering
 \includegraphics[width=\linewidth]{figures/fig_context_map.pdf}
 \caption{Apollo Heat-Flow Experiment landing-site context. \textbf{(a)}
-Global equirectangular map (Clementine albedo mosaic, USGS/NASA, public
-domain) showing the two HFE boreholes; dashed colored rectangles mark the
-zoom regions of panels (b) and (c). \textbf{(b)} Apollo 15 regional zoom
-($\pm 15^\circ$ longitude, $\pm 10^\circ$ latitude) and \textbf{(c)} Apollo
-17 regional zoom, both rendered as LOLA topographic shaded relief
-(LDEM, $1/16^\circ$; hillshade azimuth $315^\circ$, elevation $30^\circ$) so
-that the terrain reads directly: (b) the Imbrium--Apennine boundary at the
-mare/highland margin, and (c) the basaltic embayment of Mare Serenitatis at
-the Taurus--Littrow highlands edge
+Global LOLA topography and \textbf{(b)} modeled mean surface temperature,
+each with the two boreholes marked; dashed rectangles on (a) show the zoom
+regions. \textbf{(c,d)} LOLA shaded-relief zooms ($\pm 15^\circ$ longitude,
+$\pm 10^\circ$ latitude) resolving the Imbrium--Apennine mare/highland margin
+at Apollo~15 and the Taurus--Littrow highlands at Apollo~17
 \citep{korotev2005,wieczorek2006,crawford2015}. Borehole coordinates from
 the ALSEP gazetteer.}
 \label{fig:context-map}
@@ -1509,9 +1505,9 @@ $H=6$ cm agree in $K_d$ to within the 0.5 K RMSE contour.}\new{$K_d$
 and $H$ trade off along a shallow valley: at A15 the interior minimum,
 $(4.3\,\mathrm{mW\,m^{-1}\,K^{-1}},\,8\,\mathrm{cm})$, improves on the
 1-parameter retrieval at the published $H=6$ cm by only 0.10 K of RMSE;
-at A17 the minimum within the swept range,
-$(10.3,\,8\,\mathrm{cm})$ --- at the sweep edge, the valley still
-descending gently --- improves on the $H=6$ slice by only 0.07 K. The reported $K_d^{*}$ is
+at A17 the interior minimum,
+$(11.3\,\mathrm{mW\,m^{-1}\,K^{-1}},\,8\,\mathrm{cm})$, improves on the
+$H=6$ slice by only 0.09 K. The reported $K_d^{*}$ is
 therefore conditional on the published $H$, and the $K_d$--$H$
 trade-off is propagated into the error budget as $\sigma_H$
 (Table~\ref{tab:errorbudget}).} $K_d$, not
@@ -1523,26 +1519,19 @@ the valley direction}.
 \centering
 \includegraphics[width=\linewidth]{figures/fig_robustness.pdf}
 \caption{Robustness of the per-site $K_d^{*}$ contrast. \textbf{(a)}
-Contrast $\Delta K_d^{*}$ as a function of the two basal fluxes, from one
-direct re-retrieval per grid point of the measured $K_d^{*}(Q_b)$ curves
-(no proportional-degeneracy assumption; \S\ref{sec:disc-degeneracy}).
-Thin dashed contours: bootstrap-$\sigma$ significance ($2\sigma$,
-$4\sigma$, $6\sigma$); black circle:
-\citet{langseth1976} $Q_b$ (21, 16 mW m$^{-2}$); green square: \citet{saito2007}
-A15 reanalysis; dashed box: the adopted per-site $Q_b$ sensitivity
-envelope (spanning the \citealp{langseth1976,saito2007,nagihara2018}
-reanalysis range). Thin teal contours and star: the MCMC $Q_b$
-posterior (68/95\% highest-density credible regions and median
-$(17.8, 13.9)$ mW m$^{-2}$) --- the HFE record pulls both fluxes below
-their published values. The contrast is positive throughout the
-published envelope (minimum $+1.5$\,mW m$^{-1}$ K$^{-1}$; it dips
-slightly negative only in the far, implausible low-$Q_{b,\mathrm{A15}}$
-corner shown for context), and the posterior-implied ordering
-$K_d^{*}(\mathrm{A17}) > K_d^{*}(\mathrm{A15})$ holds with probability
-$\approx$99.2\%. \textbf{(b),(c)} Joint $(K_d, H)$ RMSE
-surface at each site (A17 swept to $K_d\approx10.3$ mW m$^{-1}$ K$^{-1}$; its valley
-minimum sits at the sweep edge). Coral diamond: joint RMSE minimum; teal
-circle: 1-parameter retrieval at $H=6$ cm.}
+Contrast $\Delta K_d^{*}$ across the two basal fluxes, one direct
+re-retrieval per grid point (no proportional-degeneracy assumption;
+\S\ref{sec:disc-degeneracy}); key features are labelled on the map and the
+dashed contours are bootstrap-$\sigma$ significance. The MCMC posterior
+pulls both fluxes below their published values, yet the contrast stays
+positive throughout the adopted $Q_b$ envelope (minimum $+1.5$\,mW m$^{-1}$
+K$^{-1}$; it dips negative only in the far, implausible
+low-$Q_{b,\mathrm{A15}}$ corner), and the ordering
+$K_d^{*}(\mathrm{A17}) > K_d^{*}(\mathrm{A15})$ holds at $\approx$99.2\%.
+\textbf{(b,c)} Joint $(K_d, H)$ RMSE surface per site; the A17 sweep, now
+extended to 12 mW m$^{-1}$ K$^{-1}$, reaches an interior valley bottom near
+$11.3$ mW m$^{-1}$ K$^{-1}$ at $H\approx8$ cm (coral diamond). Teal circle:
+1-parameter retrieval at $H=6$ cm.}
 \label{fig:robustness}
 \end{figure}
 

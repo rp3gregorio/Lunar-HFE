@@ -401,6 +401,19 @@ def fig_robustness(d, out_path):
     axA.plot(med15, med17, "*", markersize=15, color=C_TEAL, mec="white",
              mew=1.2, zorder=8)
 
+    # on-map callouts so panel (a) reads without the legend: boxed labels in
+    # the four corners (clear of markers/contours), leader line to each target
+    _call = dict(fontsize=8.0, color=C_CHAR, ha="center", va="center", zorder=9,
+                 bbox=dict(boxstyle="round,pad=0.24", fc="white", ec=C_DIM,
+                           lw=0.7, alpha=0.96),
+                 arrowprops=dict(arrowstyle="-", color=C_DIM, lw=0.8))
+    axA.annotate("Langseth (1976)", xy=(21.0, 16.0), xytext=(23.7, 18.1), **_call)
+    axA.annotate("Saito (2007)", xy=(14.7, 16.0), xytext=(11.7, 18.1), **_call)
+    axA.annotate("MCMC $Q_b$\nposterior", xy=(17.8, 13.9), xytext=(12.4, 8.6),
+                 **_call)
+    axA.annotate("adopted $Q_b$\nenvelope", xy=(24.6, 10.3), xytext=(23.2, 8.4),
+                 **_call)
+
     fmt_axis(axA,
              xlabel=r"Apollo 15 basal flux $Q_b$  (mW m$^{-2}$)",
              ylabel=r"Apollo 17 basal flux $Q_b$  (mW m$^{-2}$)",
@@ -473,6 +486,8 @@ def fig_robustness(d, out_path):
         # so the edge fallback below is load-bearing for A17.
         edge = kd_min_mw >= kd_hi - 1e-6
         ax.set_xlim(kd_lo, kd_hi + (0.05 * kd_span if edge else 0.0))
+        if name == "A17":                 # extended sweep -> frame the valley
+            ax.set_xlim(4.0, 11.5)        # bottom now interior (~11.3 mW)
         ax.set_ylim(h_lo, h_hi)
         ax.plot(kd_min_mw, h_min_cm, marker="D", markersize=10,
                 color=C_CORAL, mec="white", mew=1.3, zorder=6)
@@ -494,21 +509,14 @@ def fig_robustness(d, out_path):
     cbar2.outline.set_edgecolor(C_GRID)
 
     # ── shared legend BELOW ──────────────────────────────────────────────────
+    # (a)'s point features are now labelled on the map itself; the legend
+    # carries only what a callout cannot -- the σ contours and the (b,c)
+    # markers.
     handles = [
-        Line2D([0],[0], marker="o", color="none", markerfacecolor=C_CHAR,
-               mec="white", markersize=9,
-               label=r"Langseth (1976) $Q_b$  (21, 16 mW m$^{-2}$)"),
-        Line2D([0],[0], marker="s", color="none", markerfacecolor=C_FOREST,
-               mec="white", markersize=9,
-               label=r"Saito reanalysis  (A15 $-$30%)"),
         Line2D([0],[0], ls="--", color=C_CHAR, lw=0.8, alpha=0.6,
-               label=r"contrast significance  ($2\sigma$, $4\sigma$, $6\sigma$)"),
-        Line2D([0],[0], ls=(0, (6, 3)), color=C_CHAR, lw=1.4, alpha=0.9,
-               label=r"Langseth (1976) $Q_b$ envelope  (a)"),
+               label=r"contrast significance  ($2\sigma$, $4\sigma$, $6\sigma$)  (a)"),
         Line2D([0],[0], color=C_TEAL, lw=1.5,
                label=r"MCMC $Q_b$ posterior, 68/95% credible  (a)"),
-        Line2D([0],[0], marker="*", color="none", markerfacecolor=C_TEAL,
-               mec="white", markersize=13, label=r"MCMC posterior median  (a)"),
         Line2D([0],[0], marker="D", color="none", markerfacecolor=C_CORAL,
                mec="white", markeredgewidth=1.3, markersize=8,
                label=r"joint RMSE minimum  (b, c)"),
@@ -517,9 +525,9 @@ def fig_robustness(d, out_path):
                label=r"1-D $K_d^{*}$ at $H = 6$ cm  (b, c)"),
     ]
     fig.legend(handles=handles, loc="lower center",
-               bbox_to_anchor=(0.5, 0.0), ncols=3, frameon=True,
+               bbox_to_anchor=(0.5, 0.0), ncols=2, frameon=True,
                edgecolor=C_GRID, framealpha=0.97, fontsize=8.5,
-               handlelength=1.8, borderpad=0.5, columnspacing=1.3,
+               handlelength=1.8, borderpad=0.5, columnspacing=1.6,
                labelspacing=0.35)
 
     fig.canvas.draw()

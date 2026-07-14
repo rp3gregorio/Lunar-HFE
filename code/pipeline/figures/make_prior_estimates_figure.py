@@ -130,10 +130,11 @@ def main():
     ax.set_xlim(1965, 2032)
     ax.set_ylim(0, 18)
 
-    # small 2-entry key tucked into the empty upper-middle band (no
-    # below-strip -> saves page height, 2026-07-14)
+    # small 2-entry key in the empty central pocket (below the top-left
+    # "in situ" annotation, above the orbital-estimate label, and left of
+    # the this-work markers) -- verified clear of both data and text
     ax.legend(handles, [h.get_label() for h in handles], ncol=1,
-              loc="upper center", bbox_to_anchor=(0.60, 0.985),
+              loc="center", bbox_to_anchor=(0.43, 0.66),
               frameon=True, edgecolor=C_GRID, framealpha=0.95,
               fontsize=FS_LEGEND, handletextpad=0.5, borderpad=0.5,
               labelspacing=0.4)

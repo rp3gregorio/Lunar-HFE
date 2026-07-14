@@ -217,7 +217,7 @@ def _draw_probe_schematic(ax):
     ax.plot([0, 100], [0, 0], color=C_CHAR, lw=1.6, zorder=3)
     ax.text(2, -8, "Lunar surface", fontsize=FS_TICK, color=C_CHAR,
             style="italic", va="center")
-    ax.text(2, 230, "compacted deep regolith", fontsize=FS_TICK - 1,
+    ax.text(21, 232, "compacted deep regolith", fontsize=FS_TICK - 1,
             color="#FBFAF8", style="italic", va="center", alpha=0.95,
             zorder=3)
 
@@ -280,14 +280,18 @@ def _draw_probe_schematic(ax):
                     arrowprops=dict(arrowstyle="-", color=C_DIM, lw=0.7,
                                     shrinkA=0, shrinkB=2))
 
-    # depth scale on the left (a clean vertical axis line + ticks)
-    ax.plot([10, 10], [0, z_bot], color=C_CHAR, lw=0.9, zorder=3)
+    # depth scale on the left, sitting on a pale gutter so the dark ticks
+    # and rotated label stay legible over the (dark, at depth) regolith
+    # gradient and never collide with the three-digit tick numbers
+    ax.add_patch(Rectangle((0, z_top), 17.5, z_bot - z_top,
+                 facecolor="#F6F3EE", edgecolor="none", zorder=1.6))
+    ax.plot([15, 15], [0, z_bot], color=C_CHAR, lw=0.9, zorder=3)
     for zt in (0, 50, 100, 150, 200, 250):
-        ax.plot([8.0, 10], [zt, zt], color=C_CHAR, lw=0.9, zorder=3)
-        ax.text(6.8, zt, f"{zt}", fontsize=FS_TICK - 1, ha="right",
-                va="center", color=C_CHAR)
-    ax.text(3.2, 125, "Depth  (cm)", fontsize=FS_TICK, ha="center",
-            va="center", color=C_CHAR, rotation=90)
+        ax.plot([12.5, 15], [zt, zt], color=C_CHAR, lw=0.9, zorder=3)
+        ax.text(11.5, zt, f"{zt}", fontsize=FS_TICK - 1, ha="right",
+                va="center", color=C_CHAR, zorder=3)
+    ax.text(4.6, 125, "Depth  (cm)", fontsize=FS_TICK, ha="center",
+            va="center", color=C_CHAR, rotation=90, zorder=3)
 
     # Sensor-type legend lives in a shared figure-level strip below
     # the panels (see fig_intro_probe); no in-panel legend box here.

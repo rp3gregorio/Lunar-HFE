@@ -70,24 +70,52 @@ TEMP_CMAP = plt.get_cmap("inferno")
 
 
 # ---------------------------------------------------------------------
+_DEM_CACHE = {}
+
+
+def _dem():
+    """LOLA elevation (km) at 1/4 the LDEM_16 resolution (720x1440); cached."""
+    if "d" not in _DEM_CACHE:
+        d = np.fromfile(DEM, dtype="<i2").reshape(2880, 5760).astype(float)
+        _DEM_CACHE["d"] = d[::4, ::4] * 0.5e-3
+    return _DEM_CACHE["d"]
+
+
+def _hillshade():
+    """Grayscale LOLA shaded-relief intensity in [0,1] (the 'shape' layer)."""
+    return LightSource(azdeg=315, altdeg=45).hillshade(
+        _dem(), vert_exag=55, dx=1.0, dy=1.0)
+
+
 def _load_topo():
     """Global LOLA topography: (elevation km, hillshaded RGB, vmin, vmax)."""
-    dem = np.fromfile(DEM, dtype="<i2").reshape(2880, 5760).astype(float)
-    dem = dem[::4, ::4] * 0.5e-3                       # -> 720x1440, km
+    dem = _dem()
     vmin, vmax = np.percentile(dem, [1, 99])
-    ls = LightSource(azdeg=315, altdeg=45)
-    rgb = ls.shade(dem, cmap=TOPO_CMAP, blend_mode="soft", vert_exag=55,
-                   dx=1.0, dy=1.0, vmin=vmin, vmax=vmax)
+    rgb = LightSource(azdeg=315, altdeg=45).shade(
+        dem, cmap=TOPO_CMAP, blend_mode="soft", vert_exag=55,
+        dx=1.0, dy=1.0, vmin=vmin, vmax=vmax)
     return dem, rgb, vmin, vmax
 
 
 def _temp_field():
-    """Mean surface-T equirectangular field (K); lat-banded (global values)."""
+    """Mean surface-T (K) draped on LOLA shaded relief: (RGB, tmin, tmax).
+
+    With global values the mean skin temperature is latitude-banded, so the
+    color is a function of |lat| only; multiplying by the grayscale hillshade
+    adds the real terrain (craters, maria) the same way panel (a) shows it.
+    """
     d = json.loads(MEANT.read_text())
     lats = np.asarray(d["lat_deg"]); tmean = np.asarray(d["T_mean_K"])
-    grid_lat = np.linspace(90, -90, 361)              # rows N->S (origin upper)
-    col = np.interp(np.abs(grid_lat), lats, tmean)
-    return np.tile(col[:, None], (1, 720)), float(tmean.min()), float(tmean.max())
+    hs = _hillshade()                                 # [H, W] in [0,1]
+    H, W = hs.shape
+    grid_lat = np.linspace(90, -90, H)                # rows N->S (origin upper)
+    Tcol = np.interp(np.abs(grid_lat), lats, tmean)
+    T = np.tile(Tcol[:, None], (1, W))
+    tmin, tmax = float(tmean.min()), float(tmean.max())
+    col = TEMP_CMAP((np.clip(T, tmin, tmax) - tmin) / (tmax - tmin))[..., :3]
+    shade = 0.45 + 0.55 * hs                           # relief modulation
+    rgb = np.clip(col * shade[..., None], 0, 1)
+    return rgb, tmin, tmax
 
 
 def _mark_sites(ax, callout=False, rects=False):
@@ -137,10 +165,9 @@ def draw_global_topo(ax):
 
 
 def draw_global_temp(ax):
-    field, tmin, tmax = _temp_field()
-    ax.imshow(field, extent=(-180, 180, -90, 90), origin="upper",
-              aspect="auto", zorder=1, cmap=TEMP_CMAP, vmin=tmin, vmax=tmax,
-              interpolation="bilinear")
+    rgb, tmin, tmax = _temp_field()                   # temperature draped on relief
+    ax.imshow(rgb, extent=(-180, 180, -90, 90), origin="upper",
+              aspect="auto", zorder=1, interpolation="bilinear")
     _global_axes(ax); _mark_sites(ax, callout=False, rects=False)
     ax.set_yticklabels([])                    # same latitude axis as (a)
     ax.set_title("(b)  Mean surface temperature", fontsize=FS_TITLE,

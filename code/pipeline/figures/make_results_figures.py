@@ -888,7 +888,7 @@ def fig_thermal_profiles(d, out_path):
         lD = ax_f.errorbar(T_obs[deep], z_obs[deep], xerr=T_err[deep],
                            fmt="o", ms=6.5, color=C_site, mec="white", mew=0.9,
                            elinewidth=0.9, capsize=3, zorder=3,
-                           label="HFE deep sensors (used in retrieval)")
+                           label="HFE meter-scale sensors (used in retrieval)")
 
         ax_f.axhspan(0, site_cfg['MIN_DEPTH_CM'], color=C_GRID, alpha=0.45, zorder=0)
         # left edge of the band is empty at both sites (profiles and excluded
@@ -947,7 +947,7 @@ def fig_thermal_profiles(d, out_path):
         fmt_axis(ax_z,
                  xlabel=r"$T$ (K)",
                  ylabel="Depth  (cm)" if col == 0 else "",
-                 title=f"({col_labels[col+2]})  {site_cfg['label']},  deep-sensor zoom")
+                 title=f"({col_labels[col+2]})  {site_cfg['label']},  meter-scale zoom")
         ax_z.yaxis.set_minor_locator(mtick.AutoMinorLocator())
         ax_z.xaxis.set_minor_locator(mtick.AutoMinorLocator())
 

@@ -207,9 +207,13 @@ RMSE by 8\% (Apollo 15) and 55\% (Apollo 17) relative to the global
 $K_d=3.4$. The inter-site contrast,
 $\Delta K_d^{*}=2.3^{+0.7}_{-0.9}$ mW m$^{-1}$ K$^{-1}$ (95\% CI
 $[-0.1,\,3.6]$), marginally includes zero at the published basal heat
-fluxes ($P_{\rm boot}(\Delta K_d^{*}{\le}0)\approx 0.03$), while propagating the basal-flux reanalysis envelope through a
-joint $(K_d,Q_b)$ posterior leaves the ordering essentially certain
-($\ge$99\%) at the cost of the absolute values. Both retrievals lie
+fluxes ($P_{\rm boot}(\Delta K_d^{*}{\le}0)\approx 0.03$). On the
+separate systematic axis, the \emph{ordering}
+$K_{d,\mathrm{A17}}^{*}\!>\!K_{d,\mathrm{A15}}^{*}$ is robust to the
+basal-flux reanalysis ($\ge$99\% across the published $Q_b$ envelope,
+sensor set held fixed) at the cost of the absolute values; the sensor
+and basal-flux axes are reported separately, not combined into one
+joint probability. Both retrievals lie
 within porosity, composition, and orbital benchmarks, and supply the
 meter-scale boundary condition required by future subsurface
 radiative-transfer retrievals, including the TSUKIMI terahertz mission.
@@ -1210,7 +1214,11 @@ uniform-conductivity alternative in which the two basal heat fluxes differ.
 \caption{Pooled \old{deep-sensor }\new{meter-scale-sensor }model comparison
 ($N=23$: $7$ at A15, $16$ at A17). M1 retrieves a per-site $K_d$; M2 shares
 one $K_d$ and frees the per-site $Q_b$ within the published envelope; M3
-fixes both. $\Delta$AICc is relative to the best model. $K_d$ in
+fixes both. \new{The three models are compared on a shared coarse
+($1$\,mW) $K_d$ grid, so their tabulated $K_d$ are rounded relative to
+the dense per-site headline retrieval ($4.60/7.08$); the pooled test
+probes model \emph{structure}, not the vertex location.} $\Delta$AICc
+is relative to the best model. $K_d$ in
 mW\,m$^{-1}$\,K$^{-1}$, $Q_b$ in mW\,m$^{-2}$.}
 \label{tab:modelcomp}
 \begin{tabular}{llccc}
@@ -1864,7 +1872,12 @@ $P(K_d^{\rm A17}>K_d^{\rm A15})\ge 99\%$ across the
 most adverse independent $Q_b$ pairing only reduces the contrast to
 $\sim$$+1.5$ mW m$^{-1}$ K$^{-1}$ without erasing it. What the flux
 debate does forfeit is the \emph{absolute} magnitude of both $K_d$
-values and of their contrast}. \emph{(iv)} The
+values and of their contrast. These two robustness statements ---
+the $\sim$97\% sensor bootstrap and the $\ge$99\% $Q_b$-envelope
+ordering --- address orthogonal uncertainty axes and are not combined
+into a single joint probability; a hierarchical treatment carrying
+both simultaneously (caveat vii) would leave the sign intact but widen
+the interval}. \emph{(iv)} The
 retrieval adopts the
 \citet{hayne2017} functional form for $K(T,z)$; alternative piecewise
 parameterizations are not exhausted, and a full per-site

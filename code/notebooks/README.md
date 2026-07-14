@@ -28,6 +28,7 @@ touches, so you can jump from a notebook to the code behind it.
 | 05 | `05_animations.ipynb` | Builds the teaching animations from the real solver | `lunar.{config,equilibrium,grid,properties,solver}`, `lunar.plotting` |
 | 06 | `06_figure_editor.ipynb` | Interactive figure tweaking against archived bootstrap draws | `lunar._bootstrap`, `lunar.plotting`, `make_results_figures` |
 | 07 | `07_cpp_solver.ipynb` | Head-to-head of the Python vs C++ solver | `pipeline/compute/benchmark_cpp.py`, `lunar.{config,grid,solver,_bootstrap}` |
+| 08 | `08_mapping_scaleup.ipynb` | Simulate a **region of the Moon** with global values; compare the process (naive per-pixel vs latitude-symmetry) across the Python/Numba/C++ backends | `lunar.{config,constants,grid,solver,plotting}`, `results/cpp_benchmark.json` |
 | — | `equilibrium_demo.ipynb` | Standalone demo of the flux-anchored equilibrium method | `lunar.equilibrium` (`solve_periodic_equilibrium`, `profile_at_time`), `lunar.{config,grid,properties,solver}` |
 
 ## The reproduction pipeline (the *other* order — `make all`)

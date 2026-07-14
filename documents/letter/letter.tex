@@ -1504,27 +1504,6 @@ $K_d$ values remain in the milliwatt-per-meter-per-kelvin range expected
 for porous lunar regolith, and the A17/A15 ratio is covered by plausible
 porosity and lithology differences.
 
-Prior in-situ estimates on the same HFE record provide the sharpest
-external reference, provided the comparison is made at matching
-definition. The original in-situ reductions reported
-\emph{total} effective conductivities of the compacted regolith below
-$\sim$10 cm of $10\pm1$ (A15) and $15\pm1.5$ (A17)
-mW m$^{-1}$ K$^{-1}$ \citep{langseth1976}.
-% provenance: ALSEP Final Technical Report summary table (p.5): 'Average
-% conductivity below 10 cm, mW/m-K: 10 +/-10% (A15), 15 +/-10% (A17)';
-% verified from code/references/lunar_hfe_study_pack, audit 2026-07-13.
-Compared at that common definition, the present retrieval
-reproduces the historical in-situ values: the effective
-$K(T,z)$ at the retained sensors, evaluated at $K_d^{*}$, is 9.3 (A15)
-and 14.6 (A17) mW m$^{-1}$ K$^{-1}$ --- within $\sim$7\% of
-\citet{langseth1976} at both sites, including the A17 $>$ A15 ordering.
-The contribution of this work is therefore not an upward revision of the
-in-situ conductivity but its re-parameterization: a Diviner-consistent
-$K(T,z)$ form with a single per-site free parameter, a defensible
-contact/radiative decomposition, and a quantified uncertainty budget;
-subsequent reanalyses of the reduction assumptions
-\citep{keihm1984,grott2010} are subsumed rather than extended.
-
 \paragraph*{Surface-temperature consistency check.}
 The Diviner GCP is external to the retrieval (it enters neither the
 bootstrap nor the meter-scale-sensor RMSE), so it
@@ -1576,21 +1555,14 @@ coefficients. Local-solar-time axis centered on midnight (shaded band LST
 \label{sec:disc-plausibility}
 
 \paragraph*{Apollo 15.} The retrieval gives
-$K_d^{\mathrm{A15}}=4.60\,\si{\milli\watt\per\meter\per\kelvin}$. This value
-sits between the global \citet{hayne2017} value (3.4) and the regional
-\citet{vasavada2012} orbital estimate ($\sim$7), both parameters of the same contact family; at matching
-definition, its implied effective conductivity at the sensors
-(9.3 mW m$^{-1}$ K$^{-1}$) reproduces the original \citet{langseth1976}
-in-situ reduction ($10\pm1$) to within $\sim$7\%. Porosity provides the physical mechanism: the effective-medium
-scaling $K_\mathrm{eff}\propto(1-\phi)^2$ of \citet{wood2020}, applied
-across the Apollo-core porosity envelope $\phi\!\sim\!0.30$--0.45
-\citep{mitchell1973,carrier1991} and combined with the radiative term of
-the Hayne form, brackets $\sim$3--6 mW m$^{-1}$ K$^{-1}$. The retrieved
-4.60 falls inside that range. The order-of-magnitude gap between the in-situ effective value and direct
-laboratory measurements \citep{cremers1971,horai1981} reflects the standard
-lab-vs-in-situ systematic: laboratory samples lose the meter-scale
-grain-contact network and the radiative pathways that dominate the in-situ
-response. A15 is physically admissible.
+$K_d^{\mathrm{A15}}=4.60\,\si{\milli\watt\per\meter\per\kelvin}$, above the
+global \citet{hayne2017} value ($3.4$). Porosity provides the physical
+mechanism: the effective-medium scaling $K_\mathrm{eff}\propto(1-\phi)^2$
+of \citet{wood2020}, applied across the Apollo-core porosity envelope
+$\phi\!\sim\!0.30$--0.45 \citep{mitchell1973,carrier1991} and combined with
+the radiative term of the Hayne form, brackets $\sim$3--6
+mW m$^{-1}$ K$^{-1}$. The retrieved $4.60$ falls inside that range, so A15
+is physically admissible.
 
 \paragraph*{Apollo 17.} The retrieval gives
 $K_d^{\mathrm{A17}}=7.08\,\si{\milli\watt\per\meter\per\kelvin}$,
@@ -1604,9 +1576,8 @@ mare/highland margin \citep{korotev2005,wieczorek2006,crawford2015}.
 Second, the porosity-driven $K$ scaling at the upper end of the Apollo-core
 range contributes a further $\sim$1.5$\times$ enhancement \citep{wood2020}.
 The product, $\sim$1.9$\times$, comfortably covers the
-retrieved $\sim$1.5$\times$ ratio within the bootstrap uncertainty. Neither contributor is
-required at its extreme, and the value sits just above the
-\citet{vasavada2012} orbital estimate of $\sim$7.
+retrieved $\sim$1.5$\times$ ratio within the bootstrap uncertainty. Neither
+contributor is required at its extreme.
 
 A complementary test against the \citet{martinez2021}
 $K(T,\rho)$ form (\S\ref{sec:disc-prior}, Fig.~S1, Supporting Information)

@@ -904,8 +904,7 @@ parameters at published values). Meter-scale-sensor RMSE($K_d$) at each site,
 extended past the fitting grid so each curve rises again on the high-$K_d$
 side --- the minima are genuine bracketed bowls. Stars: retrieved $K_d^{*}$
 (horizontal bars: 95\% bootstrap CI); markers: forward-model evaluations.
-Dashed vertical: \citet{hayne2017} global $K_d=3.4$; dotted:
-\citet{feng2020} deep value $K_d=3.8$.}
+Dashed vertical: \citet{hayne2017} global $K_d=3.4$.}
 \label{fig:kdsweep}
 \end{figure}
 
@@ -1476,33 +1475,15 @@ natural follow-on study.
 % the AGU publication-unit guideline. Main-text references now point to
 % "Figure S1 (Supporting Information)".
 
-The inferred ratio
-$K_d^{\mathrm{A17}}/K_d^{\mathrm{A15}}\approx 1.5$ is
-physically plausible if interpreted as a conductivity
-effect. Two
-mechanisms act in the appropriate direction and jointly cover the
-required factor. First, Apollo cores span bulk
-porosities $\phi\sim 0.30$--0.45 \citep{mitchell1973,carrier1991}; the
-effective-medium scaling $K_\mathrm{eff}\propto(1-\phi)^2$ of
-\citet{wood2020} accounts for a factor of $\sim$1.5 change at the upper end
-of that range. Second, solid lunar basalt is $\sim$30\% more conductive
-than solid highland anorthosite \citep{horai1972}, and A17 lies in a
-basaltic embayment while A15 occupies a mixed mare/highland margin
-\citep{korotev2005,wieczorek2006,crawford2015}; the product of the
-two mechanisms ($\sim$1.9) comfortably covers the retrieved ratio
-without requiring either at its extreme.
-
-This is the physical sense in which the result is realistic despite
-the steady-state model/data distinction. The solver represents the
-asymptotic regolith column that would exist under repeated solar forcing
-and the basal heat flux; the Apollo late tails are imperfect observations
-of that same asymptote because the probes were still recovering from
-emplacement. Residual drift can bias individual $T_\mathrm{eq}$ estimates
-by fractions of a kelvin, so it belongs in the systematic error budget, but
-it does not require an unphysical conductivity: the retrieved
-$K_d$ values remain in the milliwatt-per-meter-per-kelvin range expected
-for porous lunar regolith, and the A17/A15 ratio is covered by plausible
-porosity and lithology differences.
+The retrieved values reflect the steady-state model/data distinction. The
+solver represents the asymptotic regolith column that would exist under
+repeated solar forcing and the basal heat flux; the Apollo late tails are
+imperfect observations of that same asymptote because the probes were still
+recovering from emplacement. Residual drift can bias individual
+$T_\mathrm{eq}$ estimates by fractions of a kelvin, so it belongs in the
+systematic error budget, but it does not require an unphysical conductivity:
+the retrieved $K_d$ values remain in the milliwatt-per-meter-per-kelvin
+range expected for porous lunar regolith.
 
 \paragraph*{Surface-temperature consistency check.}
 The Diviner GCP is external to the retrieval (it enters neither the
@@ -1556,28 +1537,13 @@ coefficients. Local-solar-time axis centered on midnight (shaded band LST
 
 \paragraph*{Apollo 15.} The retrieval gives
 $K_d^{\mathrm{A15}}=4.60\,\si{\milli\watt\per\meter\per\kelvin}$, above the
-global \citet{hayne2017} value ($3.4$). Porosity provides the physical
-mechanism: the effective-medium scaling $K_\mathrm{eff}\propto(1-\phi)^2$
-of \citet{wood2020}, applied across the Apollo-core porosity envelope
-$\phi\!\sim\!0.30$--0.45 \citep{mitchell1973,carrier1991} and combined with
-the radiative term of the Hayne form, brackets $\sim$3--6
-mW m$^{-1}$ K$^{-1}$. The retrieved $4.60$ falls inside that range, so A15
-is physically admissible.
+global \citet{hayne2017} value ($3.4$) and within the range expected for
+porous lunar regolith.
 
 \paragraph*{Apollo 17.} The retrieval gives
-$K_d^{\mathrm{A17}}=7.08\,\si{\milli\watt\per\meter\per\kelvin}$,
-roughly twice the global Hayne value and 1.5 times
-the A15 retrieval. Two
-mechanisms acting together cover this
-range comfortably. First, solid lunar basalt
-is $\sim$30\% more conductive than highland anorthosite \citep{horai1972};
-A17 lies in a basaltic embayment of Mare Serenitatis while A15 occupies a
-mare/highland margin \citep{korotev2005,wieczorek2006,crawford2015}.
-Second, the porosity-driven $K$ scaling at the upper end of the Apollo-core
-range contributes a further $\sim$1.5$\times$ enhancement \citep{wood2020}.
-The product, $\sim$1.9$\times$, comfortably covers the
-retrieved $\sim$1.5$\times$ ratio within the bootstrap uncertainty. Neither
-contributor is required at its extreme.
+$K_d^{\mathrm{A17}}=7.08\,\si{\milli\watt\per\meter\per\kelvin}$, roughly
+twice the global Hayne value and $1.5$ times the A15 retrieval, and likewise
+within the porous-regolith range.
 
 A complementary test against the \citet{martinez2021}
 $K(T,\rho)$ form (\S\ref{sec:disc-prior}, Fig.~S1, Supporting Information)

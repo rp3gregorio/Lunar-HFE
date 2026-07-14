@@ -535,8 +535,6 @@ def fig_kd_sweep():
     # Subtle reference verticals first so curves sit on top.
     ax.axvline(3.4, color=C_HAYNE, ls="--", lw=1.0, alpha=0.55,
                label="Hayne 2017 global  $K_d = 3.4$", zorder=1)
-    ax.axvline(3.8, color=C_FOREST, ls=":", lw=1.0, alpha=0.55,
-               label="Feng 2020 deep value  $K_d = 3.8$", zorder=1)
 
     for name, color in [("A15", C_A15), ("A17", C_A17)]:
         s    = d[name]

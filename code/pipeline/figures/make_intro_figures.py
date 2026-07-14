@@ -451,7 +451,7 @@ def fig_intro_probe():
                        label="Borestem zone ($z < 80$ cm)")
     hay_h  = Line2D([0], [0], color=C_TEAL, lw=2.4,
                     label=r"Hayne (2017) $K(z)$ at $K_d^{\mathrm{publ.}}=3.4$")
-    mar_h  = Line2D([0], [0], color=C_CORAL, lw=2.2, ls="--",
+    mar_h  = Line2D([0], [0], color=C_MS, lw=2.2, ls="--",
                     label="Martínez & Siegler (2021) " r"$K(T,\rho)$")
     fig.legend(handles=[deep_h, shal_h, bore_h, hay_h, mar_h],
                loc="lower center", bbox_to_anchor=(0.5, 0.005),

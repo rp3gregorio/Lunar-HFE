@@ -303,9 +303,12 @@ _KD_HAYNE  = 3.4e-3    # W m^-1 K^-1, deep asymptote
 _CHI_HAYNE = 2.7       # radiative coefficient
 _TREF      = 350.0     # K, Hayne radiative normalisation
 
-# Mart{\'\i}nez & Siegler (2021) published coefficients
+# Mart{\'\i}nez & Siegler (2021) published coefficients (Eq. 10). Values must
+# match lunar.constants (the single source of truth) -- this display copy had
+# drifted to B1 = 2.022e-13, the typo in Martinez's companion MATLAB code; the
+# published LPSC value verified from the paper is 2.0022e-13 (see constants.py).
 _MS_A1, _MS_A2 = 5.0821e-6, -0.0051        # contact term
-_MS_B1, _MS_B2 = 2.022e-13, -1.953e-10     # radiative term
+_MS_B1, _MS_B2 = 2.0022e-13, -1.953e-10    # radiative term
 # Woods-Robinson amorphous polynomial k_am(T), Mart{\'\i}nez 2021 App.
 _MS_KAM = dict(
     A=-2.03297e-1, B=-11.472, C=22.5793, D=-14.3084, E=3.41742,

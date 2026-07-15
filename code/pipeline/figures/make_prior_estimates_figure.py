@@ -126,6 +126,15 @@ def main():
             fontsize=8.5, color=C_CHAR, zorder=6)
     ax.text(2028.2, 5.85, r"$K_d^{*}$", ha="left", va="center",
             fontsize=8.5, color=C_CHAR, zorder=6)
+    # callout box: point out WHY this work has two stars per site
+    ax.text(1983.5, 8.7,
+            r"$K_\mathrm{eff}$ (open) $\approx 2\,K_d$ (filled)" + "\n"
+            "for the same retrieval:\n"
+            r"the radiative term is in $K_\mathrm{eff}$," + "\n"
+            r"not in the contact $K_d$",
+            fontsize=6.3, color=C_CHAR, ha="left", va="center",
+            bbox=dict(boxstyle="round,pad=0.4", facecolor="white",
+                      edgecolor=C_GRID, alpha=0.96), zorder=7)
 
     from matplotlib.lines import Line2D
     handles = [

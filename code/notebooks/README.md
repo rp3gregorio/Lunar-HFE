@@ -1,10 +1,17 @@
 # Notebooks — reading order and which code each one uses
 
 This folder is the **narrated walkthrough** of the project, in the order a
-reader should follow it (00 → 07, then the two demos). Each notebook drives
-the real `src/lunar` engine and/or the `pipeline/` scripts — it does **not**
+reader should follow it (**00 → 06**). Each notebook drives the real
+`src/lunar` engine and/or the `pipeline/` scripts — it does **not**
 re-implement physics. The table says exactly which `.py` files each notebook
 touches, so you can jump from a notebook to the code behind it.
+
+**Two tracks.** `00 → 04` is the **letter pipeline**: run them and they
+regenerate every one of the 11 figures in `letter.pdf` into the shared
+top-level `figures/` (02 first, for the retrieval JSON the figure notebooks
+read). `05` and `06` are the **method & performance explainers** — how the
+flux-anchored solver works, and how the three solver backends compare and
+scale to a map.
 
 > The three code layers, in one line:
 > - **`src/lunar/`** — the *engine* (importable library: the solver, the
@@ -21,15 +28,12 @@ touches, so you can jump from a notebook to the code behind it.
 | # | Notebook | What it does | Key code it uses |
 |---|----------|--------------|------------------|
 | 00 | `00_setup.ipynb` | Environment check; load the Apollo HFE record and solar geometry | `lunar.apollo_helpers`, `lunar.ephem` |
-| 01 | `01_methods.ipynb` | The methods-section figures (site context, probe geometry, timeline) | `pipeline/figures/`: `make_context_map_figure`, `make_intro_figures`, `make_apollo_timeline`, `make_letter_figures` |
-| 02 | `02_retrieval.ipynb` | The core K_d retrieval + bootstrap (the headline result) | `pipeline/compute/retrieve_kd.py` (`run_kd_sweep`, `kd_star`, `bootstrap`), run via `subprocess` |
-| 03 | `03_results.ipynb` | The results figures (RMSE bowls, thermal profiles) | `pipeline/figures/`: `make_letter_figures`, `make_results_figures` |
-| 04 | `04_discussion.ipynb` | Discussion diagnostics (Martínez α-sweep, prior estimates) | `pipeline/figures/`: `make_alpha_sweep_figure`, `make_results_figures` |
-| 05 | `05_animations.ipynb` | Builds the teaching animations from the real solver | `lunar.{config,equilibrium,grid,properties,solver}`, `lunar.plotting` |
-| 06 | `06_figure_editor.ipynb` | Interactive figure tweaking against archived bootstrap draws | `lunar._bootstrap`, `lunar.plotting`, `make_results_figures` |
-| 07 | `07_cpp_solver.ipynb` | Head-to-head of the Python vs C++ solver | `pipeline/compute/benchmark_cpp.py`, `lunar.{config,grid,solver,_bootstrap}` |
-| 08 | `08_mapping_scaleup.ipynb` | Simulate a **region of the Moon** with global values; compare the process (naive per-pixel vs latitude-symmetry) across the Python/Numba/C++ backends; drape the result on the **real surface** (Clementine albedo + LOLA relief) and add the **polar regions** | `lunar.{config,constants,grid,solver,plotting}`, `results/cpp_benchmark.json`, `figures/moon_global.png`, `aogs/data/lola/ldem_16.img` |
-| — | `equilibrium_demo.ipynb` | Standalone demo of the flux-anchored equilibrium method | `lunar.equilibrium` (`solve_periodic_equilibrium`, `profile_at_time`), `lunar.{config,grid,properties,solver}` |
+| 01 | `01_methods.ipynb` | Methods-section figures — probe schematic, site-context map, sensor timeline, amplitude-vs-depth (letter Figs 1–4) | `pipeline/figures/`: `make_intro_figures`, `make_context_map_figure`, `make_apollo_timeline_letter`, `make_letter_figures` |
+| 02 | `02_retrieval.ipynb` | The core K_d retrieval + bootstrap — writes `kd_retrieval_results.json` (the input every figure notebook reads) | `pipeline/compute/retrieve_kd.py`, run via `subprocess` |
+| 03 | `03_results.ipynb` | Results figures — mean-T profile, K_d sweep, bootstrap, thermal profiles, Diviner closure (letter Figs 5–9) | `pipeline/figures/`: `make_letter_figures`, `make_results_figures`; `pipeline/compute/compute_diviner_closure` |
+| 04 | `04_discussion.ipynb` | Discussion figures — inter-site robustness contrast, prior-K estimates (letter Figs 10–11) | `pipeline/figures/`: `make_results_figures`, `make_prior_estimates_figure` |
+| 05 | `05_method.ipynb` | **The flux-anchored method, explained + animated** — brute force vs. shortcut (same answer), three teaching GIFs, and reading profiles off a converged cycle. *(merged from the former `05_animations` + `equilibrium_demo`)* | `lunar.equilibrium` (`solve_periodic_equilibrium`, `profile_at_time`, `profile_at_local_time`), `lunar.{config,grid,properties,solver}`, `make_equilibrium_demo` |
+| 06 | `06_performance.ipynb` | **Performance & scale-up** — generic-Python vs. Numba vs. C++ speed (all three verified equal to ~1e-12 K), then scaling to a **region of the Moon** (naive per-pixel vs. latitude-symmetry, real-surface drape, poles). *(merged from the former `07_cpp_solver` + `08_mapping_scaleup`)* | `pipeline/compute/benchmark_cpp`, `cpp/solver.cpp`, `lunar.{config,constants,grid,solver,plotting}`, `results/cpp_benchmark.json`, `figures/moon_global.png`, `aogs/data/lola/ldem_16.img` |
 
 ## The reproduction pipeline (the *other* order — `make all`)
 

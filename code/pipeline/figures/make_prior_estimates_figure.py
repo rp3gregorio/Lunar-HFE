@@ -45,9 +45,11 @@ from lunar.apollo_helpers import extract_sensor_stability
 
 OUT = ROOT / ".." / "figures"
 
-# Revised in-situ reductions, TOTAL effective K, verified from Langseth et al.
-# (1976) Fig. 6 (annual-wave conductivity: A15 ~9.5-11, A17 ~12-13.5 mW/m/K).
-LANGSETH_INSITU = {"A15": (10.0, 1.0), "A17": (13.0, 1.0)}
+# Revised in-situ reductions, TOTAL effective K = kappa*rho*c_p from Langseth
+# et al. (1976) Table 1 annual-wave diffusivities (A15 0.74-0.87, A17
+# 0.88-1.00 e-4 cm^2/s) x c_p 0.67 (Hemingway 1973) x rho (Carrier 1974):
+# A15 8.7-11.1 -> 10.0 +/- 1.2; A17 10.8-14.0 -> 12.4 +/- 1.6 mW/m/K.
+LANGSETH_INSITU = {"A15": (10.0, 1.2), "A17": (12.4, 1.6)}
 # Cremers & Birkebak (1971) Apollo 12 lab fines, verified from the abstract.
 CREMERS_LAB = (1.2, 3.5)
 HAYNE_GLOBAL = 3.4        # Hayne et al. (2017), verified
@@ -57,7 +59,7 @@ FENG_GLOBAL = 3.8         # Feng et al. (2020), verified
 def main():
     d = json.loads((ROOT / "results" /
                     "kd_retrieval_results.json").read_text())
-    pts, keff = {}, {}
+    pts, keff, keff_ci = {}, {}, {}
     for site, mission in (("A15", "a15"), ("A17", "a17")):
         star = d[site]["kd_star"] * 1e3
         sm = np.array(d[site]["bootstrap"]["samples"]) * 1e3
@@ -69,6 +71,12 @@ def main():
         T = np.asarray(obs["T_eq_all"])[deep]
         keff[site] = 1e3 * float(np.mean(
             conductivity_hayne(T, z, Kd=d[site]["kd_star"])))
+        # 1-sigma bootstrap on the effective K: propagate the K_d samples
+        kb = np.array(d[site]["bootstrap"]["samples"])
+        eb = np.array([1e3 * float(np.mean(conductivity_hayne(T, z, Kd=ks)))
+                       for ks in kb])
+        e16, e50, e84 = np.percentile(eb, [15.865, 50, 84.135])
+        keff_ci[site] = (e50 - e16, e84 - e50)
 
     fig, ax = plt.subplots(figsize=(JGR_HALF, 3.6), constrained_layout=True)
 
@@ -98,15 +106,20 @@ def main():
                                            lw=0.7))
 
     # --- this work: both currencies, tied ----------------------------------
+    # Two DISTINCT quantities per site (not an error range): the contact
+    # asymptote K_d* (filled) and the effective K at the sensors (open) --
+    # the same retrieval in two definitions, ~2x apart via the radiative
+    # term. Each carries its own small 1-sigma bootstrap error bar.
     for site, col, dx in (("A15", C_A15, -0.7), ("A17", C_A17, 0.7)):
         star, lo, hi = pts[site]
+        elo, ehi = keff_ci[site]
         x = 2026 + dx
         ax.errorbar(x, star, yerr=[[lo], [hi]], fmt="*", ms=13, color=col,
                     mec="white", mew=0.8, elinewidth=1.3, capsize=3, zorder=5)
-        ax.plot(x, keff[site], "*", ms=11, mfc="white", mec=col, mew=1.5,
-                zorder=5)
-        ax.plot([x, x], [star, keff[site]], ":", color=col, lw=1.0, zorder=3)
-    ax.text(2026.0, 15.4, "this work", ha="center", va="center",
+        ax.errorbar(x, keff[site], yerr=[[elo], [ehi]], fmt="*", ms=11,
+                    mfc="white", mec=col, color=col, mew=1.5, elinewidth=1.1,
+                    capsize=2.5, zorder=5)
+    ax.text(2021.0, 12.4, "this work", ha="center", va="center",
             fontsize=7.5, color=C_CHAR, fontweight="bold", zorder=5)
 
     from matplotlib.lines import Line2D

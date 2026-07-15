@@ -201,7 +201,7 @@ def _draw_probe_schematic(ax):
     exploits."""
     from lunar.apollo_helpers import extract_sensor_stability
 
-    Z_TOP, Z_MAX = -26.0, 258.0
+    Z_TOP, Z_MAX = -34.0, 258.0
     ax.set_xlim(0, 100)
     ax.set_ylim(Z_MAX, Z_TOP)
     ax.axis("off")
@@ -233,8 +233,8 @@ def _draw_probe_schematic(ax):
 
     # surface line
     ax.plot([17, 100], [0, 0], color=C_CHAR, lw=1.4, zorder=3)
-    ax.text(18.5, -13, "Lunar surface", fontsize=FS_TICK - 1, color=C_CHAR,
-            style="italic", va="center", zorder=3)
+    ax.text(18.5, -8, "Lunar surface", fontsize=FS_TICK - 3, color=C_CHAR,
+            style="italic", ha="left", va="center", zorder=3)
 
     # depth axis on the gutter
     ax.plot([15, 15], [0, Z_MAX], color=C_CHAR, lw=0.9, zorder=3)
@@ -252,10 +252,10 @@ def _draw_probe_schematic(ax):
         sens = obs["sensors"]
         z_deep = max(s["depth_cm"] for s in sens)
 
-        # borestem tube (fibreglass rod), protruding a little above surface
+        # borestem tube (fibreglass rod), flush with the surface (no protrusion)
         tube_w = 8.4
-        ax.add_patch(FancyBboxPatch((xc - tube_w / 2, -15),
-                     tube_w, (z_deep + 9) + 15,
+        ax.add_patch(FancyBboxPatch((xc - tube_w / 2, 0),
+                     tube_w, z_deep + 9,
                      boxstyle="round,pad=0,rounding_size=1.1",
                      facecolor="#D8D1C4", edgecolor=C_DIM, lw=1.0, zorder=2))
 
@@ -270,14 +270,14 @@ def _draw_probe_schematic(ax):
                 ax.plot(xc + dx, z, "o", ms=5.0, mfc="white", mec=C_DIM,
                         mew=1.2, zorder=4)
 
-        # label the two probe strings (probe 1 nudged left, probe 2 right)
-        for dx, plab in ((-1.7, "P1"), (1.7, "P2")):
-            ax.text(xc + dx, 7.0, plab, fontsize=FS_TICK - 3.5, color=col,
+        # label the two probe strings just above the surface (P1 left, P2 right)
+        for dx, plab in ((-2.1, "P1"), (2.1, "P2")):
+            ax.text(xc + dx, -8, plab, fontsize=FS_TICK - 3.0, color=col,
                     ha="center", va="center", fontweight="bold", zorder=5)
 
-        # site name above the tube; deepest reach + count below it
-        ax.text(xc, Z_TOP + 3, name, fontsize=FS_LABEL, fontweight="bold",
-                color=col, ha="center", va="bottom", zorder=5)
+        # site name higher in the space band; deepest reach + count below tube
+        ax.text(xc, -23, name, fontsize=FS_LABEL, fontweight="bold",
+                color=col, ha="center", va="center", zorder=5)
         n_used = sum(1 for s in sens if s["depth_cm"] >= 80.0)
         ax.text(xc, z_deep + 13, f"{z_deep:.0f} cm  $\\cdot$  {n_used} used",
                 fontsize=FS_TICK - 2, color=col, ha="center", va="top",

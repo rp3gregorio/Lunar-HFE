@@ -119,20 +119,25 @@ def main():
         ax.errorbar(x, keff[site], yerr=[[elo], [ehi]], fmt="*", ms=11,
                     mfc="white", mec=col, color=col, mew=1.5, elinewidth=1.1,
                     capsize=2.5, zorder=5)
-    ax.text(2021.0, 12.4, "this work", ha="center", va="center",
+    ax.text(2020.5, 11.9, "this work", ha="center", va="center",
             fontsize=7.5, color=C_CHAR, fontweight="bold", zorder=5)
+    # name the two currencies next to their star pairs
+    ax.text(2028.2, 12.0, r"$K_\mathrm{eff}$", ha="left", va="center",
+            fontsize=8.5, color=C_CHAR, zorder=6)
+    ax.text(2028.2, 5.85, r"$K_d^{*}$", ha="left", va="center",
+            fontsize=8.5, color=C_CHAR, zorder=6)
 
     from matplotlib.lines import Line2D
     handles = [
         Line2D([], [], marker="o", ls="none", mfc="white", mec=C_CHAR,
-               mew=1.3, ms=7, label="total / effective $K$"),
+               mew=1.3, ms=7, label=r"open $K_\mathrm{eff}$: effective $K$"),
         Line2D([], [], marker="s", ls="none", color=C_CHAR, ms=6,
-               label="contact asymptote $K_d$"),
+               label=r"filled $K_d$: contact"),
     ]
     fmt_axis(ax, xlabel="year",
              ylabel=r"conductivity  (mW m$^{-1}$ K$^{-1}$)",
              title="Five decades of meter-scale conductivity estimates")
-    ax.set_xlim(1965, 2032)
+    ax.set_xlim(1965, 2034)
     ax.set_ylim(0, 16)
 
     ax.legend(handles, [h.get_label() for h in handles], ncol=1,

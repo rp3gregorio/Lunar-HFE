@@ -195,7 +195,7 @@ def main():
         # separation is invisible at full scale. The inset magnifies it in
         # the empty upper-centre band, above the trough and left of the
         # stats box; a zoom indicator ties it to the shaded night region.
-        axins = ax.inset_axes([0.27, 0.38, 0.40, 0.34])
+        axins = ax.inset_axes([0.30, 0.38, 0.40, 0.34])   # centred (was 0.27)
         _draw(axins, 1.7, lbl=False)
         axins.set_xlim(7.0, 17.0)                       # LST 19 -> 05
         lo, hi = np.inf, -np.inf

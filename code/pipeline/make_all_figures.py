@@ -33,6 +33,7 @@ JOBS = [
     ("make_alpha_sweep_figure", ["main"]),
     ("make_qb_degeneracy_figure", ["main"]),  # measured K_d*(Q_b) map (F-9)
     ("make_dt_ladder_figure",   ["main"]),    # dt certification teaching fig
+    ("make_prior_estimates_figure", ["main"]),  # 5-decade K_d context (verified)
     ("make_sweep_worked_figure", ["main"]),    # App-C worked sweep bowl (book)
     ("compute_diviner_closure", ["main"]),    # surface-T closure figure
     ("make_book_figures",       ["main"]),

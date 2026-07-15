@@ -1,0 +1,88 @@
+% =====================================================================
+%  Supporting Information scaffold — JGR:Planets
+%  Purpose: receive material moved from the main text to bring the
+%  manuscript inside AGU's 25-publication-unit guideline.
+%
+%  CURRENT PU ACCOUNTING (2026-07-04, certified build):
+%    main text ~9,100 words       = 18.2 PU
+%    11 figures + 4 tables        = 15   PU
+%    TOTAL                        ~ 33   PU   (guideline: 25)
+%
+%  RECOMMENDED MOVES (need co-author sign-off; each -1 PU unless noted):
+%    1. Symbols table (back matter)            -> Table S1
+%    2. Fig. amplitude-vs-depth (borestem diagnostic; caveat (v)
+%       already labels it diagnostic-only)     -> Figure S1
+%    3. Fig. kd_qb_posterior corner panels     -> Figure S2
+%       (keep fig_posterior_compare in main)
+%    4. Discussion subsec. "Physical plausibility" trimmed by ~600
+%       words with details here                -> Text S1 (-1.2 PU)
+%    5. Discussion subsec. "Comparison with prior estimates" keeps the
+%       new lineage figure + 1 paragraph; move per-study detail here
+%       -> Text S2 (-1 PU)
+%  Result: ~25-26 PU.
+% =====================================================================
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,graphicx,booktabs,siunitx}
+\usepackage[round,authoryear]{natbib}
+\bibliographystyle{plainnat}
+
+% AGU Supporting Information numbers figures/tables S1, S2, ...
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thetable}{S\arabic{table}}
+
+\title{Supporting Information for\\
+``Per-site meter-scale regolith thermal conductivity at the Apollo 15
+and 17 boreholes''}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{Contents of this file:} Text S1--S2, Figures S1--S2,
+Table S1 (to be populated on co-author approval of the moves listed in
+the header comment of this file).
+
+\section*{Introduction}
+This Supporting Information contains extended methodological detail and
+diagnostic material referenced from the main text. Figure~S1 is the
+per-site density-scalar diagnostic under the \citet{martinez2021}
+$K(T,\rho)$ form, cited from \S4.3 of the main text.
+
+% =====================================================================
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{figures/fig_alpha_sweep.pdf}
+\caption{Diagnostic per-site retrieval under the \citet{martinez2021}
+$K(T,\rho)$ conductivity form. Meter-scale-sensor RMSE as a function of
+the per-site density scalar $\alpha$ (main-text eq.~9), for both sites,
+with the retrieved $\alpha^{*}$ starred. The scalar $\alpha$ rescales the
+asymptotic (meter-scale) bulk density entering the Mart\'inez model,
+$\rho_d^{\text{site}}=\alpha\cdot 1800\ \mathrm{kg\,m^{-3}}$, leaving the
+four Mart\'inez coefficients fixed. Dashed teal: published Mart\'inez
+baseline ($\alpha=1$, $\rho_d=1800\ \mathrm{kg\,m^{-3}}$). Green
+verticals: Apollo-core admissible density range
+($\rho_d=1700$--$2000\ \mathrm{kg\,m^{-3}}$;
+\citealp{mitchell1973,carrier1991}). Dotted gray: solid-basalt upper
+bound ($3000\ \mathrm{kg\,m^{-3}}$; \citealp{wieczorek2006}). Both
+RMSE($\alpha$) bowls bottom inside or at the edge of the admissible band
+($\alpha^{*}_{\mathrm{A15}}=1.19$, $\rho_d^{*}\approx2139\ \mathrm{kg\,m^{-3}}$;
+$\alpha^{*}_{\mathrm{A17}}=1.04$, $\rho_d^{*}\approx1877\ \mathrm{kg\,m^{-3}}$),
+so the published $K(T,\rho)$ is physically admissible at both boreholes.
+The flat A17 bowl also shows that no admissible density adjustment closes
+the residual factor-of-$\sim$1.5 RMSE gap to the per-site Hayne fit;
+sharpening the A17 gradient further requires freedom in the conductivity
+mechanism (the contact/radiative split), not in the density input.}
+\label{fig:si-alpha-sweep}
+\end{figure}
+
+% --- remaining placeholders (populate on co-author approval) ----------
+% \section*{Text S1: Physical plausibility, extended}
+% \section*{Text S2: Prior estimates, study-by-study}
+% \section*{Figure S2}  \includegraphics{figures/fig_kd_qb_posterior.pdf}
+% \section*{Table S1: Symbols}
+
+\bibliography{references}
+
+\end{document}

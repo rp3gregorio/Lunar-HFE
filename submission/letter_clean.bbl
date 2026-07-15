@@ -1,0 +1,197 @@
+\begin{thebibliography}{24}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Acton et~al.(2018)Acton, Bachman, Semenov, and Wright]{acton2018}
+Charles Acton, Nathaniel Bachman, Boris Semenov, and Edward Wright.
+\newblock {A look toward the future in the handling of space science mission
+  geometry}.
+\newblock \emph{Planetary and Space Science}, 150:\penalty0 9--12, 2018.
+\newblock \doi{10.1016/j.pss.2017.02.013}.
+\newblock SPICE Toolkit; JPL DE440 ephemeris used here.
+
+\bibitem[Acton(1996)]{acton1996}
+Charles~H. Acton.
+\newblock {Ancillary data services of NASA's Navigation and Ancillary
+  Information Facility}.
+\newblock \emph{Planetary and Space Science}, 44\penalty0 (1):\penalty0 65--70,
+  1996.
+\newblock \doi{10.1016/0032-0633(95)00107-7}.
+
+\bibitem[Bandfield et~al.(2015)Bandfield, Hayne, Williams, Greenhagen, and
+  Paige]{bandfield2015}
+J.~L. Bandfield, P.~O. Hayne, J.-P. Williams, B.~T. Greenhagen, and D.~A.
+  Paige.
+\newblock {Lunar surface roughness derived from LRO Diviner Radiometer
+  observations}.
+\newblock \emph{Icarus}, 248:\penalty0 357--372, 2015.
+\newblock \doi{10.1016/j.icarus.2014.11.009}.
+
+\bibitem[Burnham and Anderson(2002)]{burnham2002}
+K.~P. Burnham and D.~R. Anderson.
+\newblock \emph{{Model Selection and Multimodel Inference: A Practical
+  Information-Theoretic Approach}}.
+\newblock Springer-Verlag, 2nd edition, 2002.
+
+\bibitem[Carrier et~al.(1991)Carrier, Olhoeft, and Mendell]{carrier1991}
+W.~D. Carrier, G.~R. Olhoeft, and W.~Mendell.
+\newblock {Physical properties of the lunar surface}.
+\newblock In G.~Heiken, D.~Vaniman, and B.~French, editors, \emph{Lunar
+  Sourcebook: A User's Guide to the Moon}, pages 475--594. Cambridge University
+  Press, 1991.
+
+\bibitem[Crawford(2015)]{crawford2015}
+I.~A. Crawford.
+\newblock {Lunar resources: A review}.
+\newblock \emph{Progress in Physical Geography}, 39\penalty0 (2):\penalty0
+  137--167, 2015.
+\newblock \doi{10.1177/0309133314567585}.
+
+\bibitem[Cremers and Birkebak(1971)]{cremers1971}
+C.~J. Cremers and R.~C. Birkebak.
+\newblock {Thermal conductivity of fines from Apollo 12}.
+\newblock \emph{Proc. Lunar Sci. Conf.}, 2:\penalty0 2311--2315, 1971.
+
+\bibitem[Efron and Tibshirani(1993)]{efron1993}
+B.~Efron and R.~J. Tibshirani.
+\newblock \emph{{An Introduction to the Bootstrap}}.
+\newblock Chapman \& Hall/CRC, 1993.
+
+\bibitem[Feng et~al.(2020)Feng, Siegler, and Hayne]{feng2020}
+J.~Feng, M.~A. Siegler, and P.~O. Hayne.
+\newblock {New constraints on thermal and dielectric properties of lunar
+  regolith from LRO Diviner and CE-2 microwave radiometer}.
+\newblock \emph{Journal of Geophysical Research: Planets}, 125\penalty0
+  (1):\penalty0 e2019JE006130, 2020.
+\newblock \doi{10.1029/2019JE006130}.
+
+\bibitem[Hayne et~al.(2017)Hayne, Bandfield, Siegler, Vasavada, Ghent,
+  Williams, Greenhagen, Aharonson, Elder, Lucey, and Paige]{hayne2017}
+P.~O. Hayne, J.~L. Bandfield, M.~A. Siegler, A.~R. Vasavada, R.~R. Ghent, J.-P.
+  Williams, B.~T. Greenhagen, O.~Aharonson, C.~M. Elder, P.~G. Lucey, and D.~A.
+  Paige.
+\newblock {Global Regolith Thermophysical Properties of the Moon From the
+  Diviner Lunar Radiometer Experiment}.
+\newblock \emph{Journal of Geophysical Research: Planets}, 122\penalty0
+  (12):\penalty0 2371--2400, 2017.
+\newblock \doi{10.1002/2017JE005387}.
+
+\bibitem[Hemingway et~al.(1973)Hemingway, Robie, and Wilson]{hemingway1973}
+B.~S. Hemingway, R.~A. Robie, and W.~H. Wilson.
+\newblock {Specific heats of lunar soils, basalt, and breccias from the Apollo
+  14, 15, and 16 landing sites between 90 and 350 K}.
+\newblock Open-File Report 73-149, U.S. Geological Survey, 1973.
+\newblock Polynomial fit subsequently adopted by Hayne et al.\ (2017) Appendix
+  A.
+
+\bibitem[Kasai et~al.(2022)Kasai, Sato, Yamada, Hasegawa, and
+  team]{tsukimi2022}
+Y.~Kasai, T.~Sato, T.~Yamada, Y.~Hasegawa, and TSUKIMI team.
+\newblock {TSUKIMI: Lunar Terahertz SUrveyor for KIlometer-scale MappIng
+  \textemdash{} a terahertz remote-sensing mission for sub-surface water and
+  resource mapping}.
+\newblock In \emph{44th COSPAR Scientific Assembly}, page 291, 2022.
+\newblock Bibcode 2022cosp...44..291W; \url{https://www.tsukimi.one/}; National
+  Institute of Information and Communications Technology (NICT), JAXA,
+  University of Tokyo, Osaka Prefecture University consortium.
+
+\bibitem[Kopp and Lean(2011)]{kopp2011}
+G.~Kopp and J.~L. Lean.
+\newblock {A new, lower value of total solar irradiance: Evidence and climate
+  significance}.
+\newblock \emph{Geophys. Res. Lett.}, 38:\penalty0 L01706, 2011.
+\newblock \doi{10.1029/2010GL045777}.
+
+\bibitem[Korotev(2005)]{korotev2005}
+R.~L. Korotev.
+\newblock {Lunar geochemistry as told by lunar meteorites}.
+\newblock \emph{Chemie der Erde / Geochemistry}, 65\penalty0 (4):\penalty0
+  297--346, 2005.
+\newblock \doi{10.1016/j.chemer.2005.07.001}.
+
+\bibitem[Langseth et~al.(1972)Langseth, Clark, Chute, Keihm, and
+  Wechsler]{langseth1972}
+M.~G. Langseth, S.~P. Clark, J.~L. Chute, S.~J. Keihm, and A.~E. Wechsler.
+\newblock {The Apollo 15 lunar heat-flow measurement}.
+\newblock \emph{The Moon}, 4:\penalty0 390--410, 1972.
+\newblock \doi{10.1007/BF00562006}.
+
+\bibitem[Langseth et~al.(1976)Langseth, Keihm, and Peters]{langseth1976}
+M.~G. Langseth, S.~J. Keihm, and K.~Peters.
+\newblock {Revised lunar heat-flow values}.
+\newblock \emph{Proc. Lunar Sci. Conf. 7}, pages 3143--3171, 1976.
+
+\bibitem[Mart{\'\i}nez and Siegler(2021)]{martinez2021}
+A.~Mart{\'\i}nez and M.~A. Siegler.
+\newblock {A global thermal conductivity model for the surface of the Moon}.
+\newblock \emph{Journal of Geophysical Research: Planets}, 126\penalty0
+  (11):\penalty0 e2021JE006829, 2021.
+\newblock \doi{10.1029/2021JE006829}.
+
+\bibitem[Mitchell et~al.(1973)Mitchell, Houston, Carrier, and
+  Costes]{mitchell1973}
+J.~K. Mitchell, W.~N. Houston, W.~D. Carrier, and N.~C. Costes.
+\newblock {Apollo soil mechanics experiment S-200, final report}.
+\newblock \emph{NASA Contractor Report (NASA-CR-134306), Space Sciences
+  Laboratory Series}, 15\penalty0 (7), 1973.
+\newblock Bulk density 1.4--1.8 g/cm$^3$; porosity 0.30--0.45 across Apollo
+  cores.
+
+\bibitem[Nagihara et~al.(2018)Nagihara, Kiefer, Taylor, Williams, and
+  Nakamura]{nagihara2018}
+S.~Nagihara, W.~S. Kiefer, P.~T. Taylor, D.~R. Williams, and Y.~Nakamura.
+\newblock {Examination of the long-term subsurface warming observed at the
+  Apollo 15 and 17 sites utilizing the newly restored heat flow experiment data
+  from 1975 to 1977}.
+\newblock \emph{Journal of Geophysical Research: Planets}, 123\penalty0
+  (5):\penalty0 1125--1139, 2018.
+\newblock \doi{10.1029/2018JE005579}.
+
+\bibitem[Press et~al.(2007)Press, Teukolsky, Vetterling, and
+  Flannery]{press2007}
+W.~H. Press, S.~A. Teukolsky, W.~T. Vetterling, and B.~P. Flannery.
+\newblock \emph{{Numerical Recipes: The Art of Scientific Computing}}.
+\newblock Cambridge University Press, 3rd edition, 2007.
+
+\bibitem[Saito et~al.(2007)Saito, Tanaka, Takita, Horai, and
+  Hagermann]{saito2007}
+Y.~Saito, S.~Tanaka, J.~Takita, K.~Horai, and A.~Hagermann.
+\newblock {Lunar heat flow experiment for SELENE-2}.
+\newblock \emph{Adv. Space Res.}, 40:\penalty0 1601--1607, 2007.
+\newblock \doi{10.1016/j.asr.2007.07.007}.
+
+\bibitem[Vasavada et~al.(2012)Vasavada, Bandfield, Greenhagen, Hayne, Siegler,
+  Williams, and Paige]{vasavada2012}
+A.~R. Vasavada, J.~L. Bandfield, B.~T. Greenhagen, P.~O. Hayne, M.~A. Siegler,
+  J.-P. Williams, and D.~A. Paige.
+\newblock {Lunar equatorial surface temperatures and regolith properties from
+  the Diviner Lunar Radiometer Experiment}.
+\newblock \emph{Journal of Geophysical Research: Planets}, 117\penalty0 (E12),
+  2012.
+\newblock \doi{10.1029/2011JE003987}.
+
+\bibitem[Wieczorek et~al.(2006)Wieczorek, Jolliff, Khan, Pritchard, Weiss,
+  Williams, Hood, Righter, Neal, Shearer, McCallum, Tompkins, Hawke, Peterson,
+  Gillis, and Bussey]{wieczorek2006}
+M.~A. Wieczorek, B.~L. Jolliff, A.~Khan, M.~E. Pritchard, B.~P. Weiss, J.~G.
+  Williams, L.~L. Hood, K.~Righter, C.~R. Neal, C.~K. Shearer, I.~S. McCallum,
+  S.~Tompkins, B.~R. Hawke, C.~Peterson, J.~J. Gillis, and B.~Bussey.
+\newblock {The constitution and structure of the lunar interior}.
+\newblock In \emph{Reviews in Mineralogy and Geochemistry}, volume~60, pages
+  221--364. 2006.
+\newblock \doi{10.2138/rmg.2006.60.3}.
+
+\bibitem[Williams et~al.(2017)Williams, Paige, Greenhagen, and
+  Sefton-Nash]{williams2017diviner}
+J.-P. Williams, D.~A. Paige, B.~T. Greenhagen, and E.~Sefton-Nash.
+\newblock {The global surface temperatures of the Moon as measured by the
+  Diviner Lunar Radiometer Experiment}.
+\newblock \emph{Icarus}, 283:\penalty0 300--325, 2017.
+\newblock \doi{10.1016/j.icarus.2016.08.012}.
+\newblock GCP global cumulative product; LRO-L-DLRE-5-GCP-V1.0, DOI
+  10.17189/1520650.
+
+\end{thebibliography}

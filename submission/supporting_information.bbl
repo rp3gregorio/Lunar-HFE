@@ -1,0 +1,42 @@
+\begin{thebibliography}{4}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Carrier et~al.(1991)Carrier, Olhoeft, and Mendell]{carrier1991}
+W.~D. Carrier, G.~R. Olhoeft, and W.~Mendell.
+\newblock {Physical properties of the lunar surface}.
+\newblock In G.~Heiken, D.~Vaniman, and B.~French, editors, \emph{Lunar
+  Sourcebook: A User's Guide to the Moon}, pages 475--594. Cambridge University
+  Press, 1991.
+
+\bibitem[Mart{\'\i}nez and Siegler(2021)]{martinez2021}
+A.~Mart{\'\i}nez and M.~A. Siegler.
+\newblock {A global thermal conductivity model for the surface of the Moon}.
+\newblock \emph{Journal of Geophysical Research: Planets}, 126\penalty0
+  (11):\penalty0 e2021JE006829, 2021.
+\newblock \doi{10.1029/2021JE006829}.
+
+\bibitem[Mitchell et~al.(1973)Mitchell, Houston, Carrier, and
+  Costes]{mitchell1973}
+J.~K. Mitchell, W.~N. Houston, W.~D. Carrier, and N.~C. Costes.
+\newblock {Apollo soil mechanics experiment S-200, final report}.
+\newblock \emph{NASA Contractor Report (NASA-CR-134306), Space Sciences
+  Laboratory Series}, 15\penalty0 (7), 1973.
+\newblock Bulk density 1.4--1.8 g/cm$^3$; porosity 0.30--0.45 across Apollo
+  cores.
+
+\bibitem[Wieczorek et~al.(2006)Wieczorek, Jolliff, Khan, Pritchard, Weiss,
+  Williams, Hood, Righter, Neal, Shearer, McCallum, Tompkins, Hawke, Peterson,
+  Gillis, and Bussey]{wieczorek2006}
+M.~A. Wieczorek, B.~L. Jolliff, A.~Khan, M.~E. Pritchard, B.~P. Weiss, J.~G.
+  Williams, L.~L. Hood, K.~Righter, C.~R. Neal, C.~K. Shearer, I.~S. McCallum,
+  S.~Tompkins, B.~R. Hawke, C.~Peterson, J.~J. Gillis, and B.~Bussey.
+\newblock {The constitution and structure of the lunar interior}.
+\newblock In \emph{Reviews in Mineralogy and Geochemistry}, volume~60, pages
+  221--364. 2006.
+\newblock \doi{10.2138/rmg.2006.60.3}.
+
+\end{thebibliography}

@@ -147,7 +147,7 @@ Lunar-HFE/
 │   └── results/                # OUTPUTS: canonical *.json (figures now live in figures/)
 ├── aogs/                       # THE AOGS BUNDLE (self-contained)
 │   ├── poster/  code/  results/  data/lola/  talk_figures/  briefing/
-└── README.md  Makefile  pyproject.toml  STRUCTURE.md  CLAUDE.md  LICENSE
+└── README.md  Makefile  pyproject.toml  STRUCTURE.md  LICENSE
 ```
 
 Every document reaches figures through a `figures/` symlink to

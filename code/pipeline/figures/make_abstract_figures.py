@@ -356,7 +356,7 @@ def build_robustness():
     from matplotlib.colors import TwoSlopeNorm
     from scipy.interpolate import PchipInterpolator
     from scipy.ndimage import gaussian_filter
-    from lunar.plotting.style import (ANTH_DIVERGE, C_CHAR, C_TEAL, C_GRID,
+    from lunar.plotting.style import (WARM_DIVERGE, C_CHAR, C_TEAL, C_GRID,
                                       C_A15, C_A17, C_FOREST, fmt_axis,
                                       assert_no_overlap)
     import make_results_figures as m
@@ -415,7 +415,7 @@ def build_robustness():
     vmax = float(np.ceil(contrast.max()))
     norm = TwoSlopeNorm(vmin=min(-0.15 * vmax, float(contrast.min())),
                         vcenter=0, vmax=vmax)
-    im = axm.pcolormesh(x, y, contrast, cmap=ANTH_DIVERGE, norm=norm,
+    im = axm.pcolormesh(x, y, contrast, cmap=WARM_DIVERGE, norm=norm,
                         shading="gouraud", rasterized=True, zorder=1)
     cb = fig.colorbar(im, cax=cax)
     cb.set_label(r"$\Delta K_d^{*}$ = A17 $-$ A15 (mW m$^{-1}$ K$^{-1}$)",

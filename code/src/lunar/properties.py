@@ -18,8 +18,8 @@ Two specific-heat models are available:
   Debye T^3 limit, fits Apollo data to < 3% for 90-1000 K.
 
 Every numerical coefficient in this module has been verified against a
-public source file and cited in the docstring. See
-``.claude/skills/SKILL.md`` — "never fabricate numerical values".
+public source file and cited in the docstring — never fabricate numerical
+values.
 """
 
 from __future__ import annotations

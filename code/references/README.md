@@ -1,8 +1,7 @@
 # References
 
-PDF copies of key papers cited in the manuscript. These are used by Claude
-to ground physics claims against the actual source material rather than
-relying on training data.
+PDF copies of key papers cited in the manuscript. They ground physics
+claims against the actual source material rather than relying on memory.
 
 ## How to use
 

@@ -1,6 +1,6 @@
 """
 Phase-2 figure regeneration with publication-grade aesthetic
-(Anthropic-aligned: warm coral, deep teal, restrained palette,
+(house style: warm coral, deep teal, restrained palette,
 clean serif typography, generous whitespace).
 
 Reads the numerical results from results/phase2_results.json and
@@ -92,8 +92,8 @@ def legend_outside(ax, *, loc="right", **kwargs):
     defaults.update(kwargs)
     return ax.legend(**defaults)
 
-# Anthropic-aligned palette (publication-friendly)
-C_CORAL    = "#B85B3A"   # primary warm accent (~Anthropic coral)
+# House palette (publication-friendly)
+C_CORAL    = "#B85B3A"   # primary warm accent
 C_CORAL_L  = "#E5A88A"   # light coral
 C_TEAL     = "#2A6478"   # cool primary
 C_TEAL_L   = "#7CA3B0"   # light teal
@@ -113,12 +113,12 @@ C_MS       = "#6C4CA6"     # violet: distinct from A17 coral (audit 2026-07-13)
 C_LAB      = C_PLUM
 
 # Custom colormap for Q_b heatmap: cool→neutral→warm
-ANTH_DIVERGE = LinearSegmentedColormap.from_list(
-    "anth_diverge",
+WARM_DIVERGE = LinearSegmentedColormap.from_list(
+    "warm_diverge",
     ["#2A6478", "#7CA3B0", "#F5F1EA", "#E5A88A", "#B85B3A", "#7A2F18"]
 )
-ANTH_SEQ = LinearSegmentedColormap.from_list(
-    "anth_seq",
+WARM_SEQ = LinearSegmentedColormap.from_list(
+    "warm_seq",
     ["#FAF7F2", "#E5D5C8", "#D9A07C", "#B85B3A", "#7A2F18", "#3A1A0A"]
 )
 
@@ -348,7 +348,7 @@ def fig_robustness(d, out_path):
     _vmax = float(np.ceil(contrast_full.max()))
     norm = TwoSlopeNorm(vmin=-0.15 * _vmax, vcenter=0, vmax=_vmax)
     im = axA.pcolormesh(qb15_full, qb17_full, contrast_full,
-                        cmap=ANTH_DIVERGE, norm=norm,
+                        cmap=WARM_DIVERGE, norm=norm,
                         shading="gouraud", rasterized=True, zorder=1)
     cbar = fig.colorbar(im, cax=caxA)
     cbar.ax.set_ylabel(r"$\Delta K_d^{*}$  (mW m$^{-1}$ K$^{-1}$)",
@@ -460,7 +460,7 @@ def fig_robustness(d, out_path):
                             (axD, "A17", "(c)  Apollo 17")]:
         e = site_ext[name]; j = e["j"]
         cf = ax.contourf(e["kd_mw"], e["h_cm"], e["rmse"],
-                         levels=levels_shared, cmap=ANTH_SEQ, alpha=0.92)
+                         levels=levels_shared, cmap=WARM_SEQ, alpha=0.92)
         if cf_handle is None:
             cf_handle = cf
         levels_iso = [j["rmse_min"] + dx for dx in [0.5, 1.0, 2.0, 3.0]]

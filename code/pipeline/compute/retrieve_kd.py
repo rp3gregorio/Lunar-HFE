@@ -70,7 +70,7 @@ from lunar.apollo_helpers import extract_sensor_stability
 from lunar.plotting.style import (   # noqa: E402
     C_A15, C_A17, C_HAYNE, C_MS, C_LAB, C_TEAL, C_TEAL_L,
     C_FOREST, C_CORAL, C_CHAR, C_DIM, C_GRID,
-    ANTH_DIVERGE, ANTH_SEQ,
+    WARM_DIVERGE, WARM_SEQ,
     FS_BASE, FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
     fmt_axis,
 )

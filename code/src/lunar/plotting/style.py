@@ -86,11 +86,11 @@ C_HAYNE = C_TEAL
 C_MS = "#6C4CA6"  # Martinez violet
 C_LAB = C_PLUM
 
-ANTH_DIVERGE = LinearSegmentedColormap.from_list(
-    "anth_diverge",
+WARM_DIVERGE = LinearSegmentedColormap.from_list(
+    "warm_diverge",
     ["#2A6478", "#7CA3B0", "#F5F1EA", "#E5A88A", "#B85B3A", "#7A2F18"])
-ANTH_SEQ = LinearSegmentedColormap.from_list(
-    "anth_seq",
+WARM_SEQ = LinearSegmentedColormap.from_list(
+    "warm_seq",
     ["#FAF7F2", "#E5D5C8", "#D9A07C", "#B85B3A", "#7A2F18", "#3A1A0A"])
 
 

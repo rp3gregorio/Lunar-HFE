@@ -51,7 +51,7 @@ Lunar-HFE/
 │   ├── talk_figures/  briefing/
 │   └── README.md
 │
-└── README.md  Makefile  pyproject.toml  STRUCTURE.md  CLAUDE.md  LICENSE*
+└── README.md  Makefile  pyproject.toml  STRUCTURE.md  LICENSE*
 ```
 
 ## Where figures live (important)
@@ -83,7 +83,7 @@ scripts additionally use `AOGS = find_repo_root().parent / "aogs"` for their own
 artifacts. The Python package is installed editable via `pyproject.toml`
 (`package-dir = code/src`); `pytest` runs `testpaths = code/tests`.
 
-## House rules (see CLAUDE.md and the lunar-* skills)
+## House rules
 
 - **Numbers match code:** every value in a document traces to
   `code/results/*.json`; never hand-edit a figure or manuscript number.

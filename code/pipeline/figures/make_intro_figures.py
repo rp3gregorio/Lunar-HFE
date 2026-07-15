@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Two introduction figures for the letter, in the Anthropic design idiom.
+"""Two introduction figures for the letter, in the house design idiom.
 
   fig_intro_models.pdf   -- the three conductivity models compared:
                             (a) bulk-density profile rho(z),

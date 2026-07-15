@@ -26,7 +26,7 @@ from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import periodic_time_grid
 from lunar.equilibrium import solve_periodic_equilibrium
-from lunar.plotting.style import (ANTH_DIVERGE, C_CORAL, C_TEAL, C_FOREST,
+from lunar.plotting.style import (WARM_DIVERGE, C_CORAL, C_TEAL, C_FOREST,
                                   C_CHAR, C_DIM, C_GRID, JGR_FULL,
                                   C_A15, C_A17)
 
@@ -94,7 +94,7 @@ def fig_thermal_field():
     z, t_days, T = _solve_field("A17")
     sel = z <= 0.9
     fig, ax = plt.subplots(figsize=(JGR_FULL, 3.4))
-    im = ax.pcolormesh(t_days, z[sel], T[sel], cmap=ANTH_DIVERGE,
+    im = ax.pcolormesh(t_days, z[sel], T[sel], cmap=WARM_DIVERGE,
                        shading="gouraud", rasterized=True)
     ax.contour(t_days, z[sel], T[sel], levels=9, colors="white",
                linewidths=0.4, alpha=0.5)
@@ -143,7 +143,7 @@ def fig_thermal_field_3d():
         ax = fig.add_subplot(gs[k], projection="3d")
         ax.plot_surface(
             TT, ZZ, TF,
-            facecolors=ANTH_DIVERGE(norm(TF)),
+            facecolors=WARM_DIVERGE(norm(TF)),
             rstride=1, cstride=1, linewidth=0.15, edgecolor=(1, 1, 1, 0.18),
             antialiased=True, shade=False,
         )
@@ -167,7 +167,7 @@ def fig_thermal_field_3d():
         _clean_3d(ax)
         ax.set_title(ttl, loc="left", fontsize=10, color=C_CHAR, pad=10)
 
-    sm = cm.ScalarMappable(norm=norm, cmap=ANTH_DIVERGE)
+    sm = cm.ScalarMappable(norm=norm, cmap=WARM_DIVERGE)
     sm.set_array([])
     cb = fig.colorbar(sm, ax=fig.axes, shrink=0.62, pad=0.02, aspect=22)
     cb.set_label("temperature  [K]", fontsize=9)
@@ -198,7 +198,7 @@ def fig_kTz_heatmap():
                              chi=HAYNE['CHI']) * 1e3
 
     fig, ax = plt.subplots(figsize=(JGR_FULL, 3.8))
-    im = ax.pcolormesh(T_grid, z_grid, K, cmap=ANTH_DIVERGE,
+    im = ax.pcolormesh(T_grid, z_grid, K, cmap=WARM_DIVERGE,
                        shading="gouraud", rasterized=True)
     cs = ax.contour(T_grid, z_grid, K, levels=[1, 2, 3, 4, 5, 7, 10, 15],
                     colors="white", linewidths=0.5, alpha=0.7)
@@ -243,7 +243,7 @@ def fig_skin_wave():
     z, t_days, T = _solve_field("A17")
     depths = [0.0, 0.025, 0.05, 0.10, 0.20, 0.40, 0.80]
     idx = [int(np.argmin(np.abs(z - d))) for d in depths]
-    cols = [ANTH_DIVERGE(v) for v in np.linspace(0.85, 0.15, len(depths))]
+    cols = [WARM_DIVERGE(v) for v in np.linspace(0.85, 0.15, len(depths))]
     fig, ax = plt.subplots(figsize=(JGR_FULL, 3.7))
     for i, d, c in zip(idx, depths, cols):
         lab = "surface" if d == 0 else f"{int(round(d*100))} cm"
@@ -279,7 +279,7 @@ def fig_lunar_forcing_3d():
     y = np.outer(np.sin(u), np.sin(v))
     z = np.outer(np.ones_like(u), np.cos(v))
     tcol = (x + 1.0) / 2.0                          # night(-x)=0 cold, day(+x)=1 hot
-    ax.plot_surface(x, y, z, facecolors=ANTH_DIVERGE(tcol),
+    ax.plot_surface(x, y, z, facecolors=WARM_DIVERGE(tcol),
                     rstride=1, cstride=1, linewidth=0, antialiased=True,
                     shade=False, zorder=1)
 
@@ -417,7 +417,7 @@ def fig_fourier():
                                    gridspec_kw={"width_ratios": [0.62, 1.0]})
     # (a) the physical picture: a column hot at the surface, cold below
     grad = np.linspace(1, 0, 200).reshape(-1, 1)
-    axA.imshow(grad, extent=[0, 1, 0, 1], aspect="auto", cmap=ANTH_DIVERGE,
+    axA.imshow(grad, extent=[0, 1, 0, 1], aspect="auto", cmap=WARM_DIVERGE,
                origin="upper")
     for yc in (0.72, 0.5, 0.28):
         axA.annotate("", xy=(0.55, yc - 0.1), xytext=(0.55, yc + 0.1),
@@ -511,7 +511,7 @@ def fig_heateq_cv_3d():
 def fig_grid_3d():
     """3D illustration of the geometric depth grid: mm at top, decimetres below."""
     from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-    from lunar.plotting.style import ANTH_SEQ
+    from lunar.plotting.style import WARM_SEQ
     grid = make_geometric_grid(**GRID)
     zf = np.asarray(grid.z_face, float)
     dz = np.asarray(grid.dz, float)
@@ -524,7 +524,7 @@ def fig_grid_3d():
     ax = fig.add_subplot(111, projection="3d", computed_zorder=False)
     for i in range(nshow):
         z0, z1 = zf[i], zf[i + 1]
-        c = ANTH_SEQ(norm(np.log10(dz[i])))
+        c = WARM_SEQ(norm(np.log10(dz[i])))
         ax.add_collection3d(Poly3DCollection(   # front face (y=0)
             [[(0, 0, z0), (W, 0, z0), (W, 0, z1), (0, 0, z1)]],
             facecolor=c, edgecolor="white", linewidths=0.35, alpha=0.98))

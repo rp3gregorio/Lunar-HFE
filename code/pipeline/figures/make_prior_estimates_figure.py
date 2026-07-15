@@ -30,7 +30,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
 from lunar.plotting.style import (JGR_HALF, C_A15, C_A17, C_HAYNE, C_PLUM,
-                                  C_DIM, C_CHAR, FS_LEGEND, fmt_axis,
+                                  C_DIM, C_CHAR, C_GRID, FS_LEGEND, fmt_axis,
                                   assert_no_overlap)
 from lunar.properties import conductivity_hayne
 from lunar.apollo_helpers import extract_sensor_stability
@@ -92,6 +92,13 @@ def main():
     axA.annotate("this work", (2025.0, keff["A15"]), (2009, 12.8),
                  fontsize=7.5, color=C_CHAR, ha="left", fontweight="bold",
                  arrowprops=dict(arrowstyle="-", color=C_DIM, lw=0.7))
+    axA.text(1998, 5.0,
+             r"$K_\mathrm{eff}=K_c(z)\,[\,1+\chi\,(T/T_\mathrm{ref})^{3}\,]$"
+             + "\n" + r"contact $\times$ radiative",
+             fontsize=7.5, color=C_CHAR, ha="center", va="center",
+             linespacing=1.6,
+             bbox=dict(boxstyle="round,pad=0.45", facecolor="white",
+                       edgecolor=C_GRID, alpha=0.97), zorder=7)
     axA.set_ylim(0, 17.5)
     axA.set_yticks([0, 5, 10, 15])
     fmt_axis(axA, ylabel=r"$K_\mathrm{eff}$  " + UNIT,
@@ -114,6 +121,13 @@ def main():
                  fontsize=7.5, color=C_CHAR, ha="left", va="center",
                  fontweight="bold",
                  arrowprops=dict(arrowstyle="-", color=C_DIM, lw=0.7))
+    axB.text(1993, 6.6,
+             r"$K_c(z)=K_d-(K_d-K_s)\,e^{-z/H}$"
+             + "\n" + r"$\longrightarrow K_d$  for  $z\gg H$  (contact only)",
+             fontsize=7.5, color=C_CHAR, ha="center", va="center",
+             linespacing=1.6,
+             bbox=dict(boxstyle="round,pad=0.45", facecolor="white",
+                       edgecolor=C_GRID, alpha=0.97), zorder=7)
     axB.set_ylim(0, 9)
     axB.set_yticks([0, 2, 4, 6, 8])
     axB.set_xlim(1965, 2032)

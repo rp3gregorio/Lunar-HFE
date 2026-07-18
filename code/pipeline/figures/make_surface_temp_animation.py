@@ -13,7 +13,7 @@ The temperature field is real model output: `T_surface(lat, local_time)`
 from `lunar.solver.solve_pixel` at a ladder of latitudes, cached to
 `results/surface_temp_diurnal_field.json`. Surface texture:
 `figures/moon_global.png` (Clementine albedo, USGS/NASA) and
-`aogs/data/lola/ldem_16.img` (LOLA LDEM).
+`data/lola/ldem_16.img` (LOLA LDEM).
 
 Outputs (illustrative/outreach, not a letter figure):
   figures/anim/lunar_surface_temperature.gif
@@ -45,7 +45,7 @@ from lunar.config import SITES  # noqa: E402
 OUT = ROOT.parent / "figures" / "anim"
 FIELD = ROOT / "results" / "surface_temp_diurnal_field.json"
 ALBEDO = ROOT.parent / "figures" / "moon_global.png"
-DEM = ROOT.parent / "aogs" / "data" / "lola" / "ldem_16.img"
+DEM = ROOT / "data" / "lola" / "ldem_16.img"
 
 # --- presentation palette (light background) -------------------------
 BG      = "#F4F2ED"       # warm light neutral background

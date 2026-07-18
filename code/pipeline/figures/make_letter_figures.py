@@ -37,7 +37,8 @@ from lunar.properties import (conductivity_hayne, conductivity_martinez,
 from lunar.constants import (
     K_SURFACE, K_DEEP, H_PARAMETER, CHI_RADIATIVE, T_REFERENCE, LUNATION_SECONDS,
 )
-from lunar.solver import PixelInputs, solve_pixel, periodic_time_grid
+from lunar.solver import (PixelInputs, solve_pixel, periodic_time_grid,
+                          standard_insolation)
 from lunar.apollo_helpers import extract_sensor_stability
 
 # Pull the unified rcParams + palette from the phase-2 figure module.
@@ -239,9 +240,7 @@ def run_pixel(site_cfg, *, kfunc):
     grid_  = make_geometric_grid(**GRID)
     z_mid  = grid_.z_mid
     t_s = periodic_time_grid(DT_STEP)   # commensurate lunation grid (audit 2026-07-03)
-    cos_lat = np.cos(np.deg2rad(site["lat"]))
-    phase   = 2.0 * np.pi * t_s / T_LUNAR
-    insol   = S0 * cos_lat * np.maximum(0.0, np.cos(phase))
+    insol = standard_insolation(site["lat"], t_s)
     # Periodic steady state, independent of the T_MEAN_EFF seed
     # (lunar/equilibrium.py; audit flag F1).
     from lunar.equilibrium import solve_periodic_equilibrium

@@ -1,0 +1,208 @@
+\documentclass[11pt]{article}
+\usepackage[margin=21mm]{geometry}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage[strings]{underscore}
+\usepackage{textcomp}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[colorlinks=true,linkcolor=tealc,urlcolor=tealc]{hyperref}
+
+\definecolor{coral}{HTML}{B85B3A}
+\definecolor{tealc}{HTML}{2A6478}
+\definecolor{forest}{HTML}{3D6E4A}
+\definecolor{char}{HTML}{2A2520}
+\definecolor{dimc}{HTML}{6E6862}
+\definecolor{sand}{HTML}{F5F1EA}
+\definecolor{tealL}{HTML}{D6E3E8}
+
+\setlist[itemize]{leftmargin=1.3em, itemsep=2pt, topsep=2pt}
+\titlespacing*{\section}{0pt}{12pt}{5pt}
+\titlespacing*{\subsection}{0pt}{9pt}{3pt}
+\titleformat{\section}{\Large\bfseries\color{char}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{tealc}}{}{0em}{}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\fn}[1]{\texttt{\small\color{coral}#1}}
+\newcommand{\arr}{\textrightarrow}
+\newcommand{\nb}[1]{\texttt{\small\color{forest}#1}}
+
+\begin{document}
+\sloppy
+
+\begin{center}
+  {\LARGE\bfseries\color{char} Notebook guide}\\[3pt]
+  {\color{dimc} How to run everything, and what code each part uses.}
+\end{center}
+\vspace{2pt}
+
+\noindent
+\textbf{Keep this open while you work.} It maps every notebook --- and each step
+\emph{inside} a notebook --- to the exact \code{.py} file behind it. Two
+references live in the \code{code/notebooks/} folder:
+
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+File & Use it for \\
+\midrule
+\textbf{NOTEBOOK\_GUIDE} (this) & how to \emph{run} the notebooks + which code each step uses \\
+\textbf{CODE\_MANUAL} & the \emph{file-by-file} reference: what every \code{.py} does + how they connect \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+Rule of thumb: \textbf{this guide tells you \emph{which} code a cell runs; the
+code manual tells you \emph{what that code does inside}.}
+
+% =============================================================================
+\section{Running them in Jupyter}
+
+\begin{quote}\ttfamily\small
+cd Lunar-Clean\\
+python3 -m venv .venv \&\& source .venv/bin/activate\\
+pip install -e "code[dev]"\hfill\textrm{\itshape\# installs the \code{lunar} package}\\
+jupyter lab code/notebooks/
+\end{quote}
+
+Open the notebooks \textbf{in order, 00 \arr\ 06}, and use \emph{Run All} on
+each. Every notebook finds the repo by itself
+(\fn{lunar.\_bootstrap.find\_repo\_root()}), so it works no matter where Jupyter
+was launched. The results are \textbf{cached} --- you can read the numbers and
+figures without waiting for the long solves to finish.
+
+% =============================================================================
+\section{The three kinds of code the notebooks call}
+
+Every cell touches one of three layers. Knowing which tells you what it does:
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}lll@{}}
+\toprule
+Layer & Folder & What it is \\
+\midrule
+\textbf{Engine} & \code{code/src/lunar/} & the physics \emph{library} (solver, equilibrium, grid, config). Everything imports it. \\
+\textbf{Pipeline} & \code{code/pipeline/} & the \emph{application}: \code{compute/} \arr\ \code{results/*.json}; \code{figures/} \arr\ PDFs. Writes files. \\
+\textbf{Tests} & \code{code/tests/} & pytest checks the engine is correct. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+So \code{import lunar.equilibrium} calls the \textbf{engine}; \code{import
+make\_letter\_figures} or running \code{retrieve\_kd.py} calls the
+\textbf{pipeline}.
+
+% =============================================================================
+\section{Reading order at a glance}
+
+The order is \textbf{chronological}: set up, see what we measure, learn the
+solver, run it, then the result and discussion figures, and finally performance.
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}clll@{}}
+\toprule
+\# & Notebook & Produces & Main code it uses \\
+\midrule
+00 & \nb{00\_setup}      & environment + data-load check & \code{lunar.apollo\_helpers, ephem} \\
+01 & \nb{01\_methods}    & letter Figs 1--4 & \code{pipeline/figures/} (4 generators) \\
+02 & \nb{02\_anchor\_method}     & flux-anchored solver, explained & \code{lunar.equilibrium}, \code{make\_equilibrium\_demo} \\
+03 & \nb{03\_retrieval}  & \textbf{core K\_d retrieval} \arr\ JSON & \code{pipeline/compute/retrieve\_kd.py} \\
+04 & \nb{04\_results}    & letter Figs 5--9 & \code{make\_results\_figures}, \code{compute\_diviner\_closure} \\
+05 & \nb{05\_discussion} & letter Figs 10--11 & \code{make\_prior\_estimates\_figure} \\
+06 & \nb{06\_performance}& C++ kernel: agree, speed, live retrieval & \code{benchmark\_cpp}, \code{retrieve\_kd} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+\textbf{One linear read:} each notebook builds on the previous --- you meet the
+solver (\nb{02}) before the retrieval that uses it (\nb{03}), and see the result
+before the discussion. The two \emph{explainers} are \nb{02} (how the solver
+works) and \nb{06} (how the backends compare). The one hard rule: run
+\nb{03\_retrieval} before \nb{04}/\nb{05}, which read its JSON.
+
+% =============================================================================
+\section{Inside each notebook: step \arr\ code \arr\ what happens}
+
+\subsection{\nb{00\_setup} --- is everything wired up?}
+\begin{itemize}
+\item environment check \arr\ \fn{lunar.\_bootstrap.find\_repo\_root()} locates \code{code/} and confirms \code{lunar} imports.
+\item load the Apollo record \arr\ \fn{lunar.apollo\_helpers.extract\_sensor\_stability()} (reads \code{code/data/apollo/} via \code{lunar.validation}).
+\item solar geometry \arr\ \code{lunar.ephem} (SPICE kernels).
+\item \emph{(one-time)} \fn{pipeline/fetch\_diviner.py} downloads the Diviner tiles used by Fig 9.
+\end{itemize}
+
+\subsection{\nb{01\_methods} --- the methods figures (Figs 1--4)}
+Each cell: \textbf{import a generator \arr\ call it (writes \code{figures/<name>.pdf}) \arr\ \code{show\_fig()} displays it.}
+\begin{itemize}
+\item Fig 1 probe schematic \arr\ \fn{make\_intro\_figures.fig\_intro\_probe()} --- both borestems from the real sensor depths (\code{lunar.apollo\_helpers}) + the K(T,z) comparison (\code{lunar.properties}).
+\item Fig 2 context map \arr\ \fn{make\_context\_map\_figure.main()} --- three nearside globes; uses the LOLA DEM in \code{code/data/lola/}.
+\item Fig 3 sensor timeline \arr\ \fn{make\_apollo\_timeline\_letter.main()} --- the per-sensor stability windows.
+\item Fig 4 amplitude vs depth \arr\ \fn{make\_letter\_figures.fig\_amplitude\_vs\_depth()} --- diurnal-wave decay (\code{lunar.solver}).
+\end{itemize}
+
+\subsection{\nb{02\_anchor\_method} --- how the flux-anchored solver works}
+The heart of the study, explained before you use it in \nb{03}.
+\begin{itemize}
+\item builds the depth grid \arr\ \fn{lunar.grid.make\_geometric\_grid}
+\item brute-force spin-up vs the fast flux-anchored solve, shown to reach the \emph{same} steady state \arr\ \fn{lunar.equilibrium.solve\_periodic\_equilibrium}, \code{lunar.solver}
+\item reading temperatures off a converged cycle \arr\ \fn{lunar.equilibrium.profile\_at\_time} / \code{profile\_at\_local\_time}
+\item the teaching animations \arr\ \fn{make\_equilibrium\_demo}
+\end{itemize}
+
+\subsection{\nb{03\_retrieval} --- the core computation (writes the headline JSON)}
+\begin{itemize}
+\item \textbf{Step 1} runs \fn{pipeline/compute/retrieve\_kd.py} (subprocess). Inside, per site it: loads the fit targets (\code{lunar.apollo\_helpers}), \textbf{sweeps K\_d} solving the model to steady state each time with the method from \nb{02} (\code{lunar.equilibrium.solve\_periodic\_equilibrium} \arr\ \code{lunar.solver}), takes the RMSE minimum (\textbf{K\_d*}), and \textbf{bootstraps} the CI. Writes \code{code/results/kd\_retrieval\_results.json} --- \emph{the file every figure notebook reads.}
+\item \textbf{verify cell} \arr\ reads that JSON and prints K\_d* and the 95\% CI.
+\item \textbf{Step 2 (optional)} \arr\ the \code{compute\_*} scripts; each re-runs the retrieval under one perturbed assumption (Table 3 error budget).
+\item \textbf{Step 3 (optional)} \arr\ \fn{bayesian\_crosscheck.py} --- an independent \code{emcee} MCMC cross-check.
+\end{itemize}
+
+\subsection{\nb{04\_results} --- the results figures (Figs 5--9)}
+Same generator \arr\ \code{show\_fig()} pattern; these read the JSON from \nb{03}:
+\begin{itemize}
+\item Fig 5 mean-T profile \arr\ \fn{make\_letter\_figures.fig\_mean\_T\_profile()}
+\item Fig 6 K\_d sweep \arr\ \fn{make\_letter\_figures.fig\_kd\_sweep()}
+\item Fig 7 bootstrap \arr\ \fn{make\_results\_figures.fig\_bootstrap()}
+\item Fig 8 thermal profiles \arr\ \fn{make\_results\_figures.fig\_thermal\_profiles()}
+\item Fig 9 Diviner closure \arr\ runs \fn{pipeline/compute/compute\_diviner\_closure.py} (model vs Diviner; needs the fetched data).
+\end{itemize}
+
+\subsection{\nb{05\_discussion} --- the discussion figures (Figs 10--11)}
+\begin{itemize}
+\item Fig 10 robustness \arr\ \fn{make\_results\_figures.fig\_robustness()} --- the inter-site contrast under stress tests.
+\item Fig 11 five-decade K\_d context \arr\ \fn{make\_prior\_estimates\_figure.main()} --- the two-panel figure separating contact-asymptote K\_d from effective K.
+\end{itemize}
+
+\subsection{\nb{06\_performance} --- the C++ kernel and the retrieval it powers}
+All about the one demanding primitive (the solver march):
+\begin{itemize}
+\item \textbf{\S1 agreement} compiles \code{code/cpp/solver.cpp} (\code{clang++}) \emph{in the notebook} and runs \emph{all three} engines --- generic Python, Numba, C++ --- on identical inputs through \fn{pipeline/compute/benchmark\_cpp.py} (\code{dump\_inputs / run\_cpp / run\_py}), confirming they agree to $\sim$10$^{-12}$ K.
+\item \textbf{\S2 speed} plots the steady-state ms/lunation per engine from \code{results/cpp\_benchmark.json}.
+\item \textbf{\S3 the real workload} runs the actual \fn{retrieve\_kd.run\_kd\_sweep\_extended} \emph{live with a \code{tqdm} progress bar}, lands on the published K\_d* (4.600 / 7.079), and shows the backend cost of the full 61-solve sweep.
+\end{itemize}
+
+\begin{center}\small\itshape\color{dimc}
+For what any of these modules do internally --- every function and how they
+depend on one another --- see \textbf{CODE\_MANUAL.pdf} in this folder.
+\end{center}
+
+% =============================================================================
+\section{The other running order: \texttt{make all}}
+
+The notebooks \emph{narrate} the science; the \textbf{Makefile} regenerates
+everything from scratch:
+
+\begin{enumerate}[leftmargin=1.6em]
+\item \code{make retrieve} \arr\ \fn{retrieve\_kd.py} \arr\ \code{kd\_retrieval\_results.json}
+\item \code{make aux} \arr\ the sensitivity / model-selection / error-budget sweeps \arr\ more \code{results/*.json}
+\item \code{make figures} \arr\ \fn{pipeline/make\_all\_figures.py} runs every generator \arr\ \code{figures/}
+\item \code{make paper} \arr\ compiles the documents in \code{documents/}
+\end{enumerate}
+
+\end{document}

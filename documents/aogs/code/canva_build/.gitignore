@@ -1,0 +1,4 @@
+# regeneratable intermediates (rebuilt by layout_gen.py → build_pptx.py)
+figs/
+layout.json
+preview.png

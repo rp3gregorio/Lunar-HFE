@@ -53,6 +53,7 @@ dev = [
   "ruff>=0.4",
   "jupyterlab>=4.0",
   "ipykernel>=6.0",
+  "ipywidgets>=8.0",   # clean tqdm.auto progress bars in the notebooks
   "nbformat>=5.7",
   "pymupdf>=1.23",
 ]

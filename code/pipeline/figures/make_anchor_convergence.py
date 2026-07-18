@@ -27,7 +27,7 @@ from lunar.plotting.style import (
 from lunar.config import SITES, GRID, S0, T_LUNAR, DT_STEP
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne
-from lunar.solver import periodic_time_grid
+from lunar.solver import periodic_time_grid, standard_insolation
 from lunar.equilibrium import solve_periodic_equilibrium
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
@@ -41,7 +41,7 @@ def _trace(site_key="A15"):
     s = SITES[site_key]
     grid = make_geometric_grid(**GRID)
     t = periodic_time_grid(DT_STEP)   # commensurate lunation grid (audit 2026-07-03)
-    insol = S0 * np.cos(np.deg2rad(s["lat"])) * np.maximum(0.0, np.cos(2 * np.pi * t / T_LUNAR))
+    insol = standard_insolation(s["lat"], t)
     eq = solve_periodic_equilibrium(
         grid, t, insol, albedo=s["albedo"], emissivity=s["emissivity"],
         Q_b=s["Q_BASAL"], K_func=lambda T, z: conductivity_hayne(T, z, Kd=kd))

@@ -25,7 +25,7 @@ Inputs (fetch first if missing):
 
 Writes:
     results/diviner_closure.json
-    results/figures/fig_diviner_closure.pdf
+    ../figures/fig_diviner_closure.pdf   (top-level shared figure home)
 
 Run with:
     python pipeline/compute/compute_diviner_closure.py
@@ -48,7 +48,8 @@ from lunar.diviner import (load_gcp_band, select_diurnal_curve,
                            gcp_band_for_latitude)
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.grid import make_geometric_grid
-from lunar.solver import PixelInputs, solve_pixel, periodic_time_grid
+from lunar.solver import (PixelInputs, solve_pixel, periodic_time_grid,
+                          standard_insolation)
 from lunar.properties import (conductivity_hayne, conductivity_martinez,
                               specific_heat)
 
@@ -75,7 +76,7 @@ def model_surface_cycle(site_cfg, k_func):
         # periodic_time_grid briefly hardcoded DT_STEP here -- unimported and
         # wrong for the fine output cycle; audit 2026-07-03)
         t = periodic_time_grid(dt)
-        insol = S0 * cos_lat * np.maximum(0.0, np.cos(2 * np.pi * t / T_LUNAR))
+        insol = standard_insolation(site_cfg["lat"], t)
         return t, insol
 
     t_c, insol_c = forcing(DT_COARSE)

@@ -1,29 +1,27 @@
 #!/usr/bin/env python3
-"""Step-by-step animation of the WHOLE flux-anchored method.
+"""Explainer animation, act 2 -- THE METHOD: the flux-anchored solve.
 
-Emulates the guidebook's worked "sample problem" (the Step-B slope walk,
-make_reconstruct_animation) but embeds it in the complete two-stage story
-so a viewer sees how the method actually runs, phase by phase:
+Walks the whole two-stage method phase by phase on real Apollo 15 physics:
 
-  1. initial guess           — a rough linear profile; skin and deep wrong
-  2. Step A: settle the skin — time-step ONLY the shallow column to its
-                               cycle-mean (the deep column is left alone)
-  3. read the anchor         — <T>(z0) at z0 = 0.55 m, below the wave
-  4. Step B: walk down       — from the anchor, add slope*step at every
-                               node using dT/dz = (Q_b - u_rect)/K  ← the
-                               sample problem, animated node by node
-  5. repeat A <-> B          — set T_init <- T_recon and iterate
-  6. converged               — the anchor stops moving; this IS the
-                               periodic steady state
+  1. initial guess           -- a rough linear profile; skin and deep wrong
+  2. Step A: settle the skin -- time-step ONLY the shallow column
+  3. read the anchor         -- <T>(z0) at z0 = 0.55 m, below the wave
+  4. Step B: walk down       -- add slope*dz node by node,
+                                d<T>/dz = (Q_b - u_rect)/K
+  5. repeat A <-> B          -- feed the rebuilt column back in
+  6. converged               -- the anchor stops moving; this IS the
+                                periodic steady state
 
-Left panel: the temperature column being built. Right panel: the REAL
-per-outer-cycle anchor drift from EquilibriumResult.history, accumulating
-to the 0.005 K tolerance (geometric contraction).
+Design (2026-07-17 redesign): fixed banner with a step counter and a
+one-sentence explainer per phase (no jumping suptitle), a static legend
+fully outside the axes, larger type, and holds at each phase change.
+Right panel: the REAL per-outer-cycle anchor drift from
+EquilibriumResult.history, contracting to the 0.005 K tolerance.
 
-Outputs (GIF + a LaTeX-embeddable filmstrip, per the figure conventions):
-  results/anim/anchor_method_steps.gif
-  docs/guidebook/figures/anchor_method_filmstrip.pdf
-Run: python pipeline/figures/make_anchor_method_animation.py
+Outputs (filenames unchanged -- notebook 02 and the guidebook embed them):
+  figures/anim/anchor_method_steps.gif
+  figures/anchor_method_filmstrip.pdf
+Run: python code/pipeline/figures/make_anchor_method_animation.py
 """
 from __future__ import annotations
 import functools
@@ -35,6 +33,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
+from matplotlib.lines import Line2D
 
 _REPO = pathlib.Path(__file__).resolve().parents[1].parent
 sys.path.insert(0, str(_REPO))
@@ -55,6 +54,7 @@ KD = 4.60e-3
 Z0 = 0.55
 ZMAX = 3.0
 TOL = 0.005
+XLIM = (242.0, 262.0)
 
 
 # ── real data: one A15 solve, the slope walk, and the drift history ──────────
@@ -68,10 +68,9 @@ def _compute():
     cp = functools.partial(specific_heat, model="hayne")
     Qb = SITE["Q_BASAL"]
     # n_inner=4 exposes the outer-loop geometric contraction cycle by cycle
-    # (~9 drift points, 46 -> 5 mK); production n_inner=96 converges in ~2
-    # cycles because each cycle over-relaxes the skin, which hides the
-    # iteration mechanism this teaching animation is about. Same certified
-    # attractor either way; only the number of visible outer steps differs.
+    # (~9 drift points); production n_inner=96 converges in ~2 cycles, which
+    # hides the A<->B iteration this teaching animation is about. Same
+    # certified attractor either way.
     eq = solve_periodic_equilibrium(
         grid=g, t=t, insolation=insol, albedo=SITE["albedo"],
         emissivity=SITE["emissivity"], Q_b=Qb, K_func=K, cp_func=cp,
@@ -85,14 +84,10 @@ def _compute():
         slope = Qb / float(K(np.array([T_walk[i]]), np.array([z[i]]))[0])
         T_walk[i + 1] = T_walk[i] + slope * dz[i]
 
-    # a deliberately-wrong initial guess: a straight isothermal-ish ramp
-    # across the whole column (both the flat skin and the steep deep
-    # gradient of the true profile are absent) -- clearly visible as the
-    # "before" the two stages fix, spanning the plotted 242-262 K window
+    # a deliberately-wrong initial guess spanning the plotted window
     T_guess = np.linspace(float(T_target.mean()) - 4.0,
                           float(T_target.mean()) + 7.0, z.size)
 
-    # real per-outer-cycle anchor drift (geometric contraction to TOL)
     drift = np.array([h[3] for h in eq.history], dtype=float)
     drift = drift[np.isfinite(drift) & (drift > 0)]
 
@@ -101,217 +96,198 @@ def _compute():
                 T_guess=T_guess, drift=drift, Qb=Qb, K=K, slope=slope_anch)
 
 
-# ── phase script: (label, kind, progress-0..1) per frame ─────────────────────
-def _frames(n_deep):
+# ── the six phases: (step number, name, explainer, kind, hold frames) ────────
+PHASES = [
+    (1, "start from a rough guess",
+     "a straight-line column; the skin and the deep are both wrong",
+     "guess", 6),
+    (2, "Step A: settle the skin",
+     "time-step ONLY the thin shallow column -- it is fast; the deep is left alone",
+     "stepA", 10),          # morph frames
+    (3, "read the anchor",
+     "at $z_0=0.55$ m the daily wave is dead: the settled $\\langle T\\rangle(z_0)$ is trustworthy",
+     "anchor", 5),
+    (4, "Step B: walk down from the anchor",
+     "no time-stepping: each next node is $T + (Q_b/K)\\,\\Delta z$ -- energy conservation",
+     "stepB", 16),          # walk frames
+    (5, "repeat A $\\leftrightarrow$ B",
+     "the rebuilt deep column nudges the skin; iterate until nothing moves",
+     "repeat", 5),
+    (6, "converged",
+     "the anchor drift is below 0.005 K -- this IS the periodic steady state",
+     "done", 9),
+]
+
+
+def _script():
     seq = []
-    seq += [("1.  initial guess: a rough linear profile (skin and deep both wrong)",
-             "guess", 0.0)] * 5
-    for a in np.linspace(0, 1, 10):
-        seq.append(("2.  Step A: time-step ONLY the skin until its cycle-mean settles",
-                    "stepA", a))
-    seq += [(r"3.  read the anchor $\langle T\rangle(z_0)$ at $z_0=0.55$ m "
-             "(below the diurnal wave)", "anchor", 1.0)] * 4
-    for k in range(0, n_deep, 2):
-        seq.append((r"4.  Step B: from the anchor, walk down using "
-                    r"$d\langle T\rangle/dz=(Q_b-u_{\rm rect})/K$", "stepB",
-                    k / max(1, n_deep - 1)))
-    seq += [(r"5.  set $T_{\rm init}\leftarrow T_{\rm recon}$ and repeat "
-             r"Step A $\leftrightarrow$ Step B", "repeat", 1.0)] * 4
-    seq += [("6.  converged: the anchor stops moving — this IS the periodic steady state",
-             "done", 1.0)] * 6
+    for num, name, expl, kind, hold in PHASES:
+        for h in range(hold):
+            prog = h / max(1, hold - 1)
+            seq.append((num, name, expl, kind, prog))
     return seq
 
 
-def _draw(axL, axR, phase, D, seq, si):
-    z, i0, dz = D["z"], D["i0"], D["dz"]
+def _draw_column(ax, D, kind, prog, arrow_holder):
+    """Draw the left panel for one frame (axes cleared by caller)."""
+    z, i0 = D["z"], D["i0"]
     m = z <= ZMAX
-    deep_idx = [i for i in range(i0, z.size) if z[i] <= ZMAX]
-    label, kind, prog = phase
-    axL.clear(); axR.clear()
-
-    # target always faint (the goal)
-    axL.plot(D["T_target"][m], z[m], "--", color=C_DIM, lw=1.4,
-             label="true steady state (goal)")
-
     sk = z <= Z0
+    deep_idx = [i for i in range(i0, z.size) if z[i] <= ZMAX]
+
+    ax.plot(D["T_target"][m], z[m], "--", color=C_DIM, lw=1.5)
+
     if kind == "guess":
-        axL.plot(D["T_guess"][m], z[m], "-", color=C_CORAL, lw=2.4,
-                 label="current profile (guess)")
+        ax.plot(D["T_guess"][m], z[m], "-", color=C_CORAL, lw=2.6)
     elif kind == "stepA":
-        # skin morphs guess -> true; deep stays at the (still wrong) guess
         Tsk = (1 - prog) * D["T_guess"] + prog * D["T_target"]
         cur = D["T_guess"].copy(); cur[sk] = Tsk[sk]
-        axL.plot(cur[sk], z[sk], "-", color=C_FOREST, lw=3,
-                 label="skin, settling (Step A)")
-        axL.plot(cur[m & ~sk], z[m & ~sk], "-", color=C_CORAL, lw=1.6,
-                 alpha=0.5, label="deep, not yet rebuilt")
+        ax.plot(cur[sk], z[sk], "-", color=C_FOREST, lw=3.2)
+        ax.plot(cur[m & ~sk], z[m & ~sk], "-", color=C_CORAL, lw=1.8, alpha=0.45)
     else:
-        # skin is settled from here on
-        axL.plot(D["T_target"][sk], z[sk], "-", color=C_FOREST, lw=3,
-                 label="skin (settled, Step A)")
+        ax.plot(D["T_target"][sk], z[sk], "-", color=C_FOREST, lw=3.2)
 
     if kind in ("anchor", "stepB", "repeat", "done"):
-        axL.plot(D["T_target"][i0], Z0, "o", color=C_CHAR, ms=10, zorder=6)
-        axL.annotate("anchor", xy=(D["T_target"][i0], Z0),
-                     xytext=(D["T_target"][i0] - 10.5, Z0 - 0.12),
-                     fontsize=9, color=C_CHAR, ha="right",
-                     arrowprops=dict(arrowstyle="->", color=C_CHAR, lw=0.9))
+        ax.plot(D["T_target"][i0], Z0, "o", color=C_CHAR, ms=11, zorder=6,
+                mec="white", mew=1.0)
+        ax.annotate("anchor", xy=(D["T_target"][i0], Z0),
+                    xytext=(D["T_target"][i0] - 5.5, Z0 - 0.28),
+                    fontsize=10, color=C_CHAR, ha="right", fontweight="bold",
+                    arrowprops=dict(arrowstyle="->", color=C_CHAR, lw=1.0))
 
     if kind == "stepB":
         k = deep_idx[min(int(round(prog * (len(deep_idx) - 1))), len(deep_idx) - 1)]
         built = (z >= Z0) & (z <= z[k])
-        axL.plot(D["T_walk"][built], z[built], "-", color=C_HAYNE, lw=3.2,
-                 label="deep profile, built by the slope rule")
-        if k < z.size - 1:                       # slope vector at the build front
+        ax.plot(D["T_walk"][built], z[built], "-", color=C_HAYNE, lw=3.4)
+        if k < z.size - 1:                     # slope vector at the build front
             slope = D["Qb"] / float(D["K"](np.array([D["T_walk"][k]]),
                                            np.array([z[k]]))[0])
-            dzz = 0.22
-            axL.annotate("", xy=(D["T_walk"][k] + slope * dzz, z[k] + dzz),
-                         xytext=(D["T_walk"][k], z[k]),
-                         arrowprops=dict(arrowstyle="-|>", color=C_A15, lw=2.6),
-                         zorder=7)
-        # slope rule parked in the empty top-right (shallow, high-T)
-        axL.text(0.965, 0.055,
-                 r"$\dfrac{d\langle T\rangle}{dz}=\dfrac{Q_b}{K}\approx$"
-                 f"{D['slope']:.1f} K/m",
-                 transform=axL.transAxes, fontsize=10, color=C_A15,
-                 ha="right", va="bottom",
-                 bbox=dict(boxstyle="round,pad=0.35", fc="white", ec=C_A15, lw=1))
+            dzz = 0.24
+            ax.annotate("", xy=(D["T_walk"][k] + slope * dzz, z[k] + dzz),
+                        xytext=(D["T_walk"][k], z[k]),
+                        arrowprops=dict(arrowstyle="-|>", color=C_A15, lw=2.8),
+                        zorder=7)
     elif kind in ("repeat", "done"):
         built = (z >= Z0) & m
-        axL.plot(D["T_walk"][built], z[built], "-", color=C_HAYNE, lw=3.2,
-                 label="deep profile (reconstructed)")
+        ax.plot(D["T_walk"][built], z[built], "-", color=C_HAYNE, lw=3.4)
 
-    axL.set_xlim(242, 262)
-    axL.set_ylim(ZMAX, 0)
-    axL.axhline(Z0, color=C_DIM, lw=0.6, ls=":")
-    axL.set_xlabel("cycle-mean temperature  [K]", fontsize=10)
-    axL.set_ylabel("depth  [m]", fontsize=10)
-    axL.set_title("(a)  building the temperature column", fontsize=11,
-                  color=C_CHAR, loc="left")
-    axL.legend(loc="lower left", fontsize=8.2, frameon=True, edgecolor=C_GRID,
-               framealpha=0.95)
+    if kind in ("stepB", "repeat", "done"):
+        ax.text(0.965, 0.06,
+                r"$\dfrac{d\langle T\rangle}{dz}=\dfrac{Q_b}{K}\approx$"
+                f"{D['slope']:.1f} K/m",
+                transform=ax.transAxes, fontsize=10.5, color=C_A15,
+                ha="right", va="bottom",
+                bbox=dict(boxstyle="round,pad=0.38", fc="white", ec=C_A15, lw=1.1))
 
-    # ── right: real drift, accumulating with overall progress ────────────────
+    ax.set_xlim(*XLIM)
+    ax.set_ylim(ZMAX, 0)
+    ax.axhline(Z0, color=C_DIM, lw=0.6, ls=":")
+    ax.set_xlabel("cycle-mean temperature  [K]", fontsize=10.5)
+    ax.set_ylabel("depth  [m]", fontsize=10.5)
+    ax.set_title("(a)  building the temperature column", fontsize=11,
+                 color=C_CHAR, loc="left")
+    ax.grid(alpha=0.20)
+
+
+def _draw_drift(ax, D, frac, kind):
     drift = D["drift"]
-    frac = (si + 1) / len(seq)
     n_show = max(1, int(round(frac * len(drift))))
     xs = np.arange(1, n_show + 1)
-    axR.plot(xs, drift[:n_show], "-o", color=C_FOREST, ms=6, lw=1.6,
-             mec="white", mew=0.8, zorder=3)
-    axR.axhline(TOL, color=C_CORAL, ls="--", lw=1.3)
-    axR.text(len(drift), TOL * 1.15, "tolerance 0.005 K", color=C_CORAL,
-             fontsize=8.5, ha="right", va="bottom")
-    axR.set_yscale("log")
-    axR.set_xlim(0.5, len(drift) + 0.5)
-    axR.set_ylim(min(drift.min() * 0.6, TOL * 0.5), drift.max() * 1.6)
-    axR.set_xlabel("outer iteration (Step A + Step B)", fontsize=10)
-    axR.set_ylabel("anchor drift  [K]", fontsize=10)
-    axR.set_title("(b)  the anchor stops moving", fontsize=11,
-                  color=C_CHAR, loc="left")
-    axR.grid(True, which="both", color=C_GRID, lw=0.4, alpha=0.5)
-
-    return label
+    ax.plot(np.arange(1, len(drift) + 1), drift, "-", color=C_FOREST,
+            alpha=0.20, lw=1.2)                          # ghost of full path
+    ax.plot(xs, drift[:n_show], "-o", color=C_FOREST, ms=7, lw=1.8,
+            mec="white", mew=0.9, zorder=3)
+    ax.axhline(TOL, color=C_CORAL, ls="--", lw=1.4)
+    ax.text(0.8, TOL * 0.86, "tolerance 0.005 K", color=C_CORAL,
+            fontsize=9, ha="left", va="top")
+    if kind == "done":
+        ax.text(0.96, 0.90, "converged", transform=ax.transAxes,
+                fontsize=11.5, color=C_FOREST, ha="right", fontweight="bold")
+    ax.set_yscale("log")
+    ax.set_xlim(0.5, len(drift) + 0.5)
+    ax.set_ylim(min(drift.min() * 0.6, TOL * 0.5), drift.max() * 1.7)
+    ax.set_xlabel("outer iteration (one A $\\leftrightarrow$ B round)", fontsize=10.5)
+    ax.set_ylabel("anchor drift  [K]", fontsize=10.5)
+    ax.set_title("(b)  proof: the anchor stops moving", fontsize=11,
+                 color=C_CHAR, loc="left")
+    ax.grid(True, which="both", color=C_GRID, lw=0.4, alpha=0.5)
 
 
 def main():
     D = _compute()
-    deep_idx = [i for i in range(D["i0"], D["z"].size) if D["z"][i] <= ZMAX]
-    seq = _frames(len(deep_idx))
+    seq = _script()
 
-    fig, (axL, axR) = plt.subplots(1, 2, figsize=(JGR_FULL, 4.7),
-                                   gridspec_kw={"width_ratios": [1.35, 1.0]})
-    fig.subplots_adjust(left=0.075, right=0.975, top=0.85, bottom=0.135,
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(9.8, 5.0),
+                                   gridspec_kw={"width_ratios": [1.3, 1.0]})
+    fig.subplots_adjust(top=0.72, bottom=0.115, left=0.075, right=0.975,
                         wspace=0.28)
-    suptitle = fig.suptitle("", fontsize=12, color=C_CHAR, fontweight="bold",
-                            y=0.965)
+
+    # fixed banner: title + step line + explainer line (positions never move)
+    fig.text(0.075, 0.950, "The flux-anchored method",
+             fontsize=15, fontweight="bold", color=C_CHAR, ha="left")
+    step_txt = fig.text(0.075, 0.878, "", fontsize=12, color=C_A15,
+                        ha="left", fontweight="bold")
+    expl_txt = fig.text(0.075, 0.818, "", fontsize=10, color=C_DIM, ha="left")
+
+    # static legend fully outside the axes (top right)
+    handles = [
+        Line2D([], [], color=C_CORAL, lw=2.4, label="initial guess"),
+        Line2D([], [], color=C_FOREST, lw=2.8, label="skin (Step A)"),
+        Line2D([], [], color=C_CHAR, marker="o", lw=0, ms=8, label="anchor"),
+        Line2D([], [], color=C_HAYNE, lw=2.8, label="deep (Step B walk)"),
+        Line2D([], [], color=C_DIM, lw=1.4, ls="--", label="true steady state"),
+    ]
+    fig.legend(handles=handles, loc="upper right", bbox_to_anchor=(0.975, 1.0),
+               ncols=2, frameon=True, edgecolor=C_GRID, framealpha=0.95,
+               fontsize=8.4, columnspacing=1.1, handlelength=1.6)
+
+    arrow_holder = {}
 
     def update(si):
-        label = _draw(axL, axR, seq[si], D, seq, si)
-        suptitle.set_text(label)
+        num, name, expl, kind, prog = seq[si]
+        axL.clear(); axR.clear()
+        _draw_column(axL, D, kind, prog, arrow_holder)
+        _draw_drift(axR, D, (si + 1) / len(seq), kind)
+        step_txt.set_text(f"Step {num} of 6 — {name}")
+        expl_txt.set_text(expl)
         return []
 
     anim = FuncAnimation(fig, update, frames=len(seq), blit=False)
     ANIM.mkdir(parents=True, exist_ok=True)
     out = ANIM / "anchor_method_steps.gif"
-    anim.save(str(out), writer=PillowWriter(fps=7), dpi=100)
+    anim.save(str(out), writer=PillowWriter(fps=6), dpi=100)
     plt.close(fig)
-    print(f"  -> {out.relative_to(_REPO)}  ({len(seq)/7:.1f} s, "
+    print(f"  -> {out.relative_to(_REPO)}  ({len(seq)/6:.1f} s, "
           f"slope {D['slope']:.1f} K/m, {len(D['drift'])} drift points)")
 
-    _filmstrip(D, seq)
+    _filmstrip(D)
 
 
-def _filmstrip(D, seq):
+def _filmstrip(D):
     """4-panel LaTeX still: guess -> Step A -> Step B walk -> converged."""
-    from lunar.plotting.style import assert_no_overlap
-    picks = [("guess", 4), ("stepA", None), ("stepB", None), ("done", -1)]
-    # choose representative frame indices per kind
-    idx = {}
-    for i, ph in enumerate(seq):
-        idx.setdefault(ph[1], []).append(i)
-    chosen = [idx["guess"][-1], idx["stepA"][-1],
-              idx["stepB"][int(len(idx["stepB"]) * 0.6)], idx["done"][0]]
-
-    fig = plt.figure(figsize=(JGR_FULL, 3.5))
+    frames = [("1. rough guess", "guess", 0.0),
+              ("2. Step A: skin settles", "stepA", 1.0),
+              ("3-4. Step B: walk down", "stepB", 0.62),
+              ("5-6. converged", "done", 1.0)]
+    fig = plt.figure(figsize=(JGR_FULL, 3.6))
     gs = fig.add_gridspec(1, 4, wspace=0.30, left=0.06, right=0.985,
-                          top=0.80, bottom=0.16)
-    titles = ["1. rough guess", "2. Step A: skin settles",
-              "3-4. Step B: walk down", "5-6. converged"]
-    for j, (ci, ttl) in enumerate(zip(chosen, titles)):
+                          top=0.78, bottom=0.16)
+    for j, (ttl, kind, prog) in enumerate(frames):
         ax = fig.add_subplot(gs[0, j])
-        dummy = fig.add_subplot(gs[0, j]); dummy.remove()   # keep gridspec tidy
-        _draw_panel(ax, seq[ci], D, ttl, sharey=(j == 0))
+        _draw_column(ax, D, kind, prog, {})
+        ax.set_title(ttl, fontsize=9.5, color=C_CHAR, loc="left")
+        ax.set_xlabel("temperature  [K]", fontsize=9)
+        if j == 0:
+            ax.set_ylabel("depth  [m]", fontsize=9)
+        else:
+            ax.set_ylabel(""); ax.set_yticklabels([])
     fig.suptitle("The flux-anchored method, step by step "
                  "(Apollo 15, $K_d = 4.60$ mW m$^{-1}$K$^{-1}$)",
-                 fontsize=11.5, color=C_CHAR, fontweight="bold", y=0.955)
-    fig.canvas.draw()
+                 fontsize=11.5, color=C_CHAR, fontweight="bold", y=0.945)
     out = FIG / "anchor_method_filmstrip.pdf"
     fig.savefig(out)
     plt.close(fig)
     print(f"  -> {out.relative_to(_REPO)}")
-
-
-def _draw_panel(ax, phase, D, title, sharey):
-    """One filmstrip panel (profile only; no right-hand drift axis)."""
-    z, i0 = D["z"], D["i0"]
-    m = z <= ZMAX
-    deep_idx = [i for i in range(i0, z.size) if z[i] <= ZMAX]
-    _, kind, prog = phase
-    sk = z <= Z0
-    ax.plot(D["T_target"][m], z[m], "--", color=C_DIM, lw=1.3)
-    if kind == "guess":
-        ax.plot(D["T_guess"][m], z[m], "-", color=C_CORAL, lw=2.2)
-    elif kind == "stepA":
-        Tsk = (1 - prog) * D["T_guess"] + prog * D["T_target"]
-        cur = D["T_guess"].copy(); cur[sk] = Tsk[sk]
-        ax.plot(cur[sk], z[sk], "-", color=C_FOREST, lw=2.6)
-        ax.plot(cur[m & ~sk], z[m & ~sk], "-", color=C_CORAL, lw=1.4, alpha=0.5)
-    else:
-        ax.plot(D["T_target"][sk], z[sk], "-", color=C_FOREST, lw=2.6)
-        ax.plot(D["T_target"][i0], Z0, "o", color=C_CHAR, ms=7, zorder=6)
-    if kind == "stepB":
-        k = deep_idx[min(int(round(prog * (len(deep_idx) - 1))), len(deep_idx) - 1)]
-        built = (z >= Z0) & (z <= z[k])
-        ax.plot(D["T_walk"][built], z[built], "-", color=C_HAYNE, lw=2.8)
-        slope = D["Qb"] / float(D["K"](np.array([D["T_walk"][k]]),
-                                       np.array([z[k]]))[0])
-        dzz = 0.26
-        ax.annotate("", xy=(D["T_walk"][k] + slope * dzz, z[k] + dzz),
-                    xytext=(D["T_walk"][k], z[k]),
-                    arrowprops=dict(arrowstyle="-|>", color=C_A15, lw=2.2))
-    elif kind in ("repeat", "done"):
-        built = (z >= Z0) & m
-        ax.plot(D["T_walk"][built], z[built], "-", color=C_HAYNE, lw=2.8)
-    ax.set_xlim(242, 262)
-    ax.set_ylim(ZMAX, 0)
-    ax.axhline(Z0, color=C_DIM, lw=0.5, ls=":")
-    ax.set_xlabel("temperature  [K]", fontsize=9)
-    if sharey:
-        ax.set_ylabel("depth  [m]", fontsize=9)
-    else:
-        ax.set_yticklabels([])
-    ax.set_title(title, fontsize=9.5, color=C_CHAR, loc="left")
 
 
 if __name__ == "__main__":

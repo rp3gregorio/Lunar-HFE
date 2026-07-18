@@ -13,9 +13,9 @@ sweeps K_d against the deep-sensor RMSE, and reports:
 
 Writes:
     results/kd_retrieval_results.json     # canonical numerical results
-    results/figures/fig_bootstrap.pdf
-    results/figures/fig_robustness.pdf
-    results/figures/fig_holdout.pdf
+    ../figures/fig_bootstrap.pdf          # top-level shared figure home
+    ../figures/fig_robustness.pdf
+    ../figures/fig_holdout.pdf
 
 Sections (search the function name -- line numbers drift):
     conductivity_3layer / run_with       -- model wrappers + one solve
@@ -51,6 +51,8 @@ boot.ensure_apollo_hfe(mission='a15', probes=())
 boot.ensure_apollo_hfe(mission='a17', probes=())
 
 import numpy as np
+from tqdm.auto import tqdm  # live progress bars: clean HTML widget in Jupyter,
+                            # plain text in a terminal (needs ipywidgets for the widget)
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -61,7 +63,8 @@ from lunar.properties import (conductivity_hayne, conductivity_martinez,
 from lunar.constants import (
     K_SURFACE, H_PARAMETER, CHI_RADIATIVE, T_REFERENCE, LUNATION_SECONDS,
 )
-from lunar.solver import PixelInputs, solve_pixel, periodic_time_grid
+from lunar.solver import (PixelInputs, solve_pixel, periodic_time_grid,
+                          standard_insolation)
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.apollo_helpers import extract_sensor_stability
 
@@ -154,9 +157,7 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
     grid_  = make_geometric_grid(**GRID)
     z_mid  = grid_.z_mid
     t_s = periodic_time_grid(DT_STEP)   # commensurate lunation grid (audit 2026-07-03)
-    cos_lat = np.cos(np.deg2rad(site['lat']))
-    phase   = 2.0 * np.pi * t_s / T_LUNAR
-    insol   = S0 * cos_lat * np.maximum(0.0, np.cos(phase))
+    insol = standard_insolation(site['lat'], t_s)   # the ONE forcing builder
     if k_model == '3layer':
         if kd is None:
             raise ValueError("3layer model requires kd")
@@ -300,7 +301,9 @@ def run_kd_sweep_extended(site_cfg, kd_grid, k_model='hayne'):
 
     # Build residual matrix: R[sensor_i, K_d_j] = T_model(K_d_j) - T_observed
     R = np.empty((len(z_obs_deep), len(kd_grid)))
-    for k, kd in enumerate(kd_grid):
+    for k, kd in enumerate(tqdm(kd_grid,
+                                desc=f"K_d sweep {site_cfg['label']} {k_model}",
+                                unit="Kd")):
         # EXPENSIVE: This calls solve_periodic_equilibrium (~40 lunations)
         z_mid, T_mean_z = run_with(site_cfg, kd=kd, k_model=k_model)
         T_pred = _interp_profile_at_depths(
@@ -308,9 +311,6 @@ def run_kd_sweep_extended(site_cfg, kd_grid, k_model='hayne'):
             context=f"{site_cfg['label']} {k_model} K_d sweep",
         )
         R[:, k] = T_pred - T_obs_deep
-        if (k + 1) % 5 == 0 or k == len(kd_grid) - 1:
-            print(f"   K_d sweep ({site_cfg['label']}, {k_model}): "
-                  f"{k+1}/{len(kd_grid)}", flush=True)
     return z_obs_deep, T_obs_deep, R, stype_deep
 
 
@@ -334,11 +334,11 @@ def bootstrap_kd_with_depth_uncertainty(
     # the spin-up output). Cache T_mean(z_grid) for each K_d in the sweep.
     z_grid_dense = np.linspace(0.05, 3.0, 200)
     T_cache = np.empty((len(kd_grid), len(z_grid_dense)))
-    for k, kd in enumerate(kd_grid):
+    for k, kd in enumerate(tqdm(kd_grid,
+                                desc=f"boot cache {site_cfg['label']}",
+                                unit="Kd")):
         z_mid, T_mean_z = run_with(site_cfg, kd=kd)
         T_cache[k] = np.interp(z_grid_dense, z_mid, T_mean_z)
-    print(f"   built depth interpolation cache ({len(kd_grid)} K_d × "
-          f"{len(z_grid_dense)} depths)", flush=True)
 
     # ──────────────────────────────────────────────────────────────────────────
     # PERFORMANCE: Bootstrap statistical resampling (65% of runtime)
@@ -353,7 +353,8 @@ def bootstrap_kd_with_depth_uncertainty(
     # testing (docs/REPRODUCING.md).
     # ──────────────────────────────────────────────────────────────────────────
     boots = np.empty(n_boot)
-    for b in range(n_boot):
+    for b in tqdm(range(n_boot),
+                  desc=f"bootstrap {site_cfg['label']}", unit="draw"):
         idx = rng.integers(0, n, size=n)
         # jittered depths
         dz = rng.normal(0.0, depth_sigma_cm / 100.0, size=n)
@@ -388,7 +389,8 @@ def joint_kd_h_dense(site_cfg, kd_grid, h_grid):
     T_obs_deep = T_obs[deep]
     rmse = np.empty((len(h_grid), len(kd_grid)))
     total = len(h_grid) * len(kd_grid)
-    n = 0
+    pbar = tqdm(total=total, desc=f"joint K_d×H {site_cfg['label']}",
+                unit="cell")
     for i, h in enumerate(h_grid):
         for j, kd in enumerate(kd_grid):
             z_mid, T_mean_z = run_with(site_cfg, kd=kd, h=h)
@@ -397,10 +399,8 @@ def joint_kd_h_dense(site_cfg, kd_grid, h_grid):
                 context=f"{site_cfg['label']} joint K_d-H grid",
             )
             rmse[i, j] = np.sqrt(((T_pred - T_obs_deep)**2).mean())
-            n += 1
-            if n % 16 == 0 or n == total:
-                print(f"   joint ({site_cfg['label']}): {n}/{total}",
-                      flush=True)
+            pbar.update(1)
+    pbar.close()
     return rmse
 
 
@@ -449,8 +449,10 @@ def loo_deepest(R, kd_grid, z_obs_deep):
 def main():
     t0 = time.time()
     out_dir = _REPO / 'results'
-    fig_letter = _REPO / 'results' / 'figures'
-    fig_appendix = _REPO / 'results' / 'figures'
+    # One figure home: every generator writes to the top-level shared
+    # figures/ folder (see STRUCTURE.md); results/ holds JSON only.
+    fig_letter = _REPO.parent / 'figures'
+    fig_appendix = _REPO.parent / 'figures'
     results = {}
 
     # ── A1: extended K_d grids ────────────────────────────────────────────
@@ -500,8 +502,17 @@ def main():
         results[name]['rmse_star_3layer'] = rmse3
         results[name]['rmse_curve_3layer'] = \
             np.sqrt((R3**2).mean(axis=0)).tolist()
+        # Edge guard: if the minimum sits ON a grid endpoint it is a FLOOR,
+        # not a fitted vertex (A17 pins at the 3.0 mW floor -- the 3-layer
+        # model prefers K_d below the sweep). Persist the flag so the value
+        # is never quoted as a retrieved number without the caveat.
+        edge3 = bool(np.isclose(kd3, kd_grids[name][0])
+                     or np.isclose(kd3, kd_grids[name][-1]))
+        results[name]['kd_star_3layer_edge_limited'] = edge3
         print(f"   3-layer K_d* = {kd3*1e3:.3f} mW/m/K, "
-              f"RMSE* = {rmse3:.3f} K", flush=True)
+              f"RMSE* = {rmse3:.3f} K"
+              + ("   [EDGE-LIMITED: grid floor, not a vertex]" if edge3 else ""),
+              flush=True)
 
     # ── A5: depth-uncertainty bootstrap (extended grid + jittered depths) ─
     # ──────────────────────────────────────────────────────────────────────────

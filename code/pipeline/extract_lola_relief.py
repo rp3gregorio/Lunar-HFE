@@ -8,7 +8,7 @@ rather than from an albedo mosaic. This script cuts the two regional
 elevation crops the figure consumes.
 
 Source (LOLA LDEM, 16 pixels/degree global topographic map):
-  aogs/data/lola/ldem_16.img
+  data/lola/ldem_16.img
   16-bit signed integers, row-major, 2880 rows x 5760 cols, elevation in
   units of 0.5 m relative to a 1737.4 km reference sphere. Row 0 is the
   north pole (+90 deg); column 0 is longitude -180 deg.
@@ -44,7 +44,7 @@ PPD = 16                      # pixels per degree of the LDEM
 N_ROWS, N_COLS = 2880, 5760   # LDEM_16 dimensions
 ELEV_SCALE_KM = 0.5e-3        # DN units of 0.5 m -> km
 
-LDEM = ROOT.parent / "aogs" / "data" / "lola" / "ldem_16.img"
+LDEM = ROOT / "data" / "lola" / "ldem_16.img"
 OUT = ROOT / "data" / "lola_relief"
 
 # Half-widths of the crop window (must match make_context_map_figure.py)
@@ -56,7 +56,7 @@ def load_ldem():
     if not LDEM.exists():
         raise FileNotFoundError(
             f"LDEM source not found at {LDEM}. It ships with the AOGS "
-            "assets (aogs/data/lola/ldem_16.img); the committed crops in "
+            "assets (data/lola/ldem_16.img); the committed crops in "
             f"{OUT} let the figure build without it.")
     dem = np.fromfile(LDEM, dtype="<i2").reshape(N_ROWS, N_COLS)
     return dem.astype(np.float32) * ELEV_SCALE_KM        # km

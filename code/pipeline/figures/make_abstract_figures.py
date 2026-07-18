@@ -39,7 +39,7 @@ ROOT = find_repo_root()                       # .../code
 # letter's identically named figures in the shared top-level figures/.
 # (The 2026-07-13 reorg had briefly symlinked this to ../../figures, which
 # let the letter's 2D fig_context_map.pdf overwrite the abstract's globes.)
-ABS_FIGS = ROOT.parent / "documents" / "abstract" / "figures"
+ABS_FIGS = ROOT.parent / "documents" / "gedes" / "abstract" / "figures"
 
 ABSTRACT_W = 6.69                             # A4 text width (170 mm), inches
 

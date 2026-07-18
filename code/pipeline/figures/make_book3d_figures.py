@@ -24,7 +24,7 @@ from lunar.config import (SITES, GRID, HAYNE, S0, T_LUNAR, DT_STEP,
                           EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL)
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
-from lunar.solver import periodic_time_grid
+from lunar.solver import periodic_time_grid, standard_insolation
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.plotting.style import (WARM_DIVERGE, C_CORAL, C_TEAL, C_FOREST,
                                   C_CHAR, C_DIM, C_GRID, JGR_FULL,
@@ -54,8 +54,7 @@ def _solve_field(site_tag="A17"):
     kd = _kd_star(site_tag, 7.16e-3)
     grid = make_geometric_grid(**GRID)
     t = periodic_time_grid(DT_STEP)   # commensurate lunation grid (audit 2026-07-03)
-    phase = 2.0 * np.pi * t / T_LUNAR
-    insol = S0 * np.cos(np.deg2rad(site["lat"])) * np.maximum(0.0, np.cos(phase))
+    insol = standard_insolation(site["lat"], t)
 
     def k_func(T, z):
         return conductivity_hayne(T, z, Ks=HAYNE["K_S"], Kd=kd, H=HAYNE["H"],

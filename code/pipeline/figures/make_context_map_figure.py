@@ -9,7 +9,7 @@ massifs at Apollo 17) reads directly.
 
 Data
   figures/moon_global.png          Clementine albedo (fallback basemap)
-  aogs/data/lola/ldem_16.img       LOLA LDEM, 16 ppd (topography)
+  data/lola/ldem_16.img            LOLA LDEM, 16 ppd (topography)
   data/lola_relief/{A15,A17}.npy   pre-cut relief crops for the zooms
   results/abstract_mean_surface_T.json  mean skin T vs latitude (real solver)
 
@@ -57,7 +57,7 @@ plt.rcParams.update({
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 OUT  = ROOT / ".." / "figures"
 MOON_PNG = OUT / "moon_global.png"
-DEM = ROOT.parent / "aogs" / "data" / "lola" / "ldem_16.img"
+DEM = ROOT / "data" / "lola" / "ldem_16.img"
 MEANT = ROOT / "results" / "abstract_mean_surface_T.json"
 RELIEF_DIR = ROOT / "data" / "lola_relief"
 

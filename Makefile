@@ -35,17 +35,19 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 figures:             ## regenerate every figure (writes figures/) for the paper + guidebook
 	$(PY) code/pipeline/make_all_figures.py
 
-paper:               ## compile the letter and the teaching guidebook
-	cd documents/letter        && latexmk -pdf -interaction=nonstopmode letter.tex
-	cd documents/letter        && latexmk -pdf -interaction=nonstopmode letter_clean.tex
-	cd documents/guidebook      && latexmk -pdf -interaction=nonstopmode guidebook.tex
-	cd documents/thesis         && latexmk -pdf -interaction=nonstopmode thesis.tex
-	cd documents/abstract       && latexmk -pdf -interaction=nonstopmode gedes_abstract.tex
+paper:               ## compile every document (JGR letter+guidebook, GEDES abstract+thesis, AOGS poster)
+	cd documents/jgr/letter     && latexmk -pdf -interaction=nonstopmode letter.tex
+	cd documents/jgr/letter     && latexmk -pdf -interaction=nonstopmode letter_clean.tex
+	cd documents/jgr/guidebook  && latexmk -pdf -interaction=nonstopmode guidebook.tex
+	cd documents/gedes/thesis   && latexmk -pdf -interaction=nonstopmode thesis.tex
+	cd documents/gedes/abstract && latexmk -pdf -interaction=nonstopmode gedes_abstract.tex
+	cd documents/aogs/poster    && latexmk -pdf -interaction=nonstopmode aogs_poster.tex
 
 all: retrieve aux figures paper  ## full reproduction from scratch
 
 clean:               ## remove LaTeX build artifacts
-	cd documents/letter        && latexmk -C 2>/dev/null || true
-	cd documents/guidebook      && latexmk -C 2>/dev/null || true
-	cd documents/thesis         && latexmk -C 2>/dev/null || true
-	cd documents/abstract       && latexmk -C 2>/dev/null || true
+	cd documents/jgr/letter     && latexmk -C 2>/dev/null || true
+	cd documents/jgr/guidebook  && latexmk -C 2>/dev/null || true
+	cd documents/gedes/thesis   && latexmk -C 2>/dev/null || true
+	cd documents/gedes/abstract && latexmk -C 2>/dev/null || true
+	cd documents/aogs/poster    && latexmk -C 2>/dev/null || true

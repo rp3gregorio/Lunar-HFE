@@ -3,7 +3,7 @@
 
 Conceptual diagrams (the physical setup, equation interpretations) are authored
 as clean vector SVG in pipeline/figures/svg/*.svg and converted here to
-results/figures/<name>.pdf with svglib + reportlab (pure Python -- no system
+../figures/<name>.pdf (top-level shared home) with svglib + reportlab (pure Python -- no system
 cairo). Data figures stay in matplotlib; this is only for illustrations.
 
 Math/Greek goes in the LaTeX caption, not the SVG (reportlab's base fonts lack

@@ -9,6 +9,7 @@ Required inputs (run their generating scripts first if missing):
     results/borestem_sensitivity.json            -- compute_borestem_sensitivity.py
     results/stability_threshold_sensitivity.json -- compute_stability_threshold_sensitivity.py
     results/surface_bias_test.json               -- compute_surface_bias_test.py
+    results/common_epoch_sensitivity.json        -- compute_common_epoch.py
     (no input file needed for sigma_Qb -- it is analytical from the
      K_d/Q_b degeneracy, with the published Q_b envelopes hard-coded
      below from Langseth (1976), Saito (2007), and Nagihara (2018).)
@@ -20,6 +21,7 @@ Output schema (kd_error_budget.json):
         "sigma_Qb":   float,         # K_d * (max(Q_b)-min(Q_b)) / (2*Q_b_nom)
         "sigma_zb":   float,         # half-range over the borestem-cut sweep
         "sigma_thr":  float,         # half-range over stability-threshold sweep
+        "sigma_epoch": float,        # |common-1974 refit - certified| (one-sided)
         "sigma_A":    float,         # half-range over Bond-albedo sweep
         "sigma_chi":  float,         # Hayne 2017 chi sensitivity (constant)
         "sigma_H":    float,         # joint K_d-H fit sensitivity
@@ -45,13 +47,14 @@ import numpy as np
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 OUT = ROOT / "results"
 
-# Published Q_b envelopes in mW m^-2 (Langseth 1976 / Saito 2007 / Nagihara 2018)
+# Published Q_b envelopes in mW m^-2 (Langseth 1976 / Saito 2007 / Nagihara 2018).
+# The nominal comes from config.SITES (single source of truth; the hardcoded
+# 16 here once went stale at 15 -- the 2026-06-30 straggler); only the
+# literature envelope bounds are stated locally.
+from lunar.config import SITES as _SITES
 QB_ENVELOPES = {
-    "A15": {"nominal": 21.0, "low": 14.0, "high": 25.0},
-    # A17 nominal corrected 15->16 to match the adopted borehole value
-    # (Langseth 1976, 1.6 uW cm^-2 = 16 mW m^-2; config SITES Q_BASAL=0.016).
-    # Straggler from the Q_b 15->16 revision, fixed 2026-06-30.
-    "A17": {"nominal": 16.0, "low": 10.0, "high": 18.0},
+    "A15": {"nominal": _SITES["A15"]["Q_BASAL"] * 1e3, "low": 14.0, "high": 25.0},
+    "A17": {"nominal": _SITES["A17"]["Q_BASAL"] * 1e3, "low": 10.0, "high": 18.0},
 }
 
 # Fixed-input sensitivities (chi, H, K_s, rho) are re-retrievals at the
@@ -73,6 +76,7 @@ def main() -> int:
     th = json.loads((OUT / "stability_threshold_sensitivity.json").read_text())
     sb = json.loads((OUT / "surface_bias_test.json").read_text())
     fx = json.loads((OUT / "fixed_input_sensitivities.json").read_text())
+    ce = json.loads((OUT / "common_epoch_sensitivity.json").read_text())
 
     budget = {}
     for site in ("A15", "A17"):
@@ -128,6 +132,13 @@ def main() -> int:
         # sigma of the closure->0 limit. Source: n_inner + z0 studies 2026-06-30.
         sigma_solver = 0.04
 
+        # sigma_epoch: the A17 stability windows mix 1974-1977 epochs
+        # aligned with depth; re-fitting every sensor at one shared 1974
+        # window moves K_d* by this much (one-sided; manuscript
+        # Sec. "consistency"). A15 is epoch-uniform already (<0.02).
+        sigma_epoch = abs(ce[site]["common_1974"]["kd_star_mW"]
+                          - ce[site]["certified"]["kd_star_mW"])
+
         # Quadrature total covers the statistical and measured-input
         # components that respond linearly across their envelopes.
         # chi and H are NOT totaled: they parameterize the Hayne
@@ -143,6 +154,7 @@ def main() -> int:
             "sigma_Qb": sigma_Qb,
             "sigma_zb": sigma_zb,
             "sigma_thr": sigma_thr,
+            "sigma_epoch": sigma_epoch,
             "sigma_A": sigma_A,
             "sigma_Ks": float(fx[site]["sigma_Ks"]),
             "sigma_rho": float(fx[site]["sigma_rho"]),

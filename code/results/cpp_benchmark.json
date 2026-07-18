@@ -10,26 +10,26 @@
  },
  "verification_max_dev_K": 7.389644451905042e-13,
  "verification_max_dev_njit_K": 1.0800249583553523e-12,
- "py_ms_per_lunation": 485.86,
- "py_njit_ms_per_lunation": 4.382,
- "cpp_ms_per_lunation": 2.992,
+ "py_ms_per_lunation": 442.85,
+ "py_njit_ms_per_lunation": 3.948,
+ "cpp_ms_per_lunation": 2.764,
  "py_runs_s": [
-  23.093,
-  24.293,
-  25.015
+  21.364,
+  22.142,
+  22.468
  ],
  "py_njit_runs_s": [
-  0.204,
-  0.219,
-  0.228
+  0.191,
+  0.197,
+  0.204
  ],
  "cpp_runs_s": [
-  0.139,
-  0.15,
-  0.151
+  0.13,
+  0.138,
+  0.149
  ],
- "speedup_cpp_over_py": 162.4,
- "speedup_njit_over_py": 110.9,
- "speedup_cpp_over_njit": 1.46,
+ "speedup_cpp_over_py": 160.2,
+ "speedup_njit_over_py": 112.2,
+ "speedup_cpp_over_njit": 1.43,
  "note": "solver march only (no bootstrap/statistics). Three sides: generic interpreted _step loop, the compiled njit kernel (production fast path), and the C++ port -- all verified equal to <1e-6 K first"
 }

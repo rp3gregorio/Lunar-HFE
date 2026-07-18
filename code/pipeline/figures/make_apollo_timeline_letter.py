@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build the per-probe Apollo HFE stability-window timeline figure
-(``results/figures/fig_apollo_timeline_probes.pdf`` -- the LETTER's
+(``../figures/fig_apollo_timeline_probes.pdf`` -- the LETTER's
 Figure 3). RESTORED 2026-07-04 from the canonical Lunar-HFE repo at the
 user's request: the letter keeps this information-dense original design
 (all sensors, event bands, per-sensor Gantt windows), while the guidebook

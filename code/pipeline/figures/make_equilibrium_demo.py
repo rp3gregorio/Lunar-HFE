@@ -5,7 +5,7 @@ Shows numerically that a long brute-force spin-up and the fast
 flux-anchored solver (lunar/equilibrium.py) reach the *same* periodic
 steady state -- the shortcut is an accelerator, not a different model.
 
-Designed to be driven from notebooks/equilibrium_demo.ipynb, or from the
+Designed to be driven from notebooks/02_method.ipynb, or from the
 CLI. The worker functions are module-level and take only picklable
 arguments, so ``compute_curves(parallel=True)`` can fan the *independent*
 brute-force runs across CPU cores (macOS 'spawn'-safe).

@@ -1,0 +1,232 @@
+% ============================================================================
+% AOGS POSTER REPORT — full development history of the poster: versions,
+% audits, the corruption incident, the simulated peer review, every applied
+% fix, and the final state. Written 2026-07-12/13 for the presenter's records.
+% Build:  /Library/TeX/texbin/pdflatex aogs_poster_report.tex   (x2)
+% ============================================================================
+\documentclass[11pt]{article}
+\usepackage[a4paper, margin=20mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\input{../figures/poster_numbers.tex}
+
+\definecolor{teal}{HTML}{2A6478}
+\definecolor{coral}{HTML}{B85B3A}
+\definecolor{char}{HTML}{2A2520}
+\definecolor{gridc}{HTML}{E8E5E0}
+\definecolor{dim}{HTML}{8A857E}
+\color{char}
+\setlist[itemize]{leftmargin=1.4em, itemsep=1pt, topsep=2pt}
+\newcommand{\shead}[1]{\medskip\noindent{\color{teal}\large\bfseries #1}\par\nobreak\smallskip}
+
+\begin{document}
+\thispagestyle{empty}
+
+\begin{center}
+{\LARGE\bfseries AOGS Poster --- Development Report}\\[2pt]
+{\large\color{teal}\bfseries What was made, what went wrong, what was fixed, and where it stands}\\[4pt]
+{\small Ram\'on III P.\ Gregorio \quad$\bullet$\quad Institute of Science Tokyo}\\[-2pt]
+{\footnotesize\color{dim} covering the 2026-07-10 -- 07-13 development window \quad$\bullet$\quad
+ poster: ``Discrete Layer Thermal Modeling of Lunar Landing Sites with Topographic Shadowing''}
+\end{center}
+\vspace{2pt}
+{\color{teal}\rule{\linewidth}{0.9pt}}
+
+\shead{1\enspace What was built}
+Two parallel poster artifacts exist by design, serving different needs:
+\begin{itemize}
+  \item \textbf{LaTeX poster} (\texttt{poster/aogs\_poster.tex} $\to$
+    \texttt{.pdf}) --- print-ready, exact A0 portrait (841$\times$1189 mm),
+    AOGS-compliant masthead (presenter underlined + bold, abstract ID,
+    session window, contact). Layout: 2 blocks per column
+    (Physical model / Sites $\;\vert\;$ Validation / Sensitivity) plus a
+    full-width ``Robustness \& conclusions'' band holding the pipeline
+    flowchart, the bootstrap figure, and three conclusion bullets.
+  \item \textbf{Canva PPTX line} (\texttt{aogs\_poster\_canva\_*.pptx}) ---
+    element-editable version for iteration in Canva; the presenter's
+    working copy. Final: \textbf{v3}.
+\end{itemize}
+Both draw every quoted number from \texttt{poster\_numbers.tex}, which is
+\emph{generated} by \texttt{make\_poster\_figures.py} from the results
+archives --- no number on either poster is hand-typed.
+
+\shead{2\enspace Version history (what happened, in order)}
+\begin{description}[leftmargin=1.5em]
+  \item[LaTeX v1 (07-10/11).] First full poster; plain academic grid, all
+    seven figures, governing-equation box. Compiled to exact A0 with the
+    references strip on-page --- the recurring constraint that shaped every
+    later edit (tikzposter silently clips overflow off the page bottom).
+  \item[Content audit (07-12).] A physics/code audit before polishing found
+    and fixed three real issues: the quoted ``$\sim$1 K shadow cooling''
+    was wrong (audited: \shadowcoolAfif\ K at A15 / \shadowcoolAsev\ K at
+    A17 --- so terrain warming \emph{wins} at A17); a ``flux closure
+    $\le$0.8\%'' claim failed for 180/650 runs (a metric artifact at the
+    sub-anchor conductivity step; reworded to ``winners $\le\closurewin\%$,
+    $n$96 drift $\le\driftmax$ mK''); and the cross-site numbers had no
+    generating script (\texttt{s5\_crossite.py} written; reproduces all
+    four numbers to $10^{-4}$).
+  \item[LaTeX v2 rebalance (07-12).] The packed first layout read as
+    ``small figures + blank gaps.'' Rebalanced per conference-poster
+    practice: header tightened, redundant RMSE table dropped, figures
+    enlarged 25--45\%, columns equalized; then the model schematic and the
+    pipeline flowchart were integrated (the flowchart into the conclusions
+    band). All ``letter'' wording removed from figures at the presenter's
+    request.
+  \item[Flowchart upgrade (07-12).] The pipeline flowchart was rebuilt to
+    carry the governing equations in every step box, plus the exact
+    $K_d$ logic: $K_d^{\star}$ is \emph{site-specific}
+    ($K_d^{\star}(\mathrm{A15}){=}\kdstarAfif$,
+    $K_d^{\star}(\mathrm{A17}){=}\kdstarAsev$ mW\,m$^{-1}$K$^{-1}$); the
+    \textbf{cp branch} holds it fixed, the \textbf{coupled branch} sets
+    $K_d=K_c(\rho_3)$ anchored at $K_c(\rho_d{=}1800)=K_d^{\star}$ (so the
+    A17 winner's effective deep conductivity is 7.99, not 7.08). The DEM
+    box now states the resolution: 16 ppd $\approx$ 1.9 km/px.
+  \item[Bootstrap figure fix (07-12).] The bootstrap panel's x-axis
+    originally ran to the homogeneous baseline (3.76 K at A17), crushing
+    the CIs into the left 13\% of the axis. Rebuilt: axes zoom to the
+    points; A17's off-scale baseline is marked with an arrow.
+  \item[PPTX corruption incident (07-12).] The presenter's hand-arranged
+    Canva export (\texttt{aogs\_poster\_canva.pptx}, kept on the
+    iCloud-synced Desktop) arrived corrupt: two embedded images were
+    random bytes and one relationship pointed at \texttt{Target="NULL"}.
+    Repaired by CRC-bypass extraction, identifying each broken picture via
+    its \texttt{descr} attribute (Canva preserves source filenames),
+    re-rendering replacements at 300 dpi from the repo PDFs, and repairing
+    the relationship table $\to$ \textbf{v2}. Two stretched figures were
+    also restored to true aspect (the validation profiles had been 20\%
+    distorted). Captions Fig 1--6 were added/improved in the presenter's
+    caption style, including the DEM size in the methodology caption.
+    \emph{Lesson recorded: keep the canonical copy in the repo, not on the
+    iCloud Desktop.}
+  \item[Simulated peer review (07-12).] A five-reviewer panel (editor,
+    methodology, domain, cross-disciplinary, devil's advocate) reviewed the
+    presenter's latest Canva export. Verdict: \emph{major revision,
+    numerically pristine} --- the methodology reviewer traced $\sim$60
+    extracted values (including all 18 heatmap cells rasterized inside the
+    figures) to the certified archives with a 100\% pass. The substantive
+    findings are in \S3.
+  \item[v3 (07-12/13).] All review-driven text fixes applied directly to
+    the presenter's latest export (16 edits, \S4) $\to$
+    \texttt{aogs\_poster\_canva\_v3.pptx}.
+  \item[Presenter finalization (07-13).] The presenter edited v3 further in
+    PowerPoint (final save 00:00) and exported the print file
+    \texttt{Gregorio\_AOGS.pdf} (00:02) --- authored at A4 geometry that
+    scales exactly $4\times$ to A0. The repo copy of v3 is therefore the
+    latest; the earlier Desktop copy predates these edits.
+  \item[Repo reorganization (07-13/14).] The whole AOGS tree was promoted
+    to a top-level \texttt{aogs/} folder at the repository root as real
+    files (no longer symlinks): \texttt{poster/}, \texttt{briefing/},
+    \texttt{talk\_figures/}, \texttt{code/} (the s1--s8 pipeline, figure
+    generators, and the study notebook), \texttt{results/} (the 8 JSON
+    archives), and \texttt{data/} (LOLA + SLDEM2015). The moved scripts'
+    import paths were updated accordingly.
+\end{description}
+
+\shead{3\enspace What the review found (the substance)}
+\textbf{Genuine content discrepancies (3):} the final Results bullet was
+truncated mid-sentence, amputating the winner-stability statistic
+(\stabcKAfif\% for the exact A15 triple); ``$\le$0.7 K'' for the
+heat-capacity lever was falsified at the second decimal (actual spread
+0.728 K); and ``+1.3/+0.7 K terrain re-radiation'' quoted the
+re-radiation-\emph{plus-reflected-sunlight} totals under the wrong label.
+
+\textbf{Regressions from the certified backbone:} the Canva export had
+silently dropped references [4] (Saito) and [5] (Smith --- leaving the LOLA
+DEM uncited), the caveats line (terrain terms are a diagnostic upper bound,
+not folded into the 650 fits), the $K_d$--density degeneracy statement, and
+Kasai's separate affiliation.
+
+\textbf{Framing challenges (devil's advocate):} the headline
+$\sim$10$\times$ gain is measured against a homogeneous baseline nobody
+uses --- against the field-standard Hayne continuous model the honest gains
+are $\sim$2.3$\times$ (A15) and $\sim$1.5$\times$ (A17), and the
+transplanted A15 structure loses to Hayne at A17; the coupled-branch anchor
+invites a circularity question (defused by the cp branch acting as a
+control: same anchor, no conductivity channel, far worse fit); and ``both
+sites favour $z_2=30$ cm'' oversold A17, whose map admits a tied deeper
+solution.
+
+\shead{4\enspace The 16 fixes applied in v3}
+\begin{enumerate}[leftmargin=1.6em, itemsep=1pt]
+  \item Truncated bullet completed (``\ldots the exact triple survives only
+        13\% of them.'')
+  \item References [4] Saito and [5] Smith restored.
+  \item LOLA DEM cited at first use (Smith et al.\ [5]).
+  \item Degeneracy clause added to the conclusions (broken by the
+        opposite-signed site responses; joint retrieval = next step).
+  \item Hayne-relative gains added ($\sim$2.3$\times$/$\sim$1.5$\times$).
+  \item Transfer bullet rewritten with its numbers (0.90$\to$1.73 K;
+        0.36$\to$1.64 K) claiming graceful degradation, not proof.
+  \item $z_2$ claim scoped (``Apollo 17 admits a tied deeper solution'').
+  \item Warming channel relabeled (re-radiation \emph{and reflected
+        sunlight}; diagnostic upper bound, $T_{\rm terr}\approx T_s$).
+  \item ``$\le$0.7 K'' $\to$ ``$<$0.8 K'' (both occurrences).
+  \item Intro's Hayne characterization corrected (smooth exponential with
+        globally fixed endpoints --- not ``globally uniform'').
+  \item Surface-density comparison fixed (vs Hayne's surface \emph{value},
+        not an endpoint-vs-slab comparison).
+  \item Generalization bullet split honestly (forward pipeline extends;
+        retrieval framework awaits future in-situ payloads).
+  \item Abstract ID brackets removed (PS18-A007).
+  \item Kasai corrected to affiliation 2, with both affiliations in the band.
+  \item RMSE table labeled ``Table 1'' (matching the in-text reference).
+  \item Grott et al.\ core-density citation numbered [6] and added to the
+        reference list.
+\end{enumerate}
+All 16 were verified by reading the saved file back; the PPTX zip is valid;
+an overflow estimate shows headroom in every edited text box (the
+references strip wraps to a second line, as before).
+
+\shead{5\enspace Current state and the remaining checklist}
+\textbf{Final files:} print export \texttt{Gregorio\_AOGS.pdf}; editable
+\texttt{aogs\_poster\_canva\_v3.pptx} (repo copy = latest, incl.\ the
+presenter's final PowerPoint edits); LaTeX \texttt{aogs\_poster.pdf}
+(1 page, exact A0, 0 errors).
+The presenter briefings (\texttt{briefing/aogs\_study\_explainer.pdf},
+\texttt{briefing/aogs\_expert\_briefing.pdf}) are current with the same
+numbers.
+
+\textbf{Before printing (5 minutes, human eyes required):}
+\begin{itemize}
+  \item Import v3 into Canva; confirm the three grown paragraphs
+        (Conclusions bullets 1 and 3; final Results bullet) did not clip.
+  \item Confirm the two EMF figures (sensitivity, bootstrap) display.
+  \item Print \texttt{Gregorio\_AOGS.pdf} at A0 --- it is authored at A4
+        geometry that scales exactly 4$\times$; ask for A0, not ``actual
+        size.''
+  \item Optionally verify Grott et al.\ (2010) primary values (quoted via
+        Chaste et al.\ 2025: $\sim$1825/1960 kg\,m$^{-3}$).
+\end{itemize}
+
+\textbf{Known, consciously deferred (optional tier):} red--green heatmaps
+are not colorblind-safe; Fig 5/6 in-figure text is small at 1.5 m viewing
+distance; no takeaway banner or QR code. Each requires figure regeneration,
+not text edits.
+
+\shead{6\enspace Where everything lives}
+Single hub at the repository root: \texttt{aogs/} --- \texttt{poster/}
+(\texttt{aogs\_poster.tex/.pdf}, \texttt{aogs\_poster\_canva\_v3.pptx}
+= \emph{the latest editable version}, \texttt{Gregorio\_AOGS.pdf} =
+\emph{the print export}, \texttt{poster\_numbers.tex}, \texttt{figures/},
+\texttt{canva\_build/}, \texttt{archive/}), \texttt{briefing/} (both
+presenter documents), \texttt{talk\_figures/}, \texttt{code/} (s1--s8
+pipeline, figure generators, study notebook --- real files, paths updated
+for the new location), \texttt{results/} (the 8 \texttt{aogs\_*.json}
+archives), and \texttt{data/} (LOLA DEMs + SLDEM2015 crops). Desktop
+copies of the v3 PPTX and expert briefing exist but \emph{predate the
+final PowerPoint edits}; the repo copies are canonical (the Desktop is
+iCloud-synced and corrupted one export already).
+
+\vspace{4pt}
+{\color{teal}\rule{\linewidth}{0.9pt}}
+\begin{center}\footnotesize\color{dim}
+Numbers in this report: generated macros (\texttt{poster\_numbers.tex}) +
+the dated audits. Companion documents: aogs\_study\_explainer.pdf (plain
+language), aogs\_expert\_briefing.pdf (expert Q\&A).
+\end{center}
+
+\end{document}

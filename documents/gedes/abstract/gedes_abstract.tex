@@ -1,0 +1,293 @@
+% ============================================================================
+% GEDES EXTENDED ABSTRACT — follows GEDESabstract_sampleFormat_en.docx:
+%   A4, 4 pages, margins top/bottom 25 mm side 20 mm, Times 10 pt body,
+%   single-spaced, fully justified, 1-letter paragraph indent;
+%   title centered 14 pt bold ALL CAPS; student block right-justified;
+%   headings "1. Xxx" 10 pt bold flush left; figure captions "Fig. 1. ..."
+%   centered BELOW the figure; numbered references [1], [2,3];
+%   PDF rules: embed all fonts (pdflatex+newtx does), NO bookmarks
+%   (hence: no hyperref), no security.
+% All numbers from the certified 2026-07-06 set (code/results/*.json).
+% American English throughout.
+% OVERLEAF-READY / SELF-CONTAINED: every figure is a real file in ./figures/
+%   (no symlinks, no ../ paths). To use: upload this .tex + the figures/ folder
+%   to Overleaf (Times/newtx is on Overleaf by default). To refresh the figures
+%   from the pipeline, re-copy from code/results/figures/ (see README note).
+% Page limit: GEDES template = A4, 4 pages max. Cross-refs use \ref so the
+%   figure numbers stay correct if you add/remove a float.
+% Build: /Library/TeX/texbin/pdflatex gedes_abstract.tex  (x2)
+% ============================================================================
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newtxtext,newtxmath}          % Times; embeds Type-1 fonts
+\usepackage[top=25mm,bottom=25mm,left=20mm,right=20mm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,bm}
+\usepackage[labelformat=simple,labelsep=period,justification=centering,
+            font=small]{caption}
+\renewcommand{\figurename}{Fig.}
+\usepackage{titlesec}
+\usepackage{indentfirst}   % GEDES: ALL paragraphs indented, incl. first after a heading
+\titleformat{\section}{\normalsize\bfseries}{\thesection.}{0.5em}{}
+\titlespacing{\section}{0pt}{6pt}{3pt}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+\titlespacing{\subsection}{0pt}{4pt}{2pt}
+\setlength{\parindent}{1em}
+\pagestyle{empty}
+% tighten float/caption spacing so the 4 figures + text hold 4 A4 pages
+\usepackage{float}
+\usepackage{caption}
+\captionsetup{skip=3pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{7pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+
+\begin{document}
+
+% ── Title: centered, 14 pt bold, ALL CAPITALS; one blank line after ─────────
+\begin{center}
+{\fontsize{14}{17}\selectfont\bfseries
+SITE-RESOLVED THERMAL CONDUCTIVITY OF THE LUNAR METER-SCALE REGOLITH
+FROM THE APOLLO HEAT-FLOW BOREHOLES}
+\end{center}
+\vspace{\baselineskip}
+
+% ── Student block: right-justified, 10 pt regular; two blank lines after ────
+\begin{flushright}
+Student No.: [TODO: student number]\\
+Name: Ramon III P.\ GREGORIO\\
+Supervisor: [TODO: supervisor name]
+\end{flushright}
+\vspace{2\baselineskip}
+
+\section{Introduction}
+Every orbital instrument that senses the Moon below its optical surface
+(thermal radiometers today, microwave and terahertz sounders next)
+must invert its measurements through a model of the subsurface
+temperature column $T(z)$. Below the top few centimeters, the most
+leveraged input to that column is the deep thermal conductivity of the
+regolith, $K_d$. The community standard is a single, globally averaged
+value, $K_d = 3.4$ mW m$^{-1}$ K$^{-1}$, calibrated by Hayne et al.\ to
+orbital nighttime cooling curves [1]. However, the diurnal wave that
+calibration sees penetrates only ${\sim}30$ cm; at one to two meters
+the global value is an extrapolation, not a measurement.
+
+The only in-situ measurements of the lunar subsurface ever made are the
+Apollo 15 and 17 Heat Flow Experiments (HFE): borehole probes that
+recorded regolith temperatures from 1971 to 1977 [2], recently restored
+to modern usability [3]. Figure~\ref{fig:sites} locates the two sites
+on the nearside through three orthographic layers: Clementine albedo,
+the modeled diurnal-mean surface temperature over LOLA shaded relief,
+and LOLA topography, with Apollo~15 at the Hadley--Apennine
+mare/highland margin and Apollo~17 in the Taurus--Littrow basaltic
+embayment. This work asks the narrowest useful question of those data:
+holding the standard conductivity model fixed in every other respect,
+what deep conductivity does each borehole actually require? The answer
+bears directly on upcoming subsurface radiative-transfer missions such
+as the TSUKIMI terahertz surveyor [5], whose forward model needs the
+sub-diurnal-skin temperature column that only an in-situ-anchored $K_d$
+can provide.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_context_map.pdf}
+\caption{The two Apollo HFE landing sites on the lunar nearside.}
+\label{fig:sites}
+\end{figure}
+
+\section{Data and method}
+\subsection{Data}
+For each site the multi-year record is reduced to one stable
+equilibrium temperature per sensor, read from a quiet late-mission
+window (shaded in Fig.~\ref{fig:record}). The vertical bands in the
+figure mark documented operational disturbances (drilling, ALSEP
+outages, major station events) that are excluded from the window,
+and the dashed line is a least-squares slope fit to the deepest sensor,
+whose residual trend (${+}0.065$ and ${+}0.060$ K yr$^{-1}$) is the
+long-term subsurface warming analyzed by Nagihara et al.\ [3]. Sensors
+shallower than 80 cm are excluded because the borestem conducts the
+surface wave downward (gray rows in Fig.~\ref{fig:record}); this leaves
+7 deep sensors at Apollo 15 and 16 at Apollo 17, spanning 80--234 cm.
+The basal boundary condition is the revised Langseth et al.\ [2]
+borehole heat flux, $Q_b = 21$ and 16 mW m$^{-2}$.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_apollo_timeline.pdf}
+\caption{The restored 1971--1977 HFE subsurface temperature record.}
+\label{fig:record}
+\end{figure}
+
+\subsection{Forward model and the flux-anchored solver}
+The temperature column obeys the one-dimensional heat equation with the
+Hayne conductivity form
+$K(T,z) = [K_d - (K_d - K_s)e^{-z/H}]\,[1 + \chi (T/350\,\mathrm{K})^3]$,
+whose deep asymptote $K_d$ is the single free parameter [1]. The
+observable is the periodic steady state, which brute-force
+time-stepping reaches only after ${\sim}10^3$ simulated lunations
+(${\sim}26$ minutes per solve). The methodological contribution of this
+work is a \textit{flux-anchored} solver: in periodic steady state the
+cycle-mean flux is constant in depth and pinned to $Q_b$, so the
+two-variable heat equation collapses below the diurnal skin to a
+one-variable closure ODE,
+\begin{equation}
+\frac{d\langle T\rangle}{dz}
+   = \frac{Q_b - u_{\mathrm{rect}}(z)}{K(\langle T\rangle, z)},
+\end{equation}
+where $u_{\mathrm{rect}}$ is the rectified flux carried by the
+oscillation. The solver time-steps only the thin skin, reads the
+cycle-mean temperature at an anchor depth of 0.55 m, and reconstructs
+the deep column by integrating Eq.~(1). One solve takes 0.6 s instead
+of ${\sim}26$ minutes (a ${\sim}2500\times$ speedup at
+certified-equal answers), and that speed is what makes the 1500-fold
+bootstrap of Fig.~\ref{fig:robust}a and the point-by-point flux-plane
+map of Fig.~\ref{fig:robust}b affordable.
+
+\subsection{Retrieval and uncertainty}
+For each site, $K_d$ is swept across a dense grid; each candidate is
+solved to periodic equilibrium and scored by the root-mean-square
+misfit to the deep sensors. The retrieved $K_d^{*}$ is the vertex of
+the resulting misfit bowl, shown with its 95\% bootstrap interval as a
+star and horizontal bar in Fig.~\ref{fig:sweep}. Uncertainty is
+quantified by a non-parametric bootstrap: 1500 resamples of the sensor
+set, with placement depths jittered by their 2.5 cm uncertainty [3],
+each re-retrieved in full, an analysis made routine by the fast
+solver. Systematic errors are budgeted separately, by re-running the
+retrieval over the literature uncertainty range of each fixed input:
+the per-site $1\sigma$ totals are 1.88 (A15) and 3.78 (A17)
+mW m$^{-1}$ K$^{-1}$, dominated by the basal flux at both sites
+($\pm 1.6$) and, at Apollo 17, also by the surface albedo, while the
+statistical and solver terms are minor ($\leq 0.53$ and 0.04).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_kd_sweep.pdf}
+\caption{Deep-sensor RMSE misfit versus $K_d$ at both sites.}
+\label{fig:sweep}
+\end{figure}
+
+\section{Results}
+Both boreholes require deep conductivities well above the
+Hayne et al.\ [1] global value, and markedly different from each
+other (Fig.~\ref{fig:sweep}):
+\begin{equation}
+K_d^{*}(\mathrm{A15}) = 4.60^{+0.86}_{-0.21}, \qquad
+K_d^{*}(\mathrm{A17}) = 7.08^{+0.53}_{-0.52}
+\ \ \mathrm{mW\,m^{-1}\,K^{-1}}
+\end{equation}
+($1\sigma$ bootstrap; 95\% intervals $[4.18, 6.96]$ and
+$[6.16, 8.07]$; distributions in Fig.~\ref{fig:robust}a). The shapes of
+the two misfit bowls in Fig.~\ref{fig:sweep} explain the error shapes:
+the Apollo 15 bowl is nearly flat toward high $K_d$, so its interval
+stretches far upward ($+0.86$) but little downward ($-0.21$), whereas
+the deeper, more symmetric Apollo 17 bowl yields a nearly symmetric
+interval. The global
+$K_d = 3.4$ lies outside both 95\%
+intervals: it misfits the deep sensors by 1.09 K (A15) and 0.89 K
+(A17), whereas the site fits reduce this to 1.00 and 0.40 K. The
+inter-site contrast has bootstrap median $+2.31$ mW m$^{-1}$ K$^{-1}$
+with 95\% interval $[-0.12, 3.56]$ and $p = 0.031$: marginal at the
+95\% level, and reported here as such rather than overstated.
+Table~\ref{tab:results} collects the retrieved values.
+
+\begin{table}[H]
+\centering
+\caption{Retrieved per-site deep conductivity and fit quality. All
+values from the certified analysis archive; RMSE is against the deep
+($\geq 80$ cm) sensors.}
+\label{tab:results}
+\vspace{2pt}
+\begin{tabular}{lccccc}
+\hline
+Site & $Q_b$ & $K_d^{*}$ & 95\% CI & RMSE, site fit & RMSE, global 3.4 \\
+     & (mW m$^{-2}$) & (mW m$^{-1}$ K$^{-1}$) & & (K) & (K) \\
+\hline
+Apollo 15 & 21 & $4.60^{+0.86}_{-0.21}$ & $[4.18,\ 6.96]$ & 1.00 & 1.09 \\
+Apollo 17 & 16 & $7.08^{+0.53}_{-0.52}$ & $[6.16,\ 8.07]$ & 0.40 & 0.89 \\
+\hline
+\multicolumn{6}{l}{Contrast (A17 $-$ A15): median $+2.31$,
+95\% interval $[-0.12,\ 3.56]$, $p = 0.031$}\\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Robustness of the contrast}
+The dominant systematic is the basal flux itself, which is debated at
+both sites [2,4]. Rather than assume the usual proportional
+$K_d$--$Q_b$ degeneracy, this work maps it directly, re-retrieving
+$K_d^{*}$ at every point of the two-site flux plane. The site responses are
+opposite: $K_d^{*}$(A15) rises with its flux while $K_d^{*}$(A17)
+falls, so the contrast never changes sign. Figure~\ref{fig:robust}b
+shows it as a heatmap of the contrast over the two basal fluxes: warm
+(Apollo~17 more conductive) across the whole plausible plane, with the
+``no-difference'' line ($\Delta = 0$) reaching only the far
+low-A15/high-A17 corner. The dashed contours grade the significance in
+units of the bootstrap standard error: at the Langseth et al.\ [2]
+fluxes (dot; 21 and 16 mW m$^{-2}$) the contrast is $+2.5$, about
+$2.6\sigma$, and it only grows away from that point. The square marks
+the independent reanalysis of Saito et al.\ [4], which lowers the
+Apollo 15 flux by ${\sim}30\%$: there the contrast nearly doubles,
+to $+4.8$. The shaded teal region is the Bayesian MCMC posterior for
+the two fluxes (68\% and 95\% credible); it keeps the ordering
+$P[K_d^{*}(\mathrm{A17}) > K_d^{*}(\mathrm{A15})] = 99.3\%$ for prior
+widths from $\pm 10\%$ to $\pm 40\%$, and its medians (star; 17.7 and
+13.7 mW m$^{-2}$) sit slightly below the Langseth et al.\ [2] values,
+in the direction Saito et al.\ argued.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_robustness.pdf}
+\caption{Per-site uncertainty (a, bootstrap $K_d^{*}$ distributions)
+and robustness of the site contrast to the basal flux (b).}
+\label{fig:robust}
+\end{figure}
+
+A factor-${\sim}1.5$ contrast between the two sites is geologically
+unremarkable: Apollo core porosities alone span an effective-medium
+conductivity factor of ${\sim}1.5$. The setting is visible in
+Fig.~\ref{fig:sites}: in the albedo and topography layers Apollo~17
+sits inside the dark, low-lying basaltic embayment of Taurus--Littrow,
+while Apollo~15 straddles the bright mare/highland margin at
+Hadley--Apennine: two different regolith column histories, so two
+different meter-scale conductivities should not surprise.
+
+\section{Conclusions}
+(1) The Apollo boreholes require site-resolved deep conductivities,
+$4.60$ and $7.08$ mW m$^{-1}$ K$^{-1}$; the global 3.4 is excluded at
+both sites, so meter-scale lunar thermal models should not carry a
+single Moon-wide $K_d$. (2) The inter-site contrast is marginal in
+magnitude ($p = 0.031$) but directionally robust across the entire
+plausible basal-flux domain (MCMC ordering probability 99.3\%).
+(3) The flux-anchored solver makes exhaustive uncertainty analysis of
+borehole-constrained thermal models routine (0.6 s per solve, certified
+to reproduce the brute-force answer). (4) The
+retrievals are conditional on the fixed Hayne functional form: relaxing
+the mixing-depth parameter $H$ alone widens the Apollo 17 uncertainty
+to ${\pm}3.5$ mW m$^{-1}$ K$^{-1}$, a caveat this work states rather
+than hides. (5) The retrieved per-site temperature columns supply the
+forward-model boundary condition that TSUKIMI-class subsurface sounders
+cannot measure from orbit [5].
+
+\section*{References}
+\begin{list}{}{\setlength{\leftmargin}{1.5em}\setlength{\itemindent}{-1.5em}
+\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\item[] [1] Hayne, P. O., Bandfield, J. L., Siegler, M. A., et al.,
+Global regolith thermophysical properties of the Moon from the Diviner
+Lunar Radiometer Experiment, J. Geophys. Res. Planets, vol.122, no.12,
+2017, pp. 2371--2400.
+\item[] [2] Langseth, M. G., Keihm, S. J. and Peters, K., Revised lunar
+heat-flow values, Proc. Lunar Sci. Conf. 7, 1976, pp. 3143--3171.
+\item[] [3] Nagihara, S., Kiefer, W. S., Taylor, P. T., Williams, D. R.
+and Nakamura, Y., Examination of the long-term subsurface warming at the
+Apollo 15 and 17 sites from the restored heat-flow data, J. Geophys.
+Res. Planets, vol.123, no.5, 2018, pp. 1125--1139.
+\item[] [4] Saito, Y., Tanaka, S., Takita, J., Horai, K. and
+Hagermann, A., Lunar heat flow experiment for SELENE-2, Adv. Space Res.,
+vol.40, 2007, pp. 1601--1607.
+\item[] [5] Kasai, Y., Sato, T., Yamada, T., Hasegawa, Y. and the
+TSUKIMI team, TSUKIMI: Lunar Terahertz Surveyor for Kilometer-scale
+Mapping, 44th COSPAR Sci. Assembly, 2022, p. 291.
+\end{list}
+
+\end{document}

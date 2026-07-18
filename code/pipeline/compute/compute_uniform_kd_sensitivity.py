@@ -40,8 +40,9 @@ from lunar.apollo_helpers import extract_sensor_stability        # noqa: E402
 from pipeline.compute.retrieve_kd import SITES, run_with    # noqa: E402
 
 # Published basal-flux envelopes (Langseth 1976 nominal; Saito 2007 /
-# Nagihara 2018 reanalysis range), in W m^-2.
-QB_NOMINAL = {"A15": 0.021, "A17": 0.016}
+# Nagihara 2018 reanalysis range), in W m^-2. The nominal comes from
+# config.SITES (single source of truth); only the envelope is local.
+QB_NOMINAL = {s: SITES[s]["Q_BASAL"] for s in ("A15", "A17")}
 QB_ENVELOPE = {"A15": (0.014, 0.025), "A17": (0.010, 0.018)}
 
 # K_d sweep grid (W m^-1 K^-1), wide enough to bracket every minimum.

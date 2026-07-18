@@ -50,7 +50,11 @@ from _results import retrieved_kd_star
 KD = retrieved_kd_star("A15")   # same problem as the main benchmark; single-sourced
 
 
-def dump_inputs(path, g, t, insol, T_init, site, n_lun):
+def dump_inputs(path, g, t, insol, T_init, site, n_lun, kd=None):
+    # kd overrides the default K_d so the C++ kernel can be driven across a
+    # K_d sweep (used by the C++ brute-force retrieval demo in notebook 06);
+    # the binary reads K_d from this file, so no recompile is needed.
+    kd_use = KD if kd is None else float(kd)
     with open(path, "wb") as f:
         # n_picard mirrors config.CN_PICARD_SWEEPS so both sides march the
         # same midpoint-Picard scheme (solver._step, 2026-07-03)
@@ -59,7 +63,7 @@ def dump_inputs(path, g, t, insol, T_init, site, n_lun):
         for arr in (g.z_mid, g.dz, t, insol, T_init):
             f.write(np.asarray(arr, dtype="<f8").tobytes())
         for v in (site["albedo"], site["emissivity"], site["Q_BASAL"],
-                  HAYNE["K_S"], KD, HAYNE["H"], HAYNE["CHI"], HAYNE["T_REF"],
+                  HAYNE["K_S"], kd_use, HAYNE["H"], HAYNE["CHI"], HAYNE["T_REF"],
                   RHO_SURFACE, RHO_DEEP,
                   CP_HAYNE_C0, CP_HAYNE_C1, CP_HAYNE_C2, CP_HAYNE_C3,
                   CP_HAYNE_C4, SIGMA_SB):

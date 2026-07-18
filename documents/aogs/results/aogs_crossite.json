@@ -1,0 +1,20 @@
+{
+ "meta": {
+  "writer": "aogs_crossite.py",
+  "n_inner": 24,
+  "dem_ppd": 16,
+  "rho_homogeneous": 1800.0,
+  "recipe": {
+   "homogeneous": "K_c const = site K_d* (radiative term kept), rho const = 1800, Hayne cp, shadowed forcing",
+   "crossite": "other site's best coupled STRUCTURE (rho + boundaries) with K_c(rho) at the TARGET site's K_d*; scored at the target site under its shadowed forcing"
+  }
+ },
+ "A15_homogeneous": 2.308053434725984,
+ "A17_homogeneous": 3.76215950991614,
+ "A15_config_at_A17": 1.6354231012820832,
+ "A17_config_at_A15": 1.7272990603617628,
+ "native_best": {
+  "A15": 0.9035111778006073,
+  "A17": 0.3622710928103397
+ }
+}

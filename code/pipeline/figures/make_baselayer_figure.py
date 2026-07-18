@@ -14,7 +14,7 @@ The Apollo deep sensors (0.8-1.4 m) sit entirely in the regolith, where the two
 models are identical -- so a base layer changes only what lies below the data
 and leaves K_d unchanged.  Real conductivity (Hayne) + real sensor data.
 
-Output: results/figures/fig_baselayer.pdf
+Output: ../figures/fig_baselayer.pdf   (top-level shared figure home)
 """
 from __future__ import annotations
 import sys, pathlib, functools

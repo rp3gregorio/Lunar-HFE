@@ -71,9 +71,11 @@ jupyter lab notebooks/
 |---|---|---|
 | `00_setup.ipynb` | <1 min | sanity check, data integrity |
 | `01_methods.ipynb` | 2-3 min | Figs 1-4, Table 1 |
-| `02_retrieval.ipynb` | ~5 min (fast); ~60 min full | per-site K_d sweep + bootstrap + Q_b sensitivity; writes `results/kd_retrieval_results.json`. Heavy auxiliary sweeps for Table 3 are opt-in (`RUN_AUXILIARY = True`). |
-| `03_results.ipynb` | 3-5 min | Figs 5-9, Tables 2-3 |
-| `04_discussion.ipynb` | 2-3 min | Figs 10-11, Table 4 |
+| `02_anchor_method.ipynb` | 2-3 min | the flux-anchored solver, explained + animated |
+| `03_retrieval.ipynb` | ~5 min (fast); ~60 min full | per-site K_d sweep + bootstrap + Q_b sensitivity; writes `results/kd_retrieval_results.json`. Heavy auxiliary sweeps for Table 3 are opt-in (`RUN_AUXILIARY = True`). |
+| `04_results.ipynb` | 3-5 min | Figs 5-9, Tables 2-3 |
+| `05_discussion.ipynb` | 2-3 min | Figs 10-11, Table 4 |
+| `06_performance.ipynb` | 2-3 min | the solver kernel in C++ (agreement + speedup), then the K_d retrieval run live (tqdm progress) |
 
 End-to-end on the fast path: about **15 minutes**. The canonical
 auxiliary JSONs already ship with the repo, so the slow auxiliary
@@ -81,7 +83,7 @@ sweeps (~60 min) are rarely needed unless you change inputs.
 
 Each notebook is **idempotent**: re-running it overwrites the same
 output files. Notebooks read the canonical JSON results from
-`results/`, so once `02_retrieval.ipynb` has run once, subsequent
+`results/`, so once `03_retrieval.ipynb` has run once, subsequent
 notebooks can be re-run independently for figure tuning.
 
 ## Step 6 — Compile the manuscript

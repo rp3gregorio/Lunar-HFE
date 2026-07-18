@@ -36,7 +36,7 @@ import numpy as np
 
 from lunar.apollo_helpers import extract_sensor_stability
 from lunar.properties import conductivity_hayne, specific_heat, density_hayne
-from lunar.solver import periodic_time_grid
+from lunar.solver import periodic_time_grid, standard_insolation
 from lunar.constants import RHO_SURFACE, RHO_DEEP
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.grid import make_geometric_grid
@@ -63,8 +63,7 @@ def retrieve(cfg, kd_grid, *, chi=None, ks=None, rho_d=None):
     ks = HAYNE["K_S"] if ks is None else ks
     grid_ = make_geometric_grid(**GRID)
     t = periodic_time_grid(DT_STEP)   # commensurate lunation grid (audit 2026-07-03)
-    insol = (S0 * np.cos(np.deg2rad(cfg["lat"]))
-             * np.maximum(0.0, np.cos(2 * np.pi * t / T_LUNAR)))
+    insol = standard_insolation(cfg["lat"], t)
     cpf = lambda T: specific_heat(T, model="hayne")
     rho_func = (None if rho_d is None
                 else (lambda z: density_hayne(z, rho_d=rho_d)))

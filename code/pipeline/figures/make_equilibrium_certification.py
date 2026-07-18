@@ -33,7 +33,8 @@ import matplotlib.pyplot as plt
 
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.grid import make_geometric_grid
-from lunar.solver import PixelInputs, solve_pixel, periodic_time_grid
+from lunar.solver import (PixelInputs, solve_pixel, periodic_time_grid,
+                          standard_insolation)
 from lunar.properties import conductivity_hayne, specific_heat
 from pipeline.compute.retrieve_kd import SITES, HAYNE, GRID, S0, T_LUNAR, DT_STEP
 
@@ -49,8 +50,7 @@ def certify(site):
     cfg = SITES[site]
     grid_ = make_geometric_grid(**GRID)
     t = periodic_time_grid(DT_STEP)   # commensurate lunation grid (audit 2026-07-03)
-    insol = (S0 * np.cos(np.deg2rad(cfg["lat"]))
-             * np.maximum(0.0, np.cos(2 * np.pi * t / T_LUNAR)))
+    insol = standard_insolation(cfg["lat"], t)
     kf = lambda T, z: conductivity_hayne(
         T, z, Ks=HAYNE["K_S"], Kd=KD_STAR[site], H=HAYNE["H"],
         chi=HAYNE["CHI"])

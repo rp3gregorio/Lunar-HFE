@@ -51,7 +51,7 @@ make paper                   # compile all PDFs
 # or simply:  make all
 ```
 
-Prefer notebooks? `jupyter lab code/notebooks/` and run the five in order
+Prefer notebooks? `jupyter lab code/notebooks/` and run the seven in order
 — but note the notebooks are **demonstrations**, not the source of truth:
 every published number comes from the `code/pipeline/` scripts via `make`,
 which is what reviewers should run. Each file under
@@ -94,29 +94,26 @@ exactly one definition of everything:
 
 New to the code? Two guides, by purpose:
 
-- **[`documents/CODE_TOUR.md`](documents/CODE_TOUR.md)** — how the *repository* works:
+- **[`documents/dev/CODE_TOUR.md`](documents/dev/CODE_TOUR.md)** — how the *repository* works:
   the four layers, who calls whom, a walkthrough of one number from raw data
   to the manuscript, and "how do I…?" recipes. Start here.
-- **[`documents/guidebook/`](documents/guidebook/)** (`guidebook.pdf`; rebuild with
+- **[`documents/jgr/guidebook/`](documents/jgr/guidebook/)** (`guidebook.pdf`; rebuild with
   `make paper`) — how the *physics and statistics* work, taught from zero.
 
-Then run the 5 notebooks in order:
+Then run the seven notebooks in order (chronological — you meet the solver in
+`02` before the retrieval that uses it in `03`):
 
 | Notebook | Produces |
 |---|---|
 | `00_setup.ipynb` | Dependency check, data integrity check |
-| `01_methods.ipynb` | Figs 1–3, Table 1 (parameters) |
-| `02_retrieval.ipynb` | Per-site $K_d^*$ retrieval, bootstrap CIs, error budget |
-| `03_results.ipynb` | Figs 4–8 (mean-T, $K_d$ sweep, bootstrap, thermal profiles, Diviner closure), Tables 2–3 |
-| `04_discussion.ipynb` | Figs 9–10 (robustness, $\alpha$-sweep), Table 4 |
-| `06_figure_editor.ipynb` | Self-serve figure restyling from the cached results JSONs |
-| `07_cpp_solver.ipynb` | Drives + verifies the standalone C++ solver port |
-| `08_aogs_study.ipynb` | AOGS study, complete: Part I LOLA-DEM horizon shadowing + 3-layer density sensitivity; Part II 650-solve density study, winner bootstrap, pure-$K_d$ check, terrain-radiation terms, geology + degeneracy (reads `results/aogs_*.json`; regenerate with `pipeline/compute/aogs_sensitivity.py` + `aogs_density_study.py`) |
+| `01_methods.ipynb` | Figs 1–4, Table 1 (parameters) |
+| `02_anchor_method.ipynb` | The flux-anchored solver, explained + animated (brute force = fast solve) |
+| `03_retrieval.ipynb` | Per-site $K_d^*$ retrieval, bootstrap CIs, error budget |
+| `04_results.ipynb` | Figs 5–9 (mean-T, $K_d$ sweep, bootstrap, thermal profiles, Diviner closure), Tables 2–3 |
+| `05_discussion.ipynb` | Figs 10–11 (robustness, five-decade context), Table 4 |
+| `06_performance.ipynb` | The solver kernel in C++ — Python/Numba/C++ agree, the speedup, then the $K_d$ retrieval run live with a tqdm progress bar |
 
-Optional: [`equilibrium_demo.ipynb`](notebooks/equilibrium_demo.ipynb) is a
-standalone demonstration (not part of the reproduction set) that a long
-brute-force spin-up converges onto the fast flux-anchored solver — it
-parallelises the independent runs across CPU cores.
+Run `03_retrieval.ipynb` before `04`/`05` — they read the JSON it writes.
 
 Each notebook is idempotent: re-running it overwrites the corresponding
 figures and any JSON it produces in `code/results/`. The canonical retrieval JSON
@@ -125,19 +122,24 @@ direct verification.
 
 ## Repository layout
 
-Four folders at the top level — `documents/` (what you read), `figures/`
-(every graph, one copy), `code/` (the engine + inputs), and `aogs/` (the
-self-contained AOGS conference bundle). See `STRUCTURE.md` for the full map.
+Three folders at the top level — `documents/` (what you read, grouped by
+venue), `figures/` (every shared graph, one copy), and `code/` (the engine +
+inputs). See `STRUCTURE.md` for the full map.
 
 ```
 Lunar-HFE/
-├── documents/                  # WHAT YOU READ
-│   ├── letter/                 # the JGR:Planets manuscript (LaTeX + PDF, SI)
-│   ├── guidebook/              # full teaching + developer guide
-│   ├── thesis/  abstract/      # the PhD thesis; the GEDES abstract
+├── documents/                  # WHAT YOU READ (grouped by venue)
+│   ├── jgr/                    # JGR:Planets
+│   │   ├── letter/             #   the manuscript (LaTeX + PDF, SI)
+│   │   └── guidebook/          #   the teach-from-zero companion
+│   ├── gedes/                  # GEDES symposium
+│   │   ├── abstract/           #   the extended abstract (self-contained figures/)
+│   │   └── thesis/             #   the PhD thesis manuscript
+│   ├── aogs/                   # AOGS conference (self-contained bundle)
+│   │   └── poster/  code/  illustrations/  results/  briefing/  talk_figures/
 │   ├── slides/  notes/         # progress deck; REPRODUCING/FLAG/audit notes
-│   └── <doc>/figures -> ../../figures    # local link into the one figure folder
-├── figures/                    # EVERY GENERATED FIGURE (one physical copy)
+│   └── <jgr|gedes>/<doc>/figures -> ../../../figures   # link into the shared figure folder
+├── figures/                    # EVERY SHARED FIGURE (one physical copy)
 │   ├── *.pdf   anim/   _archive/
 ├── code/                       # THE ENGINE (logic + inputs, no figures)
 │   ├── src/lunar/              # 1-D heat solver + conductivity models
@@ -145,13 +147,12 @@ Lunar-HFE/
 │   ├── cpp/  tests/  notebooks/
 │   ├── data/  references/      # INPUTS: apollo/diviner/spice records; cited-paper PDFs
 │   └── results/                # OUTPUTS: canonical *.json (figures now live in figures/)
-├── aogs/                       # THE AOGS BUNDLE (self-contained)
-│   ├── poster/  code/  results/  data/lola/  talk_figures/  briefing/
 └── README.md  Makefile  pyproject.toml  STRUCTURE.md  LICENSE
 ```
 
-Every document reaches figures through a `figures/` symlink to
-`figures/`, so there is exactly one physical copy of each figure.
+The JGR and GEDES manuscripts reach shared figures through a `figures/` symlink
+to the top-level `figures/`, so there is exactly one physical copy of each; the
+GEDES abstract and AOGS poster are self-contained (each keeps its own `figures/`).
 
 ## Citing this work
 

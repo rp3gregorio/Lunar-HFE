@@ -19,7 +19,7 @@
 %   contrast median +2.31, 95% CI [-0.12, 3.56], p = 0.031 (marginal)
 %   MCMC ordering P(A17 > A15) = 99.3% at any prior width
 %   RMSE site-fit 1.00 / 0.40 K  vs global-3.4 fit 1.09 / 0.89 K
-%   error-budget totals sigma = 1.88 / 3.78 mW m^-1 K^-1
+%   error-budget totals sigma = 1.88 / 3.88 mW m^-1 K^-1 (incl. sigma_epoch)
 %   speed: brute 522.6 ms/lun (~26 min/solve); anchored 74.7 s; kernel 0.636 s
 % ============================================================================
 \documentclass[11pt,a4paper,oneside]{report}
@@ -56,7 +56,7 @@
   \Large A Flux-Anchored Retrieval at the Apollo 15 and 17
   Heat-Flow Boreholes}
 \author{Ramon III P.\ Gregorio\\[6pt]
-  \normalsize Instituto Superior T\'ecnico / National Institute of
+  \normalsize Institute of Science Tokyo / National Institute of
   Information and\\ \normalsize Communications Technology (NICT)\\[4pt]
   \normalsize \todo{confirm-affiliation-lines-and-supervisors}}
 \date{Draft of \today\ --- living document}
@@ -82,7 +82,7 @@ placing the global value outside both sites' 95\% intervals. The
 inter-site contrast, $+2.31$~\mWmK\ (95\% CI $[-0.12, 3.56]$,
 $p=0.031$), is marginal at 95\% yet directionally robust: on a directly
 solved RMSE$(\Kd,\Qb)$ surface the ordering
-$\Kds(\mathrm{A17})>\Kds(\mathrm{A15})$ holds with 99.3\% posterior
+$\Kds(\mathrm{A17})>\Kds(\mathrm{A15})$ holds with 99.2--99.4\% posterior
 probability for basal-flux priors from $\pm10\%$ to $\pm40\%$, because
 the two sites respond to flux revisions in opposite directions. The
 methodological contribution is a flux-anchored equilibrium solver that
@@ -126,7 +126,7 @@ reasonable choice for a global product built from surface-sensitive
 observations, but the diurnal wave that Diviner sees penetrates only a
 few skin depths (${\sim}30$~cm); the value of \Kd\ at one to two meters
 is an extrapolation, not a measurement. Laboratory measurements of
-returned Apollo soils span $0.7$--$2$~\mWmK\
+returned Apollo soils span $1.2$--$3.5$~\mWmK\
 \citep{cremers1971,hemingway1973,horai1981}, the original in-situ HFE
 reductions gave $1$--$3$~\mWmK\ \citep{langseth1972,langseth1976},
 later reanalyses revised these upward \citep{keihm1984,grott2010}, and
@@ -400,6 +400,54 @@ one-variable steady-state ODE (Step~B). Iterate A--B until the anchor
 temperature stops moving. The fixed point of this composition is the
 periodic steady state of the full problem.
 
+\section{The anchor point}\label{sec:anchorpoint}
+The method stands or falls on one physical fact: there is a depth at
+which the column stops oscillating but has not yet begun to depend on
+the slow interior relaxation. The diurnal wave, ${\sim}280$~K
+peak-to-peak at the surface, is attenuated by a factor $e^{-z/\delta}$
+per skin depth $\delta$ of a few centimeters; by $z_0=0.55$~m its
+amplitude has fallen to ${\sim}0.15$~K, and the instantaneous profile
+at any phase of the lunar day coincides with the cycle mean to within
+${\sim}0.1$~K. Above that depth the column is dynamic and must be
+time-stepped; below it the column is steady and can be computed. The
+anchor point is the hand-off between the two regimes: the deepest cell
+that Step~A still resolves honestly, and the initial condition from
+which Step~B integrates downward.
+
+The placement is a trade-off with a wide, certified optimum. The anchor
+must sit below the rectification zone, where the covariance correction
+\urect\ has decayed to $<1\%$ of \Qb, or the closure
+(Eq.~\ref{eq:closure}) would depend on a quantity Step~A resolves only
+approximately; it should sit no deeper than necessary, because Step~A
+time-steps the truncated grid $[0,\,z_0+0.15~\mathrm{m}]$ and every
+extra centimeter is paid for on every inner lunation. Across
+$z_0=0.45$--$0.70$~m the converged \Kds\ spans only $0.06$~\mWmK,
+a half-range folded into the solver row of the error budget
+(Table~\ref{tab:budget}); the reported values do not depend on the
+choice within that window.
+
+In practice the solver approaches the anchor in two stages, which is
+the structure visible in Fig.~\ref{fig:anchorconv}: a coarse stage
+anchored at $0.25$~m (four inner lunations per cycle, $0.10$~K
+tolerance) walks an arbitrary starting profile into the basin of
+attraction cheaply, and the production stage at $z_0=0.55$~m
+($n_{\rm inner}=96$, $5$~mK tolerance) finishes the job. The four
+phases of one complete solve --- rough guess, skin settling, the
+downward walk, and the converged column --- are shown as stills in
+Fig.~\ref{fig:anchorfilm}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/anchor_method_filmstrip.pdf}
+  \caption[The flux-anchored method, step by step]{The flux-anchored
+  method, step by step (Apollo 15, $\Kds=4.60$~\mWmK): a deliberately
+  wrong straight-line guess; Step~A settling the skin while the deep
+  column is left alone; Step~B walking the deep profile down from the
+  anchor by the slope rule; and the converged column on the true
+  steady state (dashed).}
+  \label{fig:anchorfilm}
+\end{figure}
+
 \section{Step B: the closure ODE}\label{sec:closure}
 Averaging Eq.~\eqref{eq:heat} over one lunation $P$ in periodic steady
 state kills the storage term (the enthalpy returns to its starting
@@ -420,6 +468,18 @@ from the Step~A skin solution; below it, $\urect$ is negligible
 ordinary initial-value problem from the anchored temperature, by
 second-order Runge--Kutta on the same geometric grid. Two variables
 ($z,t$) have become one ($z$): this is the entire speed-up.
+
+One step of the walk makes the arithmetic concrete. At the Apollo 15
+anchor the settled cycle-mean temperature is ${\sim}251.9$~K; there the
+contact conductivity has fully reached its asymptote
+($e^{-z_0/H}\approx 10^{-4}$ at $H=6$~cm) and the radiative factor is
+$1+\chi(\Tm/T_{\rm ref})^{3}\approx 2.0$, so the total conductivity
+is $K \approx 2.0\times4.60 \approx 9.2$~\mWmK. The slope demanded
+by energy conservation is $\Qb/K = 21/9.2 \approx 2.3$~K\,m$^{-1}$,
+and the first geometric-grid step below the anchor
+(${\sim}4$~cm there) adds ${\sim}0.10$~K. Repeating this node by node
+to the bottom of the grid rebuilds the entire deep column in
+microseconds --- no time-stepping, no waiting for diffusion.
 Figure~\ref{fig:anatomy} shows the anatomy of one converged solve: the
 full $T(z)$ column with the anchor marked, and the cycle-mean flux
 holding at \Qb\ below the skin --- the physical fact the method is
@@ -455,9 +515,10 @@ is a contraction: Step~A relaxes any starting skin toward the true skin
 solution within a few lunations (the skin's diffusive timescale is
 short), and Step~B is \emph{exact} below the anchor given a correct
 anchor temperature. The loop therefore converges geometrically; in the
-production configuration the anchor drift falls $27 \to 15 \to 8 \to
-4$~mK over four outer cycles, entering the $\pm 5$~mK tolerance at
-cycle four to five (Fig.~\ref{fig:anchorconv}). Convergence is judged
+production configuration the anchor drift collapses from $46$~mK on the
+shallow-anchor stage to $0.4$~mK at the $0.55$-m anchor, entering the
+$\pm 5$~mK tolerance at the fourth outer cycle
+(Fig.~\ref{fig:anchorconv}). Convergence is judged
 on the \emph{anchor drift}, never on a fixed cycle count --- the
 fixed-count trap and its consequences are part of the certification
 record (Appendix~\ref{app:numerics}).
@@ -480,11 +541,11 @@ $21\times$ per solve; compiling the Step-A march (a
 \texttt{numba} kernel transcribed from a verified C++ reference)
 multiplies this by a further $117\times$, to $0.636$~s per solve and
 $39$~s for the full 61-point sweep. The C++ reference itself runs at
-$3.24$~ms per lunation against $4.71$ for the compiled Python kernel
-and $538$ for the interpreted solver --- confirming that the remaining
-gap between Python and C++ is a constant factor of ${\sim}1.45$, not
+$2.76$~ms per lunation against $3.95$ for the compiled Python kernel
+and $443$ for the interpreted solver --- confirming that the remaining
+gap between Python and C++ is a constant factor of ${\sim}1.43$, not
 an algorithmic difference. All three implementations agree to
-$1.4\times10^{-12}$~K.
+${\sim}1.1\times10^{-12}$~K.
 
 \begin{table}[htbp]
   \centering\small
@@ -627,7 +688,10 @@ systematic at both sites is \Qb\ itself --- evaluated on the
 \emph{direct} degeneracy map of Chapter~\ref{ch:robustness}, not on an
 assumed scaling --- and at Apollo~17 the albedo and
 surface-conductivity terms are also material. The quadrature totals
-are $\sigma = 1.88$ (A15) and $3.78$ (A17)~\mWmK. Two rows are
+are $\sigma = 1.88$ (A15) and $3.88$ (A17)~\mWmK; the A17 total
+includes the epoch-mixing term, the largest single methodological
+systematic there (re-fitting every A17 sensor at one shared 1974
+window moves \Kds\ by $-0.89$~\mWmK). Two rows are
 \emph{conditional}, not summed: the radiative coefficient $\chi$ and
 the compaction scale $H$ are held at published values, and \Kds\ is
 reported as conditional on them (\S\ref{sec:caveats}).
@@ -649,8 +713,9 @@ reported as conditional on them (\S\ref{sec:caveats}).
     Surface conductivity \Ks          & 0.36 & 1.55 \\
     Solver/discretization             & 0.04 & 0.04 \\
     Sensor-depth / threshold / density (each) & $\le$0.12 & $\le$0.33 \\
+    Epoch mixing (common-1974 re-fit)  & $<$0.05 & 0.89 \\
     \midrule
-    \textbf{Total (quadrature)}       & \textbf{1.88} & \textbf{3.78} \\
+    \textbf{Total (quadrature)}       & \textbf{1.88} & \textbf{3.88} \\
     \midrule
     Conditional: $H$ ($3$--$10$~cm)   & 0.51 & 3.47 \\
     Conditional: $\chi$               & \multicolumn{2}{c}{reported conditional on $\chi=2.7$} \\
@@ -726,9 +791,9 @@ site-fitted Hayne form at either site (Table~\ref{tab:aicc}).
 Two held-out checks confirm the retrieval is not driven by any single
 sensor or sensor type (Fig.~\ref{fig:holdout}): fitting on
 gradient-bridge sensors alone and predicting ring-bridge sensors (and
-vice versa) reproduces held-out temperatures within ${\sim}0.26$~K of
+vice versa) reproduces held-out temperatures within ${\sim}0.11$~K of
 in-sample; withholding the deepest sensor at each site and refitting
-predicts it to $0.21$~K (A15) and $0.09$~K (A17).
+predicts it to $0.37$~K (A15) and $0.25$~K (A17).
 
 \begin{figure}[htbp]
   \centering
@@ -785,7 +850,7 @@ $\Delta\Kds$ over the full published flux envelope
 interpolated from the measured curves of Fig.~\ref{fig:qbdeg}, no
 degeneracy model at all (Fig.~\ref{fig:robustness}a). The contrast is
 positive over the \emph{entire} measured domain (minimum
-$+1.4$~\mWmK); the most adverse envelope corner compresses it to
+$+1.5$~\mWmK); the most adverse envelope corner compresses it to
 $+1.5$ (${\sim}1.6\sigma$), the favorable corner expands it to
 $+8.1$. Notably, a $-33\%$ revision of $\Qb^{\mathrm{A17}}$ alone ---
 the direction the reanalysis debate points --- \emph{raises} the
@@ -810,9 +875,9 @@ second estimate of its magnitude), a Bayesian inversion on the same
 directly solved RMSE$(\Kd,\Qb)$ surfaces, propagating the
 \citet{saito2007}/\citet{nagihara2018} flux priors via MCMC
 \citep{foreman_mackey2013emcee}, keeps
-$P\!\left[\Kds(\mathrm{A17})>\Kds(\mathrm{A15})\right] = 99.3\%$ for
+$P\!\left[\Kds(\mathrm{A17})>\Kds(\mathrm{A15})\right] = 99.2$--$99.4\%$ for
 prior widths from $\pm10\%$ to $\pm40\%$, with the contrast median
-\emph{growing} with prior width (from $+3.5$ to $+5.0$~\mWmK) --- the
+\emph{growing} with prior width (from $+3.4$ to $+4.8$~\mWmK) --- the
 ordering is insensitive to the very systematic that dominates the
 error budget, because the two sites move oppositely under it.
 Figure~\ref{fig:postcompare} sets the two uncertainty views side by
@@ -820,7 +885,7 @@ side: the flux-agnostic bootstrap (contrast straddling zero at its
 2.5th percentile) and the flux-prior Bayesian posterior (firmly
 positive); together they bracket the honest statement. The flux
 posteriors themselves pull below the published values at both sites
-(medians $17.7$ and $13.7$~\mWm), independently favoring the
+(medians $17.8$ and $13.9$~\mWm), independently favoring the
 \citet{saito2007} direction; a firm per-site \Qb\ from future landed
 measurements remains the single most valuable external input this
 retrieval could receive.
@@ -876,8 +941,9 @@ either at its extreme.
 \end{enumerate}
 
 \section{Relation to prior estimates}
-The per-site values land inside the historical spread
-(Fig.~\ref{fig:prior}) and reconcile its extremes: laboratory soils
+The per-site values land inside the historical spread, summarized
+study by study in Table~\ref{tab:prior}, and reconcile its extremes:
+laboratory soils
 (uncompacted, radiative term small at laboratory conditions) bound
 from below; the \citet{vasavada2012} deep orbital estimate and
 \citet{feng2020} sit near the A17 and A15 values respectively. The
@@ -885,6 +951,34 @@ original \citet{langseth1976} reductions and this work differ chiefly
 in the forward model's radiative term and the treatment of borestem
 disturbance --- the same directions identified by \citet{keihm1984}
 and \citet{grott2010}.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption[Five decades of meter-scale conductivity estimates]{Five
+  decades of meter-scale regolith conductivity estimates, separated by
+  quantity class: the \emph{effective} (total) conductivity a sensor
+  at depth measures, radiative term included, versus the \emph{contact}
+  asymptote \Kd\ of the Hayne-form parameterization. The two classes
+  differ by the radiative factor ${\sim}2$ at $255$~K and must not be
+  compared directly.}
+  \label{tab:prior}
+  \begin{tabular}{@{}p{0.30\linewidth}lp{0.21\linewidth}l@{}}
+    \toprule
+    Source & Class & Method & Value (\mWmK) \\
+    \midrule
+    \citet{cremers1971}, Apollo 12 fines & effective & laboratory, returned fines & $1.2$--$3.5$ \\
+    \citet{langseth1972,langseth1976}, original reductions & effective & in-situ HFE, initial & $1$--$3$ \\
+    \citet{langseth1976}, revised annual-wave & effective & in-situ HFE, diffusivity & ${\approx}10$ (A15), ${\approx}12.4$ (A17) \\
+    \citet{keihm1984}; \citet{grott2010} & effective & HFE reanalyses & upward revision; critical reassessment \\
+    \citet{vasavada2012} & effective, at depth & orbital, Diviner equatorial & ${\approx}7$ \\
+    \citet{hayne2017}, global fit & contact \Kd & orbital, Diviner global & $3.4$ \\
+    \citet{feng2020}, global fit & contact \Kd & orbital, microwave & $3.8$ \\
+    \midrule
+    This work (per site) & contact \Kd & in-situ HFE, profile fit & $4.60$ (A15), $7.08$ (A17) \\
+    \quad as effective at the sensors & effective & --- & $9.3$ (A15), $14.6$ (A17) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \section{On numerical integrity}
 Three of this project's inputs were, at different times, silently
@@ -908,7 +1002,7 @@ generic to borehole-scale thermal modeling.
     \Kd.
   \item The inter-site contrast ($+2.31$~\mWmK\ median) is marginal in
     magnitude but directionally robust across the entire published
-    basal-flux envelope, with MCMC ordering probability 99.3\%
+    basal-flux envelope, with MCMC ordering probability 99.2--99.4\%
     regardless of prior width --- a consequence of the two sites'
     opposite responses to flux revision, discovered by mapping the
     degeneracy directly instead of assuming its usual proportional
@@ -1118,8 +1212,8 @@ to four digits: two different discretizations, one continuum limit.
 
 \paragraph{Independent implementation.} A faithful C++ port of the
 solver (same grid, scheme, and wrap step) agrees with the Python
-implementation to $1.4\times10^{-12}$~K over full retrievals, and
-benchmarks the language gap at $3.24$ vs.\ $4.71$~ms per lunation
+implementation to $1.1\times10^{-12}$~K over full retrievals, and
+benchmarks the language gap at $2.76$ vs.\ $3.95$~ms per lunation
 (C++ vs.\ compiled Python kernel) --- a constant factor, confirming no
 algorithmic slack remains.
 

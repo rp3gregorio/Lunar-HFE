@@ -245,7 +245,7 @@ Our question is simply: \emph{what is $K_d$ at each of the two Apollo heat-flow
 boreholes, separately --- and do they differ?}\footnote{The full reasoning ---
 the complete physics, solver, statistics, geology, and code chapters, plus
 practice problems --- lives in the 83-page extended edition archived at
-\code{docs/guidebook/reference/guidebook-extended.tex}. This guide keeps only
+\code{documents/jgr/guidebook/reference/guidebook-extended.tex}. This guide keeps only
 the pipeline, the slope method, and the comparison.}
 
 \noindent\textbf{The answer.} The two sites do differ, by roughly $1.5\times$:
@@ -261,7 +261,7 @@ converged; we show
 that test is wrong (the deep column is still drifting) and replace it with the
 \textbf{flux-anchored equilibrium solver} --- the ``slope method'' --- which
 integrates the steady-state equation directly below an anchor depth and arrives
-in $\sim$10 cycles instead of $\sim$1000 lunations. That solver, and the
+in a handful of outer cycles (four in production) instead of $\sim$1000 lunations. That solver, and the
 per-site retrieval it makes affordable, are what is new here.
 
 \noindent\textbf{What is borrowed, what is new.} The conductivity form $K(T,z)$,
@@ -276,8 +276,8 @@ the HFE deep temperatures, and the per-site numbers.
         K_d^{*}(\mathrm{A17}) = 7.08\,[6.16,\,8.07]\;\;\mathrm{mW\,m^{-1}K^{-1}};\quad
         \Delta K_d = 2.31,\ p\approx 0.031.\;}
 \]
-Brackets are bootstrap 95\% CIs; quadrature systematic totals are $\pm1.88$
-(A15) and $\pm3.78$ (A17). At the published basal fluxes the contrast is only
+Brackets are bootstrap 95\% CIs; quadrature error-budget totals are $\pm1.88$
+(A15) and $\pm3.88$ (A17). At the published basal fluxes the contrast is only
 marginal ($p\approx3\%$, 95\% CI spanning zero). The single
 largest caveat is that the \emph{absolute} numbers ride on Hayne's radiative
 calibration $\chi=2.7$; the \emph{direction} of the contrast survives the
@@ -334,7 +334,7 @@ roadmap table for the full where-derived / where-used map).}
 \end{figure}
 
 \paragraph{\textbf{Step 1 --- read the Apollo HFE record.}}
-On 31 July 1971 the Apollo~15 crew drilled two $\sim$2.4-m holes at Hadley Rille
+On 31 July 1971 the Apollo~15 crew drilled two boreholes ($\sim$1.4 and $\sim$1.0 m) at Hadley Rille
 and emplaced the Heat Flow Experiment (HFE): thin probes carrying
 platinum-resistance temperature bridges at several depths. Apollo~17 carried a
 similar, deeper pair. The probes recorded subsurface temperatures from 1971 to
@@ -511,8 +511,9 @@ the temperature changes fast (millimeters at the surface, which sees a
 $\sim$280\,K swing each lunation), coarse cells where it does not (tens of
 centimeters by $1$\,m); App.~\ref{app:grid} gives the finite-volume cells and the
 harmonic-mean face conductivities. The dimensionless cell-to-cell coupling per step,
-$\alpha=\Delta t\,K/(\rho c_p\,\Delta z^2)$, stays small ($\sim10^{-3}$), so
-neighboring cells nudge each other only gently each hour. Three pieces of
+$\alpha=\Delta t\,K/(\rho c_p\,\Delta z^2)$, is small for the deep cells ($\sim10^{-3}$;
+at the 2-mm surface cells it reaches order unity, which is exactly why an
+implicit scheme is required), so deep neighbors nudge each other only gently. Three pieces of
 machinery advance one hour, and they are all you need to understand the solver
 (Fig.~\ref{fig:cnstencil}):
 
@@ -551,7 +552,7 @@ stability and second-order accuracy at once.}
 \label{fig:cnstencil}
 \end{figure}
 
-\noindent Repeat the hour $\sim$709 times for one lunation and the \emph{thermal
+\noindent Repeat the step $\sim$1417 times for one lunation and the \emph{thermal
 skin wave} appears: the surface swings between $\sim$390\,K (noon) and
 $\sim$100\,K (night), and that swing damps exponentially with depth, halving
 every $\sim$6\,cm. By 80\,cm the daily wave is gone and only the slow geothermal
@@ -612,8 +613,8 @@ minimum is $K_d^{*}$ (Step~8).}
 \end{figure}
 
 \paragraph{\textbf{Step 8 --- sweep $K_d$ to a minimum.}}
-Repeat Steps 4--7 across a grid of trial $K_d$ (28 values over $1$--$15$ at A15,
-30 over $3$--$25$ at A17). Plotting RMSE versus $K_d$ gives a smooth bowl --- the
+Repeat Steps 4--7 across a grid of trial $K_d$ (29 values over $1$--$15$ at A15,
+32 over $3$--$25$ at A17, densified near each minimum). Plotting RMSE versus $K_d$ gives a smooth bowl --- the
 solver is deterministic and the steady state is unique for each $K_d$, so the
 curve is clean (Fig.~\ref{fig:sweep}). The minimum is the best fit. We do not
 want to round to the grid, so we fit a parabola through the three lowest points
@@ -635,7 +636,7 @@ kd_star = -b / (2*a)                       # its vertex             -> Eq. (2.5)
 
 giving sub-grid precision with no extra (9-second) solves (App.~\ref{app:vertex}).
 For Apollo~15 the
-vertex sits at $K_d^{*}=4.60$\,mW\,m$^{-1}$K$^{-1}$ with RMSE $\approx0.99$\,K.
+vertex sits at $K_d^{*}=4.60$\,mW\,m$^{-1}$K$^{-1}$ with RMSE $\approx1.00$\,K.
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=0.82\linewidth]{figures/fig_kd_sweep.pdf}
@@ -735,7 +736,7 @@ trap the next section springs.
 Picture the approach as a damped exponential: the deep column halves its
 remaining error every $\sim$10 lunations. Starting $\sim$25\,K from the truth, reaching $0.05$\,K takes about
 nine halvings --- $\sim$90 lunations just to \emph{almost} converge, and far more
-to nail it. At 9~s per lunation, that is hours per trial $K_d$; across $\sim$30 trials,
+to nail it. At ${\sim}0.5$~s per lunation that is ${\sim}26$ minutes per trial $K_d$; across $\sim$30 trials,
 2 sites, and 1500 bootstraps, brute force runs to months. It does not scale.
 
 \section{The F1 bug: convergence that wasn't}\label{sec:f1}
@@ -944,7 +945,7 @@ so steep that the mean-field flux $K(\Tm)\,\partial_z\Tm$ overshoots $Q_b$
 many-fold, and $u_{\rm rect}$ --- which makes up the difference --- is
 \emph{larger than $Q_b$ itself}; it is still $\sim$80\% of $Q_b$ at the shallow
 stage-1 anchor ($0.25$\,m). But by the production anchor at $z_0=0.55$\,m the
-daily swing is only $\sim$0.3\,K and $u_{\rm rect}$ has fallen to ${\sim}0.2\%$ of
+daily swing is only $\sim$0.2\,K and $u_{\rm rect}$ has fallen to ${\sim}0.2\%$ of
 $Q_b$ --- negligible. That steep fall is precisely why the anchor sits there:
 below the rectification zone the closure is simply $d\Tm/dz=Q_b/K$, with the eddy
 term safely dropped.
@@ -994,8 +995,8 @@ cycle exactly.}
 
 \begin{enumerate}[leftmargin=1.4em,itemsep=3pt]
 \item \textbf{Freeze material properties at $T^n$.} Evaluate $K,\rho,c_p$ at the
-  old temperature. This linearisation costs nothing: with the coupling
-  $\alpha\ll1$, $K$ changes by far less than a percent in one hour.
+  old temperature. This linearisation costs nothing: $K$ changes by far
+  less than a percent over one step.
 \item \textbf{Newton at the surface.} With $T_{\rm sub}=T_0^n$, solve
   $(1-A)S(t)-\varepsilon\sigma T_s^4 - K_{\rm surf}(T_s-T_{\rm sub})/(\Delta z_0/2)=0$
   to $10^{-4}$\,K --- 2--3 iterations.
@@ -1082,7 +1083,7 @@ The surface cell warmed $\sim$0.49\,K (it sits next to the 372\,K surface, and t
 implicit half-step hands it about half the conductive pull); the middle cells
 barely moved (one hour is far too short for heat to reach them); the deepest cell
 gained $\sim$0.001\,K from the basal flux. That is one hour. Step~A is this hour
-repeated $\sim$709 times per lunation for $\sim$12 lunations --- and \emph{that} is
+repeated $\sim$1417 times per lunation for 96 lunations --- and \emph{that} is
 the whole forward solve the slope method leans on.
 
 \section{Step B as RK2 --- walking the deep profile down}\label{sec:stepB}
@@ -1130,7 +1131,7 @@ $i$ & $z_i$ (m) & $\Tm_i$ (K) & slope $s_i$ (K\,m$^{-1}$) & $\Tm_{i+1/2}$ (K) & 
 rises with depth, so the slope shrinks slightly cell to cell and the column curves
 gently rather than running perfectly straight; the arithmetic is identical. The
 real code (\code{\_reconstruct\_subskin},
-\code{src/lunar/equilibrium.py:103}) is identical except it loops over $\sim$60
+\code{src/lunar/equilibrium.py}) is identical except it loops over $\sim$60
 cells and uses the true depth- and temperature-dependent $K(\Tm,z)$ at each step:
 
 \begin{lstlisting}[style=py]
@@ -1192,8 +1193,8 @@ steady state.
 \caption{The outer loop as a fixed-point search. Each cycle (Step~A $+$
 Step~B) moves the anchor temperature $\sim$60\% less than the last ---
 the geometric contraction of a convergent fixed-point iteration; the loop
-stops when the drift enters the $\pm 0.005$~K band. The drifts shown are
-the real worked-example sequence of App.~\ref{app:worked}.}
+stops when the drift enters the $\pm 0.005$~K band. The drift sequence shown
+is the illustrative example of App.~\ref{app:worked}.}
 \label{fig:fixedpoint}
 \end{figure}
 
@@ -1238,8 +1239,8 @@ convergence history --- is (Fig.~\ref{fig:anchorconv}):
 \toprule
 Stage & cycle & $\Tm(z_0)$ (K) & drift (K) \\
 \midrule
-1 ($z_0{=}0.25$\,m, $n_{\rm in}{=}4$)  & 1 & 251.00 & --- \\
-                                       & 2 & 250.94 & 0.056$^{\dagger}$ \\
+1 ($z_0{=}0.25$\,m, $n_{\rm in}{=}4$)  & 1 & 251.01 & --- \\
+                                       & 2 & 250.97 & 0.046$^{\dagger}$ \\
 \midrule
 2 ($z_0{=}0.55$\,m, $n_{\rm in}{=}96$) & 1 & 251.92 & --- \\
                                        & 2 & 251.92 & 0.0004$^{\ddagger}$ \\
@@ -1263,7 +1264,7 @@ geometric contraction of the fixed-point argument --- and, worse, it settles
 $\sim$0.1\,K \emph{below} the converged anchor: the under-resolution bias of
 \S\ref{sec:threebites}, visible in a single plot. The certified solve then
 passes all three checks of \S\ref{sec:cert}; run from a 240\,K guess instead of
-260\,K it lands within $0.038$\,K at every depth --- the guess-independence
+260\,K it lands within ${\sim}10^{-5}$\,K at every depth --- the guess-independence
 number. Figure~\ref{fig:newfilm} shows the same solve as snapshots: the skin
 settles, then Step~B snaps the deep column onto the steady gradient.
 
@@ -1300,7 +1301,7 @@ the compiled kernel ($\sim$75\,s interpreted) versus $\sim$26 minutes
 \section{Why two anchor stages, not one}\label{sec:twostage}
 
 The code runs the loop in two stages with different anchor depths
-(\code{src/lunar/equilibrium.py:201}):
+(\code{src/lunar/equilibrium.py}):
 \begin{center}\small
 \begin{tabular}{@{}lcccc@{}}
 \toprule
@@ -1365,9 +1366,9 @@ matched to the failure mode it rules out.}
 \toprule
 Check & Quantity measured & Threshold & Observed \\
 \midrule
-Guess-independence & $\max_z|T_{(240)}(z)-T_{(260)}(z)|$  & $\le 0.05$ K   & $0.038$ K \\
+Guess-independence & $\max_z|T_{(240)}(z)-T_{(260)}(z)|$  & $\le 0.05$ K   & $5\times10^{-6}$ K \\
 Flux closure       & $|K\,d\Tm/dz - Q_b|/Q_b$ at $0.55,1.5,3.0$ m & $\le 10\%$ & $1.2\%,\,0.8\%,\,0.4\%$ \\
-Mean drift         & 120-lun.\ honest re-run drift     & $\le 0.08$ K   & $0.063$ K \\
+Mean drift         & 120-lun.\ honest re-run drift     & $\le 0.08$ K   & $0.0024$ K \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1482,8 +1483,8 @@ minutes, not afternoons.
 kernel to native code? A line-for-line C++ port of the march
 (\code{cpp/solver.cpp}) is kept as an independent verification: all three
 implementations agree to $\sim$$10^{-12}$\,K, and per simulated lunation
-they time at $538$\,ms (interpreted Python), $4.7$\,ms (compiled Python
-kernel), and $3.2$\,ms (C++). The kernel therefore captures $\sim$70\% of
+they time at $443$\,ms (interpreted Python), $3.9$\,ms (compiled Python
+kernel), and $2.8$\,ms (C++). The kernel therefore captures $\sim$70\% of
 native speed with no build step or foreign-function boundary --- which is
 why it is the production path and the C++ port is the cross-check rather
 than the engine (\code{results/cpp\_benchmark.json}).
@@ -1542,7 +1543,7 @@ time-step what is fast; you solve what is slow.
 30 lunations and is still creeping at $\sim$1000. \emph{Right four panels ---
 new:} a short run settles the skin, the anchor is dropped at $z_0=0.55$\,m, the
 closure slope is walked downward to fill the deep column, and the solve is
-converged in $\sim$75\,s interpreted ($\sim$0.6\,s compiled). An animated version (\code{docs/guidebook/old\_vs\_new.gif})
+converged in $\sim$75\,s interpreted ($\sim$0.6\,s compiled). An animated version (\code{figures/anim/old\_vs\_new.gif})
 is available for talks.}
 \label{fig:spinfilm}
 \end{figure}
@@ -1572,7 +1573,7 @@ lunations. At the literature's 30-lunation cut-off that gap is still many kelvin
 the slope method reaches the identical answer in $\sim$75\,s from either guess
 (interpreted tier; $\sim$0.6\,s with the compiled kernel).
 The two methods agree --- the slope method just refuses to wait. (The
-guess-independence is certified to $0.038$\,K directly in \S\ref{sec:cert}.)
+guess-independence is certified to ${\sim}10^{-5}$\,K directly in \S\ref{sec:cert}.)
 
 \begin{keypt}[title={Head-to-head, re-checked at $Q_b(\mathrm{A17})=16$}]
 A direct run at the corrected basal flux makes the agreement concrete. Measuring
@@ -1758,8 +1759,8 @@ sensor depths & Nagihara restoration & measured & Nagihara et al.\ (2018); jitte
 \toprule
 Input & Value & Basis & Evidence \\
 \midrule
-grid & $dz_0{=}2$ mm, 8\% growth, 69 cells & convergence-tested & refined grid moves sensor $\Tm$ by $\leq$23 mK (\code{discretization\_check.json}) \\
-$\Delta t$ & 1800 s + wrap step & convergence-tested & $K_d^{*}$ dt ladder: halving moves $K_d^{*}$ by $\leq$0.018 mW (A17), $\leq$0.001 (A15) (\code{dt\_kdstar\_certification\_*\_wrapfix.json}; App.~\ref{app:dtcert}) \\
+grid & $dz_0{=}2$ mm, 8\% growth, 69 cells & convergence-tested & refined grid moves sensor $\Tm$ by $\leq$0.2 mK (\code{discretization\_check.json}) \\
+$\Delta t$ & 1800 s + wrap step & convergence-tested & $K_d^{*}$ dt ladder: halving moves $K_d^{*}$ by $\leq$0.018 mW (A17), $\leq$0.002 (A15) (\code{dt\_kdstar\_certification\_*\_wrapfix.json}; App.~\ref{app:dtcert}) \\
 $z_0$ & 0.55 m & derived & below the rectification zone; $|u_{\rm rect}|\approx0.2\%$ of $Q_b$ \\
 stage 1 & 0.25 m, $n_{\rm in}{=}4$, tol 0.10 K & choice & cheap primer; its bias removed by stage 2 (\S\ref{sec:twostage}) \\
 $n_{\rm inner}$ & 96 lunations & convergence-tested & $K_d^{*}$ plateau, $|\Delta K_d^{*}|<0.005$ mW (Fig.~\ref{fig:ninner}) \\
@@ -1767,7 +1768,7 @@ anchor tol & 0.005 K & derived & maps to $\lesssim$0.1 mW in $K_d^{*}$, well bel
 certification & 0.05 K / 10\% / 0.08 K & criteria & each rules out a named failure (\S\ref{sec:cert}) \\
 sensor cut & depth $\geq$ 80 cm & derived & below the daily skin; diurnal amplitude $\sim$0.15 K \\
 stable window & $|$slope$| < 0.08$ K yr$^{-1}$ & criterion & scan 55--80\% of record, earliest passing start \\
-$K_d$ sweep grid & 29 / 32 pts, dense 0.2 mW band & convergence-tested & uniform grid carried $\pm$0.02 mW vertex noise \\
+$K_d$ sweep grid & 29 / 32 pts, dense 0.2 mW band & convergence-tested & uniform grid carried ${\sim}$0.04 mW vertex bias \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1865,7 +1866,7 @@ the global $K_d=3.4$ does not.}
 \label{fig:profiles}
 \end{figure}
 
-\noindent\textbf{Is a factor of 1.8 big?} For dry regolith, deep conductivity is
+\noindent\textbf{Is a factor of 1.5 big?} For dry regolith, deep conductivity is
 set mostly by grain-to-grain contact area, which scales super-linearly with
 packing density ($K\propto\rho^{n}$, $n\gtrsim4$ in many granular-contact
 models). Going from loose mare regolith to a compacted, rock-rich highland column
@@ -1903,7 +1904,7 @@ Diviner fit. But Vasavada et al.~(2012) calibrate the \emph{same} radiative effe
 at $\chi=1.48$. Plugging $\chi=1.48$ into our retrieval drives the minima out of the swept
 range entirely ($K_d^{*}(\mathrm{A15})\!\lesssim\!1$,
 $K_d^{*}(\mathrm{A17})\!\gtrsim\!25$) ---
-a far larger swing than the quadrature totals ($1.88$, $3.78$). The
+a far larger swing than the quadrature totals ($1.88$, $3.88$). The
 \emph{absolute} $K_d^{*}$ values are conditional on which radiative calibration
 you accept; the \emph{direction} of the contrast survives both (A17 more
 conductive than A15 at either $\chi$).
@@ -1945,7 +1946,7 @@ offset, and dropping the cheap shallow anchor stage each shift $K_d^{*}$ by less
 than its bootstrap CI. No single sensor or assumption is load-bearing.
 The sharpest of these is the hold-out test (Fig.~\ref{fig:holdout}): fit
 $K_d$ on one thermometer family (TG) and predict the \emph{other} (TR) ---
-the out-of-sample penalty is 0.06--0.14\,K, and withholding the deepest
+the out-of-sample penalty is $\le$0.11\,K, and withholding the deepest
 sensor entirely still predicts it to 0.37\,K (A15) and 0.25\,K (A17).
 
 \begin{figure}[htbp]\centering
@@ -2004,8 +2005,9 @@ Basal flux $Q_b$ (direct map, \S\ref{sec:degmeasured}) & 1.61 & 1.66 \\
 Albedo $A$                     & 0.72 & 2.96 \\
 Surface conductivity $K_s$     & 0.36 & 1.55 \\
 Density / depth / threshold / solver & 0.13 & 0.34 \\
+Common-epoch windows               & $<0.05$ & 0.89 \\
 \midrule
-\textbf{Total (in quadrature)} & \textbf{1.88} & \textbf{3.78} \\
+\textbf{Total (in quadrature)} & \textbf{1.88} & \textbf{3.88} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -2019,7 +2021,7 @@ budget is $\sim$2$\times$ wider than Apollo~15's, because its
 absolute-temperature-dominated fit amplifies the same input
 uncertainties. Through all of it the contrast direction holds: letting
 $Q_b$ vary jointly with $K_d$ in the MCMC cross-check on the direct
-surface, Apollo~17 stays the more conductive site in $99.3$--$99.4\%$ of
+surface, Apollo~17 stays the more conductive site in $99.2$--$99.4\%$ of
 posterior draws whether the $Q_b$ prior is $\pm$10\% or $\pm$40\% wide
 (\S\ref{sec:mcmczero}). The robust finding is the \emph{direction}; the
 absolute numbers ride on the published $Q_b$ and $\chi$.
@@ -2031,7 +2033,7 @@ Three things, in order of confidence:
   whole Moon --- the Apollo~15 and~17 boreholes give $4.60$ and $7.08$
   mW\,m$^{-1}$K$^{-1}$.
 \item \textbf{The slope method is what made that affordable \emph{and} honest}:
-  it reaches a \emph{certified} steady state in ${\sim}9$ outer cycles instead of
+  it reaches a \emph{certified} steady state in ${\sim}4$ outer cycles instead of
   ${\sim}3000$ lunations, and --- unlike a fixed spin-up --- carries no hidden
   initial-guess parameter to bias the answer.
 \item \textbf{The contrast's \emph{direction} is robust; its \emph{size} is
@@ -2086,7 +2088,7 @@ them ($\frac{1}{N}\sum$), undo the squaring ($\sqrt{\phantom{x}}$).
 +0.4)$\,K. Squares: $0.09, 0.25, 0.16$. Mean: $(0.09{+}0.25{+}0.16)/3 =
 0.1667$. Root: $\sqrt{0.1667} = 0.41$\,K. Note the sign of each miss vanished
 at the squaring step --- RMSE measures \emph{size} of disagreement, not
-direction. The real site-fit values are $0.99$\,K (A15) and $0.39$\,K (A17).
+direction. The real site-fit values are $1.00$\,K (A15) and $0.40$\,K (A17).
 
 {\small\color{dim}\textit{Code: \code{pipeline/compute/retrieve\_kd.py}
 $\to$ \code{run\_kd\_sweep\_extended}}}
@@ -2105,10 +2107,10 @@ parabolic (near a smooth minimum, everything is).
 
 The three-point vertex formula is derived step by step in
 App.~\ref{app:vertex}, and App.~\ref{app:sweepworked} carries the real
-Apollo~17 numbers through it by hand (bracket $7.00/7.20/7.40 \rightarrow
+Apollo~17 numbers through it by hand (bracket $6.80/7.00/7.20 \rightarrow
 K_d^{*}=7.08$). One provenance note (\S\ref{sec:register}): the vertex is only
 as good as the sampling around it --- the early \emph{uniform} sweep grid
-carried $\pm 0.02$\,mW of vertex noise, which is why the production grid packs
+carried ${\sim}0.04$\,mW of vertex bias, which is why the production grid packs
 a dense $0.2$\,mW band around the minimum.
 
 \section{``How wrong could it be?'' --- the bootstrap}\label{sec:bootzero}
@@ -2266,8 +2268,8 @@ map the high ground. That map is the \emph{posterior}.
 
 Figure~\ref{fig:mcmcflow} traces one step. Two details make this honest.
 First, the \emph{likelihood} is a map we actually measured: for each site
-the model is solved on a grid of $(K_d, Q_b)$ pairs ($13\times9$, about two
-hundred one-second solves) and the walkers read the misfit off that surface
+the model is solved on a grid of $(K_d, Q_b)$ pairs ($13\times9$ = 117
+one-second solves per site) and the walkers read the misfit off that surface
 by interpolation --- and are rejected outright if they wander off its edge,
 because we never extrapolate an RMSE we did not compute. It is worth
 recording that this section used to teach a shortcut instead: \emph{assume}
@@ -2293,7 +2295,7 @@ artifact of having fixed $Q_b$ (\S\ref{sec:crosschecks}).
 \caption{How the MCMC cross-check works
 (\code{pipeline/compute/bayesian\_crosscheck.py}: 32 walkers $\times$ 4000
 steps, first 1000 discarded). The likelihood reads a directly solved
-RMSE$(K_d, Q_b)$ surface --- about 200 real equilibrium solves per site,
+RMSE$(K_d, Q_b)$ surface --- 117 real equilibrium solves per site,
 with walkers rejected outside the solved rectangle --- and the $Q_b$ prior
 carries the published value with a 15\% width. The posterior cloud is the
 $K_d$--$Q_b$ ridge with its \emph{measured} tilt;
@@ -2430,7 +2432,7 @@ bootstrap median & 4.63 / 7.08 & median of 1500 draws \\
 contrast (median) & 2.31 & paired draw differences \\
 contrast 95\% CI & $[-0.12, 3.56]$ & percentile cut of the differences \\
 p-value & 0.031 & fraction of differences $\leq 0$ (46/1500) \\
-error bars ($\pm\sigma$) & 1.88 / 3.78 & quadrature over the budget rows \\
+error bars ($\pm\sigma$) & 1.88 / 3.88 & quadrature over the budget rows \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -2453,7 +2455,7 @@ what the chain produced.}
 \label{fig:makeflow}
 \end{figure}
 
-\noindent From a fresh clone (the full recipe is in \code{docs/notes/REPRODUCING.md}),
+\noindent From a fresh clone (the full recipe is in \code{documents/notes/REPRODUCING.md}),
 the chain of Fig.~\ref{fig:makeflow} runs as:
 \begin{lstlisting}[style=py]
 git clone https://github.com/rp3gregorio/Lunar-HFE.git
@@ -2485,7 +2487,7 @@ Bootstrap 95\% CI (A17) & $[6.16,\ 8.07]$ & $\pm 0.02$ \\
 Contrast median & $2.31$ & $\pm 0.05$ \\
 Contrast $p$-value & $0.031$ & $\pm 0.003$ \\
 Test suite & $49$ passed & exact \\
-Equilibrium drift & $\le 0.023$ K & --- \\
+Equilibrium drift & $\le 0.005$ K & --- \\
 Flux closure & $< 0.5\%$ & --- \\
 Wall time (\code{make retrieve}) & $\sim$1--2 h & --- \\
 \bottomrule
@@ -2500,7 +2502,7 @@ tested 1-D solver is in \code{src/lunar/}, the retrieval driver in
 (reproduced to $\pm0.01$ by a clean run). For more depth on any topic in this
 guide --- the full physics, the solver line by line, the statistics, the geology,
 the code, and practice problems --- see the extended edition at
-\code{docs/guidebook/reference/guidebook-extended.tex}.
+\code{documents/jgr/guidebook/reference/guidebook-extended.tex}.
 
 % =====================================================================
 \chapter{Derivations and numerical methods}\label{app:deriv}
@@ -2649,7 +2651,7 @@ exactly what the algebra predicts.
 \begin{figure}[htbp]\centering
 \includegraphics[width=0.9\linewidth]{figures/fig_book_skinwave.pdf}
 \caption{The skin-depth derivation, verified by the certified solver: one
-lunation of $T(t)$ at seven depths. The $\sim$260-K surface swing collapses
+lunation of $T(t)$ at seven depths. The $\sim$280-K surface swing collapses
 to invisibility by 40--80 cm --- the flat teal lines are why a deep anchor
 is trustworthy and why only sensors below 80 cm enter the retrieval.}
 \label{fig:skinwave}
@@ -2690,7 +2692,7 @@ here. That continued rise is \emph{physical} (the Moon loses internal heat
 through the column), not a numerical drift, and it is why a profile plotted to a
 few meters still ``drifts'' rather than leveling off. The profile would flatten
 toward a near-constant only beneath a high-conductivity \emph{bedrock base},
-where $K$ is $\sim$100$\times$ larger so the gradient $Q_b/K$ nearly vanishes
+where $K$ is $\sim$200$\times$ larger so the gradient $Q_b/K$ nearly vanishes
 (or trivially if $Q_b=0$, i.e.\ no internal heat). But the Apollo deep sensors
 sit at $0.8$--$2.4$\,m, entirely within the regolith and far above any such
 base, so adding a base layer changes the profile only \emph{below the data} and
@@ -2778,7 +2780,7 @@ resistances add in series, $R=\Delta z/K_{\rm face}$, so
 \;\Rightarrow\;
 \boxed{\;K_{i+1/2}=\frac{2\,K_i K_{i+1}}{K_i+K_{i+1}}\;}
 \]
---- the harmonic mean (\code{src/lunar/solver.py:118},
+--- the harmonic mean (\code{src/lunar/solver.py},
 \code{\_face\_harmonic\_mean}). The arithmetic mean would let a high-$K$ cell
 ``short-circuit'' a neighboring low-$K$ cell and overstate the flux; the series
 result is the physically correct one, and it matters where $K$ jumps --- the
@@ -2856,7 +2858,7 @@ with $\kappa\sim10^{-8}$\,m$^2$\,s$^{-1}$ that floor is
 \[
 \Delta t \le \frac{(0.002)^2}{2\times10^{-8}} \approx 200\;\text{s},
 \]
-versus CN's $\Delta t=3600$\,s used freely --- and $200$\,s is only the
+versus CN's $\Delta t=1800$\,s used freely --- and $200$\,s is only the
 \emph{stability} floor; accuracy would force it lower still.
 
 \section{Assembling the tridiagonal system, boundary rows included}\label{app:assembly}
@@ -2914,7 +2916,7 @@ time levels through CN,
 \boxed{\;b_{n-1}\to b_{n-1}-\tfrac12\alpha,\qquad
 d_{n-1}\to d_{n-1}+\frac{\Delta t\,Q_b}{C}.\;}
 \]
-These are exactly the two edits in \code{src/lunar/solver.py} (rows 377--378):
+These are exactly the two basal-ghost edits in \code{src/lunar/solver.py}:
 the imaginary cell never appears in the stored matrix.
 
 \section{The Thomas algorithm}\label{app:thomas}
@@ -2944,7 +2946,7 @@ T_{n-1}=d_{n-1}',\qquad T_i=d_i'-c_i'\,T_{i+1}\;\;(i=n{-}2,\dots,0).
 \]
 Each sweep touches every row a constant number of times, so the cost is
 $\sim$$8N$ operations --- $O(N)$, not the $\sim N^3/3$ of dense elimination. For
-$N=69$, a few hundred flops (\code{src/lunar/solver.py:133}, \code{\_thomas}).
+$N=69$, a few hundred flops (\code{src/lunar/solver.py}, \code{\_thomas}).
 
 {\small\color{dim}\textit{Code: \code{src/lunar/solver.py} $\to$ \code{\_thomas}}}
 \begin{lstlisting}[style=py]
@@ -2982,7 +2984,7 @@ strictly negative, so $R$ is monotone and has a unique root. Newton iterates
 $T_s\leftarrow T_s-R(T_s)/R'(T_s)$; near the root the error squares each step
 ($e_{k+1}\approx\tfrac12|R''/R'|\,e_k^2$), so $2$--$3$ iterations reach
 $10^{-4}$\,K. It runs \emph{every} time step because the insolation $S(t)$ has
-moved (\code{src/lunar/solver.py:181}, \code{\_solve\_surface\_newton}).
+moved (\code{src/lunar/solver.py}, \code{\_solve\_surface\_newton}).
 
 {\small\color{dim}\textit{Code: \code{src/lunar/solver.py} $\to$ \code{\_solve\_surface\_newton}}}
 \begin{lstlisting}[style=py]
@@ -3077,7 +3079,7 @@ result becomes the next cycle's starting state \emph{and} starting surface
 temperature (\code{solver.solve\_pixel}; the C++ port mirrors it and agrees
 to $10^{-12}$ K). And because the corrected march exposed a smaller
 first-order residual from evaluating $K(T)$, $\rho$, $c_p$ at the old time
-level, each step now re-solves once with properties at the midpoint state
+level, each step now re-solves twice with properties at the midpoint state
 $\tfrac12(T^{n}{+}T^{n+1})$ (\code{config.CN\_PICARD\_SWEEPS}$\,=2$) ---
 the implicit-midpoint prescription that makes the attractor genuinely
 second-order.
@@ -3114,7 +3116,7 @@ u_{\rm rect}\equiv\langle K\,\partial_z T\rangle-K(\Tm)\,\partial_z\Tm.\;}
 \]
 The geothermal flux enters as $Q_b-u_{\rm rect}$ with this definition of
 $u_{\rm rect}$ --- exactly the convention computed in
-\code{src/lunar/equilibrium.py:82} (\code{\_rectified\_flux} returns
+\code{src/lunar/equilibrium.py} (\code{\_rectified\_flux} returns
 $\langle K\,\partial_z T\rangle-K(\Tm)\partial_z\Tm$) and integrated in
 \code{:100} (\code{\_reconstruct\_subskin}, $q=Q_b-u_{\rm rect}$). This is
 Eq.~\eqref{eq:closure}.
@@ -3142,8 +3144,8 @@ return total - meanfield                               # u_rect, the small eddy 
 +\tfrac12 K''(\Tm)\,\delta T^2$. The leading correlation
 $\langle\delta K\,\delta(\partial_z T)\rangle\approx
 K'(\Tm)\,\langle\delta T\,\delta(\partial_z T)\rangle$ scales with the square of
-the diurnal amplitude $\delta T$, so $u_{\rm rect}$ lives in the skin (a few
-percent of $Q_b$ at the anchor) and falls to numerical noise below $\sim$1\,m ---
+the diurnal amplitude $\delta T$, so $u_{\rm rect}$ lives in the skin (${\sim}0.2\%$
+of $Q_b$ at the production anchor) and falls to numerical noise below $\sim$1\,m ---
 which is why the production anchor sits at $0.55$\,m (\S\ref{sec:twostage}).
 
 \section{RK2 reconstruction and its local error}\label{app:rk2}
@@ -3160,7 +3162,7 @@ Taylor-expanding the true solution, $\Tm(z+h)=\Tm+h\Tm'+\tfrac12h^2\Tm''
 the $h$ and $h^2$ terms, so the local truncation error is $O(h^3)$ --- one order
 better than forward Euler's $O(h^2)$. That is why the cell-by-cell walk of
 \S\ref{sec:stepB} is accurate to $\ll1$\,mK per cell at the production resolution
-(\code{src/lunar/equilibrium.py:103}).
+(\code{src/lunar/equilibrium.py}).
 
 \section{Parabolic vertex refinement}\label{app:vertex}
 The RMSE bowl is locally quadratic, so fit a parabola through its three lowest
@@ -3506,7 +3508,7 @@ edits to the otherwise-interior system:
 \end{itemize}
 
 \emph{(4) Solve, then repeat.} The Thomas sweep solves this tridiagonal system in one pass
---- one hour. Repeating ${\sim}709$ hours per lunation for ${\sim}12$ lunations settles the
+--- one step. Repeating ${\sim}1417$ half-hour steps per lunation for 96 lunations settles the
 skin (Step~A); reconstructing below the anchor (Step~B, the walk above) fills the deep
 column. The output is $\Tm(z;K_d)$ --- exactly the profile we now read at the sensor depths.
 
@@ -3625,11 +3627,11 @@ Planets} \textbf{126}, e2021JE006829.
 observed at the Apollo 15 and 17 sites utilizing the newly restored Heat Flow
 Experiment data from 1975 to 1977. \emph{Journal of Geophysical Research: Planets}
 \textbf{123}, 1125--1139.
+\,doi:\href{https://doi.org/10.1029/2018JE005579}{10.1029/2018JE005579}.
 \item Saito, Y., Tanaka, S., Takita, J., Horai, K., \& Hagermann, A. (2007).
 Lunar heat flow experiment for SELENE-2. \emph{Advances in Space Research}
 \textbf{40}, 1601--1607.
 \,doi:\href{https://doi.org/10.1016/j.asr.2007.07.007}{10.1016/j.asr.2007.07.007}.
-\,doi:\href{https://doi.org/10.1029/2018JE005579}{10.1029/2018JE005579}.
 \item Vasavada, A.~R., et al.\ (2012). Lunar equatorial surface temperatures and
 regolith properties from the Diviner Lunar Radiometer Experiment. \emph{Journal of
 Geophysical Research: Planets} \textbf{117}, E00H18.

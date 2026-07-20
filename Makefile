@@ -15,7 +15,7 @@ install:             ## editable install of the lunar package + dev extras
 test:                ## run the unit-test suite
 	$(PY) -m pytest -q
 
-retrieve:            ## core retrieval + bootstrap (writes results/kd_retrieval_results.json)
+retrieve:            ## core retrieval + bootstrap (writes code/results/kd_retrieval_results.json)
 	$(PY) code/pipeline/compute/retrieve_kd.py
 
 aux:                 ## all auxiliary sensitivity sweeps + model selection + error budget + MCMC
@@ -41,7 +41,7 @@ paper:               ## compile every document (JGR letter+guidebook, GEDES abst
 	cd documents/jgr/guidebook  && latexmk -pdf -interaction=nonstopmode guidebook.tex
 	cd documents/gedes/thesis   && latexmk -pdf -interaction=nonstopmode thesis.tex
 	cd documents/gedes/abstract && latexmk -pdf -interaction=nonstopmode gedes_abstract.tex
-	cd documents/aogs/poster    && latexmk -pdf -interaction=nonstopmode aogs_poster.tex
+	cd documents/aogs/docs      && latexmk -pdf -interaction=nonstopmode aogs_poster.tex
 
 all: retrieve aux figures paper  ## full reproduction from scratch
 
@@ -50,4 +50,4 @@ clean:               ## remove LaTeX build artifacts
 	cd documents/jgr/guidebook  && latexmk -C 2>/dev/null || true
 	cd documents/gedes/thesis   && latexmk -C 2>/dev/null || true
 	cd documents/gedes/abstract && latexmk -C 2>/dev/null || true
-	cd documents/aogs/poster    && latexmk -C 2>/dev/null || true
+	cd documents/aogs/docs      && latexmk -C 2>/dev/null || true

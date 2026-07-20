@@ -109,11 +109,11 @@ solver, run it, then the result and discussion figures, and finally performance.
 \# & Notebook & Produces & Main code it uses \\
 \midrule
 00 & \nb{00\_setup}      & environment + data-load check & \code{lunar.apollo\_helpers, ephem} \\
-01 & \nb{01\_methods}    & letter Figs 1--4 & \code{pipeline/figures/} (4 generators) \\
+01 & \nb{01\_methods}    & letter Figs 1--3, 5 & \code{pipeline/figures/} (4 generators) \\
 02 & \nb{02\_anchor\_method}     & flux-anchored solver, explained & \code{lunar.equilibrium}, \code{make\_equilibrium\_demo} \\
 03 & \nb{03\_retrieval}  & \textbf{core K\_d retrieval} \arr\ JSON & \code{pipeline/compute/retrieve\_kd.py} \\
-04 & \nb{04\_results}    & letter Figs 5--9 & \code{make\_results\_figures}, \code{compute\_diviner\_closure} \\
-05 & \nb{05\_discussion} & letter Figs 10--11 & \code{make\_prior\_estimates\_figure} \\
+04 & \nb{04\_results}    & letter Figs 6--10 & \code{make\_results\_figures}, \code{compute\_diviner\_closure} \\
+05 & \nb{05\_discussion} & letter Figs 11--12 & \code{make\_prior\_estimates\_figure} \\
 06 & \nb{06\_performance}& C++ kernel: agree, speed, live retrieval & \code{benchmark\_cpp}, \code{retrieve\_kd} \\
 \bottomrule
 \end{tabular}
@@ -134,16 +134,16 @@ works) and \nb{06} (how the backends compare). The one hard rule: run
 \item environment check \arr\ \fn{lunar.\_bootstrap.find\_repo\_root()} locates \code{code/} and confirms \code{lunar} imports.
 \item load the Apollo record \arr\ \fn{lunar.apollo\_helpers.extract\_sensor\_stability()} (reads \code{code/data/apollo/} via \code{lunar.validation}).
 \item solar geometry \arr\ \code{lunar.ephem} (SPICE kernels).
-\item \emph{(one-time)} \fn{pipeline/fetch\_diviner.py} downloads the Diviner tiles used by Fig 9.
+\item \emph{(one-time)} \fn{pipeline/fetch\_diviner.py} downloads the Diviner tiles used by Fig 10.
 \end{itemize}
 
-\subsection{\nb{01\_methods} --- the methods figures (Figs 1--4)}
+\subsection{\nb{01\_methods} --- the methods figures (Figs 1--3, 5)}
 Each cell: \textbf{import a generator \arr\ call it (writes \code{figures/<name>.pdf}) \arr\ \code{show\_fig()} displays it.}
 \begin{itemize}
 \item Fig 1 probe schematic \arr\ \fn{make\_intro\_figures.fig\_intro\_probe()} --- both borestems from the real sensor depths (\code{lunar.apollo\_helpers}) + the K(T,z) comparison (\code{lunar.properties}).
 \item Fig 2 context map \arr\ \fn{make\_context\_map\_figure.main()} --- three nearside globes; uses the LOLA DEM in \code{code/data/lola/}.
 \item Fig 3 sensor timeline \arr\ \fn{make\_apollo\_timeline\_letter.main()} --- the per-sensor stability windows.
-\item Fig 4 amplitude vs depth \arr\ \fn{make\_letter\_figures.fig\_amplitude\_vs\_depth()} --- diurnal-wave decay (\code{lunar.solver}).
+\item Fig 5 amplitude vs depth \arr\ \fn{make\_letter\_figures.fig\_amplitude\_vs\_depth()} --- diurnal-wave decay (\code{lunar.solver}).
 \end{itemize}
 
 \subsection{\nb{02\_anchor\_method} --- how the flux-anchored solver works}
@@ -163,20 +163,20 @@ The heart of the study, explained before you use it in \nb{03}.
 \item \textbf{Step 3 (optional)} \arr\ \fn{bayesian\_crosscheck.py} --- an independent \code{emcee} MCMC cross-check.
 \end{itemize}
 
-\subsection{\nb{04\_results} --- the results figures (Figs 5--9)}
+\subsection{\nb{04\_results} --- the results figures (Figs 6--10)}
 Same generator \arr\ \code{show\_fig()} pattern; these read the JSON from \nb{03}:
 \begin{itemize}
-\item Fig 5 mean-T profile \arr\ \fn{make\_letter\_figures.fig\_mean\_T\_profile()}
-\item Fig 6 K\_d sweep \arr\ \fn{make\_letter\_figures.fig\_kd\_sweep()}
-\item Fig 7 bootstrap \arr\ \fn{make\_results\_figures.fig\_bootstrap()}
-\item Fig 8 thermal profiles \arr\ \fn{make\_results\_figures.fig\_thermal\_profiles()}
-\item Fig 9 Diviner closure \arr\ runs \fn{pipeline/compute/compute\_diviner\_closure.py} (model vs Diviner; needs the fetched data).
+\item Fig 6 mean-T profile \arr\ \fn{make\_letter\_figures.fig\_mean\_T\_profile()}
+\item Fig 7 K\_d sweep \arr\ \fn{make\_letter\_figures.fig\_kd\_sweep()}
+\item Fig 8 bootstrap \arr\ \fn{make\_results\_figures.fig\_bootstrap()}
+\item Fig 9 thermal profiles \arr\ \fn{make\_results\_figures.fig\_thermal\_profiles()}
+\item Fig 10 Diviner closure \arr\ runs \fn{pipeline/compute/compute\_diviner\_closure.py} (model vs Diviner; needs the fetched data).
 \end{itemize}
 
-\subsection{\nb{05\_discussion} --- the discussion figures (Figs 10--11)}
+\subsection{\nb{05\_discussion} --- the discussion figures (Figs 11--12)}
 \begin{itemize}
-\item Fig 10 robustness \arr\ \fn{make\_results\_figures.fig\_robustness()} --- the inter-site contrast under stress tests.
-\item Fig 11 five-decade K\_d context \arr\ \fn{make\_prior\_estimates\_figure.main()} --- the two-panel figure separating contact-asymptote K\_d from effective K.
+\item Fig 11 robustness \arr\ \fn{make\_results\_figures.fig\_robustness()} --- the inter-site contrast under stress tests.
+\item Fig 12 five-decade K\_d context \arr\ \fn{make\_prior\_estimates\_figure.main()} --- the two-panel figure separating contact-asymptote K\_d from effective K.
 \end{itemize}
 
 \subsection{\nb{06\_performance} --- the C++ kernel and the retrieval it powers}

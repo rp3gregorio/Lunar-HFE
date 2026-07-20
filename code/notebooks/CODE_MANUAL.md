@@ -178,7 +178,7 @@ and write JSON.
 
 ### `compute/retrieve_kd.py` — **the orchestrator (start here)**
 The main experiment. Reads the HFE record, sweeps `K_d`, finds the best fit per
-site, and bootstraps the uncertainty. Writes `results/kd_retrieval_results.json`.
+site, and bootstraps the uncertainty. Writes `code/results/kd_retrieval_results.json`.
 Key functions:
 - `run_with(site_cfg, kd=…, …)` — one full model evaluation at a given `K_d`
   (calls `equilibrium.solve_periodic_equilibrium` → compares to the deep sensors).
@@ -276,21 +276,21 @@ A faithful, dependency-free ~300-line C++ port of **only** the solver hot loop
 
 ## 6. Running it (entry points)
 
-From `code/` (after `pip install -e .` / `make install`):
+From the repository root (after `pip install -e .` / `make install`):
 
 | Command | What it does |
 |---------|--------------|
 | `make retrieve` | core retrieval + bootstrap → `results/kd_retrieval_results.json` |
 | `make aux` | all sensitivity sweeps, model selection, error budget, MCMC |
 | `make figures` | regenerate every figure into `figures/` |
-| `make paper` | compile the letter + guidebook |
+| `make paper` | compile every document (letter, letter_clean, guidebook, thesis, abstract, poster) |
 | `make test` | unit tests (`pytest`, 49 tests) |
 | `make all` | the whole chain: retrieve → aux → figures → paper |
 
 **Notebooks** (`code/notebooks/`, narrated walkthrough, in order):
-`00_setup` (environment) → `01_methods` → `02_retrieval` → `03_results` →
-`04_discussion` → `05_method` (the flux-anchored method) →
-`06_performance` (Python vs Numba vs C++, and scaling to a map).
+`00_setup` (environment) → `01_methods` → `02_anchor_method` (the
+flux-anchored method) → `03_retrieval` → `04_results` →
+`05_discussion` → `06_performance` (Python vs Numba vs C++).
 
 ---
 

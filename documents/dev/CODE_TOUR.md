@@ -2,30 +2,31 @@
 
 *A walking guide to the repository: what each folder is for, who calls whom,
 and how one number travels from raw Apollo data to the manuscript. Read this
-top to bottom once; after that the [README](../README.md) tables are enough.*
+top to bottom once; after that the [README](../../README.md) tables are enough.*
 
 *(For the physics and derivations, this document's companion is the guidebook,
-`docs/guidebook/guidebook.pdf`. This tour is about the **code**.)*
+`documents/jgr/guidebook/guidebook.pdf`. This tour is about the **code**.)*
 
 ---
 
 ## 1. The mental model: four layers, one rule
 
 ```
-data/          raw inputs (Apollo record, Diviner, SPICE kernels)
+code/data/       raw inputs (Apollo record, Diviner, SPICE kernels)
    │
    ▼
-src/lunar/     THE ENGINE — a pure Python library: physics, solver, config.
-   │            Importable, tested, knows nothing about JSON files or figures.
+code/src/lunar/  THE ENGINE — a pure Python library: physics, solver, config.
+   │              Importable, tested, knows nothing about JSON files or figures.
    ▼
-pipeline/      THE EXPERIMENTS — scripts that import lunar, run computations,
-   │            and write their answers to results/.
+code/pipeline/   THE EXPERIMENTS — scripts that import lunar, run computations,
+   │              and write their answers to code/results/.
    ▼
-results/       THE RECORD — canonical JSON numbers + rendered figures.
-   │            The single source of truth every document quotes.
-   ▼
-paper/, docs/  THE DOCUMENTS — letter + guidebook, which display results/
-                and must never contain a number that isn't traceable to it.
+code/results/    THE RECORD — canonical JSON numbers (figures render to the
+   │              top-level figures/). The single source of truth every
+   ▼              document quotes.
+documents/       THE DOCUMENTS — letter, guidebook, thesis — which display
+                  the results and must never contain a number that isn't
+                  traceable to them.
 ```
 
 **The one rule: dependencies point down this list, never up.**
@@ -97,11 +98,11 @@ and writes one artifact. None of them define physics.
 
 ### `pipeline/figures/` — pictures
 
-Each `make_*.py` renders one figure (or family) into `results/figures/`,
+Each `make_*.py` renders one figure (or family) into the top-level `figures/`,
 importing `lunar.plotting.style` and reading either `lunar` directly or a
-`results/*.json`. **`pipeline/make_all_figures.py`** holds the `JOBS` registry
+`results/*.json`. **`code/pipeline/make_all_figures.py`** holds the `JOBS` registry
 — every generator must be listed there so `make figures` reproduces
-everything. TikZ diagrams live separately in `docs/guidebook/figures-tikz/`
+everything. TikZ diagrams live separately in `documents/jgr/guidebook/figures-tikz/`
 (built by that folder's `build.sh`).
 
 ---
@@ -113,10 +114,10 @@ The notebooks do not contain private physics; they call the same code paths.
 | Notebook | Role |
 |---|---|
 | `00_setup.ipynb` | environment + data integrity check |
-| `01_methods.ipynb` | methods figures (Figs 1–4) |
+| `01_methods.ipynb` | methods figures (Figs 1–3, 5) |
 | `02_anchor_method.ipynb` | the flux-anchored solver, explained + animated: brute force converges onto the flux-anchored answer; instantaneous profiles via `profile_at_time` / `profile_at_local_time` |
 | `03_retrieval.ipynb` | the core per-site K_d retrieval + bootstrap |
-| `04_results.ipynb` → `05_discussion.ipynb` | results & discussion figures (Figs 5–11), in paper order |
+| `04_results.ipynb` → `05_discussion.ipynb` | results & discussion figures (Figs 6–12), in paper order |
 | `06_performance.ipynb` | the solver kernel in C++ (Python/Numba/C++ agree + speedup), then the K_d retrieval run live with a tqdm progress bar |
 
 Rule of thumb: if a notebook cell grows a reusable idea, the idea moves into
@@ -125,7 +126,7 @@ exactly how `profile_at_local_time` came to exist.
 
 ---
 
-## 5. `tests/` — the guardrails (45 tests, `make test`)
+## 5. `tests/` — the guardrails (49 tests, `make test`)
 
 | File | Guards |
 |---|---|
@@ -138,30 +139,31 @@ exactly how `profile_at_local_time` came to exist.
 
 The equilibrium tests run on a deliberately coarse grid with an explicit
 `n_inner=12` so CI stays fast — they test *mechanics*, not production values.
-Production convergence is certified separately (`results/convergence_scan.json`
+Production convergence is certified separately (`code/results/convergence_scan.json`
 and guidebook Fig. 3.11).
 
 ---
 
 ## 6. `results/` — the record
 
-- `results/*.json` — the canonical numbers. **If a number in any document
+- `code/results/*.json` — the canonical numbers. **If a number in any document
   disagrees with these files, the document is wrong.**
-- `results/figures/*.pdf` — rendered figures (hard-linked into
-  `docs/guidebook/figures/` and `docs/letter/figures/`, so regenerating a
-  figure updates every document at once).
-- `results/anim/` — GIFs.
+- `figures/*.pdf` (top level) — rendered figures, one physical copy; each
+  document reaches them through its `figures/` **symlink**
+  (`documents/jgr/<doc>/figures -> ../../../figures`), so regenerating a
+  figure updates every document at once.
+- `figures/anim/` — GIFs.
 
 Provenance is embedded where it matters: `kd_retrieval_results.json` records
 the bootstrap seed, depth σ, and the git commit that produced it.
 
 ---
 
-## 7. Follow one number: where does K_d\*(A17) = 7.16 come from?
+## 7. Follow one number: where does K_d\*(A17) = 7.08 come from?
 
 The single most useful exercise. Every step names the real file and function.
 
-1. **Raw data.** `data/apollo/` holds the restored 1971–77 HFE record
+1. **Raw data.** `code/data/apollo/` holds the restored 1971–77 HFE record
    (Nagihara 2018).
 2. **Targets.** `apollo_helpers.find_stable_window` scans the late mission,
    keeps the earliest window with |slope| < 0.08 K/yr, and
@@ -175,13 +177,15 @@ The single most useful exercise. Every step names the real file and function.
    32 trial values in `config.KD_GRIDS["A17"]` and scores each against the 16
    sensors → RMSE(K_d).
 5. **The pick.** `retrieve_kd.kd_star_from_residuals` fits a parabola through
-   the three lowest points → the vertex, **7.16 mW m⁻¹ K⁻¹**.
+   the three lowest points → the vertex, **7.08 mW m⁻¹ K⁻¹**.
 6. **The honesty.** `bootstrap_kd_with_depth_uncertainty` resamples sensors +
-   jitters depths 1500 times against the *cached* sweep profiles → CI
-   [6.20, 8.16]; paired with A15 → contrast 2.38, p = 0.031.
-7. **The record.** All of it lands in `results/kd_retrieval_results.json`.
-8. **The documents.** `pipeline/figures/*` render it (headline forest plot,
-   sweep, clouds); `docs/letter/letter.tex` and the guidebook quote it.
+   jitters depths 1500 times against the *cached* sweep profiles → 95% CI
+   [6.16, 8.07]; paired with A15 → contrast median 2.31 (95% CI
+   [−0.12, 3.56], marginal), p ≈ 0.031.
+7. **The record.** All of it lands in `code/results/kd_retrieval_results.json`.
+8. **The documents.** `code/pipeline/figures/*` render it (headline forest
+   plot, sweep, clouds); `documents/jgr/letter/letter.tex` and the guidebook
+   quote it.
 
 Change anything upstream (a constant, the grid, n_inner) and the number is
 only allowed to change by re-running this chain — never by editing a document.
@@ -193,16 +197,16 @@ only allowed to change by re-running this chain — never by editing a document.
 | I want to… | Do this |
 |---|---|
 | run the tests | `make test` (or `pytest -q`) |
-| run one converged solve in Python | see the last cells of `notebooks/02_anchor_method.ipynb` |
+| run one converged solve in Python | see the last cells of `code/notebooks/02_anchor_method.ipynb` |
 | get T(z) at a local lunar time | `profile_at_local_time(eq, "14:30")` — same notebook |
-| re-run the full retrieval | `make retrieve` (~15 min: 61 solves + bootstrap) |
+| re-run the full retrieval | `make retrieve` (~90–100 min with the 3-layer sweep: 61 solves + bootstrap) |
 | re-run all sensitivity/robustness numbers | `make aux` |
-| rebuild every figure | `make figures`; a single one: `python pipeline/figures/make_<name>.py` |
-| rebuild a TikZ diagram | `cd docs/guidebook/figures-tikz && ./build.sh <name>` |
+| rebuild every figure | `make figures`; a single one: `python code/pipeline/figures/make_<name>.py` |
+| rebuild a TikZ diagram | `cd documents/jgr/guidebook/figures-tikz && ./build.sh <name>` |
 | recompile the documents | `make paper` |
 | everything from scratch | `make all` |
-| change a physical constant | **only** in `src/lunar/config.py` / `constants.py`, with a source comment — then re-run the chain and record the before/after |
-| re-measure the speed-up claims | `python pipeline/compute/benchmark_speedup.py` (updates the archive the guidebook quotes) |
+| change a physical constant | **only** in `code/src/lunar/config.py` / `constants.py`, with a source comment — then re-run the chain and record the before/after |
+| re-measure the speed-up claims | `python code/pipeline/compute/benchmark_speedup.py` (updates the archive the guidebook quotes) |
 
 ---
 

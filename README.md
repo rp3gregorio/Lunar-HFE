@@ -6,7 +6,7 @@ Apollo 15 and 17 Heat-Flow Experiment (HFE) boreholes from the restored
 
 This is the reproducibility repository for the paper:
 
-> Gregorio, Larsson, Yamada & Kasai (2026), *Difference of Lunar Regolith
+> Gregorio, Larsson, Yamada, Kuroda & Kasai (2026), *Difference of Lunar Regolith
 > Thermal Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes*,
 > submitted to **JGR: Planets**.
 
@@ -63,7 +63,7 @@ which is what reviewers should run. Each file under
 make install                                 # editable install into .venv
 .venv/bin/python -m pytest -q                # 49 tests (physics invariants + fast path)
 make retrieve                                # headline K_d* + bootstrap -> code/results/*.json
-make figures && make paper                   # figures + all three PDFs
+make figures && make paper                   # figures + all PDFs (letter, guidebook, thesis, ...)
 clang++ -O3 -std=c++17 -o code/cpp/lunar_solver code/cpp/solver.cpp \
   && .venv/bin/python code/pipeline/compute/benchmark_cpp.py   # C++ <-> Python to ~1e-12 K
 ```
@@ -106,11 +106,11 @@ Then run the seven notebooks in order (chronological — you meet the solver in
 | Notebook | Produces |
 |---|---|
 | `00_setup.ipynb` | Dependency check, data integrity check |
-| `01_methods.ipynb` | Figs 1–4, Table 1 (parameters) |
-| `02_anchor_method.ipynb` | The flux-anchored solver, explained + animated (brute force = fast solve) |
+| `01_methods.ipynb` | Figs 1–3 & 5, Table 1 (parameters) |
+| `02_anchor_method.ipynb` | The flux-anchored solver, explained + animated (letter Fig. 4; brute force = fast solve) |
 | `03_retrieval.ipynb` | Per-site $K_d^*$ retrieval, bootstrap CIs, error budget |
-| `04_results.ipynb` | Figs 5–9 (mean-T, $K_d$ sweep, bootstrap, thermal profiles, Diviner closure), Tables 2–3 |
-| `05_discussion.ipynb` | Figs 10–11 (robustness, five-decade context), Table 4 |
+| `04_results.ipynb` | Figs 6–9 & 12 (mean-T, $K_d$ sweep, bootstrap, thermal profiles, Diviner closure), Tables 2–3 |
+| `05_discussion.ipynb` | Figs 10–11 (robustness, Martínez α-sweep), Tables 4–5 |
 | `06_performance.ipynb` | The solver kernel in C++ — Python/Numba/C++ agree, the speedup, then the $K_d$ retrieval run live with a tqdm progress bar |
 
 Run `03_retrieval.ipynb` before `04`/`05` — they read the JSON it writes.
@@ -130,13 +130,13 @@ inputs). See `STRUCTURE.md` for the full map.
 Lunar-HFE/
 ├── documents/                  # WHAT YOU READ (grouped by venue)
 │   ├── jgr/                    # JGR:Planets
-│   │   ├── letter/             #   the manuscript (LaTeX + PDF, SI)
+│   │   ├── letter/             #   the manuscript (LaTeX + PDF)
 │   │   └── guidebook/          #   the teach-from-zero companion
 │   ├── gedes/                  # GEDES symposium
 │   │   ├── abstract/           #   the extended abstract (self-contained figures/)
 │   │   └── thesis/             #   the PhD thesis manuscript
 │   ├── aogs/                   # AOGS conference (self-contained bundle)
-│   │   └── poster/  code/  illustrations/  results/  briefing/  talk_figures/
+│   │   └── docs/  code/  data/  figures/  results/
 │   ├── slides/  notes/         # progress deck; REPRODUCING/FLAG/audit notes
 │   └── <jgr|gedes>/<doc>/figures -> ../../../figures   # link into the shared figure folder
 ├── figures/                    # EVERY SHARED FIGURE (one physical copy)
@@ -160,7 +160,7 @@ If you use this code or data, please cite both the paper and the repository:
 
 ```bibtex
 @article{gregorio2026,
-  author  = {Gregorio, R.~P. and Larsson, R. and Yamada, T. and Kasai, Y.},
+  author  = {Gregorio, R.~P. and Larsson, R. and Yamada, T. and Kuroda, T. and Kasai, Y.},
   title   = {Difference of Lunar Regolith Thermal Conductivity $K_d$
              at the Apollo 15 and 17 Heat-Flow Boreholes},
   journal = {Journal of Geophysical Research: Planets},
@@ -173,9 +173,9 @@ If you use this code or data, please cite both the paper and the repository:
 
 ## Licenses
 
-- **Code** (`code/src/lunar/`, `code/pipeline/`, `code/tests/`, `notebooks/`): MIT License
+- **Code** (`code/src/lunar/`, `code/pipeline/`, `code/tests/`, `code/notebooks/`): MIT License
   (see [`LICENSE`](LICENSE))
-- **Paper text, figures, and tabular results** (`paper/`, `figures/`):
+- **Paper text, figures, and tabular results** (`documents/`, `figures/`):
   Creative Commons Attribution 4.0 International (CC-BY-4.0)
   (see [`LICENSE-CC-BY-4.0`](LICENSE-CC-BY-4.0))
 - **Bundled HFE data** (`code/data/apollo/`): public domain via NASA PDS-Geosciences

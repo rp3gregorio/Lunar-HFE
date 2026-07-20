@@ -22,9 +22,9 @@ this file, and `CODE_MANUAL.pdf` is the code reference in PDF.)*
 ## Running them in Jupyter
 
 ```bash
-cd Lunar-Clean
+cd Lunar-HFE
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e "code[dev]"          # installs the `lunar` package (editable)
+pip install -e ".[dev]"          # installs the `lunar` package (editable)
 jupyter lab code/notebooks/
 ```
 
@@ -43,7 +43,7 @@ cell touches tells you what it does:
 | Layer | Folder | What it is | Writes files? |
 |-------|--------|-----------|---------------|
 | **Engine** | `code/src/lunar/` | the physics *library* — solver, equilibrium method, properties, grid, config. Pure and reusable; every notebook imports it. | no |
-| **Pipeline** | `code/pipeline/` | the *application* that runs the engine. `compute/` turns physics into `results/*.json`; `figures/` turns that JSON into PDFs. | yes |
+| **Pipeline** | `code/pipeline/` | the *application* that runs the engine. `compute/` turns physics into `code/results/*.json`; `figures/` turns that JSON into PDFs. | yes |
 | **Tests** | `code/tests/` | pytest checks the **engine** is correct (imports `lunar`, never the pipeline). | no |
 
 So when a notebook does `import lunar.equilibrium` it is calling the **engine**;
@@ -60,11 +60,11 @@ run it, then the result and discussion figures, and finally performance.
 | # | Notebook | What it produces | Main code it uses |
 |---|----------|------------------|-------------------|
 | 00 | `00_setup.ipynb` | environment + data-load check | `lunar.apollo_helpers`, `lunar.ephem` |
-| 01 | `01_methods.ipynb` | letter Figs 1–4 (methods) | `pipeline/figures/`: `make_intro_figures`, `make_context_map_figure`, `make_apollo_timeline_letter`, `make_letter_figures` |
+| 01 | `01_methods.ipynb` | letter methods figures (Figs 1–3, 5) | `pipeline/figures/`: `make_intro_figures`, `make_context_map_figure`, `make_apollo_timeline_letter`, `make_letter_figures` |
 | 02 | `02_anchor_method.ipynb` | **the flux-anchored solver**, explained + animated | `lunar.equilibrium`, `lunar.{config,grid,properties,solver}`, `make_equilibrium_demo` |
 | 03 | `03_retrieval.ipynb` | **the core K_d retrieval** → `kd_retrieval_results.json` | `pipeline/compute/retrieve_kd.py` |
-| 04 | `04_results.ipynb` | letter Figs 5–9 (results) | `pipeline/figures/`: `make_letter_figures`, `make_results_figures`; `pipeline/compute/compute_diviner_closure` |
-| 05 | `05_discussion.ipynb` | letter Figs 10–11 (discussion) | `pipeline/figures/`: `make_results_figures`, `make_prior_estimates_figure` |
+| 04 | `04_results.ipynb` | letter Figs 6–10 (results) | `pipeline/figures/`: `make_letter_figures`, `make_results_figures`; `pipeline/compute/compute_diviner_closure` |
+| 05 | `05_discussion.ipynb` | letter Figs 11–12 (discussion) | `pipeline/figures/`: `make_results_figures`, `make_prior_estimates_figure` |
 | 06 | `06_performance.ipynb` | the solver kernel in C++ (agreement + speed) + the retrieval run live (tqdm) | `pipeline/compute/benchmark_cpp`, `cpp/solver.cpp`, `pipeline/compute/retrieve_kd` |
 
 **One linear read.** Each notebook builds on the one before it — you meet the
@@ -84,12 +84,12 @@ the JSON it writes.
 - **solar geometry** → `lunar.ephem` (SPICE kernels in `code/data/spice/`).
 - *(one-time)* `pipeline/fetch_diviner.py` downloads the Diviner surface-temperature tiles used later by Fig 9.
 
-### `01_methods` — the methods figures (Figs 1–4)
+### `01_methods` — the methods figures (Figs 1–3, 5)
 Each cell: **import a generator → call it (it writes `figures/<name>.pdf`) → `show_fig()` displays it.**
 - **Fig 1 probe schematic** → `make_intro_figures.fig_intro_probe()` — draws both borestems from the *real* sensor depths (`lunar.apollo_helpers`) and the K(T,z) model comparison (`lunar.properties`).
 - **Fig 2 context map** → `make_context_map_figure.main()` — three nearside globes; uses the LOLA DEM in `code/data/lola/`.
 - **Fig 3 sensor timeline** → `make_apollo_timeline_letter.main()` — the per-sensor stability windows (`lunar.apollo_helpers`).
-- **Fig 4 amplitude vs depth** → `make_letter_figures.fig_amplitude_vs_depth()` — how the diurnal wave decays with depth (`lunar.solver`).
+- **Fig 5 amplitude vs depth** → `make_letter_figures.fig_amplitude_vs_depth()` — how the diurnal wave decays with depth (`lunar.solver`).
 
 ### `02_anchor_method` — how the flux-anchored solver works
 The heart of the study, explained before you use it in `03`.
@@ -104,17 +104,17 @@ The heart of the study, explained before you use it in `03`.
 - **Step 2 (optional)** → the `compute_*` sensitivity scripts; each re-runs the retrieval under one perturbed assumption and writes its own JSON (Table 3 error budget).
 - **Step 3 (optional)** → `bayesian_crosscheck.py` — an independent MCMC (`emcee`) cross-check of the contrast direction.
 
-### `04_results` — the results figures (Figs 5–9)
+### `04_results` — the results figures (Figs 6–10)
 Same **generator → `show_fig()`** pattern; these read the JSON from `03`:
-- **Fig 5 mean-T profile** → `make_letter_figures.fig_mean_T_profile()`
-- **Fig 6 K_d sweep** → `make_letter_figures.fig_kd_sweep()`
-- **Fig 7 bootstrap** → `make_results_figures.fig_bootstrap()`
-- **Fig 8 thermal profiles** → `make_results_figures.fig_thermal_profiles()`
-- **Fig 9 Diviner closure** → runs `pipeline/compute/compute_diviner_closure.py` (compares the model surface temperature to Diviner; needs the fetched Diviner data).
+- **Fig 6 mean-T profile** → `make_letter_figures.fig_mean_T_profile()`
+- **Fig 7 K_d sweep** → `make_letter_figures.fig_kd_sweep()`
+- **Fig 8 bootstrap** → `make_results_figures.fig_bootstrap()`
+- **Fig 9 thermal profiles** → `make_results_figures.fig_thermal_profiles()`
+- **Fig 10 Diviner closure** → runs `pipeline/compute/compute_diviner_closure.py` (compares the model surface temperature to Diviner; needs the fetched Diviner data).
 
-### `05_discussion` — the discussion figures (Figs 10–11)
-- **Fig 10 robustness** → `make_results_figures.fig_robustness()` — the inter-site contrast under stress tests.
-- **Fig 11 five-decade K_d context** → `make_prior_estimates_figure.main()` — the two-panel figure separating the *contact asymptote* K_d from the *effective* K.
+### `05_discussion` — the discussion figures (Figs 11–12)
+- **Fig 11 robustness** → `make_results_figures.fig_robustness()` — the inter-site contrast under stress tests.
+- **Fig 12 five-decade K_d context** → `make_prior_estimates_figure.main()` — the two-panel figure separating the *contact asymptote* K_d from the *effective* K.
 
 ### `06_performance` — the C++ kernel and the retrieval it powers
 All about the one demanding primitive (the solver march), in three parts:
@@ -132,14 +132,15 @@ All about the one demanding primitive (the solver march), in three parts:
 The notebooks *narrate* the science; the **Makefile** is the machine order that
 regenerates everything from scratch:
 
-1. **`make retrieve`** → `pipeline/compute/retrieve_kd.py` → `results/kd_retrieval_results.json`
+1. **`make retrieve`** → `code/pipeline/compute/retrieve_kd.py` → `code/results/kd_retrieval_results.json`
 2. **`make aux`** → the sensitivity / model-selection / error-budget sweeps:
    `compute_headline_rmse` · `compute_borestem_sensitivity` ·
    `compute_stability_threshold_sensitivity` · `compute_surface_bias_test` ·
    `compute_uniform_kd_sensitivity` · `compute_fixed_input_sensitivities` ·
    `compute_model_selection` · `compute_error_budget` · `compute_common_epoch` ·
-   `compute_diviner_closure` → more `results/*.json`
-3. **`make figures`** → `pipeline/make_all_figures.py` runs every generator → `figures/`
+   `compute_diviner_closure` · `bayesian_crosscheck` · `qb_prior_width_scan`
+   → more `code/results/*.json`
+3. **`make figures`** → `code/pipeline/make_all_figures.py` runs every generator → `figures/`
 4. **`make paper`** → compiles the documents in `documents/`
 
 ## Scripts used on demand (not in `make all`)

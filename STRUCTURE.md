@@ -17,16 +17,15 @@ Lunar-HFE/
 │
 ├── documents/                 ← WHAT YOU READ (grouped by venue)
 │   ├── jgr/                   JGR:Planets
-│   │   ├── letter/            letter.tex, letter_clean.tex,
-│   │   │                      supporting_information.tex, references.bib
+│   │   ├── letter/            letter.tex, letter_clean.tex, references.bib
 │   │   └── guidebook/         the teach-from-zero companion (+ figures-tikz/ sources)
 │   ├── gedes/                 GEDES symposium
 │   │   ├── abstract/          the extended abstract (self-contained figures/)
 │   │   └── thesis/            the PhD thesis manuscript
 │   ├── aogs/                  AOGS conference (self-contained bundle)
-│   │   ├── poster/            aogs_poster.tex + its own figures/ + poster_numbers.tex
+│   │   ├── docs/              aogs_poster.tex + briefing/explainer docs (+ PDFs)
 │   │   ├── code/              the AOGS study scripts (need the LOLA DEM, kept out of git)
-│   │   ├── illustrations/  results/  talk_figures/  briefing/
+│   │   ├── data/  figures/  results/
 │   │   └── README.md
 │   ├── notes/  slides/        audit trails, talk material
 │   ├── dev/                   code walk-throughs (CODE_TOUR, CODE_MANUAL) + wrap-step notes
@@ -47,7 +46,7 @@ Lunar-HFE/
 │   ├── cpp/  tests/  notebooks/
 │   ├── data/                  INPUTS: Apollo HFE, Diviner, SPICE records
 │   ├── references/            INPUTS: cited-paper PDFs (anti-hallucination)
-│   └── results/               OUTPUTS: *.json only (figures live in figures/)
+│   └── results/               OUTPUTS: *.json (+ bayesian_chains.npz, archive/); figures live in figures/
 │
 └── README.md  Makefile  pyproject.toml  STRUCTURE.md  LICENSE*
 ```

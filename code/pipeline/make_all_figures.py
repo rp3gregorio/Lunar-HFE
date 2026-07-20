@@ -20,6 +20,7 @@ sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 # (module, callables) — each module's figure entry point(s), in run order.
 JOBS = [
     ("make_intro_figures",      ["fig_intro_probe"]),
+    ("make_anchor_method_figure", ["main"]),  # letter Fig: the anchor method
     ("make_context_map_figure", ["main"]),
     ("make_probe_geometry_figure", ["main"]),  # fig_probe_geometry (guidebook
                                                 # Ch.1); was missing from JOBS

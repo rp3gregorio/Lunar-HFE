@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 
 from lunar.plotting.style import (
     JGR_HALF, C_FOREST, C_TEAL, C_CORAL, C_CHAR, C_DIM, C_GRID,
+    assert_no_overlap,
 )
 from lunar.config import SITES, GRID, S0, T_LUNAR, DT_STEP
 from lunar.grid import make_geometric_grid
@@ -73,26 +74,32 @@ def main():
         constrained_layout=True)
 
     # ── top: anchor temperature settling ───────────────────────────────────
-    axT.plot(cyc12, anchor12, "o--", color=C_GRID, mfc=C_GRID, mec=C_DIM,
-             ms=4.5, lw=1.0, zorder=2,
-             label=r"same loop, old $n_{\rm inner}=12$")
-    axT.plot(cyc, anchor, "-", color=C_DIM, lw=1.3, zorder=1)
-    axT.plot(cyc[s1], anchor[s1], "o", color=C_TEAL, ms=7, zorder=3,
-             label=r"stage 1: anchor $z_0=0.25$ m")
-    axT.plot(cyc[s2], anchor[s2], "s", color=C_FOREST, ms=7, zorder=3,
-             label=r"stage 2: anchor $z_0=0.55$ m")
+    # converged asymptote first (lowest layer), with headroom above it so the
+    # value label sits in clear space, never on a marker.
+    span = anchor.max() - anchor[s1].min()
     axT.axhline(anchor[-1], color=C_CHAR, lw=0.8, ls=(0, (1, 2)), zorder=0)
+    axT.set_ylim(anchor[s1].min() - 0.10 * span, anchor[-1] + 0.30 * span)
+    # faint reference: the old under-resolved loop, shown only to trace the
+    # geometric contraction the fast production run reaches in a few steps.
+    axT.plot(cyc12, anchor12, "o--", color=C_GRID, mfc="white", mec=C_DIM,
+             ms=3.8, lw=0.9, alpha=0.85, zorder=1,
+             label=r"reference: under-resolved loop")
+    axT.plot(cyc, anchor, "-", color=C_DIM, lw=1.6, zorder=2)
+    axT.plot(cyc[s1], anchor[s1], "o", color=C_TEAL, ms=7.5, mec="white",
+             mew=0.8, zorder=4, label=r"stage 1: anchor $z_0=0.25$ m")
+    axT.plot(cyc[s2], anchor[s2], "s", color=C_FOREST, ms=7.5, mec="white",
+             mew=0.8, zorder=4, label=r"stage 2: anchor $z_0=0.55$ m")
     axT.set_ylabel(r"anchor $\langle T\rangle(z_0)$  [K]")
     axT.set_title(f"The anchor temperature settles in {len(cyc)} outer cycles", loc="left")
-    axT.legend(loc="lower right", frameon=True, edgecolor=C_GRID, framealpha=0.97)
+    axT.legend(loc="lower right", frameon=True, edgecolor=C_GRID, framealpha=0.97,
+               fontsize=8.4)
     axT.grid(color=C_GRID, lw=0.5)
     axT.set_axisbelow(True)
-    # final value annotation, parked in clear space (no overlap with markers)
-    axT.annotate(rf"$\to\,{anchor[-1]:.2f}$ K",
-                 xy=(0.99, anchor[-1]),
-                 xycoords=axT.get_yaxis_transform(), xytext=(0, -5),
-                 textcoords="offset points", ha="right", va="top",
-                 fontsize=9, color=C_CHAR)
+    # converged-value label: top-left, ABOVE the asymptote line, in the empty
+    # strip (both traces are far below there for the first cycles)
+    axT.text(cyc[0] + 0.15, anchor[-1] + 0.05 * span,
+             rf"converged: {anchor[-1]:.2f} K", ha="left", va="bottom",
+             fontsize=8.6, color=C_CHAR)
 
     # ── bottom: drift contraction (log) ─────────────────────────────────────
     fin = np.isfinite(drift) & (drift > 0)
@@ -119,6 +126,8 @@ def main():
              transform=axD.get_yaxis_transform(),
              fontsize=8.5, va="bottom", ha="left")
 
+    fig.canvas.draw()
+    assert_no_overlap(axT)   # fail the build if any label lands on the data
     _OUT.mkdir(parents=True, exist_ok=True)
     out = _OUT / "fig_anchor_convergence.pdf"
     fig.savefig(out)

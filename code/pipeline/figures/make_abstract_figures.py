@@ -13,13 +13,15 @@ Outputs go ONLY to deliverables/documents/abstract/figures/ (the
 Overleaf bundle). The canonical copies in code/results/figures/ used by
 the letter/guidebook/thesis are never touched.
 
-Variants built:
-  fig_context_map.pdf      same layout, 6.69 x 5.3 in
-  fig_apollo_timeline.pdf  the two DEEPEST probes only (one per site,
-                           the ones whose OLS slope the caption quotes),
-                           on a page ~55% the original height
-  fig_kd_sweep.pdf         same layout, 6.69 x 3.7 in
-  fig_robustness.pdf       same layout, 6.69 x 5.7 in
+Variants built (ALL single-column, ~3.3 in wide, for the two-column body):
+  fig_context_map.pdf      single composite globe (mean-T over LOLA relief)
+  fig_apollo_timeline.pdf  the letter's full-detail 4-probe figure
+                           (traces + drift fit + windows), scaled to column
+  fig_method.pdf           flux-anchored solver schematic (Step A/B/loop)
+  fig_kd_sweep.pdf         RMSE-vs-K_d, legend inside the axes
+  fig_profile_fit.pdf      subsurface T(z) fit: data vs Hayne & M&S models
+                           (two site panels stacked; runs the solver)
+  fig_robustness.pdf       bootstrap over contrast map, stacked
 
 Run:  .venv/bin/python code/pipeline/figures/make_abstract_figures.py
 """
@@ -143,214 +145,210 @@ def _load_lola_dem():
 
 
 def build_context_map():
-    """Figure 1 as THREE orthographic nearside globes in a row.
+    """Figure 1 as ONE single-column orthographic nearside globe.
 
-    The same 'Moon from Earth' nearside disk, shown as three data layers
-    so the figure reads as a compact strip: (a) Clementine albedo mosaic,
-    (b) modeled diurnal-mean surface temperature (from the solver), and
-    (c) LOLA topography (real DEM). Both boreholes are marked on every
-    globe (named once in the shared legend), and callouts are avoided so
-    nothing sits on the small disks.
+    A single composite 'Moon from Earth' disk sized for one text column
+    (~3.3 in): the color is the modeled diurnal-mean surface temperature
+    (from the solver) and the relief shading is real LOLA topography, so
+    the one globe carries both the thermal field and the terrain that sets
+    the two sites apart (Apollo 15 at the Hadley mare/highland margin,
+    Apollo 17 in the Taurus-Littrow embayment).  Both boreholes are marked
+    and named in the legend; callouts are avoided so nothing sits on the
+    disk.  The full three-layer strip (albedo / temperature / topography)
+    is kept in the thesis, which has room to span the page.
     """
     import numpy as np
     from matplotlib.patches import Circle
     from matplotlib.lines import Line2D
-    import make_context_map_figure as m
-    from lunar.plotting.style import assert_no_overlap, C_GRID
-
-    n = 460
-    lat, lon, inside = _ortho_latlon(n)
-
-    def masked(field_disk):
-        return np.ma.array(field_disk, mask=~inside)
-
-    # (a) albedo mosaic -> RGBA disk
-    img = m.load_moon()
-    samp = _sample_equirect(img, lat, lon)
-    if samp.dtype.kind in "ui":
-        samp = samp / 255.0
-    rgb = (np.repeat(samp[..., None], 3, axis=2) if samp.ndim == 2
-           else samp[..., :3].astype(float))
-    if rgb.max() > 1.0:
-        rgb = rgb / 255.0
-    albedo_rgba = np.dstack([rgb, inside.astype(float)])
-    albedo_rgba[~inside] = [1.0, 1.0, 1.0, 0.0]
-
-    # (b) modeled diurnal-MEAN surface temperature. Computed by the real
-    # solver at a latitude ladder (cached) and mapped by |lat|, so it is
-    # a latitude-only field: a warm equatorial band grading to cold poles
-    # -- the layer whose color scale reveals cold vs warm (unlike the
-    # noon snapshot, which crushed everything but the sub-solar spot).
-    lat_deg, tmean = _mean_surface_temp_by_lat()
-    temp = np.interp(np.abs(lat), lat_deg, tmean)
-
-    # (c) LOLA topography (real DEM)
-    elev = masked(_sample_equirect(_load_lola_dem(), lat, lon))
-
-    fig, axes = plt.subplots(1, 3, figsize=(ABSTRACT_W, 3.35))
-    fig.subplots_adjust(left=0.01, right=0.99, top=0.90, bottom=0.24,
-                        wspace=0.08)
-
-    def decorate(ax):
-        """graticule + limb + site markers, shared by all three globes."""
-        g = dict(color="0.85", lw=0.4, alpha=0.5, zorder=2)
-        t = np.linspace(-90, 90, 160)
-        for L in (-30, 0, 30, 60):
-            ax.plot(np.cos(np.radians(L)) * np.sin(np.radians(t)),
-                    np.full_like(t, np.sin(np.radians(L))), **g)
-        for M in (-60, -30, 0, 30, 60):
-            ax.plot(np.cos(np.radians(t)) * np.sin(np.radians(M)),
-                    np.sin(np.radians(t)), **g)
-        ax.add_patch(Circle((0, 0), 1.0, fill=False, ec=C_GRID, lw=1.0,
-                            zorder=5))
-        for name, s in m.SITES.items():
-            la, lo = np.radians(s["lat"]), np.radians(s["lon"])
-            ax.plot(np.cos(la) * np.sin(lo), np.sin(la), "o",
-                    color=m.SITE_COLOR[name], ms=7, mec="white", mew=1.3,
-                    zorder=6)
-        ax.set_xlim(-1.08, 1.08)
-        ax.set_ylim(-1.12, 1.12)
-        ax.set_aspect("equal")
-        ax.axis("off")
-
-    axA, axB, axC = axes
-    axA.imshow(albedo_rgba, extent=(-1, 1, -1, 1), origin="upper",
-               interpolation="bilinear", zorder=1)
-    # clip the low end to a percentile so the equator->mid-latitude
-    # gradient spreads across the colormap (the tiny polar caps saturate
-    # to the coldest blue) -- the colorbar still labels true values
     from matplotlib.colors import LightSource, Normalize
     import matplotlib.cm as cm
+    import make_context_map_figure as m
+    from lunar.plotting.style import assert_no_overlap, C_GRID, C_CHAR
+
+    n = 520
+    lat, lon, inside = _ortho_latlon(n)
+
+    # modeled diurnal-MEAN surface temperature (solver, latitude ladder);
+    # mapped by |lat| -> warm equatorial band grading to cold poles
+    lat_deg, tmean = _mean_surface_temp_by_lat()
+    temp = np.interp(np.abs(lat), lat_deg, tmean)
     tvis = np.asarray(temp)[inside]
     vlo = float(np.floor(np.percentile(tvis, 6) / 10) * 10)
     vhi = float(np.ceil(tvis.max() / 10) * 10)
     tnorm, tcmap = Normalize(vmin=vlo, vmax=vhi), plt.get_cmap("RdYlBu_r")
-    # COMPOSITE: color = modeled mean temperature, relief shading = LOLA
-    # topography -- every crater shows as shaded relief while the hue
-    # carries the (latitude) temperature field.
+
+    # COMPOSITE: hue = mean temperature, relief shading = LOLA topography
     dem_disk = _sample_equirect(_load_lola_dem(), lat, lon)
     ls = LightSource(azdeg=315, altdeg=45)
     trgb = tcmap(tnorm(np.asarray(temp)))[..., :3]
     shaded = ls.shade_rgb(trgb, dem_disk, blend_mode="soft", vert_exag=0.6)
     temp_rgba = np.dstack([shaded, inside.astype(float)])
     temp_rgba[~inside] = [1.0, 1.0, 1.0, 0.0]
-    axB.imshow(temp_rgba, extent=(-1, 1, -1, 1), origin="upper",
-               interpolation="bilinear", zorder=1)
-    imB = cm.ScalarMappable(norm=tnorm, cmap=tcmap)   # for the colorbar
+
+    fig = plt.figure(figsize=(3.32, 3.86))
+    ax = fig.add_axes([0.02, 0.205, 0.96, 0.72])
+    ax.imshow(temp_rgba, extent=(-1, 1, -1, 1), origin="upper",
+              interpolation="bilinear", zorder=1)
+
+    g = dict(color="0.85", lw=0.4, alpha=0.5, zorder=2)
+    tt = np.linspace(-90, 90, 160)
+    for L in (-30, 0, 30, 60):
+        ax.plot(np.cos(np.radians(L)) * np.sin(np.radians(tt)),
+                np.full_like(tt, np.sin(np.radians(L))), **g)
+    for M in (-60, -30, 0, 30, 60):
+        ax.plot(np.cos(np.radians(tt)) * np.sin(np.radians(M)),
+                np.sin(np.radians(tt)), **g)
+    ax.add_patch(Circle((0, 0), 1.0, fill=False, ec=C_GRID, lw=1.0, zorder=5))
+    for name, s in m.SITES.items():
+        la, lo = np.radians(s["lat"]), np.radians(s["lon"])
+        px, py = np.cos(la) * np.sin(lo), np.sin(la)
+        # dark halo underlay so the coral A17 marker stays visible over the
+        # warm (red) side of the temperature globe, then white-edged dot
+        ax.plot(px, py, "o", color=C_CHAR, ms=11, mec="none", zorder=6)
+        ax.plot(px, py, "o", color=m.SITE_COLOR[name], ms=7.5, mec="white",
+                mew=1.3, zorder=6.1)
+    ax.set_xlim(-1.08, 1.08)
+    ax.set_ylim(-1.12, 1.12)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    ax.set_title("Nearside: mean surface $T$ over LOLA relief",
+                 fontsize=9.2, pad=2)
+
+    imB = cm.ScalarMappable(norm=tnorm, cmap=tcmap)
     imB.set_array([])
-    imC = axC.imshow(elev, extent=(-1, 1, -1, 1), origin="upper",
-                     cmap="gist_earth", interpolation="bilinear", zorder=1)
-    for ax, title in ((axA, "(a) albedo (Clementine)"),
-                      (axB, "(b) mean surface temperature"),
-                      (axC, "(c) topography (LOLA)")):
-        decorate(ax)
-        ax.set_title(title, fontsize=9.5, pad=3)
+    cax = fig.add_axes([0.17, 0.145, 0.66, 0.032])
+    cb = fig.colorbar(imB, cax=cax, orientation="horizontal", extend="min")
+    cb.set_label("mean surface temperature (K)", fontsize=8, labelpad=1)
+    cb.ax.tick_params(labelsize=7)
 
-    # slim colorbars on dedicated axes at ONE shared height, so (b) and
-    # (c) line up (per-axis fig.colorbar would stagger them)
-    cbar_y, cbar_h = 0.115, 0.038
-    for im, ax, label, ext in ((imB, axB, "mean T (K)", "min"),
-                               (imC, axC, "elevation (km)", "neither")):
-        pos = ax.get_position()
-        cax = fig.add_axes([pos.x0 + 0.035, cbar_y, pos.width - 0.07, cbar_h])
-        cb = fig.colorbar(im, cax=cax, orientation="horizontal", extend=ext)
-        cb.set_label(label, fontsize=8, labelpad=1)
-        cb.ax.tick_params(labelsize=7)
-
-    # site legend tucked under panel (a), which has no colorbar
-    posA = axA.get_position()
     handles = [Line2D([0], [0], marker="o", color="none", markersize=7,
                       markerfacecolor=m.SITE_COLOR[s], mec="white", mew=1.3,
                       label=m.SITES[s]["label"]) for s in ("A15", "A17")]
-    fig.legend(handles=handles, loc="center", ncols=1, frameon=False,
-               fontsize=8.5, bbox_to_anchor=(posA.x0 + posA.width / 2, 0.11),
-               handletextpad=0.4, labelspacing=0.5)
+    fig.legend(handles=handles, loc="center", ncols=2, frameon=False,
+               fontsize=8.5, bbox_to_anchor=(0.5, 0.045),
+               handletextpad=0.4, columnspacing=1.4)
 
     fig.canvas.draw()
-    for ax in axes:
-        assert_no_overlap(ax)
+    assert_no_overlap(ax)
     out = ABS_FIGS / "fig_context_map.pdf"
     fig.savefig(out)
     plt.close(fig)
-    print(f"  -> {out} (albedo/mean-T/LOLA; T range "
+    print(f"  -> {out} (single composite globe; T range "
           f"{vlo:.0f}-{vhi:.0f} K)")
 
 
 def build_timeline():
+    """Full four-probe HFE timeline -- the letter's original, information-dense
+    figure: for every probe (A15-P1/P2, A17-P1/P2) each sensor's raw
+    temperature trace (depth-colored; borestem sensors a pale grey underlay)
+    with the deepest-sensor drift-slope fit dashed, above a per-sensor Gantt
+    strip of the selected stability window inside the full archived record.
+
+    It is a wide, tall, information-dense figure (~8.5 x 9.5 in), so in the
+    two-column abstract it is placed as a FULL-WIDTH float (spanning both
+    columns) rather than shrunk into a single 3.3-in column, which would
+    render its 8 pt sensor labels at ~3 pt.  Rendered from live data by the
+    letter timeline generator into the abstract's figures/ and copied to the
+    name the abstract includes; the per-site halves it also emits are the
+    thesis's, not the abstract's, so they are removed.
+    """
+    import shutil
     import make_apollo_timeline_letter as m
     m.OUT = ABS_FIGS
-    # Keep the deepest probe of each site (the sensors the abstract's
-    # caption talks about) and lift the A17 block into the vacated A15
-    # probe-2 slot; then crop the page below the second gantt strip.
-    b15, b17 = m._BLOCKS[0], dict(m._BLOCKS[2])
-    shift = b17["upper"][0] - m._BLOCKS[1]["upper"][0]   # 312.2 - 181.1
-    b17["upper"] = tuple(y - shift for y in b17["upper"])
-    b17["gantt"] = tuple(y - shift for y in b17["gantt"])
-    old_blocks, old_h = m._BLOCKS, m._PAGE_H
-    m._BLOCKS = [b15, b17]
-    m._PAGE_H = b17["gantt"][1] + 75.0        # room for legend row
-    try:
-        m.main()
-    finally:
-        m._BLOCKS, m._PAGE_H = old_blocks, old_h
-    # the generator's fixed output name -> the name the abstract includes
-    (ABS_FIGS / "fig_apollo_timeline_probes.pdf").replace(
-        ABS_FIGS / "fig_apollo_timeline.pdf")
+    m.main()                          # writes fig_apollo_timeline_probes.pdf (+ halves)
+    shutil.copyfile(ABS_FIGS / "fig_apollo_timeline_probes.pdf",
+                    ABS_FIGS / "fig_apollo_timeline.pdf")
+    for extra in ("fig_apollo_timeline_probes.pdf",
+                  "fig_apollo_timeline_a15.pdf", "fig_apollo_timeline_a17.pdf"):
+        (ABS_FIGS / extra).unlink(missing_ok=True)
+    print("  -> fig_apollo_timeline.pdf (full-detail 4-probe, full-width float)")
 
 
 def build_kd_sweep():
-    """Sweep figure with the legend INSIDE the axes (upper right).
+    """Single-COLUMN RMSE-vs-K_d retrieval figure (3.4 in wide) so it sits
+    INSIDE one column of the two-column body rather than spanning both.
 
-    The plot's upper-right quadrant is empty (both RMSE bowls stay
-    below ~2.5 K past K_d ~ 9), so the legend fits there without
-    covering any curve or the axis labels -- verified by the style
-    module's assert_no_overlap guard, which fails the build otherwise.
-    Moving it inside also removes the below-axes legend strip that
-    could crowd the x-axis title at abstract scale.
+    Drawn self-contained at column width: the letter's full-width
+    fig_kd_sweep carries a legend title plus four long CI labels that
+    cannot fit a 3.4-in axes, so here the CI is carried by the horizontal
+    error bars and Table 1, and the legend is a compact two-row strip
+    below the axes (grown by legend_below so it never touches the data).
+    Every value is read from the certified kd_retrieval_results.json.
     """
-    import make_letter_figures as m
-    from lunar.plotting.style import assert_no_overlap
+    import numpy as np
+    from scipy.interpolate import PchipInterpolator
+    from lunar.plotting.style import (C_A15, C_A17, C_HAYNE, C_GRID,
+                                      fmt_axis, assert_no_overlap)
+    import make_letter_figures as m            # for the certified JSON path
 
-    m.LETTER_FIGS = ABS_FIGS
-    saved_fig = {}
+    d = json.loads(m.PHASE_A.read_text())
 
-    def _legend_inside(fig, handles, labels, **_kw):
-        ax = fig.axes[0]
-        # stop the two reference verticals (Hayne 3.4 / Feng 3.8) below
-        # the legend band so they don't run up behind the box
-        for ln in ax.lines:
-            xd = ln.get_xdata()
-            if len(xd) == 2 and xd[0] == xd[1]:      # an axvline
-                ln.set_ydata([0.0, 0.62])            # axes-fraction coords
-        ax.legend(handles, labels, loc="upper center",
-                  bbox_to_anchor=(0.56, 0.99), ncols=2, frameon=True,
-                  edgecolor=m.C_GRID, framealpha=0.95, fontsize=8.5,
-                  handlelength=1.9, columnspacing=1.4, borderaxespad=0.4,
-                  title=r"stars: retrieved $K_d^{*}$;  error bars: 95% bootstrap CI",
-                  title_fontsize=8.5)
-        fig.canvas.draw()
-        assert_no_overlap(ax)                 # legend must not touch data
-        saved_fig["fig"] = fig
+    fig, ax = plt.subplots(figsize=(3.40, 2.72))
+    fig.subplots_adjust(left=0.165, right=0.965, top=0.965, bottom=0.165)
 
-    old = m.legend_below
-    m.legend_below = _legend_inside
-    try:
-        with _SizedFigure((ABSTRACT_W, 4.1)):
-            m.fig_kd_sweep()
-    finally:
-        m.legend_below = old
+    # the abstract compares only against Hayne's global value (the sole
+    # deep-K reference named in the prose and Table 1), so a single
+    # reference vertical -- drawn first so the retrieval curves sit on top
+    ax.axvline(3.4, color=C_HAYNE, ls="--", lw=1.1, alpha=0.65, zorder=1,
+               label=r"Hayne 2017 global  $3.4$")
+
+    for name, color in [("A15", C_A15), ("A17", C_A17)]:
+        s = d[name]
+        kdg = np.array(s["kd_grid"]) * 1e3
+        rmse = np.array(s["rmse_curve"])
+        cs = PchipInterpolator(kdg, rmse)       # shape-preserving (see letter)
+        kdf = np.linspace(kdg[0], kdg[-1], 600)
+        b = s["bootstrap"]
+        # 1σ (16–84 percentile) so the bar reaches the same place as the
+        # ^{+..}_{-..} statistical error quoted in the text (Eq. 2); the wider
+        # 95% interval is kept for Table 1 only.
+        lo, hi = np.percentile(np.array(b["samples"]) * 1e3, [16, 84])
+        kd_star, rmse_star = s["kd_star"] * 1e3, s["rmse_star"]
+        ax.plot(kdf, cs(kdf), "-", color=color, lw=2.0, zorder=3,
+                label=fr"{name}  $K_d^{{*}}\!=\!{kd_star:.2f}$")
+        ax.plot(kdg, rmse, "o", color=color, ms=2.2, mec="white", mew=0.4,
+                alpha=0.5, zorder=4)
+        ax.errorbar(kd_star, rmse_star,
+                    xerr=[[kd_star - lo], [hi - kd_star]],
+                    fmt="*", color=color, ecolor=color, elinewidth=1.3,
+                    capsize=3.5, capthick=1.3, ms=15, mec="white", mew=1.1,
+                    zorder=6)
+
+    fmt_axis(ax, xlabel=r"$K_d$  (mW m$^{-1}$ K$^{-1}$)",
+             ylabel=r"Deep-sensor RMSE  (K)", title="")
+    ax.set_xlim(0, 16)
+    ax.set_ylim(0, 3.15)         # headroom so the top-center band clears both curves
+    ax.grid(which="major", color=C_GRID, lw=0.4, alpha=0.7)
+    ax.set_axisbelow(True)
+
+    # legend INSIDE the axes: with the raised y-limit the top-center band
+    # (above both misfit bowls, below the curves' rising branches) is empty,
+    # so it holds the legend without covering data -- freeing the below-axes
+    # strip for more text.  Guarded by assert_no_overlap.
+    h, l = ax.get_legend_handles_labels()
+    order = [1, 2, 0]                             # A15, A17, then Hayne
+    h, l = [h[i] for i in order], [l[i] for i in order]
+    ax.legend(h, l, loc="upper center", bbox_to_anchor=(0.50, 0.99), ncols=1,
+              frameon=True, edgecolor=C_GRID, framealpha=0.96, fontsize=8.2,
+              handlelength=1.7, labelspacing=0.35, borderpad=0.5)
+    fig.canvas.draw()
+    assert_no_overlap(ax)                         # legend must not touch data
+    fig.savefig(ABS_FIGS / "fig_kd_sweep.pdf")
+    plt.close(fig)
+    print(f"  -> fig_kd_sweep.pdf (single-column, legend inside)")
 
 
 def build_robustness():
-    """Figure 4 = bootstrap (a) + annotated 2-D contrast map (b), compact.
+    """Figure 4 = bootstrap (a) over the annotated 2-D contrast map (b),
+    STACKED into a single column (~3.35 in wide) so it sits inside one
+    column of the two-column body rather than spanning both.
 
-    Per user direction: the map is NOT elongated (compact 2-panel row),
-    and every element is explained by a small text box INSIDE the panel
-    rather than by a legend the reader must decode. Restored from the
-    earlier design: the dashed 2/4/6-sigma significance contours and the
-    Saito et al. reanalysis point (the independent flux study). Callout
-    positions are hand-measured empty zones and the render is inspected;
-    the style guard additionally checks panel (a).
+    Every map element is explained by a small text box INSIDE the panel
+    rather than by a legend the reader must decode: the dashed 2/4/6-sigma
+    significance contours, the Saito et al. reanalysis point (the
+    independent flux study), the Langseth flux point, and the MCMC
+    posterior.  Callout positions are hand-measured empty zones and the
+    render is inspected; the style guard additionally checks panel (a).
     """
     import numpy as np
     from matplotlib.colors import TwoSlopeNorm
@@ -364,15 +362,16 @@ def build_robustness():
     root = m._ROOT
     d = json.loads(m.RESULTS.read_text())
 
-    fig = plt.figure(figsize=(ABSTRACT_W, 3.05))
-    gs = fig.add_gridspec(1, 3, width_ratios=[1.0, 1.30, 0.05],
-                          left=0.085, right=0.925, top=0.89, bottom=0.155,
-                          wspace=0.42)
-    axb = fig.add_subplot(gs[0, 0])
-    axm = fig.add_subplot(gs[0, 1])
-    cax = fig.add_subplot(gs[0, 2])
-    NOTE = dict(fontsize=6.8, color=C_CHAR, ha="center", va="center",
-                bbox=dict(boxstyle="round,pad=0.25", fc="white",
+    fig = plt.figure(figsize=(3.35, 5.45))
+    gs = fig.add_gridspec(2, 1, height_ratios=[1.0, 1.24],
+                          left=0.165, right=0.88, top=0.955, bottom=0.068,
+                          hspace=0.58)   # clear gap: (a) x-label vs (b) title
+    axb = fig.add_subplot(gs[0])
+    gsm = gs[1].subgridspec(1, 2, width_ratios=[1.0, 0.045], wspace=0.06)
+    axm = fig.add_subplot(gsm[0])
+    cax = fig.add_subplot(gsm[1])
+    NOTE = dict(fontsize=6.4, color=C_CHAR, ha="center", va="center",
+                bbox=dict(boxstyle="round,pad=0.22", fc="white",
                           ec=C_GRID, lw=0.7, alpha=0.95), zorder=9)
 
     # ---- (a) per-site bootstrap distributions -----------------------------
@@ -493,11 +492,167 @@ def build_robustness():
     plt.close(fig)
 
 
+def build_profile_fit():
+    """Single-column subsurface T(z) fit -- the actual result the RMSE bowl
+    only summarizes.  Annual-mean temperature vs depth at each site with the
+    observations (deep = filled, used; shallow = open, borestem-excluded),
+    the Hayne (2017) global smooth-exponential model, and the Martinez &
+    Siegler (2021) T,rho-dependent model, over the shaded borestem zone.
+    The two published global forms bracket-but-miss the deep sensors, which
+    is what the per-site retrieval corrects, and their agreement shows the
+    contrast is not an artifact of one conductivity form.  Two site panels
+    STACKED for one column; every value from lunar.* at build time.
+    """
+    import numpy as np
+    from lunar.plotting.style import (C_HAYNE, C_MS, C_CHAR, C_DIM,
+                                      fmt_axis, legend_below, assert_no_overlap,
+                                      FS_LEGEND, FS_TICK)
+    import make_letter_figures as m
+
+    BORE_FILL, BORE_EDGE = "#F4D6CB", "#B85B3A"
+    fig, axes = plt.subplots(2, 1, figsize=(3.35, 5.0))
+    fig.subplots_adjust(left=0.155, right=0.965, top=0.955, bottom=0.10,
+                        hspace=0.36)
+
+    for ax, name in zip(axes, ["A15", "A17"]):
+        cfg = m.SITES[name]
+        obs = m.extract_sensor_stability(cfg["mission"], cfg["MIN_DEPTH_CM"])
+        z_obs = np.array(obs["depth_cm_all"]) / 100.0
+        T_obs = np.array(obs["T_eq_all"])
+        T_std = np.array(obs["T_std_all"])
+        deep = np.array(obs["deep_mask"], dtype=bool)
+        z_mid, T_mat_H, _ = m.run_pixel(cfg, kfunc=m.k_func_hayne(m.HAYNE["K_D"]))
+        z_mid, T_mat_MS, _ = m.run_pixel(cfg, kfunc=m.k_func_ms())
+        T_H, T_MS = T_mat_H.mean(axis=1), T_mat_MS.mean(axis=1)
+
+        ax.axhspan(0, 80, color=BORE_FILL, alpha=0.55, zorder=0)
+        ax.axhline(80, color=BORE_EDGE, lw=0.7, ls=(0, (3, 2)), alpha=0.6,
+                   zorder=1)
+        ax.plot(T_H, z_mid * 100, "-", color=C_HAYNE, lw=1.8, zorder=2,
+                label="Hayne (2017) global 3.4")
+        ax.plot(T_MS, z_mid * 100, "--", color=C_MS, lw=1.8, zorder=2,
+                label="Martínez & Siegler (2021)")
+        ax.errorbar(T_obs[deep], z_obs[deep] * 100, xerr=T_std[deep], fmt="o",
+                    color=C_CHAR, mec="white", mew=0.7, markersize=5.5,
+                    capsize=2, zorder=3,
+                    label="deep sensor (used)" if name == "A15" else None)
+        ax.errorbar(T_obs[~deep], z_obs[~deep] * 100, xerr=T_std[~deep],
+                    fmt="o", mfc="none", color=C_DIM, mew=0.9, markersize=5.5,
+                    capsize=2, zorder=3,
+                    label="shallow (excluded)" if name == "A15" else None)
+
+        fmt_axis(ax, xlabel=r"$T$ (K)", ylabel="Depth (cm)",
+                 title=f"({['a', 'b'][['A15', 'A17'].index(name)]})  "
+                       f"{cfg['label']}")
+        ax.set_ylim(250, 0)
+        shown = z_mid <= 2.50
+        T_deepest = max(float(T_H[shown].max()), float(T_MS[shown].max()))
+        ax.set_xlim(float(T_obs.min()) - 3.0,
+                    max(float(T_obs.max()), T_deepest) + 1.5)
+        ax.text(0.965, 0.95, "borestem\n$z<80$ cm", transform=ax.transAxes,
+                fontsize=FS_TICK - 1.0, color=C_CHAR, ha="right", va="top",
+                bbox=dict(boxstyle="round,pad=0.26", facecolor="white",
+                          edgecolor=BORE_EDGE, lw=0.7, alpha=0.92), zorder=5)
+
+    h, l = axes[0].get_legend_handles_labels()
+    legend_below(fig, h, l, ncols=2, fontsize=FS_LEGEND - 0.7, handlelength=1.7,
+                 columnspacing=1.3)
+    fig.canvas.draw()
+    for ax in axes:
+        assert_no_overlap(ax)
+    fig.savefig(ABS_FIGS / "fig_profile_fit.pdf")
+    plt.close(fig)
+    print("  -> fig_profile_fit.pdf (subsurface T(z) fit, stacked)")
+
+
+def build_method_schematic():
+    """Single-column schematic of the flux-anchored solver (the method).
+
+    A downward spine: Step A time-steps ONLY the diurnal skin and reads the
+    cycle-mean at the anchor; Step B reconstructs the deep column by
+    integrating the closure ODE from the anchor down; the outer loop repeats
+    until the anchor temperature stops drifting.  Numbers are the certified
+    inputs (anchor 0.55 m, tol 5 mK, ~4 cycles).
+    """
+    from matplotlib.patches import FancyBboxPatch
+    from lunar.plotting.style import C_CHAR, C_DIM, C_TEAL, C_FOREST
+
+    fig, ax = plt.subplots(figsize=(3.35, 2.82))
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0.20, 0.995)   # trim the empty band below the last box so the
+    ax.axis("off")             # tight-bbox crop doesn't leave a caption gap
+
+    boxes = [
+        ("Step A — skin forward-solve", C_TEAL,
+         "time-step the top ${\\sim}0.7$ m only\n"
+         "(Crank–Nicolson + Newton surface),\n"
+         r"read cycle-mean $\langle T\rangle$ at $z_0=0.55$ m"),
+        ("Step B — closure reconstruction", C_TEAL, None),   # placed specially
+        ("Converged periodic steady state", C_FOREST,
+         "repeat until anchor drift $<5$ mK\n"
+         "(${\\sim}4$ cycles; ${\\sim}2500\\times$ faster than brute force)"),
+    ]
+    x0, BW = 0.055, 0.685
+    BH = [0.215, 0.255, 0.150]
+    gap = 0.075
+    y = 0.985
+    centers = []
+    for idx, ((title, edge, body), bh) in enumerate(zip(boxes, BH)):
+        y -= bh
+        ax.add_patch(FancyBboxPatch((x0, y), BW, bh,
+                     boxstyle="round,pad=0.012", facecolor="white",
+                     edgecolor=edge, linewidth=1.6, zorder=3))
+        cx = x0 + BW / 2
+        ax.text(cx, y + bh - 0.033, title, ha="center", va="center",
+                fontsize=8.2, fontweight="bold", color=C_CHAR, zorder=4)
+        if idx == 1:                       # Step B: equation over caption
+            ax.text(cx, y + bh * 0.50,
+                    r"$\dfrac{d\langle T\rangle}{dz}"
+                    r"=\dfrac{Q_b-u_{\rm rect}}{K(\langle T\rangle,z)}$",
+                    ha="center", va="center", fontsize=9.0, color=C_CHAR,
+                    zorder=4)
+            ax.text(cx, y + 0.030,
+                    "integrate downward from the\nanchor to 5 m (RK2)",
+                    ha="center", va="center", fontsize=7.0, color=C_DIM,
+                    linespacing=1.3, zorder=4)
+        else:
+            ax.text(cx, y + (bh - 0.055) / 2, body, ha="center", va="center",
+                    fontsize=7.0, color=C_DIM, linespacing=1.4, zorder=4)
+        centers.append((cx, y, y + bh))
+        y -= gap
+
+    arrow = dict(arrowstyle="-|>", color=C_CHAR, lw=1.4, mutation_scale=12,
+                 shrinkA=0, shrinkB=0)
+    for i in range(len(centers) - 1):
+        cx = centers[i][0]
+        ax.annotate("", xy=(cx, centers[i + 1][2] + 0.006),
+                    xytext=(cx, centers[i][1] - 0.006), arrowprops=arrow,
+                    zorder=2)
+    # loop-back channel on the right: converged -> Step A
+    xr, xc = x0 + BW + 0.014, x0 + BW + 0.085
+    yconv = (centers[2][1] + centers[2][2]) / 2
+    yA = (centers[0][1] + centers[0][2]) / 2
+    ax.plot([xr, xc], [yconv, yconv], color=C_CHAR, lw=1.4,
+            solid_capstyle="round", zorder=2)
+    ax.plot([xc, xc], [yconv, yA], color=C_CHAR, lw=1.4,
+            solid_capstyle="round", zorder=2)
+    ax.annotate("", xy=(xr, yA), xytext=(xc, yA), arrowprops=arrow, zorder=2)
+    ax.text(xc + 0.012, (yconv + yA) / 2, "next\ncycle", fontsize=6.6,
+            color=C_DIM, ha="left", va="center", linespacing=1.2, zorder=4)
+
+    fig.subplots_adjust(left=0.005, right=0.995, top=0.995, bottom=0.005)
+    fig.savefig(ABS_FIGS / "fig_method.pdf")
+    plt.close(fig)
+    print("  -> fig_method.pdf (flux-anchored solver schematic)")
+
+
 def main():
     ABS_FIGS.mkdir(parents=True, exist_ok=True)
-    print("Rebuilding abstract figures at true print size "
-          f"({ABSTRACT_W} in wide) -> {ABS_FIGS}")
+    print("Rebuilding abstract figures as single-column (~3.3 in wide) "
+          f"floats -> {ABS_FIGS}")
     build_context_map()
+    build_method_schematic()
+    build_profile_fit()
     build_timeline()
     build_kd_sweep()
     build_robustness()

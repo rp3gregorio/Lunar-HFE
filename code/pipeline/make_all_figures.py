@@ -36,6 +36,14 @@ JOBS = [
     ("make_dt_ladder_figure",   ["main"]),    # dt certification teaching fig
     ("make_prior_estimates_figure", ["main"]),  # 5-decade K_d context (verified)
     ("make_sweep_worked_figure", ["main"]),    # App-C worked sweep bowl (book)
+    ("make_method_flowchart",   ["main"]),    # thesis Ch-3 flux-anchored outer loop (fig:methodflow)
+    ("make_bc_illustration",    ["main"]),    # thesis Ch-3 boundary-condition schematic
+    ("make_pipeline_flowchart", ["main"]),    # thesis Ch-1 whole-pipeline overview
+    ("make_discussion_figures", ["main"]),    # thesis Ch-6 waterfall/mechanisms/TSUKIMI
+    ("make_numerics_figure",    ["main"]),    # thesis Ch-3 grid + matrix diagram
+    ("make_explainer_figures",  ["main"]),    # thesis window/epoch/urect explainers
+    ("make_more_explainers",    ["main"]),    # thesis bootstrap/Newton/AICc explainers
+    ("make_speedup_factors_figure", ["main"]),  # thesis hardware-independent speed-up factors
     ("compute_diviner_closure", ["main"]),    # surface-T closure figure
     ("make_book_figures",       ["main"]),
     ("make_book3d_figures",     ["main"]),    # 3D illustrations + 2D field/wave

@@ -56,35 +56,57 @@ def main():
     fig, (axL, axR) = plt.subplots(1, 2, figsize=(JGR_HALF, 3.4),
                                    constrained_layout=True)
 
-    # (a) profile anatomy ---------------------------------------------------
+    # (a) profile anatomy: the curve split into its two constructions ------
+    above = sel & (z <= z0)
+    below = sel & (z >= z0)
     axL.axhspan(0.0, 0.30, color=C_CORAL_L, alpha=0.55, lw=0)      # skin (Step A)
     axL.axhspan(0.80, 2.40, color=C_GRID, alpha=0.20, lw=0)        # sensors
-    axL.plot(Tm[sel], z[sel], color=C_A17, lw=2.0, zorder=3)
+    axL.plot(Tm[above], z[above], color=C_A17, lw=2.2, zorder=3)
+    axL.plot(Tm[below], z[below], color=C_TEAL, lw=2.2, zorder=3)
     axL.plot([Tm[i0]], [z0], "o", color=C_CHAR, ms=6, zorder=4)
     axL.invert_yaxis()
     fmt_axis(axL, xlabel=r"$\langle T\rangle$  (K)", ylabel="depth  (m)",
              title="(a)  one converged solve")
     handles = [
-        Line2D([0], [0], color=C_A17, lw=2, label=r"$\langle T\rangle(z)$"),
+        Line2D([0], [0], color=C_A17, lw=2.2, label="time-stepped (Step A)"),
+        Line2D([0], [0], color=C_TEAL, lw=2.2, label="reconstructed (Step B)"),
         Line2D([0], [0], marker="o", color="none", markerfacecolor=C_CHAR,
                markersize=6, label=r"anchor $z_0$"),
-        Patch(facecolor=C_CORAL_L, alpha=0.55, label="skin (Step A)"),
+        Patch(facecolor=C_CORAL_L, alpha=0.55, label="skin"),
         Patch(facecolor=C_GRID, alpha=0.20, label="sensors"),
     ]
     axL.legend(handles=handles, frameon=True, edgecolor=C_GRID, fontsize=6.5,
                loc="lower left")
 
-    # (b) the constant-flux foundation -------------------------------------
+    # (b) the constant-flux invariant, shown as deviation from Q_b ---------
+    # A bare flux-vs-depth line hides how flat "flat" is; plotting the
+    # percent deviation makes the invariant quantitative: large in the
+    # rectification zone, inside +-1% of Q_b at and below the anchor.
+    dev = (total / Qb - 1.0) * 100.0
+    # mask the top cells whose rectified flux is off scale by an order of
+    # magnitude; otherwise matplotlib draws a spurious line across z=0
+    dev_plot = dev.copy()
+    dev_plot[np.abs(dev_plot) > 100.0] = np.nan
     axR.axhspan(0.0, 0.30, color=C_CORAL_L, alpha=0.55, lw=0)      # skin (Step A)
-    axR.plot(total[sel] * 1e3, z[sel], color=C_TEAL, lw=2.0, zorder=3,
-             label="cycle-mean flux")
-    axR.axvline(Qb * 1e3, color=C_DIM, ls="--", lw=1.2, label=r"$Q_b$")
-    axR.plot([total[i0] * 1e3], [z0], "o", color=C_CHAR, ms=6, zorder=4)
+    axR.axvspan(-1.0, 1.0, color=C_TEAL, alpha=0.14, lw=0)         # +-1% band
+    axR.axvline(0.0, color=C_DIM, ls="--", lw=1.2)
+    axR.plot(dev_plot[sel], z[sel], color=C_TEAL, lw=2.2, zorder=3)
+    axR.plot([dev[i0]], [z0], "o", color=C_CHAR, ms=6, zorder=4)
     axR.invert_yaxis()
-    axR.set_xlim(0, Qb * 1e3 * 1.6)
-    fmt_axis(axR, xlabel=r"flux  (mW m$^{-2}$)", ylabel="",
-             title=r"(b)  below the skin, flux $=Q_b$")
-    axR.legend(frameon=True, edgecolor=C_GRID, fontsize=6.5, loc="lower right")
+    axR.set_xlim(-4, 14)
+    fmt_axis(axR, xlabel=r"flux deviation from $Q_b$  (%)", ylabel="",
+             title=r"(b)  the invariant, quantified")
+    handles_r = [
+        Line2D([0], [0], color=C_TEAL, lw=2.2,
+               label=r"$\langle$flux$\rangle/Q_b - 1$"),
+        Patch(facecolor=C_TEAL, alpha=0.14, label=r"$\pm1\%$ of $Q_b$"),
+        Line2D([0], [0], marker="o", color="none", markerfacecolor=C_CHAR,
+               markersize=6, label=r"anchor $z_0$"),
+    ]
+    axR.legend(handles=handles_r, frameon=True, edgecolor=C_GRID,
+               fontsize=6.5, loc="lower right")
+    print(f"  surface deviation {dev[0]:+.1f}%, at anchor {dev[i0]:+.2f}%, "
+          f"max below anchor {np.abs(dev[(z >= z0) & sel]).max():+.2f}%")
 
     OUT.mkdir(parents=True, exist_ok=True)
     fig.savefig(OUT / "fig_anchor_anatomy.pdf")

@@ -189,7 +189,11 @@ def fig_kTz_heatmap():
     Kd15 = _kd_star("A15", 4.60e-3)
     Kd17 = _kd_star("A17", 7.16e-3)
     T_grid = np.linspace(100, 390, 240)
-    z_grid = np.linspace(0.0, 2.0, 200)
+    # zoom into the top ~40 cm: the contact term saturates within ~5H and the
+    # field is uniform (K = K_d) below, so the interesting structure -- the
+    # contact rise to the deep asymptote and the T^3 radiative tilt -- all
+    # lives in the near-surface and is invisible on a 0-2 m axis.
+    z_grid = np.linspace(0.0, 0.40, 200)
     TT, ZZ = np.meshgrid(T_grid, z_grid)
     K = conductivity_hayne(TT, ZZ, Ks=HAYNE['K_S'], Kd=Kd15, H=HAYNE['H'],
                            chi=HAYNE['CHI']) * 1e3            # mW/(m K)

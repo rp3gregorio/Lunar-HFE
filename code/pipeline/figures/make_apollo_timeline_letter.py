@@ -372,6 +372,51 @@ def main():
     print(f"  -> {dst.name} (redrawn from live data; faithful to the "
           "archived original, see module docstring)")
 
+    # per-site half-figures for the thesis (letter/abstract keep the full one)
+    for site in ("A15", "A17"):
+        _render_site(site, res, events, cmap, dnorm)
+
+
+def _render_site(site, res, events, cmap, dnorm):
+    """Two-block (one-site) variant sharing every style element with the
+    full four-block figure; y coordinates shifted so the site's blocks
+    start at the top of a shorter page."""
+    global _PAGE_H
+    blocks = [dict(b) for b in _BLOCKS if b["site"] == site]
+    shift = blocks[0]["upper"][0] - 22.0
+    for b in blocks:
+        b["upper"] = (b["upper"][0] - shift, b["upper"][1] - shift)
+        b["gantt"] = (b["gantt"][0] - shift, b["gantt"][1] - shift)
+    old_h = _PAGE_H
+    _PAGE_H = blocks[-1]["gantt"][1] + 75.5
+    fig = plt.figure(figsize=(_PAGE_W / 72.0, _PAGE_H / 72.0))
+    axes = []
+    for j, blk in enumerate(blocks):
+        axes.extend(_draw_block(fig, blk, res[blk["site"]], events, cmap,
+                                dnorm, xlabel=(j == len(blocks) - 1)))
+    handles = [
+        Patch(fc=C_CREAM_KEPT, ec="none"),
+        Patch(fc=C_CORAL_L, ec=C_CORAL, lw=0.4),
+        Patch(fc=C_LEG_TAN, ec=C_FOREST, lw=0.6),
+        Patch(fc=C_BORE_BAR, ec=C_BORE_EDGE, lw=0.4),
+        Line2D([], [], ls="--", lw=1.5, color=C_CHAR),
+    ]
+    fig.legend(handles,
+               ["full record", "excluded interval", "stability window (kept)",
+                "borestem-zone window (excluded)",
+                "OLS slope fit (deepest sensor)"],
+               loc="lower center", bbox_to_anchor=(0.5, 0.012), ncols=3,
+               frameon=False, fontsize=8.6, handlelength=1.5, handleheight=0.7,
+               handletextpad=0.7, columnspacing=1.2, borderaxespad=0.0)
+    fig.canvas.draw()
+    for ax in axes:
+        assert_no_overlap(ax)
+    dst = OUT / f"fig_apollo_timeline_{site.lower()}.pdf"
+    fig.savefig(dst)
+    plt.close(fig)
+    _PAGE_H = old_h
+    print(f"  -> {dst.name}")
+
 
 if __name__ == "__main__":
     main()

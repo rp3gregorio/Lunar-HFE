@@ -3,10 +3,18 @@
 Self-contained LaTeX for the GEDES extended abstract (based on
 `GEDESabstract_sampleFormat_en.docx`).
 
-## Page limit
-The GEDES template is **A4, 4 pages maximum**, Times 10 pt, margins
-25 mm top/bottom · 20 mm sides. The current file fills exactly 4 pages —
-if you add text or a figure, something else has to give.
+## Format
+The GEDES template is **A4, two-column body** under a full-width title
+band, Times 10 pt, margins 25 mm top/bottom / 20 mm sides, column gap
+21 pt, **4 pages maximum**. EVERYTHING sits inside one column
+(single-column `figure`/`table`, no `figure*`/`table*`). Six figures:
+context globe; the full-detail 4-probe HFE timeline (`fig_apollo_timeline`,
+the letter's figure) scaled to column width (labels small but complete);
+the flux-anchored-solver schematic (`fig_method`); the RMSE-vs-K_d sweep
+with the legend inside; the subsurface T(z) fit (`fig_profile_fit`, data
+vs the Hayne and Martinez-Siegler models — runs the solver, ~90 s);
+robustness (bootstrap + contrast map stacked). Table 1 is `\footnotesize`
+with abbreviated headers. The file currently fills 4 pages.
 
 ## Upload to Overleaf
 Upload just these two things (everything is relative, no symlinks):

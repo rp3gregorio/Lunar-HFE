@@ -64,6 +64,15 @@ code/data/diviner/gcp/*.tab
 *.vrb
 *.synctex.gz
 
+# Manuscripts live OUTSIDE this repository, in the document set at $LUNAR_DOCS
+# (default ~/Documents/Lunar-HFE/). documents/ here keeps only the reproduction
+# notes and the developer tour. These rules are a guard: if a manuscript folder
+# is ever copied back in by accident, it stays out of git.
+/documents/jgr/
+/documents/gedes/
+/documents/aogs/
+/documents/slides/
+
 # Reference papers (copyrighted, local use only)
 code/references/*.pdf
 code/references/**/*.pdf

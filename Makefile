@@ -3,6 +3,12 @@
 # =====================================================================
 PY := python3
 
+# The manuscripts (JGR letter + guidebook, GEDES abstract/thesis/defense, AOGS
+# poster) are NOT in this repository — it ships the code, the shared figures
+# and the reproduction notes only. They live in the document set pointed at by
+# LUNAR_DOCS, which carries its own Makefile providing `paper` and `clean`.
+LUNAR_DOCS ?= $(HOME)/Documents/Lunar-HFE
+
 .PHONY: help install test retrieve aux figures paper all clean
 
 help:                ## show this help
@@ -35,19 +41,15 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 figures:             ## regenerate every figure (writes figures/) for the paper + guidebook
 	$(PY) code/pipeline/make_all_figures.py
 
-paper:               ## compile every document (JGR letter+guidebook, GEDES abstract+thesis, AOGS poster)
-	cd documents/jgr/letter     && latexmk -pdf -interaction=nonstopmode letter.tex
-	cd documents/jgr/letter     && latexmk -pdf -interaction=nonstopmode letter_clean.tex
-	cd documents/jgr/guidebook  && latexmk -pdf -interaction=nonstopmode guidebook.tex
-	cd documents/gedes/thesis   && latexmk -pdf -interaction=nonstopmode thesis.tex
-	cd documents/gedes/abstract && latexmk -pdf -interaction=nonstopmode gedes_abstract.tex
-	cd documents/aogs/docs      && latexmk -pdf -interaction=nonstopmode aogs_poster.tex
+paper:               ## compile every document (delegates to the document set at $LUNAR_DOCS)
+	@test -f "$(LUNAR_DOCS)/Makefile" || { \
+	  echo "No document set at $(LUNAR_DOCS)."; \
+	  echo "The manuscripts live outside this repo; set LUNAR_DOCS to point at them."; \
+	  exit 1; }
+	$(MAKE) -C "$(LUNAR_DOCS)" paper
 
-all: retrieve aux figures paper  ## full reproduction from scratch
+all: retrieve aux figures  ## full reproduction from scratch (code + figures)
 
-clean:               ## remove LaTeX build artifacts
-	cd documents/jgr/letter     && latexmk -C 2>/dev/null || true
-	cd documents/jgr/guidebook  && latexmk -C 2>/dev/null || true
-	cd documents/gedes/thesis   && latexmk -C 2>/dev/null || true
-	cd documents/gedes/abstract && latexmk -C 2>/dev/null || true
-	cd documents/aogs/docs      && latexmk -C 2>/dev/null || true
+clean:               ## remove build artifacts (repo + document set, if present)
+	find . -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+	@test -f "$(LUNAR_DOCS)/Makefile" && $(MAKE) -C "$(LUNAR_DOCS)" clean || true

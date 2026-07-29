@@ -1,6 +1,6 @@
 """Regenerate the GEDES-abstract figures at their TRUE printed size.
 
-The extended abstract (deliverables/documents/abstract/) is A4 with a
+The extended abstract ($LUNAR_DOCS/gedes/abstract/) is A4 with a
 170 mm (6.69 in) text width, narrower than the JGR_FULL = 7.48 in the
 letter figures are designed for. Including a JGR-width PDF at a
 ``width=0.8\\linewidth`` fraction shrinks every font with it, so instead
@@ -9,8 +9,8 @@ the figure will actually print at -- fonts then render at 100% of their
 intended point size. Data, styling, and the no-overlap guard are the
 generators' own; nothing scientific is re-derived here.
 
-Outputs go ONLY to deliverables/documents/abstract/figures/ (the
-Overleaf bundle). The canonical copies in code/results/figures/ used by
+Outputs go ONLY to $LUNAR_DOCS/gedes/abstract/figures/ (the Overleaf
+bundle). The canonical copies in the repo's top-level figures/ used by
 the letter/guidebook/thesis are never touched.
 
 Variants built (ALL single-column, ~3.3 in wide, for the two-column body):
@@ -28,6 +28,7 @@ Run:  .venv/bin/python code/pipeline/figures/make_abstract_figures.py
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 
 import matplotlib.pyplot as plt
@@ -35,13 +36,18 @@ import matplotlib.pyplot as plt
 from lunar._bootstrap import find_repo_root
 
 ROOT = find_repo_root()                       # .../code
+# The manuscripts (JGR letter/guidebook, GEDES abstract/thesis/defense, AOGS
+# poster) live OUTSIDE this repository -- it ships code, figures, and the
+# reproduction notes only. Point LUNAR_DOCS at that document set; the default
+# is the author's layout.
+DOCS = pathlib.Path(os.environ.get("LUNAR_DOCS", pathlib.Path.home() / "Documents" / "Lunar-HFE"))
 # The abstract keeps its OWN self-contained figures dir (Overleaf-ready,
 # no symlink) so its custom figures -- the three-orthographic-globe context
 # map, the A4-sized timeline/sweep/robustness -- never collide with the
 # letter's identically named figures in the shared top-level figures/.
 # (The 2026-07-13 reorg had briefly symlinked this to ../../figures, which
 # let the letter's 2D fig_context_map.pdf overwrite the abstract's globes.)
-ABS_FIGS = ROOT.parent / "documents" / "gedes" / "abstract" / "figures"
+ABS_FIGS = DOCS / "gedes" / "abstract" / "figures"
 
 ABSTRACT_W = 6.69                             # A4 text width (170 mm), inches
 

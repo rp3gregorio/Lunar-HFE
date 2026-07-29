@@ -1,42 +1,26 @@
 # Repository structure
 
-Three folders at the top level, each with one job:
+This repository is **code only**. Three folders at the top level, each with one
+job:
 
 | Folder | What it holds |
 |---|---|
-| **`documents/`** | everything you read — grouped by venue (JGR / GEDES / AOGS) |
-| **`figures/`** | every shared generated figure, in one place |
 | **`code/`** | the engine — the `lunar` package, the pipeline, tests, and data inputs |
+| **`figures/`** | every shared generated figure, in one place |
+| **`documents/`** | how the code works and how to re-run it (notes + developer tour) |
 
 Config files sit at the root. There is exactly **one physical copy of every
-shared figure** (in `figures/`); the JGR and GEDES documents reach it through a
-local `figures/` link.
+shared figure**, in `figures/`.
+
+The **manuscripts are not here.** The JGR letter and guidebook, the GEDES
+abstract / thesis / defense deck, the AOGS poster and the slide decks live in a
+separate document set outside the repository (see below), so what gets pushed
+to GitHub stays strictly the code and the artifacts needed to reproduce it.
 
 ```
 Lunar-HFE/
 │
-├── documents/                 ← WHAT YOU READ (grouped by venue)
-│   ├── jgr/                   JGR:Planets
-│   │   ├── letter/            letter.tex, letter_clean.tex, references.bib
-│   │   └── guidebook/         the teach-from-zero companion (+ figures-tikz/ sources)
-│   ├── gedes/                 GEDES symposium
-│   │   ├── abstract/          the extended abstract (self-contained figures/)
-│   │   └── thesis/            the PhD thesis manuscript
-│   ├── aogs/                  AOGS conference (self-contained bundle)
-│   │   ├── docs/              aogs_poster.tex + briefing/explainer docs (+ PDFs)
-│   │   ├── code/              the AOGS study scripts (need the LOLA DEM, kept out of git)
-│   │   ├── data/  figures/  results/
-│   │   └── README.md
-│   ├── notes/  slides/        audit trails, talk material
-│   ├── dev/                   code walk-throughs (CODE_TOUR, CODE_MANUAL) + wrap-step notes
-│   └── <jgr|gedes>/<doc>/figures → ../../../figures   (link into the shared figure folder)
-│
-├── figures/                   ← EVERY SHARED FIGURE (one physical copy)
-│   ├── *.pdf                  the letter / guidebook / thesis / abstract graphs
-│   ├── anim/                  the GIFs + filmstrips
-│   └── _archive/              retired figures kept for reference
-│
-├── code/                      ← THE ENGINE (logic + inputs, no figures)
+├── code/                      ← THE ENGINE (logic + inputs, no manuscripts)
 │   ├── src/lunar/             the importable package (solver, equilibrium,
 │   │                          properties, grid, config, plotting/style …)
 │   ├── pipeline/              scripts that USE the package
@@ -45,26 +29,57 @@ Lunar-HFE/
 │   │   └── make_all_figures.py   JOBS registry ("make figures")
 │   ├── cpp/  tests/  notebooks/
 │   ├── data/                  INPUTS: Apollo HFE, Diviner, SPICE records
-│   ├── references/            INPUTS: cited-paper PDFs (anti-hallucination)
-│   └── results/               OUTPUTS: *.json (+ bayesian_chains.npz, archive/); figures live in figures/
+│   ├── references/            INPUTS: cited-paper PDFs (anti-hallucination, gitignored)
+│   └── results/               OUTPUTS: *.json (+ bayesian_chains.npz, archive/)
 │
-└── README.md  Makefile  pyproject.toml  STRUCTURE.md  LICENSE*
+├── figures/                   ← EVERY SHARED FIGURE (one physical copy)
+│   ├── *.pdf                  the letter / guidebook / thesis / abstract graphs
+│   ├── anim/                  the GIFs + filmstrips
+│   └── _archive/              retired figures kept for reference
+│
+├── documents/                 ← HOW THE CODE WORKS (not the manuscripts)
+│   ├── notes/                 REPRODUCING.md, FLAG_REPORT.md, error-budget
+│   │                          provenance, Numba-vs-C++ justification, audits
+│   └── dev/                   CODE_TOUR (md/tex/pdf) + wrap-step notes
+│
+└── README.md  Makefile  pyproject.toml  STRUCTURE.md  CITATION.cff  LICENSE*
 ```
+
+## The document set (outside this repository)
+
+The manuscripts live at `$LUNAR_DOCS`, by default `~/Documents/Lunar-HFE/`:
+
+```
+jgr/letter/  jgr/guidebook/
+gedes/abstract/  gedes/thesis/  gedes/defense/
+aogs/            slides/          overleaf/
+```
+
+That tree reaches back into this repository through six symlinks — a `code`
+link (so `find_repo_root()` and the AOGS scripts still locate the `lunar`
+package), three `figures` links, `references.bib`, and `aogs/data/lola`. Its
+own `Makefile` provides `make paper` and a `make check` that verifies every
+bridge is alive. `make paper` in *this* repo delegates to it.
 
 ## Where figures live (important)
 
 Every shared figure has **one** physical copy, in the top-level **`figures/`**
-folder. The JGR and GEDES manuscripts reach it through a local symlink:
+folder. The JGR and GEDES manuscripts reach it through a symlink:
 
 ```
-documents/jgr/letter/figures        -> ../../../figures
-documents/jgr/guidebook/figures      -> ../../../figures
-documents/gedes/thesis/figures        -> ../../../figures
-documents/gedes/thesis/references.bib -> ../../jgr/letter/references.bib
+$LUNAR_DOCS/jgr/letter/figures         -> <repo>/figures
+$LUNAR_DOCS/jgr/guidebook/figures      -> <repo>/figures
+$LUNAR_DOCS/gedes/thesis/figures       -> <repo>/figures
+$LUNAR_DOCS/gedes/thesis/references.bib -> ../../jgr/letter/references.bib
 ```
 
 The **GEDES abstract** and the **AOGS poster** are self-contained instead —
-each keeps its own `figures/` folder, so it carries its graphics with it.
+each keeps its own `figures/` folder at its own printed width, so it carries
+its graphics with it. The abstract's generator honours `$LUNAR_DOCS`:
+
+```bash
+LUNAR_DOCS=~/Documents/Lunar-HFE .venv/bin/python code/pipeline/figures/make_abstract_figures.py
+```
 
 **Consequence:** to change a shared figure, edit its generator in
 `code/pipeline/figures/` and re-run it — every generator writes **only** to the
@@ -81,6 +96,8 @@ package is installed editable via `pyproject.toml` (`package-dir = code/src`);
 
 ## House rules
 
+- **Code and manuscripts stay separated:** never move a `.tex` manuscript back
+  into this repository, and never copy a shared figure out of `figures/`.
 - **Numbers match code:** every value in a document traces to
   `code/results/*.json`; never hand-edit a figure or manuscript number.
 - **One figure home:** never copy a shared figure into a document folder; use

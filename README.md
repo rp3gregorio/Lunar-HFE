@@ -97,8 +97,9 @@ New to the code? Two guides, by purpose:
 - **[`documents/dev/CODE_TOUR.md`](documents/dev/CODE_TOUR.md)** — how the *repository* works:
   the four layers, who calls whom, a walkthrough of one number from raw data
   to the manuscript, and "how do I…?" recipes. Start here.
-- **[`documents/jgr/guidebook/`](documents/jgr/guidebook/)** (`guidebook.pdf`; rebuild with
-  `make paper`) — how the *physics and statistics* work, taught from zero.
+- **the guidebook** (`$LUNAR_DOCS/jgr/guidebook/guidebook.pdf`; rebuild with
+  `make paper`) — how the *physics and statistics* work, taught from zero. It
+  lives in the document set outside this repository (see *Repository layout*).
 
 Then run the seven notebooks in order (chronological — you meet the solver in
 `02` before the retrieval that uses it in `03`):
@@ -122,33 +123,32 @@ direct verification.
 
 ## Repository layout
 
-Three folders at the top level — `documents/` (what you read, grouped by
-venue), `figures/` (every shared graph, one copy), and `code/` (the engine +
-inputs). See `STRUCTURE.md` for the full map.
+This repository is **code only** — three folders at the top level: `code/` (the
+engine + inputs), `figures/` (every shared graph, one copy), and `documents/`
+(how the code works and how to re-run it). See `STRUCTURE.md` for the full map.
 
 ```
 Lunar-HFE/
-├── documents/                  # WHAT YOU READ (grouped by venue)
-│   ├── jgr/                    # JGR:Planets
-│   │   ├── letter/             #   the manuscript (LaTeX + PDF)
-│   │   └── guidebook/          #   the teach-from-zero companion
-│   ├── gedes/                  # GEDES symposium
-│   │   ├── abstract/           #   the extended abstract (self-contained figures/)
-│   │   └── thesis/             #   the PhD thesis manuscript
-│   ├── aogs/                   # AOGS conference (self-contained bundle)
-│   │   └── docs/  code/  data/  figures/  results/
-│   ├── slides/  notes/         # progress deck; REPRODUCING/FLAG/audit notes
-│   └── <jgr|gedes>/<doc>/figures -> ../../../figures   # link into the shared figure folder
-├── figures/                    # EVERY SHARED FIGURE (one physical copy)
-│   ├── *.pdf   anim/   _archive/
-├── code/                       # THE ENGINE (logic + inputs, no figures)
+├── code/                       # THE ENGINE (logic + inputs)
 │   ├── src/lunar/              # 1-D heat solver + conductivity models
 │   ├── pipeline/{compute,figures}/   # sweeps -> code/results/*.json; generators -> figures/
 │   ├── cpp/  tests/  notebooks/
 │   ├── data/  references/      # INPUTS: apollo/diviner/spice records; cited-paper PDFs
-│   └── results/                # OUTPUTS: canonical *.json (figures now live in figures/)
-└── README.md  Makefile  pyproject.toml  STRUCTURE.md  LICENSE
+│   └── results/                # OUTPUTS: canonical *.json (figures live in figures/)
+├── figures/                    # EVERY SHARED FIGURE (one physical copy)
+│   ├── *.pdf   anim/   _archive/
+├── documents/                  # HOW THE CODE WORKS (not the manuscripts)
+│   ├── notes/                  # REPRODUCING, FLAG_REPORT, error-budget provenance, audits
+│   └── dev/                    # CODE_TOUR + wrap-step notes
+└── README.md  Makefile  pyproject.toml  STRUCTURE.md  CITATION.cff  LICENSE
 ```
+
+**The manuscripts are not in this repository.** The JGR letter and guidebook,
+the GEDES abstract / thesis / defense deck, the AOGS poster and the slide decks
+live in a separate document set (`$LUNAR_DOCS`, by default
+`~/Documents/Lunar-HFE/`) that symlinks back into `figures/` and `code/`. That
+keeps what is pushed to GitHub strictly the code and the artifacts needed to
+reproduce it. `make paper` here delegates to that tree's own Makefile.
 
 The JGR and GEDES manuscripts reach shared figures through a `figures/` symlink
 to the top-level `figures/`, so there is exactly one physical copy of each; the
@@ -175,8 +175,8 @@ If you use this code or data, please cite both the paper and the repository:
 
 - **Code** (`code/src/lunar/`, `code/pipeline/`, `code/tests/`, `code/notebooks/`): MIT License
   (see [`LICENSE`](LICENSE))
-- **Paper text, figures, and tabular results** (`documents/`, `figures/`):
-  Creative Commons Attribution 4.0 International (CC-BY-4.0)
+- **Figures, documentation, and tabular results** (`figures/`, `documents/`,
+  `code/results/`): Creative Commons Attribution 4.0 International (CC-BY-4.0)
   (see [`LICENSE-CC-BY-4.0`](LICENSE-CC-BY-4.0))
 - **Bundled HFE data** (`code/data/apollo/`): public domain via NASA PDS-Geosciences
   (Nagihara et al. 2018 release)

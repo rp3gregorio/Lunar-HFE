@@ -38,9 +38,11 @@ from lunar._bootstrap import find_repo_root
 ROOT = find_repo_root()                       # .../code
 # The manuscripts (JGR letter/guidebook, GEDES abstract/thesis/defense, AOGS
 # poster) live OUTSIDE this repository -- it ships code, figures, and the
-# reproduction notes only. Point LUNAR_DOCS at that document set; the default
-# is the author's layout.
-DOCS = pathlib.Path(os.environ.get("LUNAR_DOCS", pathlib.Path.home() / "Documents" / "Lunar-HFE"))
+# reproduction notes only. The working layout is a pair of sibling folders,
+#     Lunar-HFE/github/    (this repository; ROOT is its code/)
+#     Lunar-HFE/Others/    (the document set)
+# so the default is the sibling `Others/`. Override with $LUNAR_DOCS.
+DOCS = pathlib.Path(os.environ.get("LUNAR_DOCS") or ROOT.parent.parent / "Others")
 # The abstract keeps its OWN self-contained figures dir (Overleaf-ready,
 # no symlink) so its custom figures -- the three-orthographic-globe context
 # map, the A4-sized timeline/sweep/robustness -- never collide with the

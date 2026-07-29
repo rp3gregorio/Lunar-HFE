@@ -1,14 +1,18 @@
-# Exact dependency versions used to produce the submitted manuscript.
-# Generated via `pip freeze`. Use with `pip install -r requirements-lock.txt`.
+# Dependency version ranges used to produce the submitted manuscript.
+# Use with `pip install -r requirements-lock.txt`.
 #
-# If you only need a working environment (not byte-for-byte reproducibility),
-# `pip install -e .` against pyproject.toml is enough.
+# pyproject.toml is the authoritative list; `make install` (which runs
+# `pip install -e ".[dev,mcmc]"`) is the recommended path. This file exists
+# so the ranges are readable in one place.
 
 numpy>=1.24,<3
+numba>=0.59                 # solver JIT fast path — REQUIRED, not optional:
+                            # without it solve_pixel silently runs ~100x slower
 scipy>=1.10,<2
 matplotlib>=3.7,<4
 pandas>=2.0,<3
 emcee>=3.1,<4               # MCMC for Phase B cross-check
+corner>=2.2                 # posterior corner plot in bayesian_crosscheck.py
 spiceypy>=6.0,<7            # JPL SPICE Python bindings
 pyyaml>=6.0,<7
 tqdm>=4.65,<5
@@ -22,3 +26,5 @@ nbformat>=5.7,<6
 # Image / PDF handling
 Pillow>=10.0,<12
 pymupdf>=1.23,<2
+svglib>=1.5                 # SVG -> PDF for the hand-authored illustrations
+reportlab>=4.0              # svglib's rendering backend

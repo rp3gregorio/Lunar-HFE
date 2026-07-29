@@ -47,12 +47,16 @@ Lunar-HFE/
 
 ## The document set (outside this repository)
 
-The manuscripts live at `$LUNAR_DOCS`, by default `~/Documents/Lunar-HFE/`:
+The manuscripts live at `$LUNAR_DOCS` — by default the sibling `Others/`
+folder, i.e. the project is a pair:
 
 ```
-jgr/letter/  jgr/guidebook/
-gedes/abstract/  gedes/thesis/  gedes/defense/
-aogs/            slides/          overleaf/
+Lunar-HFE/
+├── github/                 this repository
+└── Others/                 the document set
+    ├── jgr/letter/         jgr/guidebook/
+    ├── gedes/abstract/     gedes/thesis/     gedes/defense/
+    └── aogs/               slides/           overleaf/
 ```
 
 That tree reaches back into this repository through six symlinks — a `code`
@@ -67,18 +71,19 @@ Every shared figure has **one** physical copy, in the top-level **`figures/`**
 folder. The JGR and GEDES manuscripts reach it through a symlink:
 
 ```
-$LUNAR_DOCS/jgr/letter/figures         -> <repo>/figures
-$LUNAR_DOCS/jgr/guidebook/figures      -> <repo>/figures
-$LUNAR_DOCS/gedes/thesis/figures       -> <repo>/figures
-$LUNAR_DOCS/gedes/thesis/references.bib -> ../../jgr/letter/references.bib
+Others/jgr/letter/figures         -> <repo>/figures
+Others/jgr/guidebook/figures      -> <repo>/figures
+Others/gedes/thesis/figures       -> <repo>/figures
+Others/gedes/thesis/references.bib -> ../../jgr/letter/references.bib
 ```
 
 The **GEDES abstract** and the **AOGS poster** are self-contained instead —
 each keeps its own `figures/` folder at its own printed width, so it carries
-its graphics with it. The abstract's generator honours `$LUNAR_DOCS`:
+its graphics with it. The abstract's generator finds the document set as the
+sibling `Others/` (override with `$LUNAR_DOCS`):
 
 ```bash
-LUNAR_DOCS=~/Documents/Lunar-HFE .venv/bin/python code/pipeline/figures/make_abstract_figures.py
+.venv/bin/python code/pipeline/figures/make_abstract_figures.py
 ```
 
 **Consequence:** to change a shared figure, edit its generator in

@@ -7,7 +7,12 @@ PY := python3
 # poster) are NOT in this repository — it ships the code, the shared figures
 # and the reproduction notes only. They live in the document set pointed at by
 # LUNAR_DOCS, which carries its own Makefile providing `paper` and `clean`.
-LUNAR_DOCS ?= $(HOME)/Documents/Lunar-HFE
+#
+# Default: the sibling `Others/` folder — the working layout is
+#     Lunar-HFE/github/    (this repository)
+#     Lunar-HFE/Others/    (the document set)
+# Resolved relative to THIS Makefile, so moving the pair keeps it working.
+LUNAR_DOCS ?= $(abspath $(dir $(lastword $(MAKEFILE_LIST)))../Others)
 
 .PHONY: help install test retrieve aux figures paper all clean
 
@@ -16,7 +21,8 @@ help:                ## show this help
 	  | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
 install:             ## editable install of the lunar package + dev extras
-	$(PY) -m pip install -e ".[dev]"
+	# mcmc is included: `make aux` runs bayesian_crosscheck.py, which imports emcee
+	$(PY) -m pip install -e ".[dev,mcmc]"
 
 test:                ## run the unit-test suite
 	$(PY) -m pytest -q

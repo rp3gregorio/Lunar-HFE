@@ -97,7 +97,7 @@ New to the code? Two guides, by purpose:
 - **[`documents/dev/CODE_TOUR.md`](documents/dev/CODE_TOUR.md)** — how the *repository* works:
   the four layers, who calls whom, a walkthrough of one number from raw data
   to the manuscript, and "how do I…?" recipes. Start here.
-- **the guidebook** (`$LUNAR_DOCS/jgr/guidebook/guidebook.pdf`; rebuild with
+- **the guidebook** (`../Others/jgr/guidebook/guidebook.pdf`; rebuild with
   `make paper`) — how the *physics and statistics* work, taught from zero. It
   lives in the document set outside this repository (see *Repository layout*).
 
@@ -145,8 +145,8 @@ Lunar-HFE/
 
 **The manuscripts are not in this repository.** The JGR letter and guidebook,
 the GEDES abstract / thesis / defense deck, the AOGS poster and the slide decks
-live in a separate document set (`$LUNAR_DOCS`, by default
-`~/Documents/Lunar-HFE/`) that symlinks back into `figures/` and `code/`. That
+live in the sibling `Others/` folder (`$LUNAR_DOCS`), which symlinks back
+into `figures/` and `code/`. That
 keeps what is pushed to GitHub strictly the code and the artifacts needed to
 reproduce it. `make paper` here delegates to that tree's own Makefile.
 

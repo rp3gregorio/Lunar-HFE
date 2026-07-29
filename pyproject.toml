@@ -34,6 +34,10 @@ classifiers = [
 ]
 dependencies = [
   "numpy>=1.24",
+  # The solver's JIT fast path. Without it solve_pixel silently falls back to
+  # the slow generic march (no `fast_path` diagnostic), which is ~100x slower
+  # and is what test_fast_march_matches_generic guards against.
+  "numba>=0.59",
   "scipy>=1.11",
   "matplotlib>=3.7",
   "pandas>=2.0",
@@ -41,11 +45,16 @@ dependencies = [
   "tqdm>=4.65",
   "pyyaml>=6.0",
   "Pillow>=10.0",
+  # make_svg_figures.py (in the make_all_figures JOBS registry) converts the
+  # hand-authored SVG illustrations to PDF — pure Python, no system cairo.
+  "svglib>=1.5",
+  "reportlab>=4.0",
 ]
 
 [project.optional-dependencies]
 mcmc = [
   "emcee>=3.1",
+  "corner>=2.2",      # posterior corner plot in bayesian_crosscheck.py
 ]
 dev = [
   "pytest>=7.4",

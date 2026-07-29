@@ -5,9 +5,24 @@ sigma_chi, sigma_H, sigma_Ks, sigma_rho).
 Each component re-runs the full K_d retrieval at the perturbed input and
 reports the half-range (or one-sided shift) of K_d*:
 
-  sigma_chi : chi = 1.48 (Vasavada et al. 2012 normalisation) vs the
-              adopted 2.7 (Hayne 2017 App. A) -- the actual published
-              disagreement, one-sided |shift|.
+  sigma_chi : a LOW-chi stress test, one-sided |shift|, against the
+              adopted 2.7 (Hayne 2017 App. A).
+              PROVENANCE NOTE (audited 2026-07-27): this row was
+              labelled "chi = 1.48, the Vasavada et al. (2012)
+              normalisation -- the actual published disagreement".
+              That is wrong. Vasavada et al. (2012) publish chi = 2.7,
+              the SAME value as Hayne, and state it explicitly: "we
+              increase c to 2.7 (from 1.5) at the surface in the
+              revised model". 1.48 appears in neither paper; 1.5 is
+              their superseded pre-revision value. There is no
+              published disagreement to cite.
+              The RESULT is unaffected. At both 1.48 and 1.50 the RMSE
+              minimum rails against the sweep boundary at both sites
+              (A15 -> 1.000, A17 -> 25.000, bit-identical), so no
+              interior retrieval exists at low chi either way. The
+              conclusion -- K_d* is conditional on the adopted chi --
+              is robust to the alternative value chosen. See
+              documents/notes/ERROR_BUDGET_PROVENANCE.md.
   sigma_H   : half-range of the per-H parabolic K_d* across the joint
               (K_d, H) grid already computed by retrieve_kd.py (no new
               solver runs).

@@ -1,371 +1,508 @@
 # Speaker script — GEDES defense
+
 **Ramon III P. Gregorio · 24M58378 · Institute of Science Tokyo, Kasai Laboratory**
 
-Written for an audience with **little or no background** in lunar science.
-Rule of thumb: ~130 words per minute. Everything below is timed to that.
+Written against the deck built by `build_gedes_deck.py`. Slide numbers below are
+the real slide numbers in `24M58378Gregorio.pptx` — if you rebuild the deck, the
+numbers here still hold unless you add or remove a slide.
 
-| Part | Slides | Speaking | Q&A |
-|---|---|---|---|
-| Master's thesis | 1–12 | **12 min** | 5 min |
-| Doctoral plan | 13–19 | **6 min** | 7 min |
-| Backup (not presented) | 20–25 | — | on demand |
-| Term table | 26 | — | — |
+Timed at **130 words per minute**, the same budget the build script enforces.
+Each block is written to its slide's second allocation, so at a normal speaking
+pace the two parts land inside their windows without you managing the clock.
 
-**Three rules for the day.** Say the numbers out loud — they are your evidence.
-Never apologise for the caveat on slide 11; stating it plainly is what makes the
-rest believable. If you run long, cut slide 8, not slide 11.
+| Part | Slides | Spoken | Allocated | Q&A |
+|---|---|---|---|---|
+| 1 — Master's thesis | 1–15 | **11.4 min** | 12 min | 5 min |
+| 2 — Doctoral plan | 16–23 | **5.5 min** | 6 min | 7 min |
+| Backup (not presented) | 24–40 | — | — | jump by number |
+
+### Four rules for the day
+
+1. **Say the numbers out loud.** They are the evidence. One number spoken beats
+   three adjectives.
+2. **Do not apologise for slide 14.** Stating the limit plainly is what makes
+   everything before it believable. Deliver it at the same volume as the result.
+3. **If you are running long, cut slide 9,** not slide 14. Slide 9 only sets up
+   slide 10, and the setup can be one sentence.
+4. **Stop when slide 15 lands.** No thank-you slide, no "that's all from me".
+   Say the last line and wait.
 
 ---
 
-# PART 1 — MASTER'S THESIS (12 min)
+# PART 1 — MASTER'S THESIS · 12 minutes
 
 ## Slide 1 · Title — 20 s
-> Good morning. My name is Ramon Gregorio, from Kasai Laboratory.
->
-> My thesis asks a simple question: **how well does the Moon hold on to its heat?**
-> And I answer it at the only two places where humans have ever dug deep enough
-> to find out.
+
+> Good morning. I am Ramon Gregorio, from Kasai Laboratory. My thesis asks one
+> question: how well does the Moon hold on to its heat? I answer it at the only
+> two places where anyone has ever dug deep enough to find out.
 
 *Pause. Advance.*
 
-## Slide 2 · Why this matters — 50 s
-*(Let the animation loop once before speaking.)*
+## Slide 2 · The surface is violent, a metre down nothing moves — 40 s
 
-> Look at what happens on the Moon over one month. At the surface, the
-> temperature swings from about 100 kelvin at night to 390 kelvin at noon —
-> hotter than boiling water, then colder than liquid nitrogen. Every month.
->
-> Now watch the two numbers on the right. The top one is the surface — it is
-> tearing up and down all month. The bottom one is a single metre below it, and
-> it does not move at all. Not by a tenth of a degree.
->
-> That violent swing dies away within about the top fifteen centimetres. By
-> **80 centimetres**, it is completely gone.
->
-> That steady deep temperature is what matters. It decides whether water ice can
-> survive underground. It is the number every future lunar mission needs. And no
-> instrument can measure it from orbit — it has to be calculated.
+*Let the animation loop once before you speak. Do not talk over the first loop.*
 
-## Slide 3 · The problem — 55 s
-> To calculate it, you need one key property of the ground: **how easily heat
-> moves through it.** We call it K-d.
+> Watch one month on the Moon. At the surface, the temperature runs from about a
+> hundred kelvin at night to three hundred and ninety at noon. Colder than
+> liquid nitrogen, then hotter than boiling water. Every month.
 >
-> Here is the problem. Every thermal model of the Moon in use today takes a
-> single value — 3.4 — and applies it to the entire Moon. Every crater, every
-> plain, every latitude. One number.
+> Now watch one metre down. It does not move. Not by a tenth of a degree.
 >
-> And that number has a weakness. It was fitted using satellite data, and a
-> satellite only feels the top few centimetres — the part that is swinging
-> wildly. It has **never been checked against a measurement from deep
-> underground.**
->
-> There are exactly two places where it can be checked. That is what this thesis
-> does.
+> Ice survives where the ground is cold and steady, and that is decided down
+> here, not up there.
 
-## Slide 4 · The data — 55 s
-> Those two places are the Apollo 15 and Apollo 17 landing sites.
->
-> The astronauts drilled into the surface and left thermometers in the holes —
-> 1.4 metres deep at Apollo 15, 2.3 metres at Apollo 17. Those instruments
-> recorded temperatures from 1971 to 1977. This is still, today, the only
-> subsurface temperature data that exists anywhere on the Moon.
->
-> The full record was recovered from the original mission tapes only a few years
-> ago. I use it here.
->
-> One important choice: I throw away everything in the top 80 centimetres. The
-> act of drilling disturbed the ground and the drill stem itself conducts heat.
-> That leaves me **23 trustworthy sensors** — seven at Apollo 15, sixteen at
-> Apollo 17.
+## Slide 3 · Every model uses one number for the whole Moon — 45 s
 
-## Slide 5 · Step 1 — 55 s
-> Now, three steps. The first is preparing the data.
+> So what sets how fast heat leaks through that metre? One property:
+> conductivity. And here is the problem. Every thermal model of the Moon uses a
+> single value for it — three point four — across thirty-eight million square
+> kilometres.
 >
-> Each thermometer gives six years of readings, and the early part is unusable —
-> the ground is still recovering from the drilling, there are disturbances from
-> mission operations, and the instruments drift.
+> That number was fitted from orbit. A satellite feels the top few centimetres
+> and nothing below it. So the number that governs the deep ground was never
+> measured in the deep ground.
 >
-> So I wrote an automatic rule: find the longest stretch at the end of each
-> record that is genuinely flat — where the trend is less than 0.08 kelvin per
-> year — and average inside it. If no stretch qualifies, fall back to the final
-> quarter and carry the leftover drift as an error.
->
-> The point is that **nothing here is hand-picked.** The same rule runs on every
-> sensor, and anyone can reproduce it. That turns six years of wobble into one
-> honest number per sensor.
+> The count of subsurface measurements that have ever tested it is zero.
 
-## Slide 6 · Step 2 — 50 s
-> Step two is the physics, and it is refreshingly simple.
->
-> I model a single column of lunar soil. Sunlight comes in at the top. Heat
-> radiates back out to space. And from underneath, there is a slow, steady
-> trickle of heat leaking out of the Moon's interior.
->
-> Everything in that picture is known and measured, except one thing: **how
-> easily heat moves through the middle.** That is the unknown I am solving for.
+## Slide 4 · Only two holes have ever been drilled — 55 s
 
-## Slide 7 · Step 3 — my contribution — 80 s ★
-> Step three is where I had to do something new.
+> There are exactly two places where it can be checked. Apollo 15 and Apollo 17
+> drilled into the regolith and left thermometers in the hole. They recorded for
+> six years, from 1971 to 1977.
 >
-> To find that unknown, I have to run the simulation until the ground settles
-> into its repeating monthly rhythm. The trouble is that settling takes about
-> **3000 simulated months.** One experiment took roughly a day of computing.
-> And I needed hundreds of them. That is not practical.
+> That record was nearly lost. It has been recovered from the original mission
+> tapes.
 >
-> So here is the idea. Once the ground has settled into that repeating cycle,
-> the average amount of heat flowing through it is the same at every depth. That
-> is a strong constraint. It means I do not have to simulate the deep part at
-> all — I can solve only the thin, sun-baked skin at the top, and then
-> **reconstruct everything below it** from a single anchor point.
+> I use the sensors below eighty centimetres. Above that line the drilling
+> disturbed the ground, so those readings tell you about the hole rather than
+> about the Moon. That leaves seven sensors at Apollo 15 and sixteen at Apollo
+> 17.
 >
-> The result is that a calculation that took 27 hours now takes under a minute.
-> About **2500 times faster.**
->
-> And that is not just convenience. It is what made the next part possible:
-> because each answer is now cheap, I can afford to repeat the entire analysis
-> thousands of times and find out how uncertain the answer really is.
+> Twenty-three thermometers. Nothing like them is coming again soon.
 
-*This is your contribution. Do not rush it. If someone's eyes glaze, use the
-kettle line: "you don't need to watch a kettle boil 3000 times to know how hot
-it ends up."*
+## Slide 5 · The whole study on one slide — 35 s
 
-## Slide 8 · Finding the answer — 50 s
-> Finding the answer itself is then straightforward. I try many candidate
-> values. For each one I run the model and measure how badly it misses the real
-> Apollo thermometers. That traces out a curve, and the lowest point of the
-> curve is the best answer.
->
-> Apollo 15 lands at 4.60. Apollo 17 lands at 7.08.
+*Walk the three columns with your hand. Do not read the equations aloud.*
 
-## Slide 9 · Result — 75 s ★
-> And here is the headline.
+> This is the entire study. Three inputs on the left, four steps in the middle,
+> three numbers on the right.
 >
-> The value everyone currently uses for the whole Moon is 3.4. At Apollo 15, the
-> ground actually requires **4.60**. At Apollo 17, it requires **7.08**.
+> The one thing worth noticing is in the input column: only a single quantity
+> there is unknown. The heat arriving from below, the density, the heat capacity
+> — all of it is fixed from published measurements before I start.
 >
-> Two things stand out. First, both sites are **more conductive than the global
-> value** — the standard number is too low at both places we can check. Second,
-> the two sites differ from each other by roughly a factor of one and a half.
->
-> And the fits genuinely improve. At Apollo 17 the mismatch with the real
-> thermometers drops from 0.89 kelvin to 0.40 — it more than halves. At Apollo
-> 15 it improves more modestly, from 1.09 to 1.00.
+> Everything from here on is detail on these four steps.
 
-## Slide 10 · How sure am I? — 55 s
-> The obvious question is: how confident am I in those numbers?
->
-> To answer that I re-ran the whole analysis **1500 times.** Each time I randomly
-> resample which sensors are included and jitter their recorded depths by their
-> real uncertainty. That gives me the full spread of answers the data can
-> support, rather than a single number with no error bar.
->
-> You can see the two sites sit in largely separate places — which is why I am
-> confident about the *ordering*. But I want to be equally clear that the
-> statistical spread is not the whole story, and that brings me to the most
-> important slide in this talk.
+## Slide 6 · Turning six years of wobble into one number — 50 s
 
-## Slide 11 · The honest limit — 65 s ★
-> Here is what the thermometers actually measure.
+> Step one. The record is not clean. The probes were still shedding heat from
+> the drilling, and the electronics drifted.
 >
-> They do not measure conductivity directly. They measure how steeply the
-> temperature rises as you go down. And that steepness is a **ratio** — the heat
-> coming from below, divided by the conductivity.
+> So I do not pick the good stretch by eye. A rule picks it. Take the longest
+> flat run at the tail of each record, reject it if it drifts by more than
+> eight-hundredths of a kelvin per year, and whatever drift is left, carry it
+> forward as an error instead of discarding it.
 >
-> That has a consequence I have to be straight about. If a site's temperature
-> rises more steeply, it could be because the ground conducts heat differently —
-> or because more heat is arriving from the interior. My data alone cannot fully
-> separate those two explanations.
->
-> So let me split my result in two.
->
-> **What is solid:** Apollo 17 is the more conductive site. I tested this across
-> the entire published range of interior heat-flow values, and the ordering holds
-> in more than 99% of cases.
->
-> **What is not settled:** the exact size of the gap. Its confidence interval
-> still touches zero, and I say so in the thesis rather than rounding it away.
+> That rule runs on all twenty-three sensors identically. Nothing was chosen by
+> hand, which means nobody can argue I chose it to get the answer I wanted.
 
-*Deliver this calmly and slowly. It is the slide that earns you credibility.*
+## Slide 7 · A simple picture of the ground, and the equations behind it — 40 s
 
-## Slide 12 · Conclusions — 60 s
-> Three sentences to finish.
+> Step two is the model, and I want to be clear that this part is standard.
 >
-> **One.** The two Apollo boreholes genuinely require different values — 4.60 and
-> 7.08 — and both are higher than the single global number in use today.
+> Sunlight comes in at the top. Heat radiates back out. A steady trickle rises
+> from the deep interior. In between, heat conducts through the regolith, and the
+> material properties depend on temperature and on depth.
 >
-> **Two.** I built a method that made a day-long calculation take a minute, about
-> 2500 times faster, and that is what made a full uncertainty analysis possible.
+> Four equations, five constants from the literature, and exactly one unknown:
+> the deep conductivity.
 >
-> **Three.** These are the only in-situ anchors that exist. Missions that look
-> beneath the lunar surface need exactly this kind of temperature profile, and no
-> satellite can supply it.
+> Nothing here is new. The next three slides are where something is.
+
+## Slide 8 · The model runs blind — 35 s
+
+> One point to be precise about, because it separates a fit from a result.
 >
-> With the honest caveat that the *direction* of the difference is solid while
-> its *size* is not yet nailed down.
+> The forward model never sees a thermometer. It takes a trial conductivity, runs
+> the physics, and predicts a temperature profile. The Apollo data enters at
+> exactly one place — the final step, where I score the prediction against it.
+>
+> The physics never sees the answer it is trying to reproduce.
+
+## Slide 9 · Why this calculation was impossible — 35 s
+
+> Now the obstacle. The calculation has three loops nested inside each other.
+>
+> The outer loop sweeps about thirty candidate conductivities. Each one needs a
+> steady state, which takes roughly three thousand month-long cycles to settle.
+> Each cycle is hundreds of time steps.
+>
+> Multiply it out and one experiment is about twenty-seven hours.
+>
+> That is not merely slow. That is the reason nobody had done it.
+
+## Slide 10 · The calculation used to take a day, now it takes a minute — 70 s
+
+*Star slide. Slow down. If eyes glaze, use the kettle line.*
+
+> This is the contribution.
+>
+> The old way, on the left, time-steps every cell in the column, every hour, for
+> three thousand cycles, and waits.
+>
+> But look at what is actually happening. The top seventy centimetres swing with
+> the month. Below that the ground is quiet — it just carries a steady flow of
+> heat upward. Simulating that deep part cycle after cycle spends almost all the
+> computer time on the part that is not doing anything.
+>
+> So I time-step only the top. Then, from one anchor point at fifty-five
+> centimetres, I rebuild everything beneath it in a single downward pass, from
+> one equation.
+>
+> It is the difference between watching a kettle until it boils and knowing what
+> boiling looks like.
+>
+> Twenty-seven hours becomes under a minute. About two and a half thousand times
+> faster.
+>
+> And this matters more than the speed: it is not an approximation. Same answer,
+> agreeing to better than one-hundredth of a milliwatt.
+
+## Slide 11 · Both sites hold heat differently than the textbook value — 65 s
+
+*Star slide. Let the bars sit for a beat before you speak.*
+
+> This is the result.
+>
+> Apollo 15 comes out at four point six. Apollo 17 at seven point one. Both sit
+> above the global value of three point four that everyone has been using, and
+> Apollo 17 lets heat through about one and a half times more easily than Apollo
+> 15.
+>
+> Now the part nobody asks for, which is exactly why I want to say it first.
+>
+> If I had bent the model to get this, the fit would have degraded. It did the
+> opposite. At Apollo 15 the mismatch went from one point zero nine kelvin to one
+> point zero zero. At Apollo 17 it went from zero point eight nine down to zero
+> point four zero. Better than halved.
+>
+> Letting each site have its own conductivity does not just change the answer. It
+> explains the measurements better.
+
+## Slide 12 · The model against the actual thermometers — 50 s
+
+> And here is what that means physically, rather than as a score.
+>
+> The dots are the measured temperatures. The line is the model at the retrieved
+> conductivity. Remember slide 8 — the model never saw these points.
+>
+> The open circles are the shallow sensors. They were excluded from the
+> retrieval, so I am not going to quietly claim credit for them here either.
+>
+> The dashed line is the Martínez and Siegler conductivity model, run forward the
+> same way. It is a genuinely different formulation of the physics, and it lands
+> close to mine. So the result is not an artefact of one particular equation.
+
+## Slide 13 · Re-running the whole analysis 1500 times — 35 s
+
+*Do NOT say "p-value". It is a bootstrap tail proportion.*
+
+> How confident am I? I ran the entire analysis fifteen hundred times, each run
+> leaving out sensors at random and nudging the recorded depths by a couple of
+> centimetres.
+>
+> Two spreads come out, one per site, and they barely overlap.
+>
+> That overlap is what my confidence in the ordering rests on. Not the width of
+> either bar on its own.
+
+## Slide 14 · What I can claim, and what I cannot — 55 s
+
+*Star slide. Level, calm, no apology. This is the slide that earns the rest.*
+
+> Now the honest limit, and I want to state it before anyone has to ask.
+>
+> A buried thermometer does not measure conductivity. It measures how steeply
+> temperature climbs with depth. And that steepness is heat-from-below divided by
+> conductivity. Two quantities, one measurement.
+>
+> Double both and the tilt is identical. So the absolute values ride on the
+> published heat flow being right.
+>
+> What survives that is the ordering. Apollo 17 is the more conductive site in
+> over ninety-nine percent of the cases I tested, including when I let the heat
+> flow float freely by a factor of four.
+>
+> What does not survive is the exact size of the gap. The ninety-five percent
+> range on the difference runs from minus zero point one two to three point five
+> six. It still touches zero.
+
+## Slide 15 · Conclusions — 55 s
+
+*Land these four and stop. Do not add a closing pleasantry.*
+
+> Four things.
+>
+> One. The two boreholes are genuinely different. Four point six and seven point
+> one, about one and a half times apart, and both above the global value
+> everyone uses.
+>
+> Two. A calculation that took a day now takes a minute. That is not a
+> convenience. It is what made the uncertainty analysis possible at all —
+> fifteen hundred re-runs is not something you do at twenty-seven hours each.
+>
+> Three. The ordering is robust and the magnitude is not, and I have shown you
+> both.
+>
+> Four. Every mission that looks beneath the lunar surface needs ground truth to
+> calibrate against. Right now, this is it.
+
+*Stop. Wait for questions.*
+
+---
+
+# PART 2 — DOCTORAL RESEARCH PLAN · 6 minutes
+
+## Slide 16 · Divider — 10 s
+
+> That is what I have done. Here is where it goes.
+
+## Slide 17 · Five phases, and where the work stands — 45 s
+
+*Point at the dashed vertical rule. That gesture is the whole slide.*
+
+> Five phases. Two are finished, three are proposed.
+>
+> The dashed line is the important part. Everything to its left exists and has
+> been presented. Everything to its right is the proposal.
+>
+> I am not going to read the columns — they are there so you can read them.
+> Let me spend the time on the two that carry the argument: phase two, which is
+> the evidence, and phase three, which is what the evidence demands.
+
+## Slide 18 · Phase 1 — the thesis, delivered — 40 s
+
+> Phase one is the thesis you just heard, so I will keep it short.
+>
+> Both boreholes reproduced. Fifteen hundred bootstrap draws, a Bayesian
+> cross-check that floats the heat flow, held-out validation, and a comparison
+> against orbital surface temperatures that were never fitted.
+>
+> One thing I will volunteer rather than defend. The model-selection test is
+> decisive at Apollo 17 and not at Apollo 15. Seven sensors is a thin basis for
+> its own fitted parameter. The Apollo 15 case rests on the interval, not on that
+> test.
+
+## Slide 19 · Phase 2 — real terrain at the two sites — 60 s
+
+*Strongest slide in Part 2. This is the evidence for everything after it.*
+
+> Phase two asks what happens when you stop pretending the ground is flat.
+>
+> I built a horizon calculation from lunar topography and applied it at both
+> sites. Apollo 15 sits below the Apennines and loses one point one six percent
+> of its sunlight to its own skyline. Apollo 17 loses zero point one eight.
+>
+> Then I re-ran the retrieval with that shadowing included, and this is the
+> finding. Apollo 15 moves down by two point seven. Apollo 17 moves up by two
+> point six.
+>
+> Opposite directions. Which means no single global correction factor can absorb
+> terrain — it would have to push one site up and the other down at the same
+> time.
+>
+> I will also report a negative result: adding infrared self-heating from the
+> surrounding slopes made the fit worse, so it is not in the model.
+
+## Slide 20 · Phase 3 — from two neighbourhoods to the whole Moon — 50 s
+
+> That finding is the argument for phase three.
+>
+> If terrain moves the answer in opposite directions at two sites, you cannot
+> correct for it globally. You have to solve for it everywhere.
+>
+> Same physics, same solver. What changes is scale — a Moon-wide map is millions
+> of independent columns.
+>
+> And this is where the thesis pays for itself. One column now costs about a
+> second. Millions of independent columns at a second each is a compute job, not
+> a research risk. Before the solver, it was not a job anyone could run.
+>
+> Validation is against the Diviner global composites.
+
+## Slide 21 · Phase 4 — coupling to TSUKIMI — 45 s
+
+> Phase four is why this work belongs here in particular.
+>
+> NICT is developing TSUKIMI, a terahertz instrument for observing the Moon.
+> Terahertz emission does not come from the surface. It comes from tens of
+> centimetres down, below the daily temperature wave.
+>
+> Which is exactly the region this model was built to resolve.
+>
+> So the chain is: my subsurface temperature field feeds the radiative transfer,
+> that predicts terahertz brightness, and comparing it against what the
+> instrument sees gives an ice-survivability map.
+>
+> That chain only works if someone supplies a trustworthy profile below the skin.
+> That is what phases one to three build.
+
+## Slide 22 · Phase 5 — the next-generation regolith model — 35 s
+
+> Phase five is the physics I would like to add, and the point of the slide is
+> that the three were weighed before any was attempted.
+>
+> Depth-varying compaction is the straightforward one. Temperature-dependent
+> emissivity matters for permanently shadowed craters. Water vapour diffusion
+> with latent heat is genuinely new physics — high risk, which is precisely why
+> it is scheduled last and not promised.
+
+## Slide 23 · Why this is achievable — 45 s
+
+*Then stop. Do not summarise the summary.*
+
+> To close, three reasons this is a continuation rather than a wish list.
+>
+> The solver exists and is verified. That is what turns a Moon-wide map from
+> impossible into arithmetic.
+>
+> The terrain and material-property studies are finished and have been presented
+> at AOGS. Phase two is not a plan. It is done.
+>
+> And the setting is in place: Institute of Science Tokyo, Kasai Laboratory, with
+> a direct link to the NICT terahertz mission that phase four depends on.
 >
 > Thank you.
 
-*Stop here. Do not add a thank-you slide — leave the result on screen.*
+---
+
+# BACKUP — slides 24 to 40
+
+Not presented. Jump by slide number. Each exists because a specific question is
+likely.
+
+| # | Slide | Answers |
+|---|---|---|
+| 25 | Where the uncertainty comes from | "Why is the error bar so wide?" |
+| 26 | The conductivity–heat-flow trade-off | "Could this be a heat-flow difference instead?" |
+| 27 | Is a per-site value statistically justified? | "Is the difference significant?" |
+| 28 | Independent check against orbital data | "How do you know the model is right?" |
+| 29 | Does it hold when you hold data back? | "Are you over-fitting seven sensors?" |
+| 30 | The Bayesian cross-check | "What if the published heat flow is wrong?" |
+| 31 | The bootstrap, as published | "Show me the real distribution." |
+| 32 | Finding the answer: the RMSE bowl | "How exactly did you pick the value?" |
+| 33 | What the old method had to do | "Explain the speed-up." |
+| 34 | The anchor method, step by step | "How does the anchor method actually work?" |
+| 35 | The flux-anchored loop | "Show me the algorithm." |
+| 36 | From the heat equation to the closure | "Where does the closure come from?" |
+| 37 | How one sensor becomes one temperature | "How were the windows chosen?" |
+| 38 | Terrain shadowing at both sites | "How was the DEM used?" |
+| 39 | The AOGS parameter study | "Show me the real analysis." |
+| 40 | The three bugs, and what each cost | "What went wrong along the way?" |
 
 ---
 
-# PART 2 — DOCTORAL RESEARCH PLAN (6 min)
+# Q&A preparation
 
-## Slide 13 · Divider — 10 s
-> That is the work I have completed. Let me now turn to where I want to take it.
+The honest answer is the strong answer in every one of these. Do not defend past
+the evidence.
 
-## Slide 14 · The goal — 35 s
-> My thesis measured two points on the Moon. But the question people actually
-> want answered — *where can water ice survive underground* — is a question about
-> the **whole** Moon.
->
-> So my doctoral goal is to go from two measured points to a Moon-wide map, and
-> then to turn that map into an index of where subsurface ice can persist.
->
-> I want to show you that this is already underway, not just a wish.
+**"Is the difference statistically significant?"** → slide 27.
+No, not at the ninety-five percent level. The interval on the difference runs
+from minus zero point one two to three point five six, and it touches zero. What
+is significant is the ordering — Apollo 17 is more conductive in over
+ninety-nine percent of tested cases. The model-selection test is decisive at
+Apollo 17, minus twenty-three, and not at Apollo 15, plus three. That split is
+in the thesis.
 
-## Slide 15 · Already built (1) — 55 s
-> The first step is putting the real landscape into the model.
->
-> My thesis assumed flat ground. In reality Apollo 15 sits at the foot of the
-> Apennine mountains, and Apollo 17 sits in a valley between two massifs. Those
-> mountains block sunlight near sunrise and sunset, and they radiate heat back
-> onto the site at midday.
->
-> I have already implemented this using elevation maps. The horizon reaches 14
-> degrees at Apollo 15, removing about 1.2% of the incoming sunlight; at Apollo
-> 17 it is 10 degrees and 0.2%.
->
-> This work was presented at AOGS. It is **built and tested**, not proposed.
+**"You are fitting seven sensors with a free parameter."** → slides 27, 29.
+Correct, and that is exactly why Apollo 15 does not pass the model-selection
+test. Leave-one-deepest-out and cross-prediction still reproduce the value, but I
+would not claim Apollo 15 alone justifies a separate fit.
 
-## Slide 16 · Already built (2) — 65 s ★
-> The second step was to find out which property of the ground actually controls
-> the answer. I ran 650 model variations to find out.
->
-> The result is clear. Changing the heat capacity barely moves the answer —
-> it is a second-order effect. But linking the conductivity to the **density**
-> of the soil moves it a great deal — it is first-order.
->
-> And when I let the ground be layered, rather than uniform, the model fits the
-> real thermometers **2.6 times better at Apollo 15 and 10 times better at
-> Apollo 17.**
->
-> That matters because it tells me exactly which knob to turn before I attempt a
-> global model. I am not proposing to go and find out — I already know.
+**"What if Langseth's heat flow is wrong?"** → slides 26, 30.
+Then the absolute numbers move, which is slide 14, and I raised it myself. The
+Bayesian version floats the heat flow over a factor of four and the ordering
+survives at ninety-nine point two percent. Slide 26 shows the two sites respond
+to a flux revision in opposite directions, which is why the ordering is harder to
+break than the magnitude.
 
-## Slide 17 · The key test — 40 s
-> One more test, and it is the one that convinced me a global model is
-> justified.
->
-> I took the best configuration from one site and applied it, untouched, at the
-> other. If this were just curve-fitting, that would fall apart. Instead it
-> degrades gracefully — and still beats the uniform-ground assumption everywhere.
->
-> That means what I am capturing is **transferable physics**, not a fit tuned to
-> one hole in the ground. That is the licence to go global.
+**"Two and a half thousand times faster — really?"** → slides 33, 35.
+Two separate factors, and I should be precise. About twenty-one times from the
+algorithm, because the deep column is reconstructed rather than simulated. About
+one hundred and seventeen times from compiling the kernel. Multiplied, roughly
+two and a half thousand — and that figure is compiled-anchored against
+interpreted-brute-force. The algorithmic contribution on its own is the
+twenty-one.
 
-## Slide 18 · The plan — 80 s ★
-> So, three years, with a deliverable each year.
->
-> **Year one: get the physics right.** Finish the property work — the
-> density-linked conductivity — go beyond the standard formula, and validate
-> against both boreholes. The deliverable is a validated property model.
->
-> **Year two: go global.** Apply terrain shading across the entire Moon, compute
-> a temperature profile for every point on the surface, and check the result
-> against orbital measurements. The deliverable is a Moon-wide subsurface
-> temperature map.
->
-> **Year three: answer the question.** Convert those profiles into where
-> subsurface ice can actually survive, and feed the columns to missions that
-> sound beneath the surface. The deliverable is an ice-survivability map, and the
-> publication of the global product.
+**"Is the anchor method an approximation?"** → slides 34, 35, 36.
+No. It is exact for a periodic steady state, and the condition is stated on the
+slide. Once the column repeats its monthly cycle the time-derivative averages to
+zero, and the deep profile is fixed by an ordinary differential equation.
+Certified against brute force to better than one-hundredth of a milliwatt.
 
-## Slide 19 · Why it is achievable — 50 s
-> Finally, why I believe this is achievable in three years.
->
-> A Moon-wide map is millions of independent columns. That would have been
-> impossible at a day per column — but the solver I built for my thesis brings
-> each one down to about a second, and they can all run in parallel.
->
-> The terrain work and the property study are already finished. The controlling
-> parameter is already identified. And the work has a home — Kasai Laboratory,
-> with the link to the NICT terahertz mission that will use these profiles.
->
-> This is not a new project. It is the continuation of one that is already
-> running.
->
-> Thank you.
+**"How do you know the code is right?"** → slide 28.
+Two independent checks. The surface temperature was never fitted, so comparing
+it against Diviner is genuinely out-of-sample, and it closes. And the solver
+exists in three separate implementations — interpreted Python, the compiled
+kernel, and a C++ port — verified equal to better than a millionth of a kelvin.
+
+**"Why is chi two point seven?"**
+It is Hayne 2017's published value, and Vasavada 2012 explicitly raises the
+radiative coefficient to two point seven. The absolute conductivities are
+conditional on it. I tested the alternative and the ordering does not change.
+
+**"Why only sixteen pixels per degree for the topography?"** → slide 38.
+That is the global product, and it is coarse for a horizon calculation. Higher
+resolution would raise both shadowing losses rather than reverse their signs.
+Doing it at full resolution is part of phase three.
+
+**"What about the shallow sensors?"** → slides 12, 37.
+Excluded above eighty centimetres because the drilling disturbed the ground
+there, and the borestem conducts heat down from the surface. Slide 37 is the
+decision rule. They are drawn open wherever they appear, so they are never
+quietly counted as agreement.
+
+**"Only two sites — can you generalise?"**
+No, and I do not. Two boreholes cannot establish how the Moon varies as a whole.
+What they establish is that at least this much site-to-site variation exists,
+which is enough to make a single global value an assumption rather than a fact.
+Generalising is a measurement problem. It needs more landers.
 
 ---
 
-# Q&A PREPARATION
+# Numbers, so you never guess at the podium
 
-**Master's Q&A (5 min) — most likely questions**
+All certified against `code/results/*.json`.
 
-**"Is the difference between the two sites statistically significant?"**
-> Not at the 95% level, and I say so directly in the thesis. The confidence
-> interval on the difference touches zero. What *is* robust is the ordering —
-> Apollo 17 is the more conductive site in over 99% of the cases I tested across
-> the published heat-flow range. I report the direction as solid and the
-> magnitude as marginal. *(Backup slide 23.)*
+| Quantity | Apollo 15 | Apollo 17 |
+|---|---|---|
+| Retrieved K_d (mW m⁻¹ K⁻¹) | 4.60 | 7.08 |
+| 95% bootstrap interval | [4.18, 6.96] | [6.16, 8.07] |
+| Misfit, global → per-site (K) | 1.09 → 1.00 | 0.89 → 0.40 |
+| Deep sensors used | 7 | 16 |
+| ΔAICc | +2.94 (not decisive) | −23.17 (decisive) |
+| Horizon elevation | 14.0° | 10.1° |
+| Insolation lost to terrain | 1.16% | 0.18% |
+| K_d under shadowing | 4.60 → 1.88 | 7.08 → 9.69 |
 
-**"Could this be a difference in heat flow rather than conductivity?"**
-> Yes — and I cannot fully rule it out, because the thermometers constrain the
-> ratio of the two. What I can say is that the two sites respond to a heat-flow
-> revision in *opposite* directions, which is exactly why the ordering survives
-> even when I vary it. *(Backup slide 22.)*
-
-**"Why throw away the top 80 centimetres?"**
-> Two reasons. The drilling physically disturbed the ground, and the fiberglass
-> drill stem conducts heat down from the surface. I show this independently: the
-> daily temperature swing above 80 cm is far larger than the model allows, which
-> is the signature of that heat short. Below 80 cm it disappears. I also tested
-> cuts at 70 and 90 cm and the answer barely moves.
-
-**"How do you know your model is right at all?"**
-> An out-of-sample test. I never fit surface temperatures — but I can compare the
-> model's predicted surface temperature against orbital measurements from the
-> Diviner instrument. It closes. And the whole solver was independently
-> reimplemented in C++ and agrees to twelve decimal places. *(Backup slide 24.)*
-
-**"Only two data points — can you generalise?"**
-> No, and I do not claim to. Two boreholes cannot establish how the Moon varies
-> as a whole. What they establish is that **at least this much site-to-site
-> variation exists**, which is enough to show that a single global value is an
-> assumption, not a fact. Generalising is a measurement problem — it needs more
-> landers.
-
-**Doctoral Q&A (7 min) — most likely questions**
-
-**"Is three years realistic?"**
-> The two hardest pieces are already done — the fast solver and the parameter
-> study. Year one finishes physics I have already started; year two is
-> computation that is naturally parallel; year three is the analysis. The risk is
-> in year two's validation, and my fallback is to restrict to well-mapped
-> equatorial terrain first.
-
-**"Your data are equatorial — ice is at the poles. Does this transfer?"**
-> That is the sharpest question, and the honest answer is that transfer is not
-> established. Apollo 15 and 17 are warm, dry, low-latitude sites. Polar regolith
-> is colder and may be ice-cemented, which changes the physics. My plan treats
-> the Apollo sites as *calibration anchors* for the method, not as
-> representative of the poles. Bridging that gap will need polar in-situ data —
-> Chandrayaan-3's ChaSTE is the first step.
-
-**"What is genuinely new compared to your master's?"**
-> The master's retrieves one number at two points on flat ground. The doctorate
-> makes the ground layered and realistic, puts real terrain into the forcing, and
-> extends from two points to global coverage — ending at a product, an
-> ice-survivability map, rather than a single parameter.
+Global value in use **3.4**. Ratio between sites **≈1.5×**. Inter-site contrast
+**2.31** median, 95% interval **[−0.12, 3.56]**, bootstrap tail proportion
+**0.031** — *not* a p-value, do not call it one. MCMC ordering **99.2%**.
+Speed-up **≈2500×** total (**21×** algorithmic × **117×** compiled kernel);
+brute-force sweep **26.6 h** against **0.65 min** anchored. Anchor depth
+**0.55 m**, borestem cut **80 cm**, drift limit **0.08 K yr⁻¹**, bootstrap
+**1500** draws with **2.5 cm** depth jitter. Three-implementation agreement
+better than **10⁻⁶ K**.
 
 ---
 
-# DELIVERY CHECKLIST
+# Delivery checklist
 
-- [ ] Confirm the Japanese terms on slide 25 with someone in the lab
-- [ ] Rehearse slides 7, 9, 11 out loud — they carry the talk
-- [ ] Time a full run; target 11:30 for part 1, 5:30 for part 2
-- [ ] Check the GIFs on slides 2 and 15 actually animate on the GEDES laptop
-- [ ] Know your backup slide numbers: **21** error budget, **22** degeneracy, **23** significance, **24** validation, **25** solver animation
-- [ ] Arrive early — the instructions say slides are pre-loaded, so verify them
+- [ ] Rehearse slides 10, 11 and 14 out loud — those three carry the talk
+- [ ] Time a full run: target 11:30 for Part 1, 5:30 for Part 2
+- [ ] Check the GIFs on slides 2, 33, 34 and 38 animate on the GEDES laptop
+- [ ] Memorise four backup numbers: **27** significance, **30** heat flow,
+      **33** speed-up, **38** terrain
+- [ ] Arrive early and verify the pre-loaded deck is the right file

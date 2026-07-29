@@ -1,17 +1,35 @@
-% Flux-anchored equilibrium loop: Step A -> Step B -> closure.
+% The flux-anchored equilibrium loop: the condition, Step A -> Step B, and the
+% convergence test that closes it.
+%
+% Layout note (2026-07): the previous version put the "repeat" label directly
+% on the coral feedback line, and sprouted the "check each cycle" arrow out of
+% that same line rather than out of Step B. Both are fixed here: the test now
+% hangs below Step B on its own vertical, and the feedback runs underneath
+% everything with its label in clear space above the line.
 \begin{tikzpicture}[
   font=\footnotesize,
   every node/.style={align=left},
   bx/.style={rectangle, draw=black, line width=0.6pt, fill=white,
              inner sep=5pt, text width=58mm, minimum height=20mm,
              anchor=north west},
-  result/.style={rectangle, draw=forest, line width=0.6pt, fill=forest!6,
-                 inner sep=4pt, text width=50mm, minimum height=10mm,
-                 anchor=north west},
+  cnd/.style={rectangle, draw=coral, line width=0.9pt, fill=coral!7,
+              inner sep=5pt, text width=142mm, anchor=north west},
+  result/.style={rectangle, draw=forest, line width=0.7pt, fill=forest!6,
+                 inner sep=4pt, text width=62mm, anchor=north},
   arr/.style={-{Stealth[length=2mm]}, line width=0.6pt},
-  loop/.style={-{Stealth[length=2mm]}, line width=0.7pt, color=coral}
+  loop/.style={-{Stealth[length=2mm]}, line width=0.8pt, color=coral,
+               rounded corners=2pt}
 ]
-\node[bx] (A) at (0,0)
+% --- the precondition, stated before the loop it governs ------------------
+\node[cnd] (C) at (0,0) {%
+  {\color{coral}\textbf{Condition}} --- the loop is legal only in
+  \emph{periodic steady state}: averaged over one lunation
+  $\langle\partial_t T\rangle=0$, so the cycle-mean flux
+  $\langle K\,\partial_z T\rangle=Q_b$ at \emph{every} depth.
+  The anchor $z_0=0.55$ m must sit below the rectification zone, where
+  $u_{\rm rect}<1\%$ of $Q_b$.};
+
+\node[bx, below=7mm of C.south west, anchor=north west] (A)
   {\textbf{Step A --- forward solve}\\[2pt]
    {\color{dim}Consumes:} $T_{\rm init}(z)$\\
    {\color{dim}Action:} run $n_{\rm in}$ lunations on the \emph{skin} (CN+Newton+Thomas)\\
@@ -23,19 +41,29 @@
    $\frac{d\langle T\rangle}{dz}=\frac{Q_b-u_{\rm rect}}{K(\langle T\rangle,z)}$
    downward (RK2)\\
    {\color{dim}Produces:} $T_{\rm recon}(z)\;\;(z>z_0)$};
-% forward: A -> B (top), carrying the anchor temperature and the eddy flux
+
+% forward: A -> B, carrying the anchor temperature and the eddy flux
 \draw[arr] (A.east) -- (B.west)
   node[midway, above, font=\scriptsize\itshape, color=dim]
   {$T_{\rm mean}(z_0),\,u_{\rm rect}$};
-% feedback: B -> A as a clean U below the boxes (returns to A.south, no wrap)
-\draw[loop] (B.south) -- ++(0,-10mm) -| (A.south)
-  node[pos=0.5, above, font=\scriptsize\itshape, color=coral]
-  {set $T_{\rm init}=T_{\rm recon}$, repeat};
-% convergence box, centered below, reached when the anchor stops moving
-\node[result, anchor=north, below=20mm of $(A.south east)!0.5!(B.south west)$] (R)
-  {\textbf{Stop when converged:}
-   $|T_{\rm mean}(z_0)^{(k)}-T_{\rm mean}(z_0)^{(k-1)}|<0.005$\,K\\
-   Typical: 4 outer cycles (2 primer $+$ 2 production)};
-\draw[arr, color=dim] ($(A.south)!0.5!(B.south)+(0,-10mm)$) -- (R.north)
-  node[midway, right, font=\scriptsize\itshape, color=dim] {check each cycle};
+
+% the convergence test hangs off Step B on its own vertical, because that is
+% what it tests -- it is not a branch of the feedback line
+\node[result, below=13mm of B.south] (R)
+  {\textbf{Converged?}\quad
+   $\bigl|T_{\rm mean}(z_0)^{(k)}-T_{\rm mean}(z_0)^{(k-1)}\bigr|<0.005$\,K\\[1pt]
+   {\color{dim}typically 4 outer cycles: 2 primer $+$ 2 production}};
+\draw[arr] (B.south) -- (R.north)
+  node[midway, right=1mm, font=\scriptsize\itshape, color=dim] {check};
+
+% feedback: not yet converged -> go round again. Three explicit segments so the
+% arrow rises VERTICALLY into Step A's bottom edge and lands flush on it. The
+% earlier `-|' form finished with a horizontal hop, which drove the head along
+% the border and over the box text.
+\coordinate (lo)  at ($(R.south)+(0,-9mm)$);
+\coordinate (loA) at (A.south |- lo);
+\draw[loop] (R.south) -- (lo) -- (loA) -- (A.south);
+\node[font=\scriptsize\itshape, color=coral, anchor=south, inner sep=1pt,
+      fill=white]
+  at ($(lo)!0.5!(loA)+(0,1.2mm)$) {no --- set $T_{\rm init}=T_{\rm recon}$, repeat};
 \end{tikzpicture}

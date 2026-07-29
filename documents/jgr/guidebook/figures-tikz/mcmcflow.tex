@@ -26,10 +26,10 @@
      {\scriptsize (ensemble ``stretch'' move, one walker at a time)}};
   \node[tbox, below=4.5mm of m1] (m2)
     {\textbf{score it --- prior}:\quad $Q_b \sim \mathcal{N}(\text{published},\,15\%)$;
-     \; $K_d$ flat in $\log$ over $[1, 30]$ mW\,m$^{-1}$\,K$^{-1}$};
+     \; $K_d$ flat in $\log$, per site: A15 $[0.8,9.0]$, A17 $[3.0,15.0]$ mW\,m$^{-1}$\,K$^{-1}$};
   \node[tbox, below=4.5mm of m2] (m3)
     {\textbf{score it --- likelihood}: read RMSE$(K_d, Q_b)$ off a surface
-     of $\sim$200 \emph{real} solves (13 $K_d$ $\times$ 9 $Q_b$ grid;
+     of 117 \emph{real} solves per site (13 $K_d$ $\times$ 9 $Q_b$ grid;
      outside it: reject, never extrapolate);\;
      $\log L = -\tfrac12 N\,(\mathrm{RMSE}/\sigma)^2$};
   \node[box, below=4.5mm of m3] (m4)
@@ -40,10 +40,11 @@
     {\textbf{After 4000 steps} (first 1000 discarded as warm-up), the walker
      positions \emph{are} the posterior: a cloud over $(K_d, Q_b)$.};
   \node[res, below=5mm of post]
-    {the cloud is a \emph{ridge} whose tilt is measured, not assumed:\\
-     at A15 higher $Q_b$ trades against \emph{higher} $K_d$, at A17 against
-     \emph{lower} --- and $P(K_d^{\rm A17}>K_d^{\rm A15})\approx99\%$
-     however wide the $Q_b$ prior};
+    {at A17 the cloud is a clear \emph{ridge} ($r=-0.75$): higher $Q_b$
+     trades against lower $K_d$. At A15 it is nearly round ($r=+0.08$) ---
+     7 sensors cannot tilt it. Either way
+     $P(K_d^{\rm A17}>K_d^{\rm A15})=99.2\%$, and it only \emph{rises}
+     as the $Q_b$ prior widens};
 
   \draw[arrow] (start) -- (m1);
   \draw[arrow] (m1) -- (m2);

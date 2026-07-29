@@ -1,0 +1,80 @@
+% Fig — the flux-anchored inner loop, SHORT FORM. Same skeleton as
+% stepsAB_flow (start, schedule, Step A, Step B, drift test, certified state)
+% with the implementation detail demoted to one grey line per box, so it can
+% be read from the back of a room. Use stepsAB_flow when someone wants the
+% numerics; use this one to explain the idea.
+% All values from code/src/lunar (config.py, equilibrium.py, solver.py).
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=center},
+  box/.style={rectangle, rounded corners=2pt, draw=dim, line width=0.8pt,
+              fill=white, inner sep=5pt, text width=6.3cm},
+  io/.style={rectangle, rounded corners=9pt, draw=dim, line width=0.9pt,
+             fill=black!3, inner sep=6pt, text width=6.3cm},
+  aBox/.style={box, draw=coral, line width=1pt},
+  bBox/.style={box, draw=forest, line width=1pt},
+  test/.style={rectangle, rounded corners=2pt, draw=teal, line width=1pt,
+               fill=teal!8, inner sep=5pt, text width=5.0cm},
+  arrow/.style={-{Stealth[length=2.4mm]}, line width=0.9pt, draw=dim,
+                rounded corners=3pt},
+  steplbl/.style={anchor=south west, font=\footnotesize\bfseries}]
+
+  \node[io] (start)
+    {\textbf{Start} --- truncate the grid to $[0,\;z_0+0.15\,\mathrm{m}]$\\
+     {\scriptsize\color{dim} only the skin is ever time-stepped}};
+
+  \node[box, below=5mm of start] (sched)
+    {\textbf{Two-stage schedule}\\[1pt]
+     stage 1: $z_0=0.25$ m, tol $0.10$ K\\
+     stage 2: $z_0=0.55$ m, tol $0.005$ K};
+
+  \node[aBox, below=10mm of sched] (a1)
+    {\textbf{Time-step the skin} for $n_\mathrm{in}$ lunations,\\
+     until the daily cycle repeats\\[2pt]
+     {\scriptsize\color{dim} Crank--Nicolson $\cdot$ Newton surface BC $\cdot$ Thomas solve}\\[2pt]
+     $\Rightarrow$ anchor $\langle T\rangle(z_0)$ $+$ the flux history};
+
+  \node[bBox, below=15mm of a1] (b1)
+    {\textbf{Name the eddy flux} the wiggle leaves behind\\[3pt]
+     $u_\mathrm{rect}=\langle K\,\partial_z T\rangle
+      -K(\langle T\rangle)\,\partial_z\langle T\rangle$\\[2pt]
+     {\scriptsize\color{dim} under $1\%$ of $Q_b$ below the anchor}};
+
+  \node[bBox, below=5mm of b1] (b2)
+    {\textbf{Integrate downward} from $z_0$\\[3pt]
+     $\dfrac{d\langle T\rangle}{dz}
+      =\dfrac{Q_b-u_\mathrm{rect}}{K(\langle T\rangle,\,z)}$\\[3pt]
+     {\scriptsize\color{dim} midpoint (RK2)}\\[1pt]
+     $\Rightarrow$ full column to 5 m, never time-stepped};
+
+  \node[test, below=9mm of b2] (dec)
+    {anchor drift $<$ tol\,?};
+
+  \node[io, below=9mm of dec] (done)
+    {\textbf{Certified steady state}\\
+     {\scriptsize\color{dim} guess-independent $\cdot$ flux closed $\cdot$ drift re-run passed}\\[1pt]
+     feeds the $K_d$ sweep};
+
+  \draw[arrow] (start) -- (sched);
+  \draw[arrow] (sched) -- (a1);
+  \draw[arrow] (a1) -- (b1);
+  \draw[arrow] (b1) -- (b2);
+  \draw[arrow] (b2) -- (dec);
+  \draw[arrow] (dec) -- (done)
+    node[midway, right=1pt, font=\scriptsize\color{dim}] {yes};
+
+  % loop-back: left channel, clear of every box
+  \path (dec.west) -- ++(-1.15,0) coordinate (turn);
+  \draw[arrow] (dec.west) -- node[above=1pt, font=\scriptsize\color{dim}] {no}
+               (turn) |- (a1.west);
+
+  \begin{scope}[on background layer]
+    \node[fill=coral!7,  rounded corners=3pt, fit=(a1),      inner sep=3mm] (contA) {};
+    \node[fill=forest!7, rounded corners=3pt, fit=(b1)(b2), inner sep=3mm] (contB) {};
+  \end{scope}
+  \node[steplbl, color=coral]  at ([yshift=1.5mm]contA.north west)
+    {STEP A \textbullet\ settle the skin};
+  \node[steplbl, color=forest] at ([yshift=1.5mm]contB.north west)
+    {STEP B \textbullet\ rebuild the deep};
+
+\end{tikzpicture}

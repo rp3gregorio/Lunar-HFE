@@ -27,7 +27,7 @@ pattern (`nagihara2018_restored_apollo_hfe.pdf`) and add a row below.
 | `martinez2021_model_lpsc2022_summary.pdf` | LPSC 2022 summary of the above. [PDF](https://www.hou.usra.edu/meetings/lpsc2022/pdf/2754.pdf) | Open short-form version of the same model — quicker orientation. |
 | `hemingway1973_specific_heats_lunar.pdf` | Hemingway et al. 1973, *Proc. LSC 4*, 2481. [ADS](https://ui.adsabs.harvard.edu/abs/1973LPSC....4.2481H/abstract) | Specific-heat measurements behind the solver's c_p(T) polynomial. |
 | `vasavada2012_diviner_equatorial.pdf` | Vasavada et al. 2012, *JGR:Planets*. [doi:10.1029/2011JE003987](https://doi.org/10.1029/2011JE003987) | Diviner surface-temperature modelling and the near-surface thermophysical context behind Hayne-style models. |
-| `cremers1971_apollo11_fines.pdf` | Cremers & Birkebak 1971 | Laboratory conductivity of Apollo 11 fines. |
+| `cremers1971_apollo12_fines.pdf` | Cremers & Birkebak 1971 | Laboratory conductivity of Apollo **12** fines (sample 12001,19): 1.2 to 3.5 mW/m/K over 160-428 K at 1300 kg/m^3. One sample, one density -- a temperature dependence, NOT a +/-30% scatter. |
 | `wood2020_porosity_conductivity.pdf` | Wood 2020 | Porosity–conductivity relationship for granular media. |
 | `feng2020_thermal_dielectric.pdf` | Feng et al. 2020, *JGR:Planets*. [doi:10.1029/2019JE006130](https://doi.org/10.1029/2019JE006130) | CE-2 microwave + Diviner constraints on regolith thermal/dielectric structure. |
 

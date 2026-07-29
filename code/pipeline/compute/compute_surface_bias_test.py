@@ -41,8 +41,18 @@ from pipeline.compute.retrieve_kd import (                  # noqa: E402
 )
 
 # Albedo offsets applied on top of each site's nominal Bond albedo.
-# +/-0.01 matches the published Vasavada et al. (2012) lat-band albedo
-# scatter quoted in the manuscript error budget. Larger perturbations
+# +/-0.01 is an ASSUMED envelope, not a published error bar.
+# PROVENANCE NOTE (audited 2026-07-27): this was labelled "the published
+# Vasavada et al. (2012) lat-band albedo scatter". Vasavada et al. (2012)
+# quote no albedo uncertainty; they model a normal albedo of 0.1 and
+# separate terrain by albedo >0.13 / <0.09. +/-0.01 is of the same order
+# as the spread between published choices (this work uses 0.131/0.137
+# per site, Hayne 2017 a global A0 = 0.12), which is why it is a
+# reasonable envelope -- but it is assumed, and must not be presented as
+# a quoted 1-sigma. Its role in the budget is to show how WEAKLY
+# Apollo 17 constrains K_d: a shift this small moves the RMSE minimum
+# further than the whole statistical uncertainty.
+# See documents/notes/ERROR_BUDGET_PROVENANCE.md.  Larger perturbations
 # (+/-0.02 and beyond) push the deep-T(K_d) response into a
 # non-monotonic regime where the RMSE bowl develops a second minimum
 # and the retrieval hops between branches; the resulting half-range is

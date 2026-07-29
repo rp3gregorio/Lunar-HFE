@@ -12,6 +12,8 @@
   prb/.style={rectangle, draw=black, line width=0.6pt, fill=white,
               inner sep=4pt, text width=54mm, minimum height=14mm,
               anchor=north west},
+  cnd/.style={rectangle, draw=coral, line width=0.9pt, fill=coral!7,
+              inner sep=4pt, text width=54mm, anchor=north west},
   rsb/.style={rectangle, draw=black, line width=0.5pt, fill=white,
               inner sep=4pt, text width=38mm, minimum height=14mm,
               anchor=north west},
@@ -51,15 +53,23 @@
   \textbf{B.\; Forward solve\; $\to T(z;K_d)$}\\[1pt]
   solve the heat equation\\[-1pt]
   \hfill$\rho\,c_p\,\partial_t T=\partial_z(K\,\partial_z T)$\hfill\null\\[-1pt]
-  to a certified periodic steady state (flux-anchored)\\
-  {\color{dim}\texttt{src/lunar/\{solver,equilibrium\}.py}}};
-\node[prb, below=3mm of pB.south west, anchor=north west] (pC) {%
+  to a certified periodic steady state\\[2pt]
+  {\color{forest}\bfseries this is where the anchor method acts}};
+% the anchor method is only legal under one condition; state it where the
+% method is invoked rather than leaving it to the chapter
+\node[cnd, below=2mm of pB.south west, anchor=north west] (pCond) {%
+  {\color{coral}\textbf{Condition}} --- legal only once the cycle
+  \emph{closes}: over one lunation $\langle\partial_t T\rangle=0$, so
+  $\langle K\,\partial_z T\rangle=Q_b$ at \emph{every} depth.\\[1pt]
+  {\color{dim}Anchor $z_0=0.55$ m, below the rectification zone
+   ($u_{\rm rect}<1\%$ of $Q_b$).}};
+\node[prb, below=3mm of pCond.south west, anchor=north west] (pC) {%
   \textbf{C.\; Sweep $K_d$, minimise RMSE}\\[1pt]
   $\mathrm{RMSE}(K_d)=\sqrt{\overline{(T_{\rm model}-T_{\rm eq})^2}}$\\
   parabolic vertex $\to K_d^{*}$};
 \node[prb, below=3mm of pC.south west, anchor=north west] (pD) {%
   \textbf{D.\; Uncertainty}\\[1pt]
-  bootstrap (1500$\times$), MCMC, AICc, error budget};
+  bootstrap (1500$\times$), MCMC,\\ AICc, error budget};
 
 % --- RESULTS column ---
 \node[hl]  at (12.4,-0.4)  (r1) {%
@@ -73,7 +83,7 @@
 \node[rsb, below=2mm of r2.south west, anchor=north west] (r3) {%
   inter-site contrast\\
   \itshape A17 $-$ A15 $= 2.31$\\
-  {\color{dim}$p\approx 0.031$}};
+  {\color{dim}bootstrap tail $0.031$}};
 \node[rsb, below=2mm of r3.south west, anchor=north west] (r4) {%
   total $1\sigma$ budget\\
   \itshape A15: $\pm 1.88$\\
@@ -86,7 +96,8 @@
 
 % --- arrows: process flow downward ---
 \draw[arr] (pA.south) -- (pB.north);
-\draw[arr] (pB.south) -- (pC.north);
+\draw[arr] (pB.south) -- (pCond.north);
+\draw[arr] (pCond.south) -- (pC.north);
 \draw[arr] (pC.south) -- (pD.north);
 
 % --- arrows: process to results ---

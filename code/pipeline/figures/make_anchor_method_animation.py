@@ -43,7 +43,8 @@ from lunar.config import SITES, GRID, HAYNE, DT_STEP
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import standard_insolation, periodic_time_grid
-from lunar.equilibrium import solve_periodic_equilibrium
+from lunar.equilibrium import (solve_periodic_equilibrium, _rectified_flux,
+                               _reconstruct_subskin)
 from lunar.plotting.style import (JGR_FULL, C_A15, C_HAYNE, C_CORAL, C_CHAR,
                                   C_DIM, C_GRID, C_FOREST)
 
@@ -78,11 +79,14 @@ def _compute():
     T_target = eq.T_mean
 
     i0 = int(np.argmin(np.abs(z - Z0)))
-    # Step B: walk the deep column down from the anchor by the slope rule
-    T_walk = T_target.copy()
-    for i in range(i0, z.size - 1):
-        slope = Qb / float(K(np.array([T_walk[i]]), np.array([z[i]]))[0])
-        T_walk[i + 1] = T_walk[i] + slope * dz[i]
+    # Step B: the deep column, built by THE PRODUCTION INTEGRATOR itself.
+    # This used to be a hand-rolled forward-Euler walk with u_rect dropped;
+    # that drifted 94 mK from the real answer by 3 m (19x the 0.005 K anchor
+    # tolerance), almost all of it from Euler-vs-midpoint rather than from
+    # u_rect, which is worth only 0.1 mK here. Calling the real function means
+    # the animation cannot disagree with the solver.
+    u_rect = _rectified_flux(eq.out.T, z, K)
+    T_walk = _reconstruct_subskin(T_target.copy(), z, i0, Qb, K, u_rect)
 
     # a deliberately-wrong initial guess spanning the plotted window
     T_guess = np.linspace(float(T_target.mean()) - 4.0,
@@ -108,7 +112,7 @@ PHASES = [
      "at $z_0=0.55$ m the daily wave is dead: the settled $\\langle T\\rangle(z_0)$ is trustworthy",
      "anchor", 5),
     (4, "Step B: walk down from the anchor",
-     "no time-stepping: each next node is $T + (Q_b/K)\\,\\Delta z$ -- energy conservation",
+     "no time-stepping: one midpoint (RK2) integration of the closure, cell by cell",
      "stepB", 16),          # walk frames
     (5, "repeat A $\\leftrightarrow$ B",
      "the rebuilt deep column nudges the skin; iterate until nothing moves",
@@ -172,12 +176,20 @@ def _draw_column(ax, D, kind, prog, arrow_holder):
         ax.plot(D["T_walk"][built], z[built], "-", color=C_HAYNE, lw=3.4)
 
     if kind in ("stepB", "repeat", "done"):
-        ax.text(0.965, 0.06,
-                r"$\dfrac{d\langle T\rangle}{dz}=\dfrac{Q_b}{K}\approx$"
+        # BOTTOM-LEFT is the one large pocket the profile never enters: the
+        # column runs cold-shallow to warm-deep, so "deep and cold" stays
+        # empty in every frame. Bottom-right and top-right both put the box
+        # across the walk line or the anchor.
+        # The full closure carries -u_rect; below the anchor that term is
+        # under 0.2% of Q_b, which is why the slope reads as Q_b/K.
+        ax.text(0.035, 0.04,
+                r"$\dfrac{d\langle T\rangle}{dz}"
+                r"=\dfrac{Q_b-u_{\rm rect}}{K}$" "\n"
+                r"$u_{\rm rect}<0.2\%$ of $Q_b$ here, so $\approx$"
                 f"{D['slope']:.1f} K/m",
-                transform=ax.transAxes, fontsize=10.5, color=C_A15,
-                ha="right", va="bottom",
-                bbox=dict(boxstyle="round,pad=0.38", fc="white", ec=C_A15, lw=1.1))
+                transform=ax.transAxes, fontsize=9.5, color=C_A15,
+                ha="left", va="bottom", linespacing=1.5,
+                bbox=dict(boxstyle="round,pad=0.34", fc="white", ec=C_A15, lw=1.1))
 
     ax.set_xlim(*XLIM)
     ax.set_ylim(ZMAX, 0)

@@ -19,6 +19,7 @@ sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 
 # (module, callables) — each module's figure entry point(s), in run order.
 JOBS = [
+    ("make_intro_column",   "letter Fig 1: column, probes, density"),
     ("make_intro_figures",      ["fig_intro_probe"]),
     ("make_anchor_method_figure", ["main"]),  # letter Fig: the anchor method
     ("make_context_map_figure", ["main"]),
@@ -29,6 +30,15 @@ JOBS = [
                                                 # (audit 2026-07-05)
     ("make_apollo_timeline",    ["main"]),    # slim redesign (guidebook)
     ("make_apollo_timeline_letter", ["main"]), # original rich design (letter Fig 3)
+    ("make_window_criteria_figures", ["main"]),  # (1) the 5-box window process
+                                                # (2) all four selector knobs
+                                                # swept through the retrieval
+                                                # (window_criteria_sensitivity)
+    ("make_stability_selection_flow", ["main"]),  # how each sensor's stabilized
+                                                # window is chosen: the
+                                                # find_stable_window decision
+                                                # flow + one worked sensor per
+                                                # branch (trend_flat / fallback)
     ("make_letter_figures",     ["main"]),
     ("make_results_figures",    ["main"]),
     ("make_alpha_sweep_figure", ["main"]),
@@ -38,6 +48,32 @@ JOBS = [
     ("make_sweep_worked_figure", ["main"]),    # App-C worked sweep bowl (book)
     ("make_method_flowchart",   ["main"]),    # thesis Ch-3 flux-anchored outer loop (fig:methodflow)
     ("make_bc_illustration",    ["main"]),    # thesis Ch-3 boundary-condition schematic
+    ("make_grid_illustration",  ["main"]),    # the geometric depth grid: all 69
+                                              # cells to scale, a zoom on the fine
+                                              # end, and dz vs depth
+    ("make_column_illustration", ["main"]),   # the lit column beside Hayne's
+                                              # density profile. Unlabelled by
+                                              # design: the boundary-condition
+                                              # equations are added in the
+                                              # document, not baked in here
+    ("make_column_and_retrieval", ["main"]),  # the full 5 m column: both
+                                              # boundaries, the diurnal skin, the
+                                              # compaction, and the measured
+                                              # RMSE(K_d) bowls that define K_d*
+    ("make_surface_balance",    ["main"]),    # lit cutaway of the surface energy
+                                              # balance: sunlight in, scattered,
+                                              # absorbed, radiated, conducted.
+                                              # Equations set in Cambria Math
+                                              # (falls back if Office is absent)
+    ("make_regolith_cartoon",   ["main"]),    # thesis Ch-3 opener: the column,
+                                              # its density, its three bounding
+                                              # conditions, the Apollo probe.
+                                              # Deliberately equation-free.
+    ("make_model_anatomy",      ["main"]),    # thesis Ch-3 candidates: the heat
+                                              # equation + Hayne K(T,z) + the
+                                              # three closure conditions, in four
+                                              # registers (cutaway / equation map
+                                              # / stencil / per-condition grid)
     ("make_pipeline_flowchart", ["main"]),    # thesis Ch-1 whole-pipeline overview
     ("make_discussion_figures", ["main"]),    # thesis Ch-6 waterfall/mechanisms/TSUKIMI
     ("make_numerics_figure",    ["main"]),    # thesis Ch-3 grid + matrix diagram

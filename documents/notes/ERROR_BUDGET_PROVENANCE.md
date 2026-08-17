@@ -22,11 +22,11 @@ An earlier pass that only grepped is not evidence and was discarded.
 | K_d global | 3.4×10⁻³ | ✅ **exact** — Hayne 2017 |
 | H | 0.06 m | ✅ **exact** — Hayne 2017 |
 | ρ_s, ρ_d | 1100, 1800 kg m⁻³ | ✅ **exact** — Hayne 2017 |
-| Q_b envelope | A15 14–25, A17 10–18 | ⚠️ upper bounds supported; **lower bounds are not** |
+| Q_b envelope | A15 14–25, A17 10–18 | ✅ **resolved 2026-08-17** — Saito 2007 (LPSC XXXVIII #2197, now in references/) infers 3.7 mW/m² at A17, *below* the swept lower bound; envelope is conservative |
 | **χ alternative** | **1.48** | ❌ **misattributed** |
 | K_s ±30 % | "Cremers 1971 lab scatter" | ⚠️ not a quoted uncertainty |
 | Albedo ±0.01 | "Vasavada 2012" | ⚠️ inferred, not quoted |
-| ρ_d 1700–2000 | "Mitchell 1973 / Carrier 1991" | ⚠️ upper bound not found |
+| ρ_d 1700–2000 | "Mitchell 1973 / Carrier 1991" | ✅ **resolved 2026-08-17** — Mitchell CR-134306 (now in references/) gives ρ=1.27+0.121·ln(z+1) g/cm³ → 1.83–1.93 at 1–2.3 m |
 
 ---
 
@@ -185,3 +185,36 @@ judging which inputs matter, not calibrated standard errors."* Every finding
 above is consistent with that claim. What must **not** be said is that the
 envelopes are published 1σ values — for albedo, K_s and the Q_b lower bounds,
 they are not.
+
+
+---
+
+## Addendum — 2026-08-17 (PDFs located, two ⚠ resolved, one ❌ found)
+
+**Saito et al. (2007) — bib entry was fabricated, paper is real.** The entry
+carried title "Lunar heat flow experiment for SELENE-2", *Adv. Space Res.* 40,
+1601–1607, doi:10.1016/j.asr.2007.07.007. That DOI resolves to Vial et al.,
+"SMESE (SMall Explorer for Solar Eruptions)", *Adv. Space Res.* **41**, 183–189
+(2008) — an unrelated solar-physics paper; the page range 1601–1607 was
+duplicated from the (now removed) horai1981 entry. The **real** paper, with the
+same five authors and year, is:
+
+> Saito, Tanaka, Takita, Horai & Hagermann (2007), *Lost Apollo heat flow data
+> suggest a different lunar bulk composition*, LPSC XXXVIII, Abstract #2197.
+> → `references/saito2007_lost_apollo_heat_flow_lpsc38.pdf`
+
+Read in full. It states Langseth's originals as "21 mW/m² and 14 mW/m²", revises
+the A17 gradient to 0.312 K/m and infers **3.7 mW/m²** at A17. So the letter's
+"lower, Saito-direction fluxes" claim is *correct and now source-verified*, and
+the [10,18] sweep is **conservative** — Saito's own value sits below it, and
+adopting it would widen the contrast (A17 K_d rises as Q_b falls). Letter
+updated to say so.
+
+**Mitchell et al. (1973), NASA CR-134306** → `references/mitchell1973_apollo_soil_mechanics_S200_CR134306.pdf`
+(public domain, via LPI). Depth relation ρ = 1.27 + 0.121·ln(z+1) g/cm³ gives
+**1.83 g/cm³ at 1 m and 1.93 at 2.3 m**; max observed 1.93 (Jaffe 1972). With
+Langseth p. 3154 (A15 cores 1.75–1.90, A17 1.83–2.09), the 1700–2000 kg/m³
+sweep is now properly supported at meter depth.
+
+**Nagihara et al. (2018)** remains unavailable — agupubs returns HTTP 402
+(paywalled). Still the only claim resting on an unread source.

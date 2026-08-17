@@ -405,8 +405,8 @@ def draw_fluxes(ax, mid):
 
 
 # ---- the probes, drawn into the material they measured ----------------------
-PROBE_LANES = {"a15": (BLK_L + 0.30, C_FOREST, "A15"),
-               "a17": (BLK_L + 0.50, C_CORAL, "A17")}
+PROBE_LANES = {"a15": (BLK_L + 0.82, C_FOREST, "Apollo 15"),
+               "a17": (BLK_L + 1.04, C_CORAL, "Apollo 17")}
 
 
 def draw_probes(ax):
@@ -446,7 +446,9 @@ def draw_probes(ax):
                    facecolor=PAPER, edgecolor=col, linewidth=0.8, zorder=14)
 
         side = -1 if mis == "a15" else 1          # labels point away from each other
-        ax.text(x + 0.075 * side, y_e, lab, color=_shade(col, -0.2), fontsize=7,
+        ax.text(x + 0.075 * side, y_e,
+                f"{lab}\n{d.max()/100:.2f} m · {int(m.sum())} sensors",
+                color=_shade(col, -0.2), fontsize=6.6, linespacing=1.35,
                 ha=("right" if side < 0 else "left"), va="center",
                 zorder=15, bbox=HALO)
 

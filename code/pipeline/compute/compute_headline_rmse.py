@@ -56,7 +56,8 @@ def deep_obs(site_cfg):
 
 def rmse_forward(site_cfg, *, k_model, kd=None, z_obs, T_obs):
     z_mid, T_mean = pap.run_with(site_cfg, kd=kd, k_model=k_model)
-    return float(np.sqrt(np.mean((np.interp(z_obs, z_mid, T_mean) - T_obs) ** 2)))
+    resid = np.interp(z_obs, z_mid, T_mean) - T_obs
+    return float(np.sqrt(np.mean(resid ** 2))), float(np.mean(resid))
 
 
 def kd_sweep_hayne(site_cfg, kd_grid, z_obs, T_obs):
@@ -99,10 +100,14 @@ def main():
         print(f"\n=== {s} ===", flush=True)
         cfg = pap.SITES[s]
         z, T = deep_obs(cfg)
-        rmse_global = rmse_forward(cfg, k_model="hayne",
+        rmse_global, bias_global = rmse_forward(cfg, k_model="hayne",
                                    kd=HAYNE_GLOBAL_KD, z_obs=z, T_obs=T)
         kd_h, rmse_h = kd_sweep_hayne(cfg, KD_GRID[s], z, T)
-        rmse_m = rmse_forward(cfg, k_model="martinez", z_obs=z, T_obs=T)
+        # bias of the site fit, evaluated at the retrieved vertex (the
+        # manuscript's Table 2 quotes it; persist it so it is auditable)
+        _, bias_h = rmse_forward(cfg, k_model="hayne", kd=kd_h,
+                                 z_obs=z, T_obs=T)
+        rmse_m, bias_m = rmse_forward(cfg, k_model="martinez", z_obs=z, T_obs=T)
         alpha_star, rmse_ms_fit, alpha_grid_list, rmse_alpha_curve = \
             alpha_sweep_martinez(cfg, MS_ALPHA_GRID, z, T)
         rho_d_star = alpha_star * 1800.0
@@ -116,10 +121,13 @@ def main():
         out["sites"][s] = {
             "N_deep": int(len(z)),
             "hayne_global":      {"kd_mW": HAYNE_GLOBAL_KD * 1e3,
-                                  "rmse_K": rmse_global},
+                                  "rmse_K": rmse_global,
+                                  "bias_K": bias_global},
             "hayne_site_fit":    {"kd_mW": kd_h * 1e3,
-                                  "rmse_K": rmse_h},
-            "martinez_forward":  {"rmse_K": rmse_m},
+                                  "rmse_K": rmse_h,
+                                  "bias_K": bias_h},
+            "martinez_forward":  {"rmse_K": rmse_m,
+                                  "bias_K": bias_m},
             "martinez_site_fit": {"alpha": alpha_star,
                                   "rho_d_kg_m3": rho_d_star,
                                   "rmse_K": rmse_ms_fit,

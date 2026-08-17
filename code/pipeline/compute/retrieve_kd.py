@@ -541,8 +541,12 @@ def main():
     boot17 = np.array(results['A17']['bootstrap']['samples'])
     contrast = boot17 - boot15
     cmed, clo, chi_ = np.percentile(contrast, [50, 2.5, 97.5])
+    # 16-84 percentiles: the asymmetric 1-sigma interval the manuscript
+    # quotes (2.31 +0.67/-0.90); persist so the quote is auditable.
+    cq16, cq84 = np.percentile(contrast, [16, 84])
     results['contrast_bootstrap'] = dict(
         median=float(cmed), ci_lo=float(clo), ci_hi=float(chi_),
+        q16=float(cq16), q84=float(cq84),
         # NB this is the bootstrap tail proportion P_boot(contrast <= 0)
         # computed from the FITTED (non-null-centered) bootstrap draws --
         # report it as such, never as a conventional null-centered p-value
@@ -610,9 +614,13 @@ def main():
         if isinstance(o, dict): return {k: jsonify(v) for k, v in o.items()}
         if isinstance(o, (list, tuple)): return [jsonify(x) for x in o]
         return o
-    # Add Q_b sensitivity (analytical, from the K_d/Q_b degeneracy on
-    # the retrieved K_d*). Required by fig_robustness panel (a). Doing
-    # this *before* writing the JSON so the saved file is complete.
+    # Add the PROPORTIONAL Q_b surrogate grid. SUPERSEDED (audit F-9):
+    # the proportional rule K_d*(alpha*Qb) = alpha*K_d* is a disproved
+    # model of the degeneracy -- the real relation is inverse and
+    # non-proportional (see results/qb_degeneracy.json, written by
+    # compute_qb_degeneracy.py, which fig_robustness panel (a) and the
+    # error budget actually use). Kept only for backward compatibility
+    # of the JSON schema; do NOT base any conclusion on this block.
     import numpy as _np
     alphas = _np.linspace(0.0, 1.3, 27)
     g15, g17 = _np.meshgrid(alphas, alphas, indexing='ij')

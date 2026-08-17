@@ -218,3 +218,21 @@ sweep is now properly supported at meter depth.
 
 **Nagihara et al. (2018)** remains unavailable — agupubs returns HTTP 402
 (paywalled). Still the only claim resting on an unread source.
+
+
+---
+
+## Addendum 2 — 2026-08-17 (four more PDFs supplied by the author)
+
+All four DOIs matched their bib entries exactly. Now in `references/`.
+
+| Source | Letter's claim | Verdict |
+|---|---|---|
+| **Nagihara 2018** `10.1029/2018JE005579` | Q_b = 21 / 16 mW m⁻² | ✅ verbatim: *"Endogenic heat flow was then determined to be 21 mW/m2 at Site 15 and 16 mW/m2 at Site 17."* |
+| " | restored record spans 1971–1977 | ✅ A15 Jul 1971–Jan 1977; A17 Dec 1972–Sep 1977 |
+| " | "±2.5 cm astronaut-emplacement envelope **reported by** Nagihara" | ❌ **MISATTRIBUTED — fixed.** The paper reports no depth uncertainty; its only ± is ±0.05 K sensor accuracy. Its "2.5 cm" is the **probe rod diameter** ("solid rods … 2.5-cm diameter"); "2.5 m" is hole depth. The value is a modelling choice and is now labelled an *adopted* envelope set at the probe-rod diameter, which keeps the citation truthful. |
+| **Kopp & Lean 2011** `10.1029/2010GL045777` | S₀ = 1361 W m⁻² | ✅ paper gives **1360.8 ± 0.5**; 1361 is the standard rounding |
+| **Bandfield 2015** `10.1016/j.icarus.2014.11.009` | ε = 0.95 | ✅ *"Apparent broadband hemispherical emissivity is **0.951** … for the average daytime"* (nighttime 0.901 — the model's single 0.95 is daytime-weighted, defensible for an insolation-driven balance) |
+| **Davies & Colvin 2000** `10.1029/1999JE001165` | lat 26.1° / 20.2° N | ✅ **exact**: ALSEP 15 = 26.13407 N, 3.62981 E; ALSEP 17 = 20.19209 N, 30.76492 E — matches `config.py` (26.13/3.63, 20.19/30.77) to 4–5 s.f. |
+
+Every source the letter cites for a physical number has now been read.

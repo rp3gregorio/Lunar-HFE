@@ -62,6 +62,8 @@ for _p in (str(_REPO), str(_REPO / "src"), str(_HERE)):
 
 from lunar.apollo_helpers import extract_sensor_stability
 from lunar.config import GRID, HAYNE, SITES
+from matplotlib.colors import to_rgb
+
 from lunar.constants import RHO_DEEP, RHO_SURFACE
 from lunar.grid import make_geometric_grid
 from lunar.plotting.style import (C_CHAR, C_CORAL, C_DIM, C_FOREST, C_GRID,
@@ -119,6 +121,32 @@ def ymap(z_cm):
                                       / np.log10(Z_BOT / Z_TOP))
 
 
+
+def _blend(c0, c1, t):
+    a = np.array(to_rgb(c0)); b = np.array(to_rgb(c1))
+    return tuple(a + (b - a) * float(np.clip(t, 0.0, 1.0)))
+
+
+def zmap(y):
+    """Inverse of ymap: the depth (cm) a y-coordinate stands for."""
+    frac = (Y_TOP - np.asarray(y, dtype=float)) / (Y_TOP - Y_BOT)
+    return Z_TOP * 10.0 ** (frac * np.log10(Z_BOT / Z_TOP))
+
+
+def compaction(y):
+    """0 at the loosest surface, 1 at the fully compacted deep value.
+
+    The tone of the cut faces is driven by this rather than by position on the
+    axis, so the block darkens exactly where rho(z) actually rises -- all of it
+    above 30 cm -- and stops darkening below, where the regolith is already at
+    its deep density. Position-linear shading implied compaction continuing to
+    5 m, which the density panel to the right plainly contradicts.
+    """
+    rho = density_hayne(zmap(y) / 100.0)
+    lo, hi = float(density_hayne(np.array([Z_TOP / 100.0]))[0]), RHO_DEEP
+    return np.clip((rho - lo) / (hi - lo), 0.0, 1.0)
+
+
 def dens_x(rho):
     return DENS_L + (np.asarray(rho) - 1050.0) / 800.0 * (DENS_R - DENS_L)
 
@@ -164,7 +192,8 @@ def draw_block(ax):
                              closed=True, facecolor=DARK, edgecolor="none",
                              alpha=a, zorder=1))
 
-    ax.imshow(np.linspace(0, 1, 256)[:, None],
+    _rows = np.linspace(Y_TOP, Y_BOT, 256)
+    ax.imshow(compaction(_rows)[:, None],
               cmap=LinearSegmentedColormap.from_list(
                   "cut", [GROUND_MID, GROUND_DEEP]),
               aspect="auto", origin="upper",
@@ -177,9 +206,10 @@ def draw_block(ax):
         ax.add_patch(Polygon([(BLK_R, y0), (BLK_R + SHEAR_X, y0 + SHEAR_Y),
                               (BLK_R + SHEAR_X, y1 + SHEAR_Y), (BLK_R, y1)],
                              closed=True,
-                             facecolor=_shade(GROUND_MID if t0 < 0.5
-                                              else GROUND_DEEP,
-                                              -0.18 - 0.16 * t0),
+                             facecolor=_shade(
+                                 _blend(GROUND_MID, GROUND_DEEP,
+                                        float(compaction(y0))),
+                                 -0.18 - 0.16 * t0),
                              edgecolor="none", zorder=3))
 
     ax.add_patch(Polygon([(BLK_L, Y_TOP), (BLK_R, Y_TOP),
@@ -367,18 +397,21 @@ def draw_fluxes(ax, mid):
         n = np.array([-v[1], v[0]])
         s = np.linspace(0, 1, 150)
         L = 0.58 + 0.04 * (j % 2)
+        # The wiggle ramps in from the surface AND back out before the tip, so
+        # the last stretch is straight along v. Left at full amplitude the head
+        # inherited the sine's steepest slope and skewed off the path.
+        env = np.clip(s * 3.0, 0, 1) * np.clip((1.0 - s) * 5.0, 0, 1)
         pts = (np.array([ex, Y_TOP + 0.05])[None, :]
                + v[None, :] * (s * L)[:, None]
-               + n[None, :] * (0.026 * np.sin(s * 4.0 * np.pi)
-                               * np.clip(s * 3, 0, 1))[:, None])
+               + n[None, :] * (0.026 * np.sin(s * 4.0 * np.pi) * env)[:, None])
         ax.plot(pts[:, 0], pts[:, 1], color=COOL, lw=3.0, alpha=0.10,
                 solid_capstyle="round", zorder=9)
         ax.plot(pts[:, 0], pts[:, 1], color=COOL, lw=1.3, alpha=0.95,
                 solid_capstyle="round", zorder=10)
-        ax.add_patch(FancyArrowPatch(tuple(pts[-5]), tuple(pts[-1]), color=COOL,
+        ax.add_patch(FancyArrowPatch(tuple(pts[-14]), tuple(pts[-1]), color=COOL,
                                      lw=1.3, arrowstyle="-|>",
-                                     mutation_scale=9, shrinkA=0, shrinkB=0,
-                                     zorder=10))
+                                     mutation_scale=7.5, shrinkA=0, shrinkB=0,
+                                     joinstyle="miter", zorder=10))
 
     # conducted downward: thin, and it should look thin
     ax.add_patch(FancyArrowPatch((X_CONDUCT, Y_TOP - 0.14),

@@ -64,8 +64,10 @@ from lunar.apollo_helpers import extract_sensor_stability
 from lunar.config import GRID, HAYNE, SITES
 from lunar.constants import RHO_DEEP, RHO_SURFACE
 from lunar.grid import make_geometric_grid
-from lunar.plotting.style import C_CHAR, C_CORAL, C_DIM, C_FOREST, C_GRID, C_TEAL
-from lunar.properties import density_hayne
+from lunar.plotting.style import (C_CHAR, C_CORAL, C_DIM, C_FOREST, C_GRID,
+                                  C_MS, C_TEAL)
+from lunar.properties import (conductivity_hayne, conductivity_martinez,
+                              density_hayne)
 
 from make_surface_balance import (GRAIN_RIM, GROUND_DEEP, GROUND_LIT,
                                   GROUND_MID, PAPER, _shade, apply_style,
@@ -81,10 +83,11 @@ BAND_COMPACT = "#EFE7DC"              # the compaction zone, shared by both pane
 # ---- x budget (inches) ------------------------------------------------------
 BLK_L, BLK_R = 0.68, 3.32
 SHEAR_X, SHEAR_Y = 0.26, 0.17
-X_SPLIT = 0.68 + 0.54 * (3.32 - 0.68)  # material (left) | grid (right)
+X_SPLIT = 0.68 + 0.66 * (3.32 - 0.68)  # material (left) | grid (right)
 GAP_L = BLK_R + SHEAR_X + 0.10        # where the tie lines start
-DENS_L, DENS_R = 4.30, 6.24
-NOTE_X = DENS_R + 0.12                 # the two texture sentences
+DENS_L, DENS_R = 4.16, 5.24
+KPAN_L, KPAN_R = 5.86, 7.06        # the K(z) comparison panel
+NOTE_X = KPAN_R + 0.12                 # (texture notes now live in the caption)
 # The grid half carries its OWN LINEAR depth mapping. It cannot share the log
 # axis: a log axis compresses exactly where the cells are fine, so cell faces
 # drawn on one crowd at depth and spread at the surface -- 12 per inch near the
@@ -118,6 +121,13 @@ def ymap(z_cm):
 
 def dens_x(rho):
     return DENS_L + (np.asarray(rho) - 1050.0) / 800.0 * (DENS_R - DENS_L)
+
+
+K_LO, K_HI = 0.0, 9.0                 # mW/m/K, the panel's span
+
+
+def kx(k_mW):
+    return KPAN_L + (np.asarray(k_mW) - K_LO) / (K_HI - K_LO) * (KPAN_R - KPAN_L)
 
 
 def draw_shared_band(ax):
@@ -400,28 +410,75 @@ PROBE_LANES = {"a15": (BLK_L + 0.30, C_FOREST, "A15"),
 
 
 def draw_probes(ax):
-    """Both borestems on the material half, every sensor at its real depth.
+    """Both borestems, drawn as instruments rather than lines.
 
-    Lanes sit at x = 1.12 and 1.68 in: clear of the impact point (1.34) and of
-    the conduction arrow (1.88), so no probe crosses a flux it does not carry.
-    Filled markers enter the retrieval; open ones are inside the borestem zone
-    and are excluded.
+    Each is a pale drill casing with the probe rod inside it, a small head box
+    at the surface, and the platinum sensors as beads on the rod: filled where
+    the sensor enters the retrieval, open inside the excluded borestem zone.
     """
     for mis, (x, col, lab) in PROBE_LANES.items():
         o = extract_sensor_stability(mis, int(BORESTEM_CM))
         d = np.asarray(o["depth_cm_all"], dtype=float)
         m = np.asarray(o["deep_mask"], dtype=bool)
         y_s, y_e = float(ymap(Z_TOP)), float(ymap(d.max()))
-        ax.plot([x, x], [y_s, y_e], color=_shade(col, -0.10), lw=1.9,
-                alpha=0.50, solid_capstyle="round", zorder=13)
-        ax.scatter(np.full(int(m.sum()), x), ymap(d[m]), s=12, facecolor=col,
-                   edgecolor=PAPER, linewidth=0.5, zorder=14)
-        ax.scatter(np.full(int((~m).sum()), x), ymap(d[~m]), s=12,
-                   facecolor=PAPER, edgecolor=col, linewidth=0.7, zorder=14)
+
+        # the drilled casing: pale, wider, with a soft edge
+        ax.plot([x, x], [y_s, y_e], color=PAPER, lw=5.2, alpha=0.85,
+                solid_capstyle="round", zorder=12.6)
+        ax.plot([x, x], [y_s, y_e], color=_shade(col, 0.55), lw=4.4,
+                alpha=0.55, solid_capstyle="round", zorder=12.7)
+        # the probe rod inside it
+        ax.plot([x, x], [y_s, y_e], color=_shade(col, -0.10), lw=1.5,
+                alpha=0.95, solid_capstyle="round", zorder=13)
+        # the closed nose
+        ax.plot([x], [y_e], marker="v", ms=3.4, color=_shade(col, -0.25),
+                zorder=13.5)
+        # the head box, sitting on the surface
+        ax.add_patch(Rectangle((x - 0.055, y_s), 0.11, 0.075,
+                               facecolor=_shade(col, 0.30),
+                               edgecolor=_shade(col, -0.25), lw=0.6,
+                               zorder=13.6))
+
+        # the sensors
+        ax.scatter(np.full(int(m.sum()), x), ymap(d[m]), s=13, facecolor=col,
+                   edgecolor=PAPER, linewidth=0.6, zorder=14)
+        ax.scatter(np.full(int((~m).sum()), x), ymap(d[~m]), s=13,
+                   facecolor=PAPER, edgecolor=col, linewidth=0.8, zorder=14)
+
         side = -1 if mis == "a15" else 1          # labels point away from each other
-        ax.text(x + 0.055 * side, y_e, lab, color=_shade(col, -0.2), fontsize=7,
+        ax.text(x + 0.075 * side, y_e, lab, color=_shade(col, -0.2), fontsize=7,
                 ha=("right" if side < 0 else "left"), va="center",
                 zorder=15, bbox=HALO)
+
+
+def draw_kpanel(ax):
+    """The difference that actually exists between the two published models:
+    not rho(z) -- Martinez & Siegler adopt Hayne's exponential form (their
+    Eq. 3) -- but K(z). Evaluated at 250 K, the mean deep temperature."""
+    zz = np.geomspace(Z_TOP, Z_BOT, 400)
+    T = np.full_like(zz, 250.0)
+    kh = conductivity_hayne(T, zz / 100.0) * 1e3
+    km = conductivity_martinez(T, zz / 100.0) * 1e3
+
+    ax.plot([kx(K_LO), kx(K_HI)], [Y_TOP, Y_TOP], color=C_GRID, lw=0.8, zorder=3)
+    ax.plot(kx(kh), ymap(zz), color=COOL, lw=1.7, solid_capstyle="round",
+            zorder=5, label="Hayne")
+    ax.plot(kx(km), ymap(zz), color=C_MS, lw=1.7, ls=(0, (4.0, 2.0)),
+            solid_capstyle="round", zorder=5)
+
+    for v in (0, 3, 6, 9):
+        ax.plot([kx(v), kx(v)], [Y_TOP, Y_TOP + 0.055], color=C_DIM, lw=0.7,
+                zorder=4)
+        ax.text(kx(v), Y_TOP + 0.09, f"{v:g}", color=C_DIM, fontsize=7,
+                ha="center", va="bottom", zorder=6)
+    ax.text(0.5 * (KPAN_L + KPAN_R), Y_TOP + 0.30,
+            r"$K$ (mW m$^{-1}$ K$^{-1}$) at 250 K", color=C_CHAR,
+            fontsize=7.6, ha="center", va="bottom", zorder=6)
+
+    ax.text(kx(6.9), ymap(2.2), "Hayne", color=COOL, fontsize=7.2,
+            ha="left", va="center", zorder=7, bbox=HALO)
+    ax.text(kx(8.1), ymap(320.0), "Mart\u00ednez\n& Siegler", color=C_MS,
+            fontsize=7.2, ha="left", va="center", zorder=7, bbox=HALO)
 
 
 def draw_bc_labels(ax):
@@ -500,9 +557,9 @@ def main() -> None:
     draw_fluxes(ax, mid)
     draw_density(ax)
     draw_shared_band(ax)          # a light wash, over both panels, drawn last
-    draw_texture_notes(ax)
     draw_grid_notes(ax, g)
     draw_probes(ax)
+    draw_kpanel(ax)
     draw_bc_labels(ax)
 
     fig.canvas.draw()

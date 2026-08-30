@@ -83,9 +83,12 @@ EQ_Z_ANCHOR = 0.55      # anchor depth [m], below the rectification zone
 # Step A domain truncation (equilibrium.solve_periodic_equilibrium time-steps only
 # the skin [0, z_anchor+0.15] and reconstructs the deep column) the truncated method
 # reaches the SAME value as the old full-column solve, validated unbiased (A15 at
-# n=128: 4.606 truncated vs 4.608 full). A17 plateaus by n~48-64 (7.17/7.16 at
-# n=48/64); A15 has lower K -> lower diffusivity -> converges SLOWER (4.600/4.605/
-# 4.606 at n=64/96/128), so the SLOWER site sets n_inner. 96 puts both on the
+# n=128: 4.6022 truncated vs 4.6049 full). A17 plateaus by n~48-64 (7.088/7.085
+# full-column, 7.082/7.080 truncated); A15 has lower K -> lower diffusivity ->
+# converges SLOWER (4.5968/4.6015/4.6022 at n=64/96/128), so the SLOWER site sets
+# n_inner. RE-DERIVED 2026-08-28 on the CERTIFIED solver (wrap step + Picard
+# sweeps); the previous figures here were from the 2026-06-30 pre-wrap-step study
+# and were quoted in the thesis. Source: results/convergence_scan{,_n128}.json. 96 puts both on the
 # plateau (~13 s/solve). OLD n_inner=12 (closure ~6%) biased K_d*(A17) HIGH ~0.4 mW;
 # the OLD full-column Step A needed n~200 (and ~3-4x the cost) for the same answer.
 # See the n_inner study and the project_ninner_underresolution memory.

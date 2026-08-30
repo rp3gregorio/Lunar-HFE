@@ -34,6 +34,7 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) code/pipeline/compute/compute_headline_rmse.py
 	$(PY) code/pipeline/compute/compute_borestem_sensitivity.py
 	$(PY) code/pipeline/compute/compute_stability_threshold_sensitivity.py
+	$(PY) code/pipeline/compute/compute_window_criteria_sensitivity.py
 	$(PY) code/pipeline/compute/compute_surface_bias_test.py
 	$(PY) code/pipeline/compute/compute_uniform_kd_sensitivity.py
 	$(PY) code/pipeline/compute/compute_fixed_input_sensitivities.py
@@ -43,6 +44,9 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) code/pipeline/compute/qb_prior_width_scan.py
 	$(PY) code/pipeline/compute/compute_common_epoch.py
 	$(PY) code/pipeline/compute/compute_diviner_closure.py
+	$(PY) code/pipeline/compute/compute_qb_degeneracy.py
+	$(PY) code/pipeline/compute/compute_offset_free_fit.py
+	$(PY) code/pipeline/compute/audit_qb_basins.py   # ~10 min: wide-grid basin audit
 
 figures:             ## regenerate every figure (writes figures/) for the paper + guidebook
 	$(PY) code/pipeline/make_all_figures.py

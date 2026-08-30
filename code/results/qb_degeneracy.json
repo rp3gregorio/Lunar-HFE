@@ -85,5 +85,8 @@
     "rmse_min_K": 0.7953798332363842
    }
   ]
+ },
+ "caveats": {
+  "A15_qb10_is_secondary_basin": "The A15 Q_b=10 entry (K_d*=7.74) is a LOCAL minimum. The global minimum at that flux is K_d ~ 1.20 (RMSE 0.9605 vs 0.9751); see results/qb_basin_audit.json. The A15 objective is bimodal for Q_b <= 16. This entry lies OUTSIDE the adopted A15 envelope [14,25] and no reported number depends on it, but do not interpolate through it: doing so drove the Fig. 10a contrast field negative (-0.94) before the rendered domain was clipped to Q_b(A15) >= 13."
  }
 }

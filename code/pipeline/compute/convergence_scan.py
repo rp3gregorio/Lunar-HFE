@@ -40,7 +40,10 @@ CP = lambda T: specific_heat(T, model="hayne")
 # dense local grids for a clean vertex, bracketing the certified minima
 GR = {"A15": np.linspace(3.6e-3, 6.0e-3, 13),
       "A17": np.linspace(6.0e-3, 8.6e-3, 14)}
-N_SCAN = [12, 18, 24, 32, 48, 64, 96]
+N_SCAN = [12, 18, 24, 32, 48, 64, 96, 128]
+# n=128 added 2026-08-28: the thesis/config plateau claim quoted a 2026-06-30
+# (pre-wrap-step) study that this scan could not reproduce because it stopped
+# at 96. Certified values are now 4.5968/4.6015/4.6022 at n=64/96/128 (A15).
 
 
 def kd_star(site, n_inner, cap, kd_grid):

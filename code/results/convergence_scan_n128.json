@@ -1,0 +1,14 @@
+{
+ "n_inner": [
+  64,
+  96,
+  128
+ ],
+ "A15_truncated": [
+  4.5968315914857385,
+  4.601451898513341,
+  4.602244405760647
+ ],
+ "A15_full_column_n128": 4.604864911308587,
+ "note": "certified solver (wrap step + Picard sweeps); closes the n=128 gap left by convergence_scan.py N_SCAN<=96"
+}

@@ -6,14 +6,33 @@ message: >-
   If you use this software or the bundled HFE record, please cite both
   the associated paper (preferred) and this repository.
 type: software
+# NOTE: Zenodo builds the archived record's creator list from THIS top-level
+# `authors:` block, not from `preferred-citation.authors`. All co-authors must
+# appear here or they are omitted from the software DOI.
 authors:
   - given-names: Ramon III Palinguba
     family-names: Gregorio
     email: rp3gregorio@gmail.com
     affiliation: Kasai Laboratory, Institute of Science Tokyo
+  - given-names: Richard
+    family-names: Larsson
+    affiliation: Institute of Science Tokyo
+  - given-names: Arihiro
+    family-names: Kamada
+    affiliation: Institute of Science Tokyo
+  - given-names: Takayoshi
+    family-names: Yamada
+    affiliation: National Institute of Information and Communications Technology
+  - given-names: Takeshi
+    family-names: Kuroda
+    affiliation: National Institute of Information and Communications Technology
+  - given-names: Yasuko
+    family-names: Kasai
+    affiliation: Institute of Science Tokyo
 repository-code: 'https://github.com/rp3gregorio/Lunar-HFE'
+doi: 10.5281/zenodo.22183100   # concept DOI (all versions)
 license: MIT
-version: '0.1.0'
+version: v1.0-jgr
 date-released: '2026-06-02'
 preferred-citation:
   type: article

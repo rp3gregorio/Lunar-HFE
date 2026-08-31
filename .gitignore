@@ -102,3 +102,21 @@ code/results/.cpp_io/
 
 # Large LOLA DEM (downloadable PDS input; used by context-map / AOGS figures)
 code/data/lola/
+
+# Generated symlink view (rebuild: code/pipeline/figures/build_figure_views.py)
+figures/_by_document/
+
+# --- Generated outputs -------------------------------------------------
+# Figures are BUILD PRODUCTS, not sources: run `make figures` (or the
+# individual pipeline/figures/make_*.py) to regenerate every one of them.
+# Keeping them out of the repo keeps it to code + data.
+figures/*
+!figures/.gitkeep
+
+# Rendered documents. The .md/.tex sources are tracked; the PDFs are not.
+*.pdf
+
+# Third-party paper PDFs are NOT redistributed here (they are copyrighted
+# by their publishers). code/references/README.md and WANTED.md list what
+# to fetch and from where.
+code/references/*.pdf

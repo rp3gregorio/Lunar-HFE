@@ -334,8 +334,17 @@ def fig_robustness(d, out_path):
     bs = d["contrast_bootstrap"]
     sigma_c = (bs["ci_hi"] - bs["ci_lo"]) * 1e3 / (2 * 1.96)
 
-    qb15_full = np.linspace(qb15_pts[0], qb15_pts[-1], 60)
-    qb17_full = np.linspace(qb17_pts[0], qb17_pts[-1], 60)
+    # Render a margin around the ADOPTED envelope (A15 [14,25], A17 [10,18]),
+    # NOT the whole measured grid. The grid runs lower (A15 to 10, A17 to 7),
+    # but at Q_b(A15) <= 16 the A15 objective is BIMODAL
+    # (results/qb_basin_audit.json) and the Q_b = 10 point sits in the other
+    # basin (K_d* = 7.74 against 1.57 at Q_b = 12), so a Pchip through it is
+    # not meaningful. Including it dragged the rendered contrast to -0.94 in
+    # the top-left corner -- outside every claim the paper makes, but visually
+    # contradicting them. Starting at 13 drops that one cross-basin segment
+    # and the field is then positive everywhere shown (min +1.36).
+    qb15_full = np.linspace(13.0, 26.0, 60)
+    qb17_full = np.linspace(9.0, 19.0, 60)
     contrast_full = kd17_of(qb17_full)[:, None] - kd15_of(qb15_full)[None, :]
     sig_full = contrast_full / sigma_c
 
@@ -345,6 +354,14 @@ def fig_robustness(d, out_path):
     # cool half shows on the colorbar (it never crosses zero in the
     # plausible region -- the direct map does not have the wrong-model
     # proportional zero-crossing).
+    if contrast_full.min() <= 0:
+        raise AssertionError(
+            f"Fig. 10a: rendered contrast reaches {contrast_full.min():+.3f} "
+            "mW/m/K, i.e. the panel shows a region where A15 is the more "
+            "conductive site. The text asserts the contrast is positive "
+            "throughout the mapped envelope. Re-check qb_degeneracy.json "
+            "for cross-basin points (see results/qb_basin_audit.json) "
+            "before widening the rendered domain.")
     _vmax = float(np.ceil(contrast_full.max()))
     norm = TwoSlopeNorm(vmin=-0.15 * _vmax, vcenter=0, vmax=_vmax)
     im = axA.pcolormesh(qb15_full, qb17_full, contrast_full,

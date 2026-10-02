@@ -46,6 +46,7 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) code/pipeline/compute/compute_diviner_closure.py
 	$(PY) code/pipeline/compute/compute_qb_degeneracy.py
 	$(PY) code/pipeline/compute/compute_offset_free_fit.py
+	$(PY) code/pipeline/compute/compute_review_diagnostics.py   # ~5 min: flux scan, diurnal swing, level vs K_d, Diviner site vs zonal, TG/TR split
 	$(PY) code/pipeline/compute/audit_qb_basins.py   # ~10 min: wide-grid basin audit
 
 figures:             ## regenerate every figure (writes figures/) for the paper + guidebook

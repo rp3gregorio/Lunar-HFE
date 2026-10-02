@@ -43,6 +43,7 @@ Run:     python code/pipeline/figures/make_column_illustration.py
 """
 from __future__ import annotations
 
+import json
 import pathlib
 import sys
 
@@ -107,7 +108,14 @@ X_CONDUCT = 1.88
 Z_TOP, Z_BOT = 0.5, 500.0
 TICKS = [(1, "1"), (10, "10"), (100, "100"), (500, "500")]
 Z_COMPACT = 30.0         # rho is within 0.7 % of its deep value by here
-Z_SKIN_DEAD = 54.0       # cm, swing under 0.1 K (measured)
+# Depth below which the modeled diurnal swing is < 0.1 K at BOTH sites: the
+# deeper of the two crossings at the retrieved K_d*. Written by
+# pipeline/compute/compute_review_diagnostics.py (replaces a hard-coded 54 cm
+# that no script reproduced; audit 2026-10-01).
+_SWING = json.loads((_REPO / "results" / "review_diagnostics.json")
+                    .read_text())["diurnal_swing"]
+Z_SKIN_DEAD = 100.0 * max(_SWING[s]["kd_star"]["depth_p2p_below_0p1K_m"]
+                          for s in ("A15", "A17"))
 BORESTEM_CM = SITES["A15"]["MIN_DEPTH_CM"]   # 80 cm exclusion
 TIE_Z = (1.0, 6.0, 15.0, 30.0)
 

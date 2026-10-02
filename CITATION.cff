@@ -19,21 +19,21 @@ authors:
     affiliation: Institute of Science Tokyo
   - given-names: Arihiro
     family-names: Kamada
-    affiliation: Institute of Science Tokyo
+    affiliation: Institute of Science Tokyo; Tohoku University
   - given-names: Takayoshi
     family-names: Yamada
     affiliation: National Institute of Information and Communications Technology
   - given-names: Takeshi
     family-names: Kuroda
-    affiliation: National Institute of Information and Communications Technology
+    affiliation: National Institute of Information and Communications Technology; Tohoku University
   - given-names: Yasuko
     family-names: Kasai
     affiliation: Institute of Science Tokyo
 repository-code: 'https://github.com/rp3gregorio/Lunar-HFE'
 doi: 10.5281/zenodo.22183100   # concept DOI (all versions)
 license: MIT
-version: v1.0-jgr
-date-released: '2026-06-02'
+version: v1.1-jgr
+date-released: '2026-10-02'
 preferred-citation:
   type: article
   authors:

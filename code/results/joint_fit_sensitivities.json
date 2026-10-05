@@ -87,7 +87,7 @@
    11.5,
    12.0
   ],
-  "runtime_s": 55.9
+  "runtime_s": 746.6
  },
  "sites": {
   "A15": {
@@ -570,6 +570,70 @@
       "gradient_model_K_per_m": 2.312089567811899,
       "J": -1.4357583747829787,
       "delta_aicc_global_minus_fit": -5.48654613648535
+     }
+    },
+    "cp_x0.97": {
+     "with_diffusivity": {
+      "A": 0.1354940504096817,
+      "kd_star_mW": 4.7187021867259595,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9006634252302319,
+      "bias_K": 0.040022255799381616,
+      "surface_mean_K": 213.08228975947767,
+      "kappa_model": [
+       0.765912160092597,
+       0.7652619935687031
+      ],
+      "gradient_model_K_per_m": 2.312523882815904,
+      "J": 0.47442008477378295,
+      "delta_aicc_global_minus_fit": 16.575104024791635
+     },
+     "temperature_only": {
+      "A": 0.13724778147474065,
+      "kd_star_mW": 3.566157801821822,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9030622034078583,
+      "bias_K": -0.023808112108306596,
+      "surface_mean_K": 211.8134383678512,
+      "kappa_model": [
+       0.5954175660026617,
+       0.5947527276250489
+      ],
+      "gradient_model_K_per_m": 2.9734681169688177,
+      "J": -1.4041246644197596,
+      "delta_aicc_global_minus_fit": -5.581289883059526
+     }
+    },
+    "cp_x1.03": {
+     "with_diffusivity": {
+      "A": 0.1370974414162177,
+      "kd_star_mW": 5.009161697495124,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9042543662747441,
+      "bias_K": -0.04298982474050409,
+      "surface_mean_K": 213.70408381126737,
+      "kappa_model": [
+       0.8013408160463809,
+       0.8007360294368706
+      ],
+      "gradient_model_K_per_m": 2.082528063370587,
+      "J": 0.5974602848702943,
+      "delta_aicc_global_minus_fit": 23.167377840220006
+     },
+     "temperature_only": {
+      "A": 0.13748997656065437,
+      "kd_star_mW": 3.964274849958392,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.8987350747941316,
+      "bias_K": -0.005905918017491883,
+      "surface_mean_K": 212.6500398382783,
+      "kappa_model": [
+       0.6409819828180606,
+       0.6403628337989896
+      ],
+      "gradient_model_K_per_m": 2.601954866679663,
+      "J": -1.38636119520796,
+      "delta_aicc_global_minus_fit": -5.585523678345465
      }
     }
    },
@@ -1280,6 +1344,70 @@
       "J": -38.04682075657881,
       "delta_aicc_global_minus_fit": 24.98884895304113
      }
+    },
+    "cp_x0.97": {
+     "with_diffusivity": {
+      "A": 0.13672910773651203,
+      "kd_star_mW": 5.724716768690825,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.46119247704530586,
+      "bias_K": -0.06812290577799729,
+      "surface_mean_K": 216.07239098460258,
+      "kappa_model": [
+       0.9425105530586434,
+       0.942773946972145
+      ],
+      "gradient_model_K_per_m": 1.4117559405756002,
+      "J": -24.113412773808477,
+      "delta_aicc_global_minus_fit": 51.798463932452385
+     },
+     "temperature_only": {
+      "A": 0.1469932745858166,
+      "kd_star_mW": 12.0,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 0.3065845406726788,
+      "bias_K": -0.051246530922854916,
+      "surface_mean_K": 220.26277713753888,
+      "kappa_model": [
+       2.0596273282314788,
+       2.0602465738493976
+      ],
+      "gradient_model_K_per_m": 0.6470019077385789,
+      "J": -37.10552478308685,
+      "delta_aicc_global_minus_fit": 23.43037347254786
+     }
+    },
+    "cp_x1.03": {
+     "with_diffusivity": {
+      "A": 0.13810023478807346,
+      "kd_star_mW": 6.031217060855572,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.42922552976700684,
+      "bias_K": 0.05562628559244409,
+      "surface_mean_K": 216.77976108341406,
+      "kappa_model": [
+       0.9688833171793467,
+       0.9691561733827828
+      ],
+      "gradient_model_K_per_m": 1.2931491458721645,
+      "J": -25.65639785411628,
+      "delta_aicc_global_minus_fit": 61.2722604503028
+     },
+     "temperature_only": {
+      "A": 0.14722653452524512,
+      "kd_star_mW": 11.702897452450399,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.3067437536143059,
+      "bias_K": -0.0286859034848721,
+      "surface_mean_K": 220.19760195284115,
+      "kappa_model": [
+       1.8588706865789586,
+       1.859425631097288
+      ],
+      "gradient_model_K_per_m": 0.6750401804261946,
+      "J": -37.318191185738215,
+      "delta_aicc_global_minus_fit": 23.627169987519824
+     }
     }
    },
    "reanalysis": {
@@ -1548,11 +1676,12 @@
    "sigma_Qb": 0.00620219679509848,
    "sigma_Ks": 0.0016711764259813577,
    "sigma_rho": 0.3990198006884804,
+   "sigma_cp": 0.14522975538458205,
    "sigma_zb": 0.006012656427103025,
    "sigma_thr": 0.0037422913322284757,
    "sigma_window": 0.0036918886478867208,
    "sigma_epoch": 0.002519565969298476,
-   "total_quadrature": 0.49836635974463267,
+   "total_quadrature": 0.519096051202648,
    "kd_star_mW": 4.8673475633997265,
    "Qb_asym_up_down": [
     0.00289224140816291,
@@ -1575,11 +1704,12 @@
    "sigma_Qb": 0.14750222264683455,
    "sigma_Ks": 0.008116263183653771,
    "sigma_rho": 0.5063264074417262,
+   "sigma_cp": 0.15325014608237364,
    "sigma_zb": 7.095059340045395e-08,
    "sigma_thr": 0.000761699809509242,
    "sigma_window": 0.0072102397003681595,
    "sigma_epoch": 0.03598206500167578,
-   "total_quadrature": 0.6242803756256339,
+   "total_quadrature": 0.6428153659220908,
    "kd_star_mW": 5.893144892628771,
    "Qb_asym_up_down": [
     0.04415865291438159,

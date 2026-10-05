@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Letter figure: the flux-anchored (anchor) method, and proof it works.
 
-Three panels, all computed live from the production solver for an
-Apollo 15 illustration case (albedo 0.131, K_d = 4.60 mW/m/K; see SITE below):
+Three panels, all computed live from the production solver for Apollo 15 at
+its joint fit (config.SITES albedo and the joint K_d*; see SITE below):
 
   (a) the construction -- a deliberately wrong starting profile, the
       settled skin above the anchor, and the deep column rebuilt from
@@ -19,6 +19,7 @@ Run:    python code/pipeline/figures/make_anchor_method_figure.py
 """
 from __future__ import annotations
 import functools
+import json
 import pathlib
 import sys
 
@@ -37,16 +38,17 @@ from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import (PixelInputs, solve_pixel, standard_insolation,
                           periodic_time_grid)
 from lunar.equilibrium import solve_periodic_equilibrium, _rectified_flux
-from lunar.plotting.style import (JGR_FULL, C_A15, C_HAYNE, C_CORAL, C_CHAR,
+from lunar.plotting.style import (JGR_FULL, C_A15, C_HAYNE, C_NEUTRAL, C_CHAR,
                                   C_DIM, C_GRID, C_FOREST, fmt_axis,
                                   assert_no_overlap)
 
 OUT = _REPO / ".." / "figures"
-# Illustration case, pinned so the SI figure (Fig. S2) and its caption stay
-# reproducible: Apollo 15 at the v1.1 fixed albedo 0.131 and K_d 4.60 mW/m/K.
-# The construction does not depend on these values.
-SITE = dict(SITES["A15"], albedo=0.131)
-KD = 4.60e-3
+# Apollo 15 at its joint fit: config.SITES holds the fitted albedo, and K_d is
+# the joint K_d* (results/joint_albedo_fit.json). The construction does not
+# depend on these values.
+SITE = SITES["A15"]
+KD = json.loads((_REPO / "results" / "joint_albedo_fit.json").read_text())[
+    "sites"]["A15"]["with_diffusivity"]["best"]["kd_star_mW"] * 1e-3
 Z0 = EQ_Z_ANCHOR
 ZMAX = 3.0
 
@@ -66,7 +68,7 @@ def _solve(T_guess):
     return g, K, eq
 
 
-def main():
+def main(out_name="fig_anchor_method.pdf"):
     print("Solving (production settings)...")
     g, K, eq = _solve(SITE["T_MEAN_EFF"])
     z = g.z_mid
@@ -131,7 +133,7 @@ def main():
     sk = z <= Z0
     a.plot(eq.T_mean[m], z[m], "--", color=C_DIM, lw=1.3,
            label="converged steady state")
-    a.plot(T_guess[m], z[m], "-", color=C_CORAL, lw=1.6, alpha=0.75,
+    a.plot(T_guess[m], z[m], "-", color=C_NEUTRAL, lw=1.6, alpha=0.9,
            label="initial guess")
     a.plot(eq.T_mean[sk], z[sk], "-", color=C_FOREST, lw=2.6,
            label="skin, time-stepped")
@@ -162,12 +164,11 @@ def main():
                xytext=(255.6, 0.90), fontsize=6.6, color=C_CHAR,
                ha="left", va="center",
                arrowprops=dict(arrowstyle="->", color=C_DIM, lw=0.7))
-    a.set_xlim(242, 263)
+    a.set_xlim(240, 263)
     a.set_ylim(ZMAX, 0)
     fmt_axis(a, xlabel="cycle-mean $T$ (K)", ylabel="depth (m)",
              title="(a)  construction")
-    a.legend(loc="lower left", fontsize=6.4, frameon=True, edgecolor=C_GRID,
-             framealpha=0.95, handlelength=1.5)
+    leg_kw = dict(fontsize=6.4, frameon=True, edgecolor=C_GRID, framealpha=0.95, handlelength=1.5)
 
     # ── (b) it is correct: brute force converges onto the anchored answer ───
     b.plot(luns, gaps, "-o", color=C_FOREST, lw=1.6, ms=4.5, mec="white",
@@ -196,11 +197,22 @@ def main():
     fmt_axis(c, xlabel=r"$\langle K\,\partial_z T\rangle \,/\, Q_b$",
              ylabel="depth (m)", title="(c)  the invariant")
 
-    fig.canvas.draw()
+    # panel (a) legend: the first corner the overlap guard verifies empty
+    # (the curves move with the albedo and K_d, so no corner is fixed)
+    for loc in ("lower left", "upper right", "lower center", "center left", "upper center"):
+        leg = a.legend(loc=loc, **leg_kw)
+        fig.canvas.draw()
+        try:
+            assert_no_overlap(a)
+            break
+        except AssertionError:
+            leg.remove()
+    else:
+        raise AssertionError("no empty corner for the panel (a) legend")
     for ax in (a, b, c):
         assert_no_overlap(ax)
     OUT.mkdir(parents=True, exist_ok=True)
-    out = OUT / "fig_anchor_method.pdf"
+    out = OUT / out_name
     fig.savefig(out)
     plt.close(fig)
     print(f"  -> {out.resolve()}")

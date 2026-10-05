@@ -92,7 +92,9 @@ def solve_row(job):
     """All K_d at one (site, A): sensor-depth T, dense profile, <T_s>, probe diffusivities, closure.
 
     job = (site, A) or (site, A, overrides). Overrides (all optional): Q_b [W m^-2],
-    K_s, rho_d, H, chi (Hayne inputs), kd_grid [W m^-1 K^-1], and law = "keihm"
+    K_s, rho_d, H, chi (Hayne inputs), cp_scale (c_p multiplied by this factor; the
+    heat equation and the diffusivity see only rho*c_p, so it is applied by scaling
+    the whole rho(z) profile), kd_grid [W m^-1 K^-1], and law = "keihm"
     with constants a, b, in which case A is the normal-incidence A0 of
     A(theta) = A0 + a (theta/45 deg)^3 + b (theta/90 deg)^8.
     """
@@ -120,8 +122,11 @@ def solve_row(job):
         insol, alb = (1.0 - np.clip(Ath, 0.0, 1.0)) * S, 0.0
     else:
         insol, alb = S, float(A)
-    rho = density_hayne(G.z_mid, rho_s=RHO_SURFACE, rho_d=rho_d, H=H)
-    rho_func = None if "rho_d" not in ov and "H" not in ov else (lambda zz: density_hayne(zz, rho_s=RHO_SURFACE, rho_d=rho_d, H=H))
+    s_cp = float(ov.get("cp_scale", 1.0))
+    rho_s_e, rho_d_e = RHO_SURFACE * s_cp, rho_d * s_cp          # rho*c_p scaling (see docstring)
+    rho = density_hayne(G.z_mid, rho_s=rho_s_e, rho_d=rho_d_e, H=H)
+    rho_func = (None if not ({"rho_d", "H", "cp_scale"} & set(ov))
+                else (lambda zz: density_hayne(zz, rho_s=rho_s_e, rho_d=rho_d_e, H=H)))
     nK, probes = len(kd_grid), KAPPA_OBS[site]
     Tz, prof = np.empty((nK, len(z))), np.empty((nK, len(Z_DENSE)))
     Ts, clos, kap = np.empty(nK), np.empty(nK), np.empty((nK, len(probes)))
@@ -131,7 +136,7 @@ def solve_row(job):
             K_func=lambda T, zz, _k=float(kd): conductivity_hayne(T, zz, Ks=ks, Kd=_k, H=H, chi=chi),
             cp_func=lambda T: specific_heat(T, model="hayne"), rho_func=rho_func, T_guess=cfg["T_MEAN_EFF"],
             z_anchor=EQ_Z_ANCHOR, n_inner=EQ_N_INNER, max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL,
-            hayne_params=(ks, float(kd), H, chi, RHO_SURFACE, rho_d))
+            hayne_params=(ks, float(kd), H, chi, rho_s_e, rho_d_e))
         Tz[k] = np.interp(z, G.z_mid, eq.T_mean)
         prof[k] = np.interp(Z_DENSE, G.z_mid, eq.T_mean)
         Ts[k], clos[k] = float(eq.out.T_surface.mean()), float(eq.flux_closure)

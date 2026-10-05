@@ -96,6 +96,7 @@ take the albedo explicitly, so they do not depend on the config albedo:
 ```bash
 python code/pipeline/compute/compute_joint_albedo_fit.py          # ~25 min (5 workers): Table 1, Figs 3-5
 python code/pipeline/compute/compute_joint_valley.py              # seconds: Table 2 (what the diffusivity adds)
+python code/pipeline/compute/compute_joint_block_bootstrap.py     # ~1 min: probe-grouped bootstrap (Text S8)
 python code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min (5 workers): Tables 3-4, Fig 6
 python code/pipeline/compute/compute_joint_fit_checks.py          # ~1 min, after the sensitivities
 python code/pipeline/compute/compute_joint_diviner.py             # ~3 min: Text S10

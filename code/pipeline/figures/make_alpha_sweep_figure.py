@@ -25,7 +25,7 @@ C_DIM   = "#6E6862"
 C_GRID  = "#E8E5E0"
 C_PAPER = "#FBFAF8"
 C_BAND  = "#D6E2D9"   # pale green for admissible Apollo-core band
-C_BASE  = "#2A6478"   # teal for Martinez baseline (alpha=1)
+C_BASE  = "#6C4CA6"   # Martinez violet (style.C_MS) for the published baseline (alpha=1)
 FS_LABEL = 10.5
 FS_TICK  = 9.5
 FS_TITLE = 11.0
@@ -65,13 +65,13 @@ def main(out_name="fig_alpha_sweep.pdf"):
 
     # Apollo-core admissible density envelope: two narrow vertical
     # boundary lines + short tick caps on the X-AXIS itself, in a
-    # neutral dark green. No shading, no integral interpretation.
-    C_GREEN = "#3D6E4A"
+    # neutral warm grey (green is the Apollo 15 colour). No shading.
+    C_BOUND = "#8C857D"
     for x_b in (ALPHA_LO, ALPHA_HI):
-        ax.axvline(x_b, color=C_GREEN, ls="-", lw=1.0,
+        ax.axvline(x_b, color=C_BOUND, ls="-", lw=1.0,
                    alpha=0.65, zorder=1)
         # tiny ticks on the x-axis at the bounds, marker style
-        ax.plot([x_b], [0], marker="^", color=C_GREEN,
+        ax.plot([x_b], [0], marker="^", color=C_BOUND,
                 ms=7, mec="white", mew=0.6, zorder=4,
                 transform=ax.get_xaxis_transform(), clip_on=False)
 
@@ -117,7 +117,7 @@ def main(out_name="fig_alpha_sweep.pdf"):
 
     # Single shared legend below, in the Fig 6 style: a title line
     # over two rows of entries.
-    band_handle = Line2D([0], [0], color="#3D6E4A", ls="-", lw=1.0,
+    band_handle = Line2D([0], [0], color=C_BOUND, ls="-", lw=1.0,
                          marker="^", ms=8, mec="white", mew=0.6,
                          label="Apollo-core admissible $\\rho_d$ "
                                "(1700--2000 kg m$^{-3}$)")
@@ -136,7 +136,7 @@ def main(out_name="fig_alpha_sweep.pdf"):
         ncols=2, frameon=True, edgecolor=C_GRID, framealpha=0.97,
         fontsize=FS_TICK, handlelength=2.2, borderpad=0.7,
         columnspacing=1.8,
-        title=r"Stars: retrieved $\alpha^{*}$;  green verticals + triangles: "
+        title=r"Stars: retrieved $\alpha^{*}$;  gray verticals + triangles: "
               r"Apollo-core admissible $\rho_d$ bounds",
         title_fontsize=FS_LABEL,
     )

@@ -86,9 +86,20 @@ C_HAYNE = C_TEAL
 C_MS = "#6C4CA6"  # Martinez violet
 C_LAB = C_PLUM
 
+# measurement roles (letter Fig. 3: what constrains A and K_d), kept apart from
+# the site (forest / coral) and model (teal / violet) hues
+C_OCHRE = "#A8822E"      # meter-scale sensor temperatures
+C_OCHRE_L = "#EADBB8"
+C_BLUE = "#3E5C99"       # annual-wave diffusivity
+C_BLUE_L = "#B4C3E0"
+C_OBS_T, C_OBS_KAPPA, C_OBS_TS = C_OCHRE, C_BLUE, C_DIM   # ... and the surface mean
+C_CONTRAST = C_CHAR      # inter-site contrast: belongs to neither site
+
 WARM_DIVERGE = LinearSegmentedColormap.from_list(
     "warm_diverge",
     ["#2A6478", "#7CA3B0", "#F5F1EA", "#E5A88A", "#B85B3A", "#7A2F18"])
+NEUTRAL_SEQ = LinearSegmentedColormap.from_list(
+    "neutral_seq", ["#F7F5F2", "#D9D4CD", "#A8A29A"])
 WARM_SEQ = LinearSegmentedColormap.from_list(
     "warm_seq",
     ["#FAF7F2", "#E5D5C8", "#D9A07C", "#B85B3A", "#7A2F18", "#3A1A0A"])

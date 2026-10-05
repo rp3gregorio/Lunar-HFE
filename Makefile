@@ -54,7 +54,8 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) code/pipeline/compute/audit_qb_basin_followup.py   # ~1 min: narrow A15 basin at Q_b=10 (letter Sec. 2.4)
 	$(PY) code/pipeline/compute/compute_joint_albedo_fit.py   # ~25 min: joint (albedo, K_d) retrieval + bootstrap (letter Sec. 2.6, 3.2)
 	$(PY) code/pipeline/compute/compute_joint_valley.py   # seconds: the A17 worked example (letter Sec. 3.3, Table 2)
-	$(PY) code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min: joint-fit error budget, Q_b map, model comparison (Tables 3-4)
+	$(PY) code/pipeline/compute/compute_joint_block_bootstrap.py   # ~1 min: bootstrap with sensors grouped by probe (Text S8)
+	$(PY) code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min: joint-fit error budget (incl. c_p), Q_b map, model comparison (Tables 3-4)
 	$(PY) code/pipeline/compute/compute_joint_fit_checks.py   # ~1 min, after the sensitivities: hold-out, TG/TR, epoch, gradient-matching Q_b
 	$(PY) code/pipeline/compute/compute_joint_diviner.py   # ~3 min: Diviner comparison at the joint fit (Text S10)
 

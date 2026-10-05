@@ -10,7 +10,7 @@ Re-solved variants (compact grid: A 0.105-0.165 / A0 0.03-0.11 in 0.0025,
 K_d 2-12 in 0.5 mW plus 3.4; vertex-refined):
   * Q_b: A15 {14, 16, 18.5, 23.5, 25}, A17 {10, 12, 14, 18} mW m^-2
     (with the nominal fit, the direct contrast map over the envelope);
-  * K_s x 0.7 / 1.3;  rho_d 1700 / 2000 kg m^-3;
+  * K_s x 0.7 / 1.3;  rho_d 1700 / 2000 kg m^-3;  c_p x 0.97 / 1.03;
   * conditionality: H 3 / 10 cm, chi 1.5, and the albedo FORM (the Keihm
     angular law with the constants of Vasavada et al. 2012 and of Hayne et
     al. 2017, normal-incidence A0 fitted);
@@ -52,6 +52,9 @@ KD_V = np.unique(np.round(np.concatenate([np.arange(2.0, 12.001, 0.5), [3.4]]), 
 QB = {"A15": [14.0, 16.0, 18.5, 23.5, 25.0], "A17": [10.0, 12.0, 14.0, 18.0]}
 QB_NOMINAL = {"A15": 21.0, "A17": 16.0}
 LAWS = {"form_vasavada2012": (0.045, 0.14), "form_hayne2017": (0.06, 0.25)}
+# c_p envelope +-3 %: covers all five samples of Hemingway et al. (1973, Table 6:
+# soils, breccia, basalt; -1.7 to +2.6 % about the Hayne polynomial at 240-260 K)
+CP_SCALES = (0.97, 1.03)
 SIGMA_SOLVER = 0.04                    # grid & dt convergence (unchanged; compute_error_budget.py)
 
 
@@ -70,6 +73,10 @@ def variants():
         v.append((s, "chi_1.5", {"chi": 1.5}, A_V))
         for name, (a, b) in LAWS.items():
             v.append((s, name, {"law": "keihm", "a": a, "b": b}, A0_V))
+    # appended after both sites so the cache indices of the variants above stay fixed
+    for s in ("A15", "A17"):
+        for f in CP_SCALES:
+            v.append((s, f"cp_x{f:g}", {"cp_scale": f}, A_V))
     return v
 
 
@@ -78,13 +85,15 @@ def jf_hayne(key):
     return HAYNE[key]
 
 
-def solve_all(var):
+def solve_all(var, which=None):
     jobs, index = [], []
-    for vi, (s, name, ov, agrid) in enumerate(var):
+    which = range(len(var)) if which is None else which
+    for vi in which:
+        s, name, ov, agrid = var[vi]
         for A in agrid:
             jobs.append((s, float(A), dict(ov, kd_grid=KD_V.tolist())))
             index.append((vi, float(A)))
-    print(f"{len(var)} site-variants, {len(jobs)} rows x {len(KD_V)} K_d = {len(jobs)*len(KD_V)} solves", flush=True)
+    print(f"{len(which)} site-variants, {len(jobs)} rows x {len(KD_V)} K_d = {len(jobs)*len(KD_V)} solves", flush=True)
     rows, t0 = {}, time.time()
     with Pool(N_WORKERS) as pool:
         for k, r in enumerate(pool.imap(jf.solve_row, jobs, chunksize=1)):
@@ -120,15 +129,22 @@ def main():
     var = variants()
     cache = _REPO / "results" / "joint_fit_sensitivities_cache.npz"
     names = ("Tz", "prof", "Ts", "clos", "kap")
+    missing = []
     if "--reuse" in sys.argv and cache.exists():
         c = np.load(cache, allow_pickle=False)
         rows = {}
         for vi, (s, name, ov, agrid) in enumerate(var):
+            if f"v{vi}_Tz" not in c.files:
+                missing.append(vi)
+                continue
             for i, A in enumerate(agrid):
                 rows[(vi, float(A))] = tuple(c[f"v{vi}_{nm}"][i] for nm in names)
-        print(f"reused {cache.relative_to(_REPO)}", flush=True)
+        print(f"reused {cache.relative_to(_REPO)}; solving {len(missing)} new site-variants", flush=True)
+        if missing:
+            rows.update(solve_all(var, missing))
     else:
         rows = solve_all(var)
+    if "--reuse" not in sys.argv or missing:
         np.savez_compressed(cache, **{f"v{vi}_{nm}": np.stack([rows[(vi, float(A))][i] for A in agrid])
                                       for vi, (s, name, ov, agrid) in enumerate(var) for i, nm in enumerate(names)})
     out = dict(meta=dict(purpose="error budget and sensitivities of the joint (A, K_d) retrieval (audit 2026-10-05)",
@@ -194,6 +210,7 @@ def main():
         sig = dict(sigma_stat=0.5 * (bs["p84"] - bs["p16"]), sigma_solver=SIGMA_SOLVER,
                    sigma_Qb=half(qvals), sigma_Ks=half([V["Ks_x0.7"], V["Ks_x1.3"]]),
                    sigma_rho=half([V["rho_d_1700"], V["rho_d_2000"]]),
+                   sigma_cp=half([V[f"cp_x{f:g}"] for f in CP_SCALES]),
                    sigma_zb=half([R["zb_70"], k0, R["zb_90"]]),
                    sigma_thr=half([R[f"thr_{t:g}"] for t in THRESHOLDS_K_PER_YR]),
                    sigma_window=half([k0] + [v for k, v in R.items() if k.startswith(("floor_", "fallback_"))]),

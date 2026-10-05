@@ -67,6 +67,7 @@ from matplotlib.colors import to_rgb
 
 from lunar.constants import RHO_DEEP, RHO_SURFACE
 from lunar.grid import make_geometric_grid
+from lunar.plotting.style import (C_HAYNE_GLOBAL, LS_HAYNE_GLOBAL, LS_MS)
 from lunar.plotting.style import (C_CHAR, C_CORAL, C_DIM, C_FOREST, C_GRID,
                                   C_MS, C_TEAL)
 from lunar.properties import (conductivity_hayne, conductivity_martinez,
@@ -80,7 +81,9 @@ FIGS = _REPO.parent / "figures"
 
 W, H = 7.48, 4.36                     # landscape
 
-WARM, COOL, DARK = C_CORAL, C_TEAL, C_CHAR
+# colour roles (letter figures): coral / green are the sites, teal / violet the
+# models, so the schematic uses gold for sunlight and grey for emitted heat
+WARM, COOL, DARK = "#C99A2E", C_DIM, C_CHAR
 BAND_COMPACT = "#EFE7DC"              # the compaction zone, shared by both panels
 
 # ---- x budget (inches) ------------------------------------------------------
@@ -432,15 +435,15 @@ def draw_fluxes(ax, mid):
     # block's midpoint its tail ran straight through the grid caption below.
     ax.add_patch(FancyArrowPatch((BLK_L + 0.16, Y_BOT - 0.28),
                                  (BLK_L + 0.16, Y_BOT + 0.16),
-                                 color=C_FOREST, zorder=10, **ARROW))
+                                 color=C_CHAR, zorder=10, **ARROW))
 
     # the one physical note kept on the illustration
     y_dead = float(ymap(Z_SKIN_DEAD))
-    ax.plot([BLK_L, X_SPLIT], [y_dead, y_dead], color=_shade(WARM, -0.3),
+    ax.plot([BLK_L, X_SPLIT], [y_dead, y_dead], color=C_DIM,
             lw=0.8, ls=(0, (2.4, 2.0)), zorder=12)
     ax.text(X_SPLIT - 0.04, y_dead + 0.03,
             rf"$<0.1$ K",
-            color=_shade(WARM, -0.3), fontsize=7.5, ha="right", va="bottom",
+            color=C_DIM, fontsize=7.5, ha="right", va="bottom",
             zorder=13, bbox=HALO)
 
 
@@ -504,9 +507,9 @@ def draw_kpanel(ax):
     km = conductivity_martinez(T, zz / 100.0) * 1e3
 
     ax.plot([kx(K_LO), kx(K_HI)], [Y_TOP, Y_TOP], color=C_GRID, lw=0.8, zorder=3)
-    ax.plot(kx(kh), ymap(zz), color=COOL, lw=1.7, solid_capstyle="round",
+    ax.plot(kx(kh), ymap(zz), color=C_HAYNE_GLOBAL, lw=1.7, ls=LS_HAYNE_GLOBAL,
             zorder=5, label="Hayne")
-    ax.plot(kx(km), ymap(zz), color=C_MS, lw=1.7, ls=(0, (4.0, 2.0)),
+    ax.plot(kx(km), ymap(zz), color=C_MS, lw=1.7, ls=LS_MS,
             solid_capstyle="round", zorder=5)
 
     for v in (0, 3, 6, 9):
@@ -518,7 +521,7 @@ def draw_kpanel(ax):
             r"$K$ (mW m$^{-1}$ K$^{-1}$) at 250 K", color=C_CHAR,
             fontsize=7.6, ha="center", va="bottom", zorder=6)
 
-    ax.text(kx(6.9), ymap(2.2), "Hayne", color=COOL, fontsize=7.2,
+    ax.text(kx(6.9), ymap(2.2), "Hayne", color=_shade(C_HAYNE_GLOBAL, -0.3), fontsize=7.2,
             ha="left", va="center", zorder=7, bbox=HALO)
     ax.text(kx(8.1), ymap(320.0), "Mart\u00ednez\n& Siegler", color=C_MS,
             fontsize=7.2, ha="left", va="center", zorder=7, bbox=HALO)
@@ -533,7 +536,7 @@ def draw_bc_labels(ax):
             bbox=HALO)
     ax.text(BLK_L + 0.30, Y_BOT + 0.02,
             r"$K\,\partial_z T|_{z_{\max}}=Q_b$",
-            color=_shade(C_FOREST, -0.2), fontsize=7.0, ha="left", va="bottom",
+            color=C_CHAR, fontsize=7.0, ha="left", va="bottom",
             zorder=15, bbox=HALO)
 
 
@@ -585,9 +588,13 @@ def draw_texture_notes(ax):
             color=C_DIM, fontsize=8.0, ha="left", va="center", linespacing=1.45)
 
 
-def main(out_stem: str = "fig_intro_column") -> None:
-    family, cambria = setup_fonts()
-    apply_style(family, cambria)
+def main(out_stem: str = "fig_intro_column", font: str = "cambria") -> None:
+    if font == "times":            # the letter: same face as every other figure
+        apply_style("Times", False)
+        plt.rcParams.update({"mathtext.fontset": "stix", "pdf.fonttype": 42})
+    else:                          # the guidebook illustration set (Cambria)
+        family, cambria = setup_fonts()
+        apply_style(family, cambria)
 
     fig = plt.figure(figsize=(W, H))
     ax = fig.add_axes([0, 0, 1, 1])

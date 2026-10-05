@@ -69,7 +69,12 @@ boot.ensure_apollo_hfe(mission="a17", probes=())
 from lunar.apollo_helpers import extract_sensor_stability
 from lunar.config import SITES
 from lunar.plotting.style import (C_CORAL, C_CORAL_L, C_TEAL, C_FOREST,
-                                  C_PLUM, C_CHAR, assert_no_overlap)
+                                  C_PLUM, C_CHAR, assert_no_overlap,
+                                  C_FOREST_L, C_A15_2, C_A17_2, C_NEUTRAL, C_DIM)
+
+# colour roles (letter figures, 2026-10-05): green = Apollo 15, coral = Apollo 17;
+# documented data-quality events are neutral grey, not a site colour
+C_EVENT_FILL, C_EVENT_EDGE = "#D9D4CC", C_NEUTRAL
 
 OUT = ROOT / ".." / "figures"
 
@@ -111,13 +116,13 @@ _BLOCKS = [
     dict(site="A15", probe=1, color=C_FOREST, tint="#F4F8F4",
          upper=(22.0, 63.8), gantt=(69.0, 131.7),
          ylim=(251.41, 254.32), yticks=(252, 254)),
-    dict(site="A15", probe=2, color=C_TEAL, tint="#F1F5F7",
+    dict(site="A15", probe=2, color=C_A15_2, tint="#F3F7F3",
          upper=(181.1, 225.5), gantt=(229.4, 262.8),
          ylim=(250.00, 252.03), yticks=(251, 252)),
     dict(site="A17", probe=1, color=C_CORAL, tint="#FAF2EE",
          upper=(312.2, 353.2), gantt=(359.0, 435.9),
          ylim=(254.53, 257.39), yticks=(255, 256, 257)),
-    dict(site="A17", probe=2, color=C_PLUM, tint="#F5F2F6",
+    dict(site="A17", probe=2, color=C_A17_2, tint="#FBF4F0",
          upper=(485.2, 526.2), gantt=(532.1, 608.9),
          ylim=(255.50, 257.65), yticks=(256, 257)),
 ]
@@ -224,7 +229,7 @@ def _draw_block(fig, blk, res, events, cmap, dnorm, xlabel=False):
 
     # ── upper sub-panel: traces ─────────────────────────────────────
     for t0, t1, *_ in events[site]:
-        up.axvspan(t0, t1, fc=C_CORAL_L, alpha=0.18, ec=C_CORAL, lw=0.5,
+        up.axvspan(t0, t1, fc=C_EVENT_FILL, alpha=0.35, ec=C_EVENT_EDGE, lw=0.5, hatch="////",
                    zorder=1.2)
     bore_segs = [np.column_stack([pdata[s["sensor"]]["t_day"],
                                   pdata[s["sensor"]]["T"]])
@@ -269,14 +274,14 @@ def _draw_block(fig, blk, res, events, cmap, dnorm, xlabel=False):
             color=color, fontweight="bold")
     for t0, t1, label, _note in events[site]:
         ov.text(0.5 * (t0 + t1), 0.998, label, ha="center", va="top",
-                fontsize=6.2, color=C_CORAL, linespacing=0.87, clip_on=False)
+                fontsize=6.2, color=C_DIM, linespacing=0.87, clip_on=False)
 
     # ── lower sub-panel: per-sensor Gantt strip ─────────────────────
     # bands sit BELOW the opaque full-record bars (the archive's striped
     # look: coral shows in the row gaps, cream rows mask it)
     n = len(sensors)
     for t0, t1, *_ in events[site]:
-        gz.axvspan(t0, t1, fc=C_CORAL_L, alpha=0.22, ec=C_CORAL, lw=0.5,
+        gz.axvspan(t0, t1, fc=C_EVENT_FILL, alpha=0.40, ec=C_EVENT_EDGE, lw=0.5, hatch="////",
                    zorder=1.2)
     tr_right = blended_transform_factory(gz.transAxes, gz.transData)
     labels = []
@@ -324,7 +329,7 @@ def _draw_block(fig, blk, res, events, cmap, dnorm, xlabel=False):
     return up, gz, ov
 
 
-def main():
+def main(out_name="fig_apollo_timeline_probes.pdf", site_figures=True):
     res = {site: extract_sensor_stability(SITES[site]["mission"],
                                           SITES[site]["MIN_DEPTH_CM"])
            for site in ("A15", "A17")}
@@ -341,40 +346,53 @@ def main():
         + [(f, c) for f, (_, c) in zip(fracs, _DEPTH_ANCHORS)]
         + ([(1.0, _DEPTH_ANCHORS[-1][1])] if fracs[-1] < 1.0 else []))
 
+    # kept sensors are shaded light (shallow) to dark (deep) within their
+    # SITE colour, so every trace and bar reads as its site
+    ramps = {}
+    for site, light, dark in (("A15", C_FOREST_L, C_FOREST), ("A17", C_CORAL_L, C_CORAL)):
+        d = np.asarray(res[site]["depth_cm_all"])[np.asarray(res[site]["deep_mask"], bool)]
+        lo, hi = float(d.min()), float(d.max())
+        ramps[site] = (LinearSegmentedColormap.from_list(f"{site}_depth", [light, dark]),
+                       lambda x, lo=lo, hi=hi: float(np.clip((x - lo) / (hi - lo), 0.0, 1.0)))
+
     fig = plt.figure(figsize=(_PAGE_W / 72.0, _PAGE_H / 72.0))
     axes = []
     for j, blk in enumerate(_BLOCKS):
-        axes.extend(_draw_block(fig, blk, res[blk["site"]], events, cmap,
-                                dnorm, xlabel=(j == len(_BLOCKS) - 1)))
+        site_cmap, site_norm = ramps[blk["site"]]
+        axes.extend(_draw_block(fig, blk, res[blk["site"]], events, site_cmap,
+                                site_norm, xlabel=(j == len(_BLOCKS) - 1)))
 
+    from matplotlib.legend_handler import HandlerTuple
     handles = [
         Patch(fc=C_CREAM_KEPT, ec="none"),
-        Patch(fc=C_CORAL_L, ec=C_CORAL, lw=0.4),
-        Patch(fc=C_LEG_TAN, ec=C_FOREST, lw=0.6),
+        Patch(fc=C_EVENT_FILL, ec=C_EVENT_EDGE, lw=0.4, hatch="////"),
+        (Patch(fc=C_FOREST_L, ec=C_FOREST, lw=0.6), Patch(fc=C_CORAL_L, ec=C_CORAL, lw=0.6)),
         Patch(fc=C_BORE_BAR, ec=C_BORE_EDGE, lw=0.4),
         Line2D([], [], ls="--", lw=1.5, color=C_CHAR),
     ]
     fig.legend(handles,
-               ["full record", "excluded interval", "stability window (kept)",
+               ["full record", "data-quality event (excluded)", "stability window (kept)",
                 "borestem-zone window (excluded)",
                 "OLS slope fit (deepest sensor)"],
                loc="lower center", bbox_to_anchor=(0.5, 0.018), ncols=5,
                frameon=False, fontsize=9.0, handlelength=1.6, handleheight=0.7,
-               handletextpad=0.8, columnspacing=1.3, borderaxespad=0.0)
+               handletextpad=0.8, columnspacing=1.3, borderaxespad=0.0,
+               handler_map={tuple: HandlerTuple(ndivide=None, pad=0.0)})
 
     fig.canvas.draw()
     for ax in axes:
         assert_no_overlap(ax)
     OUT.mkdir(parents=True, exist_ok=True)
-    dst = OUT / "fig_apollo_timeline_probes.pdf"
+    dst = OUT / out_name
     fig.savefig(dst)
     plt.close(fig)
     print(f"  -> {dst.name} (redrawn from live data; faithful to the "
           "archived original, see module docstring)")
 
     # per-site half-figures for the thesis (letter/abstract keep the full one)
-    for site in ("A15", "A17"):
-        _render_site(site, res, events, cmap, dnorm)
+    if site_figures:
+        for site in ("A15", "A17"):
+            _render_site(site, res, events, cmap, dnorm)
 
 
 def _render_site(site, res, events, cmap, dnorm):

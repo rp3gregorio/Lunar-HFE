@@ -47,7 +47,8 @@ from lunar.plotting.style import (   # type: ignore
     FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
     C_HAYNE, C_MS, C_A15, C_A17, C_CHAR, C_DIM, C_GRID, C_FOREST,
     C_TEAL_L, C_NEUTRAL,
-    fmt_axis, assert_no_overlap,
+    C_HAYNE_GLOBAL, LS_HAYNE_GLOBAL, LS_MS, C_EXCL_FILL, C_EXCL_EDGE,
+    fmt_axis, assert_no_overlap, legend_below,
 )
 
 # Configurations that match kd_sweep.py and the validation notebook
@@ -127,38 +128,8 @@ PHASE_A     = _REPO / "results" / "kd_retrieval_results.json"
 # axes -- so the legend can never sit on top of the x-axis title.
 # Use this for every multi-panel letter figure with a shared legend.
 # ══════════════════════════════════════════════════════════════════════════════
-def legend_below(fig, handles, labels, *, ncols=3, pad_in=0.10, **kw):
-    """Place a shared legend in a reserved strip below all axes.
-
-    The figure is grown downward and the axes are pushed up by exactly
-    the legend's measured height plus `pad_in` inches of clearance, so
-    no axis label is ever overlapped regardless of legend size.
-    """
-    fig.canvas.draw()                       # so text extents are real
-    leg = fig.legend(handles, labels, loc="lower center",
-                     bbox_to_anchor=(0.5, 0.0), ncols=ncols,
-                     frameon=True, edgecolor=C_GRID, framealpha=0.97,
-                     borderpad=0.6, **kw)
-    fig.canvas.draw()
-    # legend height in inches
-    bb = leg.get_window_extent()
-    leg_h_in = bb.height / fig.dpi
-    fig_w, fig_h = fig.get_size_inches()
-    reserve = leg_h_in + pad_in             # inches to clear at the bottom
-    # grow the figure so the plot area is unchanged, legend gets its own band
-    new_h = fig_h + reserve
-    fig.set_size_inches(fig_w, new_h)
-    # current axes occupy [bottom0, top0] of the OLD figure; rescale up
-    frac = reserve / new_h
-    for ax in fig.axes:
-        p = ax.get_position()
-        ax.set_position([p.x0,
-                         frac + p.y0 * (1 - frac),
-                         p.width,
-                         p.height * (1 - frac)])
-    # pin the legend inside the reserved band, centred
-    leg.set_bbox_to_anchor((0.5, pad_in / new_h / 2), transform=fig.transFigure)
-    return leg
+# The helper now lives in lunar.plotting.style (one legend style for every
+# letter figure, 2026-10-05); imported above.
 
 
 # ── Solver ────────────────────────────────────────────────────────────────────
@@ -264,7 +235,7 @@ def fig_mean_T_profile(out_name="fig_apollo_mean_T_profile.pdf"):
     Layout:
       * Bottom margin reserved for the shared legend strip; the
         x-axis label sits cleanly above it (no overlap).
-      * Borestem zone (z < 80 cm) shaded in soft coral, with a
+      * Borestem zone (z < 80 cm) shaded light grey, with a
         boxed callout label in the upper-left of each panel placed
         above the data (zorder above markers).
       * Sentence-case axis labels per JGR style.
@@ -276,11 +247,9 @@ def fig_mean_T_profile(out_name="fig_apollo_mean_T_profile.pdf"):
     # figure downward so the xlabel never collides with the legend.
     fig.subplots_adjust(left=0.085, right=0.97, top=0.93, bottom=0.13)
 
-    # Borestem-zone callout style: faint coral fill, charcoal border,
-    # high zorder so it sits on top of the markers but still semi-
-    # transparent enough not to mask them.
-    BORE_FILL = "#F4D6CB"   # soft coral
-    BORE_EDGE = "#B85B3A"   # coral border (matches C_CORAL)
+    # Borestem zone: the excluded-zone role colours (light grey), the same
+    # in every letter figure.
+    BORE_FILL, BORE_EDGE = C_EXCL_FILL, C_EXCL_EDGE
 
     for ax, name in zip(axes, ["A15", "A17"]):
         cfg = SITES[name]
@@ -301,38 +270,26 @@ def fig_mean_T_profile(out_name="fig_apollo_mean_T_profile.pdf"):
         T_H  = T_mat_H.mean(axis=1)
         T_MS = T_mat_MS.mean(axis=1)
 
-        # Borestem zone shading -- soft coral band so the omitted
-        # region reads as "different" from the retrieval band.
-        ax.axhspan(0, 80, color=BORE_FILL, alpha=0.55, zorder=0)
-        ax.axhline(80, color=BORE_EDGE, lw=0.7, ls=(0, (3, 2)),
-                   alpha=0.6, zorder=1)
+        # Borestem zone shading (the excluded zone)
+        ax.axhspan(0, 80, color=BORE_FILL, zorder=0)
+        ax.axhline(80, color=BORE_EDGE, lw=0.7, ls=(0, (3, 2)), zorder=1)
 
-        # Model curves
-        ax.plot(T_H,  z_mid * 100, "-",  color=C_HAYNE, lw=2.0,
-                label="Hayne (2017), smooth exponential",
-                zorder=2)
-        ax.plot(T_MS, z_mid * 100, "--", color=C_MS, lw=2.0,
-                label=r"Martínez & Siegler (2021), $T,\rho$-dependent",
-                zorder=2)
+        # Model curves: both global models at their published parameters
+        ax.plot(T_H,  z_mid * 100, ls=LS_HAYNE_GLOBAL, color=C_HAYNE_GLOBAL, lw=2.0, zorder=2)
+        ax.plot(T_MS, z_mid * 100, ls=LS_MS, color=C_MS, lw=2.0, zorder=2)
 
-        # Observed sensors. Deep markers are filled (used in
-        # retrieval); shallow markers are open (excluded).
-        col_TG = C_CHAR
-        col_TR = C_DIM
+        # Observed sensors in the site colour; circles = gradient bridge (TG),
+        # squares = ring bridge (TR); filled = used, open = borestem zone.
+        col = C_A15 if name == "A15" else C_A17
         for is_tg in (True, False):
             mask = (stype == ("TG" if is_tg else "TR"))
+            fmt = "o" if is_tg else "s"
             ax.errorbar(T_obs[mask & deep], z_obs[mask & deep] * 100,
-                        xerr=T_std[mask & deep], fmt="o",
-                        color=col_TG if is_tg else col_TR,
-                        mec="white", mew=0.7, markersize=7, capsize=2,
-                        zorder=3,
-                        label=("TG (deep)" if is_tg else "TR (deep)") if name == "A15" else None)
+                        xerr=T_std[mask & deep], fmt=fmt, color=col,
+                        mec="white", mew=0.7, markersize=6.5, capsize=2, zorder=3)
             ax.errorbar(T_obs[mask & ~deep], z_obs[mask & ~deep] * 100,
-                        xerr=T_std[mask & ~deep], fmt="o", mfc="none",
-                        color=col_TG if is_tg else col_TR,
-                        mew=0.9, markersize=7, capsize=2,
-                        zorder=3,
-                        label=("TG (shallow, excluded)" if is_tg else "TR (shallow, excluded)") if name == "A15" else None)
+                        xerr=T_std[mask & ~deep], fmt=fmt, mfc="white", color=col,
+                        mew=0.9, markersize=6.5, capsize=2, zorder=3)
 
         fmt_axis(ax,
                  xlabel=r"$T$ (K)",
@@ -367,9 +324,15 @@ def fig_mean_T_profile(out_name="fig_apollo_mean_T_profile.pdf"):
                 zorder=5)
 
     # shared legend in a reserved strip below -- never overlaps the axes
-    h, l = axes[0].get_legend_handles_labels()
-    legend_below(fig, h, l, ncols=2, fontsize=FS_LEGEND,
-                 handlelength=2.2, columnspacing=1.6)
+    from matplotlib.lines import Line2D
+    h = [Line2D([], [], ls=LS_HAYNE_GLOBAL, color=C_HAYNE_GLOBAL, lw=2.0),
+         Line2D([], [], ls=LS_MS, color=C_MS, lw=2.0),
+         Line2D([], [], marker="o", ls="none", color=C_CHAR, mec="white", ms=6.5),
+         Line2D([], [], marker="s", ls="none", color=C_CHAR, mec="white", ms=6.0),
+         Line2D([], [], marker="o", ls="none", mfc="white", color=C_CHAR, ms=6.5)]
+    l = ["Hayne (2017), global $K_d$", "Martínez & Siegler (2021)",
+         "TG sensor", "TR sensor", "borestem zone (excluded)"]
+    legend_below(fig, h, l, ncols=5)
 
     out = LETTER_FIGS / out_name
     fig.savefig(out)
@@ -380,7 +343,7 @@ def fig_mean_T_profile(out_name="fig_apollo_mean_T_profile.pdf"):
 # ══════════════════════════════════════════════════════════════════════════════
 # FIGURE 3 — Diurnal amplitude vs depth (borestem signature)
 # ══════════════════════════════════════════════════════════════════════════════
-def fig_amplitude_vs_depth():
+def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
     # sharey + a slim gap: the duplicated depth ticks between the panels
     # were pure whitespace. x-limits are trimmed to the observed/model
     # span (the old 1e-3 decade held nothing but the borestem label).
@@ -429,10 +392,10 @@ def fig_amplitude_vs_depth():
         delta_M = np.sqrt(2 * kappa_M / omega) * 100
         amp_M   = 100 * np.exp(-z_grid / delta_M)
 
-        ax.semilogx(amp_H, z_grid, "-",  color=C_HAYNE, lw=2.0,
-                    label="Hayne (2017) attenuation")
-        ax.semilogx(amp_M, z_grid, "--", color=C_MS, lw=2.0,
-                    label="Martínez & Siegler (2021) attenuation")
+        ax.semilogx(amp_H, z_grid, ls=LS_HAYNE_GLOBAL, color=C_HAYNE_GLOBAL, lw=2.0,
+                    label="Hayne (2017), global $K_d$")
+        ax.semilogx(amp_M, z_grid, ls=LS_MS, color=C_MS, lw=2.0,
+                    label="Martínez & Siegler (2021)")
 
         # Borestem-zone sensors (z < 80 cm, open) vs meter-scale sensors
         # (filled): only the filled class enters the K_d retrieval, and the
@@ -444,19 +407,18 @@ def fig_amplitude_vs_depth():
             a_model = 100.0 * np.exp(-z_i / delta_H)
             ax.plot([max(a_model, XLIM[0]), a_i], [z_i, z_i], ls=":",
                     color=C_DIM, lw=1.1, zorder=1.5)
+        col = C_A15 if name == "A15" else C_A17
         ax.semilogx(amp_obs[stem], z_obs[stem], "o", mfc="white",
-                    mec=C_CHAR, mew=1.2, markersize=7, ls="none",
-                    label="Apollo HFE (borestem zone)")
-        ax.semilogx(amp_obs[~stem], z_obs[~stem], "o", color=C_CHAR,
-                    mec="white", mew=0.7, markersize=7, ls="none",
-                    label="Apollo HFE (meter-scale)")
+                    mec=col, mew=1.2, markersize=7, ls="none")
+        ax.semilogx(amp_obs[~stem], z_obs[~stem], "o", color=col,
+                    mec="white", mew=0.7, markersize=7, ls="none")
 
         # digitization noise floor of the restored record (0.05-0.2 K,
         # Nagihara 2018): the deep-sensor amplitudes flatten here, which
         # is why they do not constrain the deep diffusivity (Sec. 2.4).
-        ax.axvspan(0.05, 0.2, color=C_TEAL_L, alpha=0.35, zorder=0)
-        # borestem zone
-        ax.axhspan(0, 80, color=C_NEUTRAL, alpha=0.22, zorder=0)
+        ax.axvspan(0.05, 0.2, color=C_NEUTRAL, alpha=0.30, zorder=0)
+        # borestem zone (the excluded-zone role colour)
+        ax.axhspan(0, 80, color=C_EXCL_FILL, zorder=0)
 
         if name == "A15":
             # inside the (empty) deep stretch of the noise band, rotated
@@ -485,15 +447,22 @@ def fig_amplitude_vs_depth():
         ax.set_ylim(*YLIM)
         ax.set_xlim(*XLIM)
 
-    h, l = axes[0].get_legend_handles_labels()
-    # extra clearance so the legend box clears the x-axis labels
-    legend_below(fig, h, l, ncols=2, fontsize=FS_LEGEND,
-                 handlelength=2.2, columnspacing=1.6, pad_in=0.30)
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
+    h = [Line2D([], [], ls=LS_HAYNE_GLOBAL, color=C_HAYNE_GLOBAL, lw=2.0),
+         Line2D([], [], ls=LS_MS, color=C_MS, lw=2.0),
+         Line2D([], [], marker="o", ls="none", color=C_CHAR, mec="white", ms=7),
+         Line2D([], [], marker="o", ls="none", mfc="white", mec=C_CHAR, ms=7),
+         Patch(fc=C_NEUTRAL, alpha=0.30)]
+    l = ["Hayne (2017), global $K_d$", "Martínez & Siegler (2021)", "meter-scale sensor",
+         "borestem-zone sensor", "noise floor"]
+    # extra clearance so the legend clears the x-axis labels
+    legend_below(fig, h, l, ncols=5, pad_in=0.30)
 
     fig.canvas.draw()
     assert_no_overlap(axes[0])
     assert_no_overlap(axes[1])
-    out = LETTER_FIGS / "fig_amplitude_vs_depth.pdf"
+    out = LETTER_FIGS / out_name
     fig.savefig(out)
     plt.close(fig)
     print(f"  → {out}")

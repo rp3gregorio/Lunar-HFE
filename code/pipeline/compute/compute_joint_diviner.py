@@ -74,24 +74,27 @@ def main():
     # figure: midnight-centred diurnal cycle, zonal curve and site pixels
     import matplotlib.pyplot as plt
     from matplotlib.lines import Line2D
-    from lunar.plotting.style import JGR_FULL, fmt_axis, legend_below, C_TEAL, C_TEAL_L, C_MS, C_CHAR, C_DIM
+    from lunar.plotting.style import (JGR_FULL, fmt_axis, legend_below, C_CHAR, C_DIM, C_MS, C_A15, C_A17,
+                                      C_HAYNE_FIT, LS_HAYNE_FIT, C_HAYNE_GLOBAL, LS_HAYNE_GLOBAL, LS_MS)
     fig = plt.figure(figsize=(JGR_FULL, 3.4))
     gs = fig.add_gridspec(1, 2, wspace=0.25, left=0.08, right=0.98, top=0.88, bottom=0.17)
     cen = lambda lst: (np.asarray(lst) - 12.0) % 24.0
-    sty = {"hayne_joint": dict(color=C_TEAL, lw=1.8), "hayne_global_fittedA": dict(color=C_TEAL_L, lw=1.4, ls="--"),
-           "martinez_forward_jointA": dict(color=C_MS, lw=1.4, ls=":")}
+    sty = {"hayne_joint": dict(color=C_HAYNE_FIT, lw=1.8, ls=LS_HAYNE_FIT),
+           "hayne_global_fittedA": dict(color=C_HAYNE_GLOBAL, lw=1.4, ls=LS_HAYNE_GLOBAL),
+           "martinez_forward_jointA": dict(color=C_MS, lw=1.6, ls=LS_MS)}
     for col, name in enumerate(("A15", "A17")):
         ax = fig.add_subplot(gs[0, col])
         curves, cur = curves_all[name]
         lo_, To_ = curves["zonal"]; ax.plot(cen(lo_), To_, "o", ms=2.5, color=C_DIM, alpha=0.6)
-        lo_, To_ = curves["site_pm0.5deg"]; ax.plot(cen(lo_), To_, "s", ms=3, mfc="white", mec=C_CHAR, mew=0.6)
+        lo_, To_ = curves["site_pm0.5deg"]; ax.plot(cen(lo_), To_, "s", ms=3.2, mfc="white",
+                                                    mec=(C_A15 if name == "A15" else C_A17), mew=0.8)
         for m, (lst_m, T_m) in cur.items():
             o = np.argsort(cen(lst_m)); ax.plot(cen(lst_m)[o], np.asarray(T_m)[o], **sty[m])
         ax.set_xticks([0, 6, 12, 18, 24], ["12", "18", "0", "6", "12"])
         fmt_axis(ax, xlabel="Local time (h)", ylabel="Surface temperature (K)" if col == 0 else "",
                  title=f"({'ab'[col]})  {SITES[name]['label']}")
     h = [Line2D([], [], **sty["hayne_joint"]), Line2D([], [], **sty["hayne_global_fittedA"]), Line2D([], [], **sty["martinez_forward_jointA"]),
-         Line2D([], [], marker="o", ms=3, color=C_DIM, ls="none"), Line2D([], [], marker="s", ms=4, mfc="white", mec=C_CHAR, ls="none")]
+         Line2D([], [], marker="o", ms=3, color=C_DIM, ls="none"), Line2D([], [], marker="s", ms=4.5, mfc="white", mec=C_CHAR, ls="none")]
     l = ["Hayne, joint fit", "Hayne, global $K_d$ (its fitted $A$)", "Martínez & Siegler (joint $A$)",
          "Diviner, zonal curve", "Diviner, site pixels ($\\pm$0.5$^\\circ$)"]
     legend_below(fig, h, l, ncols=3)

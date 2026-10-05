@@ -16,31 +16,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-# Shared design tokens (match make_letter_figures.py)
-JGR_FULL = 7.48
-C_A15   = "#3D6E4A"   # forest
-C_A17   = "#B85B3A"   # coral
-C_CHAR  = "#2A2520"
-C_DIM   = "#6E6862"
-C_GRID  = "#E8E5E0"
-C_PAPER = "#FBFAF8"
-C_BAND  = "#D6E2D9"   # pale green for admissible Apollo-core band
-C_BASE  = "#6C4CA6"   # Martinez violet (style.C_MS) for the published baseline (alpha=1)
-FS_LABEL = 10.5
-FS_TICK  = 9.5
-FS_TITLE = 11.0
-
-plt.rcParams.update({
-    "font.family": "serif",
-    "font.serif": ["Latin Modern Roman", "Times New Roman", "DejaVu Serif"],
-    "mathtext.fontset": "cm",
-    "axes.edgecolor": C_DIM,
-    "axes.labelcolor": C_CHAR,
-    "text.color": C_CHAR,
-    "xtick.color": C_CHAR,
-    "ytick.color": C_CHAR,
-    "axes.linewidth": 0.8,
-})
+# House style (rcParams, fonts, palette) and the letter's colour roles:
+# sites green / coral, Martinez violet dotted, bounds neutral grey.
+from lunar.plotting.style import (JGR_FULL, C_A15, C_A17, C_CHAR, C_DIM, C_GRID,
+                                  C_MS, LS_MS, FS_LABEL, FS_TICK, legend_below)
+C_BASE = C_MS          # published Martinez baseline (alpha = 1)
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 OUT  = ROOT / ".." / "figures"
@@ -59,9 +39,8 @@ def main(out_name="fig_alpha_sweep.pdf"):
 
     # Single-panel overlay -- both sites on shared axes so the
     # contrast between the two minima is immediate visually.
-    fig, ax = plt.subplots(figsize=(JGR_FULL, 5.2))
-    fig.subplots_adjust(left=0.10, right=0.985, top=0.94, bottom=0.32)
-    ax.set_facecolor(C_PAPER)
+    fig, ax = plt.subplots(figsize=(JGR_FULL, 4.0))
+    fig.subplots_adjust(left=0.10, right=0.985, top=0.96, bottom=0.14)
 
     # Apollo-core admissible density envelope: two narrow vertical
     # boundary lines + short tick caps on the X-AXIS itself, in a
@@ -80,8 +59,7 @@ def main(out_name="fig_alpha_sweep.pdf"):
                lw=1.0, alpha=0.55, zorder=1)
 
     # Published Martinez baseline (alpha = 1)
-    ax.axvline(1.0, color=C_BASE, ls="--", lw=1.0, alpha=0.55,
-               zorder=2)
+    ax.axvline(1.0, color=C_BASE, ls=LS_MS, lw=1.4, zorder=2)
 
     # Site curves with star at the minimum.
     site_handles = []
@@ -95,8 +73,8 @@ def main(out_name="fig_alpha_sweep.pdf"):
 
         (line,) = ax.plot(
             alpha, rmse, "-", color=color, lw=2.4, zorder=3,
-            label=(rf"A{name[-2:]}  $\alpha^{{*}}={alpha_star:.2f}$,  "
-                   rf"$\rho_d^{{*}}={rho_d_star:.0f}$ kg m$^{{-3}}$"))
+            label=(rf"Apollo {name[-2:]}: $\alpha^{{*}}={alpha_star:.2f}$ "
+                   rf"($\rho_d^{{*}}={rho_d_star:.0f}$ kg m$^{{-3}}$)"))
         ax.plot(alpha_star, rmse_star, "*", ms=22, color=color,
                 mec="white", mew=1.5, zorder=5)
         site_handles.append(line)
@@ -115,31 +93,18 @@ def main(out_name="fig_alpha_sweep.pdf"):
     ax.grid(color=C_GRID, lw=0.4, alpha=0.7)
     ax.set_axisbelow(True)
 
-    # Single shared legend below, in the Fig 6 style: a title line
-    # over two rows of entries.
+    # one shared legend below the panel, the house (Fig. 2) style
     band_handle = Line2D([0], [0], color=C_BOUND, ls="-", lw=1.0,
-                         marker="^", ms=8, mec="white", mew=0.6,
-                         label="Apollo-core admissible $\\rho_d$ "
-                               "(1700--2000 kg m$^{-3}$)")
-    base_handle = Line2D([0], [0], color=C_BASE, ls="--", lw=1.2,
-                         label="Martínez baseline " r"($\alpha=1$)")
-    basalt_handle = Line2D([0], [0], color=C_DIM, ls=(0, (1, 2)),
-                           lw=1.0,
-                           label="Solid lunar basalt (3000 kg m$^{-3}$)")
+                         marker="^", ms=7, mec="white", mew=0.6)
+    base_handle = Line2D([0], [0], color=C_BASE, ls=LS_MS, lw=1.4)
+    basalt_handle = Line2D([0], [0], color=C_DIM, ls=(0, (1, 2)), lw=1.0)
     star_handle = Line2D([0], [0], marker="*", color="white", lw=0,
-                         ms=14, mec=C_CHAR, mew=0.8,
-                         label=r"Per-site retrieved $\alpha^{*}$")
-    fig.legend(
-        handles=site_handles + [band_handle, base_handle,
-                                basalt_handle, star_handle],
-        loc="lower center", bbox_to_anchor=(0.5, 0.012),
-        ncols=2, frameon=True, edgecolor=C_GRID, framealpha=0.97,
-        fontsize=FS_TICK, handlelength=2.2, borderpad=0.7,
-        columnspacing=1.8,
-        title=r"Stars: retrieved $\alpha^{*}$;  gray verticals + triangles: "
-              r"Apollo-core admissible $\rho_d$ bounds",
-        title_fontsize=FS_LABEL,
-    )
+                         ms=12, mec=C_CHAR, mew=0.8)
+    legend_below(fig, site_handles + [star_handle, band_handle, base_handle, basalt_handle],
+                 [h.get_label() for h in site_handles]
+                 + [r"retrieved $\alpha^{*}$", r"Apollo-core $\rho_d$ (1700--2000 kg m$^{-3}$)",
+                    r"published Martínez ($\alpha=1$)", r"solid basalt (3000 kg m$^{-3}$)"],
+                 ncols=3)
 
     out = OUT / out_name
     fig.savefig(out)

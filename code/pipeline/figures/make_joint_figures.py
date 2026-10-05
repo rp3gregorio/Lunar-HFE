@@ -8,9 +8,12 @@
   fig_joint_alpha_sweep.pdf      Fig. S5: Martinez density sweep (reads results/headline_rmse.json)
   fig_joint_intro_column.pdf     Fig. 1: the modeled column (swing depth from review_diagnostics.json)
   fig_joint_anchor_method.pdf    Fig. S2: the flux-anchored solver, Apollo 15 at the joint fit (~3 min)
+  fig_joint_apollo_timeline_probes.pdf  Fig. 2: stability-window timeline (site colours)
+  fig_joint_amplitude_vs_depth.pdf      Fig. S3: diurnal amplitude vs depth
 
-Figs. 1, S2, S4 and S5 reuse the make_intro_column / make_anchor_method_figure /
-make_letter_figures / make_alpha_sweep_figure generators under new names, so the older-named copies
+Figs. 1, 2, S2-S5 reuse the make_intro_column / make_apollo_timeline_letter /
+make_anchor_method_figure / make_letter_figures / make_alpha_sweep_figure generators
+under new names, so the older-named copies
 used by other documents (thesis, v1.1 letter) are kept.
 
 Reads results/joint_albedo_fit.json (+ _cache.npz), joint_fit_checks.json,
@@ -180,12 +183,12 @@ def fig_profiles(res, cache, chk):
         deep = zo >= SITES[s]["MIN_DEPTH_CM"]
         for row, (zlo, zhi) in enumerate(((0, 300), (75, 245))):
             ax = fig.add_subplot(gs[row, col])
-            ax.axhspan(0, 80, color="#F4D6CB", alpha=0.55, lw=0)
-            ax.axhline(80, color=C_CORAL, ls="--", lw=0.8)
+            ax.axhspan(0, 80, color=C_EXCL_FILL, lw=0)
+            ax.axhline(80, color=C_EXCL_EDGE, ls="--", lw=0.8)
             zc = jf.Z_DENSE * 100
-            ax.plot(Tj, zc, color=C_TEAL, lw=2.0)
-            ax.plot(Tg, zc, color=C_TEAL_L, lw=1.6, ls="--")
-            ax.plot(Tm, zm * 100, color=C_MS, lw=1.6, ls=":")
+            ax.plot(Tj, zc, color=C_HAYNE_FIT, lw=2.0, ls=LS_HAYNE_FIT)
+            ax.plot(Tg, zc, color=C_HAYNE_GLOBAL, lw=1.6, ls=LS_HAYNE_GLOBAL)
+            ax.plot(Tm, zm * 100, color=C_MS, lw=1.6, ls=LS_MS)
             ax.errorbar(To[deep], zo[deep], xerr=eo[deep], fmt="o", ms=5, color=SITE_COL[s], mec="white", mew=0.7, ecolor=SITE_COL[s], elinewidth=0.8, zorder=5)
             ax.errorbar(To[~deep], zo[~deep], xerr=eo[~deep], fmt="o", ms=5, mfc="white", mec=SITE_COL[s], ecolor=SITE_COL[s], elinewidth=0.8, zorder=5)
             ax.set_ylim(zhi, zlo)
@@ -198,7 +201,7 @@ def fig_profiles(res, cache, chk):
     handles = [Line2D([], [], color=C_TEAL, lw=2.0), Line2D([], [], color=C_TEAL_L, lw=1.6, ls="--"),
                Line2D([], [], color=C_MS, lw=1.6, ls=":"),
                Line2D([], [], marker="o", color=C_CHAR, ls="none", mec="white"), Line2D([], [], marker="o", mfc="white", mec=C_CHAR, ls="none"),
-               Patch(fc="#F4D6CB", alpha=0.55, ec=C_CORAL, ls="--")]
+               Patch(fc=C_EXCL_FILL, ec=C_EXCL_EDGE, ls="--")]
     labels = ["Hayne form, joint fit ($A$, $K_d^*$)", "Hayne form, global $K_d$ = 3.4 (its fitted $A$)",
               "Martínez & Siegler forward (joint $A$)", "HFE sensors, retained", "HFE sensors, borestem zone", "borestem zone ($z<80$ cm)"]
     legend_below(fig, handles, labels, ncols=3)
@@ -261,10 +264,13 @@ def main():
     # Fig. S2 first, while the house rcParams are in force; then S4, S5 and
     # Fig. 1, whose generators set their own rcParams (fonts, legend sizes)
     import make_letter_figures, make_alpha_sweep_figure, make_intro_column, make_anchor_method_figure
+    import make_apollo_timeline_letter
     make_anchor_method_figure.main(out_name="fig_joint_anchor_method.pdf")   # Fig. S2 (A15 at the joint fit)
+    make_apollo_timeline_letter.main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False)  # Fig. 2
+    make_letter_figures.fig_amplitude_vs_depth(out_name="fig_joint_amplitude_vs_depth.pdf")   # Fig. S3
     make_letter_figures.fig_mean_T_profile(out_name="fig_joint_mean_T_profile.pdf")
     make_alpha_sweep_figure.main(out_name="fig_joint_alpha_sweep.pdf")
-    make_intro_column.main(out_stem="fig_joint_intro_column")   # Fig. 1 (swing depth at the joint K_d*)
+    make_intro_column.main(out_stem="fig_joint_intro_column", font="times")   # Fig. 1 (swing depth at the joint K_d*)
 
 
 if __name__ == "__main__":

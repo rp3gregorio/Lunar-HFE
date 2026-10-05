@@ -25,6 +25,11 @@ FS_LEGEND = 9.5
 plt.rcParams.update({
     "font.family": "serif",
     "font.serif": ["Times", "Times New Roman", "DejaVu Serif"],
+    # maths in the Times-matched STIX face (not DejaVu Sans), and fonts embedded
+    # as TrueType (Type 42) rather than Type 3 -- AGU asks for embedded fonts
+    "mathtext.fontset": "stix",
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
     "font.size": FS_BASE,
     "axes.titlesize": FS_TITLE,
     "axes.titleweight": "bold",
@@ -95,6 +100,16 @@ C_BLUE_L = "#B4C3E0"
 C_OBS_T, C_OBS_KAPPA, C_OBS_TS = C_OCHRE, C_BLUE, C_DIM   # ... and the surface mean
 C_CONTRAST = C_CHAR      # inter-site contrast: belongs to neither site
 
+# ── semantic roles: one colour and line style per concept in every letter
+#    figure (agreed with the author 2026-10-05) ──────────────────────────────
+C_A15_2 = "#6F9A78"      # second probe at Apollo 15 (Fig. 2)
+C_A17_2 = "#D48A6C"      # second probe at Apollo 17 (Fig. 2)
+C_HAYNE_FIT, LS_HAYNE_FIT = C_TEAL, "-"            # Hayne form at the joint fit
+C_HAYNE_GLOBAL, LS_HAYNE_GLOBAL = C_TEAL_L, "--"   # Hayne form at the global K_d
+C_GLOBAL_REF, LS_GLOBAL_REF = C_TEAL, ":"          # the global value 3.4 as a reference line
+LS_MS = ":"                                        # Martinez & Siegler (colour C_MS)
+C_EXCL_FILL, C_EXCL_EDGE = "#ECE8E2", C_NEUTRAL    # borestem / excluded zone
+
 WARM_DIVERGE = LinearSegmentedColormap.from_list(
     "warm_diverge",
     ["#2A6478", "#7CA3B0", "#F5F1EA", "#E5A88A", "#B85B3A", "#7A2F18"])
@@ -133,14 +148,19 @@ def legend_outside(ax, *, loc="right", **kwargs):
     return ax.legend(**defaults)
 
 
+LEGEND_KW = dict(frameon=False, fontsize=9.0, handlelength=1.6, handleheight=0.7,
+                 handletextpad=0.8, columnspacing=1.3, borderaxespad=0.0)
+
+
 def legend_below(fig, handles, labels, *, ncols=3, pad_in=0.10, **kw):
     """Shared legend in a reserved strip below all axes; grows the figure
-    downward so no axis label is ever overlapped."""
+    downward so no axis label is ever overlapped. Styled like the letter's
+    Fig. 2 (no frame, 9 pt, compact handles), the house legend since
+    2026-10-05; keyword arguments override LEGEND_KW."""
     fig.canvas.draw()
     leg = fig.legend(handles, labels, loc="lower center",
                      bbox_to_anchor=(0.5, 0.0), ncols=ncols,
-                     frameon=True, edgecolor=C_GRID, framealpha=0.97,
-                     borderpad=0.6, **kw)
+                     **{**LEGEND_KW, **kw})
     fig.canvas.draw()
     bb = leg.get_window_extent()
     leg_h_in = bb.height / fig.dpi

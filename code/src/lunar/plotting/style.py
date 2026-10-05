@@ -152,15 +152,42 @@ LEGEND_KW = dict(frameon=False, fontsize=9.0, handlelength=1.6, handleheight=0.7
                  handletextpad=0.8, columnspacing=1.3, borderaxespad=0.0)
 
 
-def legend_below(fig, handles, labels, *, ncols=3, pad_in=0.10, **kw):
+def legend_below(fig, handles, labels, *, ncols="auto", pad_in=0.10, **kw):
     """Shared legend in a reserved strip below all axes; grows the figure
     downward so no axis label is ever overlapped. Styled like the letter's
     Fig. 2 (no frame, 9 pt, compact handles), the house legend since
-    2026-10-05; keyword arguments override LEGEND_KW."""
+    2026-10-05; keyword arguments override LEGEND_KW.
+
+    ncols="auto" (default) uses the FEWEST rows that fit the figure width,
+    then spreads the entries evenly over those rows (no lonely half-row), and
+    orders them to read left to right, row by row.
+    """
+    import math
     fig.canvas.draw()
+    style = {**LEGEND_KW, **kw}
+    handles, labels = list(handles), list(labels)
+    n = len(handles)
+    if ncols == "auto":
+        avail = fig.get_size_inches()[0] * fig.dpi * 0.97
+        nc = 1
+        for c in range(n, 0, -1):
+            trial = fig.legend(handles, labels, loc="lower center", bbox_to_anchor=(0.5, 0.0),
+                               ncols=c, **style)
+            fig.canvas.draw()
+            w = trial.get_window_extent().width
+            trial.remove()
+            if w <= avail:
+                nc = c
+                break
+        rows = math.ceil(n / nc)
+        ncols = math.ceil(n / rows)
+    # matplotlib fills a legend column by column; reorder so it reads row by row
+    rows = math.ceil(n / ncols)
+    order = [k * ncols + j for j in range(ncols) for k in range(rows) if k * ncols + j < n]
+    handles = [handles[i] for i in order]
+    labels = [labels[i] for i in order]
     leg = fig.legend(handles, labels, loc="lower center",
-                     bbox_to_anchor=(0.5, 0.0), ncols=ncols,
-                     **{**LEGEND_KW, **kw})
+                     bbox_to_anchor=(0.5, 0.0), ncols=ncols, **style)
     fig.canvas.draw()
     bb = leg.get_window_extent()
     leg_h_in = bb.height / fig.dpi

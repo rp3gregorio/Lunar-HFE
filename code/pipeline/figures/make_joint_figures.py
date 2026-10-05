@@ -116,17 +116,17 @@ def fig_constraints(res, cache):
         fmt_axis(ax, xlabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", ylabel=r"$\Delta J$ (profile)" if col == 0 else "",
                  title=f"({'cd'[col]})  {SITE_LAB[s]}: profile likelihood")
     handles = [Patch(fc=C_NEUTRAL, alpha=0.35, ec=C_OBS_TS, ls="--"), Patch(fc=C_OBS_KAPPA, alpha=0.3, ec=C_OBS_KAPPA),
-               Patch(fc="#F1E6CC", ec=C_OBS_T), Line2D([], [], color=C_CHAR, lw=1.3),
-               Line2D([], [], marker="*", ms=11, color=C_CHAR, ls="none", mec="white"),
+               Patch(fc="#F1E6CC", ec=C_OBS_T),
+               (Line2D([], [], color=C_CHAR, lw=1.3), Line2D([], [], marker="*", ms=11, color=C_CHAR, ls="none", mec="white")),
                Line2D([], [], marker="o", ms=7, mfc="white", mec=C_CHAR, ls="none"),
                Line2D([], [], marker="X", ms=8, color=C_DIM, ls="none", mec="white"),
                Line2D([], [], color=C_TEAL, ls=":", lw=1.4),
                Line2D([], [], color=C_CHAR, ls="-", lw=1.8), Line2D([], [], color=C_CHAR, ls="--", lw=1.4)]
-    labels = ["measured surface mean $\\pm$5 K", "measured diffusivity ($\\Delta J_\\kappa\\leq1$)",
-              "temperatures only ($\\Delta J$ = 1, 4, 9)", "joint fit, 68% region", "joint best fit",
+    labels = ["surface mean $\\pm$5 K", "diffusivity ($\\Delta J_\\kappa\\leq1$)",
+              "temperatures only ($\\Delta J$ = 1, 4, 9)", "joint fit (star; 68% region)",
               "best fit, temperatures only", "fixed albedo 0.131 / 0.137", "global $K_d$ = 3.4",
               "(c, d) with diffusivity", "(c, d) temperatures only"]
-    legend_below(fig, handles, labels, ncols=3)
+    legend_below(fig, handles, labels)
     out = FIG / "fig_joint_constraints.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")
@@ -143,7 +143,7 @@ def fig_bootstrap(res):
         x = np.array(bs["samples_kd_mW"]); q = bs["kd_mW"]
         ax1.hist(x, bins=bins, color=SITE_COL[s], alpha=0.75, ec="white", lw=0.4)
         h.append(Patch(fc=SITE_COL[s], alpha=0.75))
-        l.append(f"{SITE_LAB[s]}  median {q['p50']:.2f} [{q['p2.5']:.2f}, {q['p97.5']:.2f}]")
+        l.append(f"{SITE_LAB[s]}: {q['p50']:.2f} [{q['p2.5']:.2f}, {q['p97.5']:.2f}]")
     ax1.axvline(3.4, color=C_TEAL, ls=":", lw=1.4)
     h.append(Line2D([], [], color=C_TEAL, ls=":", lw=1.4)); l.append("global $K_d$ = 3.4")
     ax1.set_xlim(3.0, 7.5)
@@ -156,10 +156,10 @@ def fig_bootstrap(res):
     ax2.axvline(cc["median"], color=C_CHAR, lw=1.6)
     ax2.text(0.03, 0.93, f"P($\\Delta K_d^*\\leq0$) = {cc['p_leq0']:.3f}", transform=ax2.transAxes, ha="left", va="top",
              fontsize=FS_TICK, bbox=dict(fc="white", ec=C_GRID, pad=3), zorder=6)
-    h += [Line2D([], [], color=C_CONTRAST, lw=1.6), Patch(fc=C_NEUTRAL, alpha=0.4)]
-    l += [f"contrast median {cc['median']:+.2f}", f"contrast 95% [{cc['p2_5']:+.2f}, {cc['p97_5']:+.2f}]"]
+    h += [(Patch(fc=C_NEUTRAL, alpha=0.4), Line2D([], [], color=C_CONTRAST, lw=1.6))]
+    l += [f"contrast: {cc['median']:+.2f} [{cc['p2_5']:+.2f}, {cc['p97_5']:+.2f}]"]
     fmt_axis(ax2, xlabel=r"$\Delta K_d^{*}$ (A17 $-$ A15)", ylabel="bootstrap count", title="(b)  Inter-site contrast")
-    legend_below(fig, h, l, ncols=2)
+    legend_below(fig, h, l)
     out = FIG / "fig_joint_bootstrap.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")
@@ -202,9 +202,9 @@ def fig_profiles(res, cache, chk):
                Line2D([], [], color=C_MS, lw=1.6, ls=":"),
                Line2D([], [], marker="o", color=C_CHAR, ls="none", mec="white"), Line2D([], [], marker="o", mfc="white", mec=C_CHAR, ls="none"),
                Patch(fc=C_EXCL_FILL, ec=C_EXCL_EDGE, ls="--")]
-    labels = ["Hayne form, joint fit ($A$, $K_d^*$)", "Hayne form, global $K_d$ = 3.4 (its fitted $A$)",
-              "Martínez & Siegler forward (joint $A$)", "HFE sensors, retained", "HFE sensors, borestem zone", "borestem zone ($z<80$ cm)"]
-    legend_below(fig, handles, labels, ncols=3)
+    labels = ["Hayne, joint fit", "Hayne, global $K_d$ (own $A$)", "Martínez & Siegler",
+              "sensor, used", "sensor, borestem zone", "borestem zone"]
+    legend_below(fig, handles, labels)
     out = FIG / "fig_joint_thermal_profiles.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")
@@ -246,7 +246,7 @@ def fig_robustness(res, sens):
     handles = [Line2D([], [], color=C_A15, lw=2.2), Line2D([], [], color=C_A17, lw=2.2),
                Patch(fc=C_DIM, alpha=0.15), Line2D([], [], color=C_TEAL, ls=":", lw=1.4), Patch(fc="white", ec=C_CHAR, lw=1.6)]
     labels = ["Apollo 15", "Apollo 17", "bootstrap 95% (shaded)", "global $K_d$ = 3.4", "(a) adopted fluxes 21 / 16"]
-    legend_below(fig, handles, labels, ncols=5)
+    legend_below(fig, handles, labels)
     out = FIG / "fig_joint_robustness.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")

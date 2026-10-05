@@ -330,9 +330,9 @@ def fig_mean_T_profile(out_name="fig_apollo_mean_T_profile.pdf"):
          Line2D([], [], marker="o", ls="none", color=C_CHAR, mec="white", ms=6.5),
          Line2D([], [], marker="s", ls="none", color=C_CHAR, mec="white", ms=6.0),
          Line2D([], [], marker="o", ls="none", mfc="white", color=C_CHAR, ms=6.5)]
-    l = ["Hayne (2017), global $K_d$", "Martínez & Siegler (2021)",
+    l = ["Hayne, global $K_d$", "Martínez & Siegler",
          "TG sensor", "TR sensor", "borestem zone (excluded)"]
-    legend_below(fig, h, l, ncols=5)
+    legend_below(fig, h, l)
 
     out = LETTER_FIGS / out_name
     fig.savefig(out)
@@ -393,9 +393,9 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
         amp_M   = 100 * np.exp(-z_grid / delta_M)
 
         ax.semilogx(amp_H, z_grid, ls=LS_HAYNE_GLOBAL, color=C_HAYNE_GLOBAL, lw=2.0,
-                    label="Hayne (2017), global $K_d$")
+                    label="Hayne, global $K_d$")
         ax.semilogx(amp_M, z_grid, ls=LS_MS, color=C_MS, lw=2.0,
-                    label="Martínez & Siegler (2021)")
+                    label="Martínez & Siegler")
 
         # Borestem-zone sensors (z < 80 cm, open) vs meter-scale sensors
         # (filled): only the filled class enters the K_d retrieval, and the
@@ -454,10 +454,10 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
          Line2D([], [], marker="o", ls="none", color=C_CHAR, mec="white", ms=7),
          Line2D([], [], marker="o", ls="none", mfc="white", mec=C_CHAR, ms=7),
          Patch(fc=C_NEUTRAL, alpha=0.30)]
-    l = ["Hayne (2017), global $K_d$", "Martínez & Siegler (2021)", "meter-scale sensor",
+    l = ["Hayne, global $K_d$", "Martínez & Siegler", "meter-scale sensor",
          "borestem-zone sensor", "noise floor"]
     # extra clearance so the legend clears the x-axis labels
-    legend_below(fig, h, l, ncols=5, pad_in=0.30)
+    legend_below(fig, h, l, pad_in=0.30)
 
     fig.canvas.draw()
     assert_no_overlap(axes[0])

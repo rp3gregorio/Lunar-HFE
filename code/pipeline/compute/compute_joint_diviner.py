@@ -95,9 +95,9 @@ def main():
                  title=f"({'ab'[col]})  {SITES[name]['label']}")
     h = [Line2D([], [], **sty["hayne_joint"]), Line2D([], [], **sty["hayne_global_fittedA"]), Line2D([], [], **sty["martinez_forward_jointA"]),
          Line2D([], [], marker="o", ms=3, color=C_DIM, ls="none"), Line2D([], [], marker="s", ms=4.5, mfc="white", mec=C_CHAR, ls="none")]
-    l = ["Hayne, joint fit", "Hayne, global $K_d$ (its fitted $A$)", "Martínez & Siegler (joint $A$)",
-         "Diviner, zonal curve", "Diviner, site pixels ($\\pm$0.5$^\\circ$)"]
-    legend_below(fig, h, l, ncols=3)
+    l = ["Hayne, joint fit", "Hayne, global $K_d$", "Martínez & Siegler",
+         "Diviner, zonal", "Diviner, site pixels"]
+    legend_below(fig, h, l)
     f = _REPO.parent / "figures" / "fig_joint_diviner_closure.pdf"
     fig.savefig(f); fig.savefig(f.with_suffix(".png"), dpi=150)
     print(f"  -> {f}")

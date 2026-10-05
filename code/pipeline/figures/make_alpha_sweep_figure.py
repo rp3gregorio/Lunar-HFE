@@ -73,8 +73,7 @@ def main(out_name="fig_alpha_sweep.pdf"):
 
         (line,) = ax.plot(
             alpha, rmse, "-", color=color, lw=2.4, zorder=3,
-            label=(rf"Apollo {name[-2:]}: $\alpha^{{*}}={alpha_star:.2f}$ "
-                   rf"($\rho_d^{{*}}={rho_d_star:.0f}$ kg m$^{{-3}}$)"))
+            label=rf"Apollo {name[-2:]}: $\alpha^{{*}}={alpha_star:.2f}$")
         ax.plot(alpha_star, rmse_star, "*", ms=22, color=color,
                 mec="white", mew=1.5, zorder=5)
         site_handles.append(line)
@@ -102,9 +101,8 @@ def main(out_name="fig_alpha_sweep.pdf"):
                          ms=12, mec=C_CHAR, mew=0.8)
     legend_below(fig, site_handles + [star_handle, band_handle, base_handle, basalt_handle],
                  [h.get_label() for h in site_handles]
-                 + [r"retrieved $\alpha^{*}$", r"Apollo-core $\rho_d$ (1700--2000 kg m$^{-3}$)",
-                    r"published Martínez ($\alpha=1$)", r"solid basalt (3000 kg m$^{-3}$)"],
-                 ncols=3)
+                 + [r"retrieved $\alpha^{*}$", r"Apollo-core $\rho_d$ range",
+                    r"published Martínez ($\alpha=1$)", r"solid basalt"])
 
     out = OUT / out_name
     fig.savefig(out)

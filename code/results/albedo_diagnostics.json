@@ -1,0 +1,315 @@
+{
+ "meta": {
+  "purpose": "site-albedo diagnostics (audit 2026-10-02)",
+  "lola_product": "https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/cylindrical/float_img/ldam_10_float.img",
+  "hayne_scale": 0.49,
+  "angular_law": {
+   "a": 0.06,
+   "b": 0.25
+  },
+  "runtime_s": 485.6
+ },
+ "site_albedo": {
+  "A15": {
+   "adopted": 0.1363,
+   "lola_block": [
+    [
+     0.22043925523757935,
+     0.2259962558746338,
+     0.23099543154239655,
+     0.23546305298805237,
+     0.23925918340682983
+    ],
+    [
+     0.2154008448123932,
+     0.22106021642684937,
+     0.22555020451545715,
+     0.22868697345256805,
+     0.229892760515213
+    ],
+    [
+     0.21184970438480377,
+     0.21738611161708832,
+     0.22157764434814453,
+     0.22416861355304718,
+     0.224631205201149
+    ],
+    [
+     0.2097969651222229,
+     0.2151515930891037,
+     0.219339057803154,
+     0.22212305665016174,
+     0.223165825009346
+    ],
+    [
+     0.20874355733394623,
+     0.21414780616760254,
+     0.21860219538211823,
+     0.2220640778541565,
+     0.22463999688625336
+    ]
+   ],
+   "bond_normal_incidence": {
+    "pixel": 0.10857304573059082,
+    "mean3x3": 0.10861903344591459,
+    "mean5x5": 0.1087825791478157
+   },
+   "bond_incidence_weighted": {
+    "pixel": 0.1922975819267732,
+    "mean3x3": 0.19234356964209698,
+    "mean5x5": 0.1925071153439981
+   }
+  },
+  "A17": {
+   "adopted": 0.1375,
+   "lola_block": [
+    [
+     0.24840004742145538,
+     0.26934388279914856,
+     0.30257874727249146,
+     0.27215173840522766,
+     0.25390076637268066
+    ],
+    [
+     0.22054260969161987,
+     0.21383439004421234,
+     0.19845540821552277,
+     0.21671627461910248,
+     0.2262248396873474
+    ],
+    [
+     0.2023961842060089,
+     0.18691277503967285,
+     0.16603057086467743,
+     0.18995292484760284,
+     0.20843546092510223
+    ],
+    [
+     0.19939576089382172,
+     0.19187839329242706,
+     0.18660232424736023,
+     0.195120170712471,
+     0.20587986707687378
+    ],
+    [
+     0.20148539543151855,
+     0.20223933458328247,
+     0.21176455914974213,
+     0.2056843638420105,
+     0.2084142118692398
+    ]
+   ],
+   "bond_normal_incidence": {
+    "pixel": 0.08135497972369193,
+    "mean3x3": 0.09503295373585488,
+    "mean5x5": 0.10553308362960816
+   },
+   "bond_incidence_weighted": {
+    "pixel": 0.15577256036355613,
+    "mean3x3": 0.16945053437571908,
+    "mean5x5": 0.17995066426947232
+   }
+  }
+ },
+ "albedo_scan": {
+  "A15": [
+   {
+    "albedo": 0.09,
+    "best_kd_mW": 5.0,
+    "rmse_min_K": 3.919634354431056,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.1,
+    "best_kd_mW": 5.0,
+    "rmse_min_K": 3.134348825277222,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.11,
+    "best_kd_mW": 5.0,
+    "rmse_min_K": 2.3619550162494933,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.12,
+    "best_kd_mW": 5.0,
+    "rmse_min_K": 1.6302587774791275,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.13,
+    "best_kd_mW": 5.0,
+    "rmse_min_K": 1.0449793054223786,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.14,
+    "best_kd_mW": 3.0,
+    "rmse_min_K": 0.9184344544249362,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.15,
+    "best_kd_mW": 12.0,
+    "rmse_min_K": 0.9610318423661843,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.16,
+    "best_kd_mW": 16.0,
+    "rmse_min_K": 0.9740078428820108,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.17,
+    "best_kd_mW": 21.0,
+    "rmse_min_K": 0.9863106518571172,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.18,
+    "best_kd_mW": 26.000000000000004,
+    "rmse_min_K": 1.002264768792349,
+    "at_grid_edge": true
+   }
+  ],
+  "A17": [
+   {
+    "albedo": 0.09,
+    "best_kd_mW": 6.0,
+    "rmse_min_K": 3.9824848077723347,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.1,
+    "best_kd_mW": 6.0,
+    "rmse_min_K": 3.166191502450827,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.11,
+    "best_kd_mW": 6.0,
+    "rmse_min_K": 2.347837084334795,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.12,
+    "best_kd_mW": 6.0,
+    "rmse_min_K": 1.5342329616125927,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.13,
+    "best_kd_mW": 6.0,
+    "rmse_min_K": 0.7624481407819388,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.14,
+    "best_kd_mW": 8.0,
+    "rmse_min_K": 0.3530262387655557,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.15,
+    "best_kd_mW": 13.000000000000002,
+    "rmse_min_K": 0.2991526835911389,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.16,
+    "best_kd_mW": 18.000000000000004,
+    "rmse_min_K": 0.2909324121168896,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.17,
+    "best_kd_mW": 24.0,
+    "rmse_min_K": 0.28737982443719495,
+    "at_grid_edge": false
+   },
+   {
+    "albedo": 0.18,
+    "best_kd_mW": 26.000000000000004,
+    "rmse_min_K": 0.673496186386488,
+    "at_grid_edge": true
+   }
+  ]
+ },
+ "a17_gradient_vs_albedo": {
+  "observed_K_per_m": 0.36659278446578425,
+  "rows": [
+   {
+    "albedo": 0.095,
+    "kd_mW": 3.4,
+    "model_gradient_K_per_m": 2.227828359866555,
+    "mean_offset_K": 4.027397895576344
+   },
+   {
+    "albedo": 0.095,
+    "kd_mW": 7.08,
+    "model_gradient_K_per_m": 1.072445002897111,
+    "mean_offset_K": 3.634545847250246
+   },
+   {
+    "albedo": 0.106,
+    "kd_mW": 3.4,
+    "model_gradient_K_per_m": 2.240043324133022,
+    "mean_offset_K": 3.1252694868490796
+   },
+   {
+    "albedo": 0.106,
+    "kd_mW": 7.08,
+    "model_gradient_K_per_m": 1.0783658192587433,
+    "mean_offset_K": 2.725624428476104
+   },
+   {
+    "albedo": 0.137,
+    "kd_mW": 3.4,
+    "model_gradient_K_per_m": 2.2752962531012275,
+    "mean_offset_K": 0.5414938427399534
+   },
+   {
+    "albedo": 0.137,
+    "kd_mW": 7.08,
+    "model_gradient_K_per_m": 1.095455893334237,
+    "mean_offset_K": 0.12209709245686895
+   }
+  ]
+ },
+ "a17_aicc_vs_albedo": [
+  {
+   "label": "adopted",
+   "albedo": 0.1375,
+   "kd_star_mW": 7.28330322050553,
+   "rmse_star_K": 0.3859310100777017,
+   "rmse_global_K": 0.8667213853588346,
+   "delta_aicc_global_minus_fit": 23.252523672362322
+  },
+  {
+   "label": "map_pixel",
+   "albedo": 0.0814,
+   "kd_star_mW": 5.628725790008846,
+   "rmse_star_K": 4.674207881012058,
+   "rmse_global_K": 5.178513177176743,
+   "delta_aicc_global_minus_fit": 0.641302081647062
+  },
+  {
+   "label": "map_3x3",
+   "albedo": 0.095,
+   "kd_star_mW": 5.65778966279175,
+   "rmse_star_K": 3.568848684527821,
+   "rmse_global_K": 4.086683647199972,
+   "delta_aicc_global_minus_fit": 1.6983413783299852
+  },
+  {
+   "label": "map_5x5",
+   "albedo": 0.1055,
+   "kd_star_mW": 5.690616650228814,
+   "rmse_star_K": 2.711184767845247,
+   "rmse_global_K": 3.2422824489359745,
+   "delta_aicc_global_minus_fit": 3.0871755474639855
+  }
+ ]
+}

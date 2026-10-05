@@ -32,8 +32,8 @@ authors:
 repository-code: 'https://github.com/rp3gregorio/Lunar-HFE'
 doi: 10.5281/zenodo.22183100   # concept DOI (all versions)
 license: MIT
-version: v1.1-jgr
-date-released: '2026-10-02'
+version: v1.2-jgr
+date-released: '2026-10-05'
 preferred-citation:
   type: article
   authors:

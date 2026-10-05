@@ -30,7 +30,7 @@ Straight and warm = light arriving. Wavy and cool = heat leaving.
 
 Every number is live, from the converged solve at the retrieved K_d*:
     incident   1222 W/m^2   = S_0 cos(26.13 deg), the site latitude
-    scattered   160          = A * S,  A = 0.131  (Vasavada 2012)
+    scattered   ~160         = A * S,  A = config.SITES albedo (fitted; was 0.131)
     absorbed   1062          = (1 - A) * S
     radiated   1050          = eps sigma T_s^4,  T_s = 373.7 K, eps = 0.95
     conducted    12          = the remainder, 1.1 % of what was absorbed

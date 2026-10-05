@@ -160,7 +160,8 @@ def run_mcmc(name, site, n_obs):
     # walkers start strictly inside the solved rectangle (a walker born at
     # -inf makes emcee abort)
     kd_grid, qb_grid, _ = surface
-    rng = np.random.default_rng(seed=42 if name == "A15" else 17)
+    seed = 42 if name == "A15" else 17
+    rng = np.random.default_rng(seed=seed)
     init_kd = rng.uniform(np.log(kd_grid[1]), np.log(kd_grid[-2]), n_walkers)
     init_qb = np.clip(
         rng.normal(np.log(site["Q_BASAL"]), 0.10, n_walkers),
@@ -170,6 +171,10 @@ def run_mcmc(name, site, n_obs):
     print(f"  [{name}] running emcee: {n_walkers} walkers × {n_steps} steps ...",
           flush=True)
     sampler = emcee.EnsembleSampler(n_walkers, n_dim, log_post)
+    # emcee draws its moves from its own RandomState, unseeded by default, so
+    # the chains differed run to run (medians by ~0.01-0.05, 2.5% tails by
+    # ~0.04; dry run 2026-10-04). Seed it so the posterior reproduces exactly.
+    sampler.random_state = np.random.RandomState(seed).get_state()
     sampler.run_mcmc(p0, n_steps, progress=False)
 
     chain = sampler.get_chain(discard=n_burn, flat=True)

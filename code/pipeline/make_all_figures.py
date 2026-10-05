@@ -42,6 +42,7 @@ JOBS = [
     ("make_letter_figures",     ["main"]),
     ("make_results_figures",    ["main"]),
     ("make_alpha_sweep_figure", ["main"]),
+    ("make_joint_figures",      ["main"]),     # letter Figs 3-6 (joint albedo + K_d fit)
     ("make_qb_degeneracy_figure", ["main"]),  # measured K_d*(Q_b) map (F-9)
     ("make_dt_ladder_figure",   ["main"]),    # dt certification teaching fig
     ("make_prior_estimates_figure", ["main"]),  # 5-decade K_d context (verified)

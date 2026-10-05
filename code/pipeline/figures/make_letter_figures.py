@@ -257,7 +257,7 @@ def run_pixel(site_cfg, *, kfunc):
 # ══════════════════════════════════════════════════════════════════════════════
 # FIGURE 2 — Annual-mean subsurface T profile
 # ══════════════════════════════════════════════════════════════════════════════
-def fig_mean_T_profile():
+def fig_mean_T_profile(out_name="fig_apollo_mean_T_profile.pdf"):
     """Annual-mean T(z) at both Apollo sites with two un-retrieved
     global K(z) forms overlaid.
 
@@ -371,7 +371,7 @@ def fig_mean_T_profile():
     legend_below(fig, h, l, ncols=2, fontsize=FS_LEGEND,
                  handlelength=2.2, columnspacing=1.6)
 
-    out = LETTER_FIGS / "fig_apollo_mean_T_profile.pdf"
+    out = LETTER_FIGS / out_name
     fig.savefig(out)
     plt.close(fig)
     print(f"  → {out}")

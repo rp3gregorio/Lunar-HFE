@@ -86,6 +86,26 @@ output files. Notebooks read the canonical JSON results from
 `code/results/`, so once `03_retrieval.ipynb` has run once, subsequent
 notebooks can be re-run independently for figure tuning.
 
+## Step 5b — The joint (albedo, K_d) retrieval: the paper's headline
+
+Since v1.2-jgr the paper's values come from fitting the effective albedo and
+K_d together to three in-situ measurements (sensor temperatures, measured
+surface mean, Langseth et al. 1976 annual-wave diffusivity). These scripts
+take the albedo explicitly, so they do not depend on the config albedo:
+
+```bash
+python code/pipeline/compute/compute_joint_albedo_fit.py          # ~25 min (5 workers): Table 1, Figs 3-5
+python code/pipeline/compute/compute_joint_valley.py              # seconds: Table 2 (what the diffusivity adds)
+python code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min (5 workers): Tables 3-4, Fig 6
+python code/pipeline/compute/compute_joint_fit_checks.py          # ~1 min, after the sensitivities
+python code/pipeline/compute/compute_joint_diviner.py             # ~3 min: Text S10
+python code/pipeline/figures/make_joint_figures.py                # Figs 3-6, S4, S5
+```
+
+`compute_joint_albedo_fit.py --reuse` re-analyses the committed grid
+(`code/results/joint_albedo_fit_cache.npz`) in seconds; the sensitivity
+script accepts `--reuse` once its own cache exists.
+
 ## Step 6 — Compile the manuscript
 
 ```bash
@@ -98,21 +118,24 @@ byte-for-byte modulo figure regeneration timestamps.
 
 ## Verification
 
-The repository ships with the canonical JSON results
-([`code/results/kd_retrieval_results.json`](../../code/results/kd_retrieval_results.json)). To
-verify that your run reproduces them:
+The repository ships with the canonical JSON results. To verify the
+headline joint retrieval
+([`code/results/joint_albedo_fit.json`](../../code/results/joint_albedo_fit.json)):
 
 ```bash
 python -c "
 import json, math
-shipped = json.loads(open('code/results/kd_retrieval_results.json').read())
-print('A15 K_d* =', shipped['A15']['kd_star'] * 1e3, 'mW m^-1 K^-1')
-print('A17 K_d* =', shipped['A17']['kd_star'] * 1e3, 'mW m^-1 K^-1')
-assert math.isclose(shipped['A15']['kd_star'] * 1e3, 4.60, abs_tol=0.01)
-assert math.isclose(shipped['A17']['kd_star'] * 1e3, 7.08, abs_tol=0.01)
+r = json.loads(open('code/results/joint_albedo_fit.json').read())['sites']
+for s, kd, A in (('A15', 4.87, 0.136), ('A17', 5.89, 0.137)):
+    b = r[s]['with_diffusivity']['best']
+    print(s, 'K_d* =', round(b['kd_star_mW'], 2), 'mW m^-1 K^-1, A* =', round(b['A'], 4))
+    assert math.isclose(b['kd_star_mW'], kd, abs_tol=0.01) and math.isclose(b['A'], A, abs_tol=0.0006)
 print('Headline values verified.')
 "
 ```
+
+`code/results/kd_retrieval_results.json` holds the temperature-only
+retrieval at the fixed (fitted) config albedos, a diagnostic since v1.2-jgr.
 
 ## Troubleshooting
 

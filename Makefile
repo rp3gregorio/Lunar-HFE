@@ -39,7 +39,6 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) code/pipeline/compute/compute_uniform_kd_sensitivity.py
 	$(PY) code/pipeline/compute/compute_fixed_input_sensitivities.py
 	$(PY) code/pipeline/compute/compute_model_selection.py
-	$(PY) code/pipeline/compute/compute_error_budget.py
 	$(PY) code/pipeline/compute/bayesian_crosscheck.py
 	$(PY) code/pipeline/compute/qb_prior_width_scan.py
 	$(PY) code/pipeline/compute/compute_common_epoch.py
@@ -47,7 +46,17 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) code/pipeline/compute/compute_qb_degeneracy.py
 	$(PY) code/pipeline/compute/compute_offset_free_fit.py
 	$(PY) code/pipeline/compute/compute_review_diagnostics.py   # ~5 min: flux scan, diurnal swing, level vs K_d, Diviner site vs zonal, TG/TR split
+	$(PY) code/pipeline/compute/compute_albedo_diagnostics.py   # ~13 min: site albedo vs LOLA map, albedo x K_d scan
+	$(PY) code/pipeline/compute/compute_albedo_sensitivity.py   # ~35 min: albedo / angular-law / chi re-retrievals (in-situ band)
+	$(PY) code/pipeline/compute/compute_albedo_anchor.py   # ~5 min: Hayne (2017) standard-model check + published albedo laws at the sites
+	$(PY) code/pipeline/compute/compute_error_budget.py   # after all of its inputs (qb_degeneracy, common_epoch, albedo_sensitivity, ...)
 	$(PY) code/pipeline/compute/audit_qb_basins.py   # ~10 min: wide-grid basin audit
+	$(PY) code/pipeline/compute/audit_qb_basin_followup.py   # ~1 min: narrow A15 basin at Q_b=10 (letter Sec. 2.4)
+	$(PY) code/pipeline/compute/compute_joint_albedo_fit.py   # ~25 min: joint (albedo, K_d) retrieval + bootstrap (letter Sec. 2.6, 3.2)
+	$(PY) code/pipeline/compute/compute_joint_valley.py   # seconds: the A17 worked example (letter Sec. 3.3, Table 2)
+	$(PY) code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min: joint-fit error budget, Q_b map, model comparison (Tables 3-4)
+	$(PY) code/pipeline/compute/compute_joint_fit_checks.py   # ~1 min, after the sensitivities: hold-out, TG/TR, epoch, gradient-matching Q_b
+	$(PY) code/pipeline/compute/compute_joint_diviner.py   # ~3 min: Diviner comparison at the joint fit (Text S10)
 
 figures:             ## regenerate every figure (writes figures/) for the paper + guidebook
 	$(PY) code/pipeline/make_all_figures.py

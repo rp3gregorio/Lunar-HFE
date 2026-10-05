@@ -120,3 +120,9 @@ figures/*
 # by their publishers). code/references/README.md and WANTED.md list what
 # to fetch and from where.
 code/references/*.pdf
+
+# Regenerable solve caches (figure and sensitivity scripts rebuild them).
+# The joint-fit grid is kept: make_joint_figures and the checks read it.
+code/results/*_cache.npz
+code/results/_cache_*.npz
+!code/results/joint_albedo_fit_cache.npz

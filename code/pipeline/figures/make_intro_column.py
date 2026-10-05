@@ -109,12 +109,12 @@ Z_TOP, Z_BOT = 0.5, 500.0
 TICKS = [(1, "1"), (10, "10"), (100, "100"), (500, "500")]
 Z_COMPACT = 30.0         # rho is within 0.7 % of its deep value by here
 # Depth below which the modeled diurnal swing is < 0.1 K at BOTH sites: the
-# deeper of the two crossings at the retrieved K_d*. Written by
-# pipeline/compute/compute_review_diagnostics.py (replaces a hard-coded 54 cm
-# that no script reproduced; audit 2026-10-01).
+# deeper of the two crossings at the joint-fit K_d* (config.SITES albedo).
+# Written by pipeline/compute/compute_review_diagnostics.py (replaces a
+# hard-coded 54 cm that no script reproduced; audit 2026-10-01).
 _SWING = json.loads((_REPO / "results" / "review_diagnostics.json")
                     .read_text())["diurnal_swing"]
-Z_SKIN_DEAD = 100.0 * max(_SWING[s]["kd_star"]["depth_p2p_below_0p1K_m"]
+Z_SKIN_DEAD = 100.0 * max(_SWING[s]["kd_joint"]["depth_p2p_below_0p1K_m"]
                           for s in ("A15", "A17"))
 BORESTEM_CM = SITES["A15"]["MIN_DEPTH_CM"]   # 80 cm exclusion
 TIE_Z = (1.0, 6.0, 15.0, 30.0)
@@ -585,7 +585,7 @@ def draw_texture_notes(ax):
             color=C_DIM, fontsize=8.0, ha="left", va="center", linespacing=1.45)
 
 
-def main() -> None:
+def main(out_stem: str = "fig_intro_column") -> None:
     family, cambria = setup_fonts()
     apply_style(family, cambria)
 
@@ -608,10 +608,10 @@ def main() -> None:
     fig.canvas.draw()
     FIGS.mkdir(parents=True, exist_ok=True)
     with plt.rc_context({"savefig.pad_inches": 0.02}):
-        fig.savefig(FIGS / "fig_intro_column.pdf")
-        fig.savefig(FIGS / "fig_intro_column.png", dpi=300)
+        fig.savefig(FIGS / f"{out_stem}.pdf")
+        fig.savefig(FIGS / f"{out_stem}.png", dpi=300)
     plt.close(fig)
-    print(f"  wrote figures/fig_intro_column.pdf + .png "
+    print(f"  wrote figures/{out_stem}.pdf + .png "
           f"({W:.2f} x {H:.2f} in, landscape)")
     print("  grain radius AND count both computed from rho(z); tie lines at "
           + ", ".join(f"{z:.0f}" for z in TIE_Z) + " cm")

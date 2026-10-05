@@ -22,6 +22,7 @@ Run from the repo root:
 """
 from __future__ import annotations
 import json, sys
+from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
@@ -37,10 +38,12 @@ from pipeline.compute import retrieve_kd as pap        # noqa: E402
 KD_GRID = pap.KD_GRIDS   # single-sourced from lunar.config (dense vertex grid)
 
 # Martinez per-site density-scalar grid.  alpha=1 is the published
-# baseline (rho_d = 1800 kg/m^3); we sweep up to 2.2 to bracket the
-# A17 minimum, which lies above the Apollo-core 1700-2000 kg/m^3
-# envelope -- itself a scientifically meaningful finding (see manuscript).
+# baseline (rho_d = 1800 kg/m^3); the sweep runs past the solid-basalt
+# bound (alpha ~1.67) so that any second branch is visible.  At the fitted
+# albedos both minima lie inside the Apollo-core 1700-2000 kg/m^3 envelope
+# (SI Text S9).
 MS_ALPHA_GRID = np.linspace(0.7, 2.2, 31)   # rho_d in [1260, 3960] kg/m^3
+N_WORKERS = 5   # the Martinez form has no njit fast path (~3 min per solve)
 
 HAYNE_GLOBAL_KD = 3.4e-3   # W/m/K -- the published global value
 
@@ -69,15 +72,20 @@ def kd_sweep_hayne(site_cfg, kd_grid, z_obs, T_obs):
     return float(kd_star), float(rmse_star)
 
 
+def _martinez_rmse(job):
+    site_tag, alpha, z_obs, T_obs = job
+    z_mid, T_mean = pap.run_with(pap.SITES[site_tag], k_model="martinez",
+                                 martinez_alpha=float(alpha))
+    return float(np.sqrt(np.mean((np.interp(z_obs, z_mid, T_mean) - T_obs) ** 2)))
+
+
 def alpha_sweep_martinez(site_cfg, alpha_grid, z_obs, T_obs):
     """Per-site Martinez retrieval: sweep the density-scalar alpha,
-    parabolically refine the RMSE minimum, return (alpha*, rmse*)."""
-    rmse = np.empty(len(alpha_grid))
-    for k, alpha in enumerate(alpha_grid):
-        z_mid, T_mean = pap.run_with(site_cfg, k_model="martinez",
-                                     martinez_alpha=float(alpha))
-        rmse[k] = np.sqrt(np.mean(
-            (np.interp(z_obs, z_mid, T_mean) - T_obs) ** 2))
+    parabolically refine the RMSE minimum, return (alpha*, rmse*).
+    The independent solves run on N_WORKERS processes."""
+    jobs = [(site_cfg["tag"], float(a), z_obs, T_obs) for a in alpha_grid]
+    with Pool(N_WORKERS) as pool:
+        rmse = np.array(pool.map(_martinez_rmse, jobs, chunksize=1))
     # parabolic minimum across the alpha grid
     k_min = int(np.argmin(rmse))
     if 0 < k_min < len(alpha_grid) - 1:

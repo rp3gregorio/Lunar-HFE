@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Letter figure: the flux-anchored (anchor) method, and proof it works.
 
-Three panels, all computed live from the production solver at the
-retrieved Apollo 15 K_d* = 4.60 mW/m/K:
+Three panels, all computed live from the production solver for an
+Apollo 15 illustration case (albedo 0.131, K_d = 4.60 mW/m/K; see SITE below):
 
   (a) the construction -- a deliberately wrong starting profile, the
       settled skin above the anchor, and the deep column rebuilt from
@@ -42,7 +42,10 @@ from lunar.plotting.style import (JGR_FULL, C_A15, C_HAYNE, C_CORAL, C_CHAR,
                                   assert_no_overlap)
 
 OUT = _REPO / ".." / "figures"
-SITE = SITES["A15"]
+# Illustration case, pinned so the SI figure (Fig. S2) and its caption stay
+# reproducible: Apollo 15 at the v1.1 fixed albedo 0.131 and K_d 4.60 mW/m/K.
+# The construction does not depend on these values.
+SITE = dict(SITES["A15"], albedo=0.131)
 KD = 4.60e-3
 Z0 = EQ_Z_ANCHOR
 ZMAX = 3.0

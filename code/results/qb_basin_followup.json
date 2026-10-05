@@ -1,0 +1,91 @@
+{
+ "site": "A15",
+ "qb_mW": 10.0,
+ "scan": {
+  "kd_mW": [
+   0.9000000000000001,
+   1.0,
+   1.1,
+   1.2,
+   1.3000000000000003,
+   1.4,
+   1.5,
+   1.6,
+   1.7,
+   1.8000000000000003,
+   1.9,
+   2.0,
+   2.1,
+   2.2
+  ],
+  "rmse_K": [
+   1.1862853433214298,
+   1.020354555333568,
+   1.0205610212908,
+   1.1079291821592203,
+   1.224436784665495,
+   1.3419095845772784,
+   1.4500466299022778,
+   1.5451445036469977,
+   1.626894490149311,
+   1.6961456904410506,
+   1.754124929358055,
+   1.8021138076510765,
+   1.8412112598701227,
+   1.8727738862072265
+  ],
+  "flux_closure": [
+   0.0054410126294804,
+   0.004951197009852443,
+   0.004541409246197094,
+   0.00419363711142498,
+   0.0038948776978822014,
+   0.0036355025165890273,
+   0.0034082533824808525,
+   0.0032075301175452098,
+   0.0030289635053644404,
+   0.0028690907197186782,
+   0.0027251325829515116,
+   0.0025948332518859266,
+   0.0024763415907014252,
+   0.002368129784413933
+  ],
+  "converged": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true,
+   true
+  ]
+ },
+ "narrow_basin": {
+  "kd_mW": 1.0,
+  "rmse_K": 1.020354555333568,
+  "flux_closure": 0.004951197009852443,
+  "converged": true,
+  "interior": true,
+  "neighbours_rmse_K": [
+   1.1862853433214298,
+   1.0205610212908
+  ]
+ },
+ "secondary_basin": {
+  "kd_mW": 7.7,
+  "rmse_K": 1.0865955409071861,
+  "flux_closure": 0.0010301088581734716,
+  "converged": true
+ },
+ "narrow_basin_is_deeper": true,
+ "stored_qb_degeneracy_kd_mW": 9.33889798679284,
+ "reading": "At Q_b = 10 the A15 objective is bimodal: a narrow basin at K_d = 1.00 (RMSE 1.0204 K, closure 0.50%, converged=True) is deeper than the 7.70 basin (RMSE 1.0866 K) that the 0.3 mW audit grid and qb_degeneracy.json report. The A15 envelope is [14, 25] mW m^-2 and Fig. 10a is rendered from Q_b(A15) = 13 upward, so no reported number uses the Q_b = 10 entry; do not interpolate through it. Any future low-Q_b A15 scan needs <= 0.1 mW spacing.",
+ "runtime_s": 16.9
+}

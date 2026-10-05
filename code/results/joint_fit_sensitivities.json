@@ -1,0 +1,1685 @@
+{
+ "meta": {
+  "purpose": "error budget and sensitivities of the joint (A, K_d) retrieval (audit 2026-10-05)",
+  "A_grid": [
+   0.105,
+   0.1075,
+   0.11,
+   0.1125,
+   0.115,
+   0.1175,
+   0.12,
+   0.1225,
+   0.125,
+   0.1275,
+   0.13,
+   0.1325,
+   0.135,
+   0.1375,
+   0.14,
+   0.1425,
+   0.145,
+   0.1475,
+   0.15,
+   0.1525,
+   0.155,
+   0.1575,
+   0.16,
+   0.1625,
+   0.165
+  ],
+  "A0_grid": [
+   0.03,
+   0.0325,
+   0.035,
+   0.0375,
+   0.04,
+   0.0425,
+   0.045,
+   0.0475,
+   0.05,
+   0.0525,
+   0.055,
+   0.0575,
+   0.06,
+   0.0625,
+   0.065,
+   0.0675,
+   0.07,
+   0.0725,
+   0.075,
+   0.0775,
+   0.08,
+   0.0825,
+   0.085,
+   0.0875,
+   0.09,
+   0.0925,
+   0.095,
+   0.0975,
+   0.1,
+   0.1025,
+   0.105,
+   0.1075,
+   0.11
+  ],
+  "kd_grid_mW": [
+   2.0,
+   2.5,
+   3.0,
+   3.4,
+   3.5,
+   4.0,
+   4.500000000000001,
+   5.0,
+   5.5,
+   6.0,
+   6.500000000000001,
+   7.0,
+   7.5,
+   8.0,
+   8.5,
+   9.000000000000002,
+   9.5,
+   10.0,
+   10.5,
+   11.0,
+   11.5,
+   12.0
+  ],
+  "runtime_s": 55.9
+ },
+ "sites": {
+  "A15": {
+   "variants": {
+    "nominal_compact": {
+     "with_diffusivity": {
+      "A": 0.13640981777068165,
+      "kd_star_mW": 4.866866123091308,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9090462361099851,
+      "bias_K": -0.10278212533739861,
+      "surface_mean_K": 213.58312087685658,
+      "kappa_model": [
+       0.8252426768832634,
+       0.8246200926364889
+      ],
+      "gradient_model_K_per_m": 2.0832725706968453,
+      "J": 0.6046629892040869,
+      "delta_aicc_global_minus_fit": 19.788500438649173
+     },
+     "temperature_only": {
+      "A": 0.13800003862609178,
+      "kd_star_mW": 3.72774621250275,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9036273691139445,
+      "bias_K": 0.04033437099610231,
+      "surface_mean_K": 211.94375943330795,
+      "kappa_model": [
+       0.5776589110166213,
+       0.5770136592593128
+      ],
+      "gradient_model_K_per_m": 2.972328323782559,
+      "J": -1.4305578853147694,
+      "delta_aicc_global_minus_fit": -5.546567541486743
+     }
+    },
+    "Qb_14": {
+     "with_diffusivity": {
+      "A": 0.1267851524354395,
+      "kd_star_mW": 4.869073151821848,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9302873060210024,
+      "bias_K": -0.07409736945349518,
+      "surface_mean_K": 214.12156949417,
+      "kappa_model": [
+       0.8255877321397225,
+       0.8251909428224546
+      ],
+      "gradient_model_K_per_m": 1.3890572613558134,
+      "J": 1.064830256028813,
+      "delta_aicc_global_minus_fit": 19.31722582922594
+     },
+     "temperature_only": {
+      "A": 0.12490828691916017,
+      "kd_star_mW": 2.936970595209176,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.8998329387250502,
+      "bias_K": -0.010916731220163456,
+      "surface_mean_K": 211.98615464396366,
+      "kappa_model": [
+       0.4952265426209736,
+       0.49480039464504144
+      ],
+      "gradient_model_K_per_m": 2.3132282375863755,
+      "J": -1.4412813161287712,
+      "delta_aicc_global_minus_fit": -5.476707508870703
+     }
+    },
+    "Qb_16": {
+     "with_diffusivity": {
+      "A": 0.12953816336603394,
+      "kd_star_mW": 4.864434074404489,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.919880289051117,
+      "bias_K": -0.05211774437213178,
+      "surface_mean_K": 213.98786371630445,
+      "kappa_model": [
+       0.8255588586323139,
+       0.8250974236825231
+      ],
+      "gradient_model_K_per_m": 1.5871394555228215,
+      "J": 0.859877710440287,
+      "delta_aicc_global_minus_fit": 19.450371021044525
+     },
+     "temperature_only": {
+      "A": 0.1293918051477571,
+      "kd_star_mW": 3.013546598015764,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9004842216827437,
+      "bias_K": -0.05392363798424883,
+      "surface_mean_K": 211.71848323533732,
+      "kappa_model": [
+       0.4950876093763311,
+       0.4945970477342725
+      ],
+      "gradient_model_K_per_m": 2.6439638529612917,
+      "J": -1.4470797460467217,
+      "delta_aicc_global_minus_fit": -5.562437464115499
+     }
+    },
+    "Qb_18.5": {
+     "with_diffusivity": {
+      "A": 0.13295785744322527,
+      "kd_star_mW": 4.8578354112176925,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9099571240116363,
+      "bias_K": 0.027526986401052715,
+      "surface_mean_K": 213.85480975414862,
+      "kappa_model": [
+       0.8256437901077226,
+       0.8251012626669606
+      ],
+      "gradient_model_K_per_m": 1.8340454843766092,
+      "J": 0.6556783398264656,
+      "delta_aicc_global_minus_fit": 19.64824282505662
+     },
+     "temperature_only": {
+      "A": 0.13317855148010518,
+      "kd_star_mW": 3.628814338565577,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9004045734404723,
+      "bias_K": 0.05427699922991077,
+      "surface_mean_K": 212.21303665772822,
+      "kappa_model": [
+       0.5777803787847371,
+       0.5772158430850394
+      ],
+      "gradient_model_K_per_m": 2.6186914063079647,
+      "J": -1.4186304547254993,
+      "delta_aicc_global_minus_fit": -5.622515872445783
+     }
+    },
+    "Qb_23.5": {
+     "with_diffusivity": {
+      "A": 0.13984388384910343,
+      "kd_star_mW": 4.868293614663344,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.899915209077625,
+      "bias_K": -0.023576708413429515,
+      "surface_mean_K": 213.44919254500192,
+      "kappa_model": [
+       0.825326724386899,
+       0.8246229707478686
+      ],
+      "gradient_model_K_per_m": 2.3299097882270976,
+      "J": 0.43765922619598996,
+      "delta_aicc_global_minus_fit": 20.137121303743236
+     },
+     "temperature_only": {
+      "A": 0.1400937123953571,
+      "kd_star_mW": 4.351609887882268,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.8986848045533397,
+      "bias_K": 0.0021072718463252776,
+      "surface_mean_K": 212.93678829654553,
+      "kappa_model": [
+       0.7427566971387077,
+       0.7420454728260272
+      ],
+      "gradient_model_K_per_m": 2.588080465732996,
+      "J": -1.3515021990985137,
+      "delta_aicc_global_minus_fit": -5.4691403018120575
+     }
+    },
+    "Qb_25": {
+     "with_diffusivity": {
+      "A": 0.1419102931661387,
+      "kd_star_mW": 4.870239804807889,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9007290882732678,
+      "bias_K": -0.06019830986365297,
+      "surface_mean_K": 213.31308098469302,
+      "kappa_model": [
+       0.8251825502322991,
+       0.824430591779211
+      ],
+      "gradient_model_K_per_m": 2.478999102109519,
+      "J": 0.4264990390126968,
+      "delta_aicc_global_minus_fit": 20.30213733919907
+     },
+     "temperature_only": {
+      "A": 0.1423748440510997,
+      "kd_star_mW": 4.473802236068474,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.8997765865609364,
+      "bias_K": -0.016271157859051755,
+      "surface_mean_K": 212.8010653092125,
+      "kappa_model": [
+       0.7426590772209923,
+       0.7418995176035733
+      ],
+      "gradient_model_K_per_m": 2.7533685646023818,
+      "J": -1.3490157065925485,
+      "delta_aicc_global_minus_fit": -5.334019160214334
+     }
+    },
+    "Ks_x0.7": {
+     "with_diffusivity": {
+      "A": 0.13062530667965483,
+      "kd_star_mW": 4.863700884948338,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9043715613712067,
+      "bias_K": 0.044948832671549,
+      "surface_mean_K": 212.92561728628854,
+      "kappa_model": [
+       0.8255780790207201,
+       0.8249599075441469
+      ],
+      "gradient_model_K_per_m": 2.0814334236003136,
+      "J": 0.40662051851802516,
+      "delta_aicc_global_minus_fit": 19.96024624784757
+     },
+     "temperature_only": {
+      "A": 0.1307589715029092,
+      "kd_star_mW": 4.169926044943894,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9008641148002492,
+      "bias_K": 0.062220520455992655,
+      "surface_mean_K": 211.80964733853244,
+      "kappa_model": [
+       0.6603309840494697,
+       0.659698125628201
+      ],
+      "gradient_model_K_per_m": 2.6008953903739958,
+      "J": -1.4505757717770802,
+      "delta_aicc_global_minus_fit": -5.553429031570367
+     }
+    },
+    "Ks_x1.3": {
+     "with_diffusivity": {
+      "A": 0.14083721626164827,
+      "kd_star_mW": 4.860358532096376,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9051623998984795,
+      "bias_K": 0.05869613291562408,
+      "surface_mean_K": 214.26759489447232,
+      "kappa_model": [
+       0.8256231885485557,
+       0.8249945033687337
+      ],
+      "gradient_model_K_per_m": 2.081262322258846,
+      "J": 0.688064054633287,
+      "delta_aicc_global_minus_fit": 19.75883825693284
+     },
+     "temperature_only": {
+      "A": 0.1426957541474741,
+      "kd_star_mW": 3.62700286046612,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9028205803782532,
+      "bias_K": 0.012347383675745505,
+      "surface_mean_K": 212.5587996937243,
+      "kappa_model": [
+       0.5776202152003647,
+       0.5769698849906115
+      ],
+      "gradient_model_K_per_m": 2.972825595260735,
+      "J": -1.3482472080465158,
+      "delta_aicc_global_minus_fit": -5.574856160045718
+     }
+    },
+    "rho_d_1700": {
+     "with_diffusivity": {
+      "A": 0.13563867132464072,
+      "kd_star_mW": 4.596750403725743,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9011673088737874,
+      "bias_K": 0.050071827953453454,
+      "surface_mean_K": 213.10347336462448,
+      "kappa_model": [
+       0.7866538927050324,
+       0.7859901279722611
+      ],
+      "gradient_model_K_per_m": 2.3123849378004957,
+      "J": 0.4504965362864368,
+      "delta_aicc_global_minus_fit": 13.802837983067029
+     },
+     "temperature_only": {
+      "A": 0.1373935600062877,
+      "kd_star_mW": 3.6033026066984872,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9028155860052871,
+      "bias_K": -0.011359347078739899,
+      "surface_mean_K": 211.83951788375876,
+      "kappa_model": [
+       0.6115462163924635,
+       0.6108664583956888
+      ],
+      "gradient_model_K_per_m": 2.9732468828935286,
+      "J": -1.4112069729567356,
+      "delta_aicc_global_minus_fit": -5.5729053584119335
+     }
+    },
+    "rho_d_2000": {
+     "with_diffusivity": {
+      "A": 0.13800337677298083,
+      "kd_star_mW": 5.394790005102704,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9083527927179321,
+      "bias_K": 0.03117378617011468,
+      "surface_mean_K": 214.26648752106166,
+      "kappa_model": [
+       0.8173795035049415,
+       0.8168179040469955
+      ],
+      "gradient_model_K_per_m": 1.892534119339884,
+      "J": 0.7487253682247683,
+      "delta_aicc_global_minus_fit": 32.11608093110333
+     },
+     "temperature_only": {
+      "A": 0.13791507593404598,
+      "kd_star_mW": 4.053456336914929,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.8992288367293784,
+      "bias_K": 0.030419967262901082,
+      "surface_mean_K": 212.72227609907398,
+      "kappa_model": [
+       0.5942574317217546,
+       0.5936781002224982
+      ],
+      "gradient_model_K_per_m": 2.60138989883643,
+      "J": -1.3697965156398393,
+      "delta_aicc_global_minus_fit": -5.600830067783406
+     }
+    },
+    "H_0.03": {
+     "with_diffusivity": {
+      "A": 0.1517199214157195,
+      "kd_star_mW": 4.865452452345878,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9071531420584669,
+      "bias_K": -0.08436614253607948,
+      "surface_mean_K": 215.56632641598117,
+      "kappa_model": [
+       0.8253544481582886,
+       0.8246772341307911
+      ],
+      "gradient_model_K_per_m": 2.0830431243404823,
+      "J": 1.1328495369987195,
+      "delta_aicc_global_minus_fit": 19.46877372047009
+     },
+     "temperature_only": {
+      "A": 0.1505164329518323,
+      "kd_star_mW": 3.5104481109410117,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9034660563386092,
+      "bias_K": 0.03651109784190355,
+      "surface_mean_K": 213.63166313181588,
+      "kappa_model": [
+       0.5776945093293281,
+       0.5770163317872717
+      ],
+      "gradient_model_K_per_m": 2.9723960961271225,
+      "J": -1.1442579573413942,
+      "delta_aicc_global_minus_fit": -5.620439590720727
+     }
+    },
+    "H_0.1": {
+     "with_diffusivity": {
+      "A": 0.126968275281697,
+      "kd_star_mW": 4.872671962473611,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9047054354658594,
+      "bias_K": -0.0516370313127449,
+      "surface_mean_K": 212.23975704405595,
+      "kappa_model": [
+       0.8242676130331026,
+       0.8241368622057265
+      ],
+      "gradient_model_K_per_m": 2.082695919299519,
+      "J": 0.3502352003161491,
+      "delta_aicc_global_minus_fit": 20.12794656798507
+     },
+     "temperature_only": {
+      "A": 0.12759606032146595,
+      "kd_star_mW": 4.4513962758364585,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.8997884532993015,
+      "bias_K": 0.005661032882528616,
+      "surface_mean_K": 211.8367684234595,
+      "kappa_model": [
+       0.7419141394941243,
+       0.7417107630299631
+      ],
+      "gradient_model_K_per_m": 2.3130645648573096,
+      "J": -1.4511994821902467,
+      "delta_aicc_global_minus_fit": -5.545542015113403
+     }
+    },
+    "chi_1.5": {
+     "with_diffusivity": {
+      "A": 0.105,
+      "kd_star_mW": 6.330909313016228,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 8.559133826156362,
+      "bias_K": -8.511457358945254,
+      "surface_mean_K": 214.82855006630936,
+      "kappa_model": [
+       0.8266988080017365,
+       0.8265609476904772
+      ],
+      "gradient_model_K_per_m": 2.139571919794463,
+      "J": 32.36794135107823,
+      "delta_aicc_global_minus_fit": 51.581052764456516
+     },
+     "temperature_only": {
+      "A": 0.105,
+      "kd_star_mW": 2.0,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 6.637601603546102,
+      "bias_K": -6.519516575702527,
+      "surface_mean_K": 210.14828335628417,
+      "kappa_model": [
+       0.2546350273927709,
+       0.25442906364984674
+      ],
+      "gradient_model_K_per_m": 6.885508341693957,
+      "J": 26.52752656499121,
+      "delta_aicc_global_minus_fit": -2.3087728922175828
+     }
+    },
+    "form_vasavada2012": {
+     "with_diffusivity": {
+      "A": 0.06266736669350788,
+      "kd_star_mW": 4.868087287419278,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9032815817575,
+      "bias_K": 0.0081672110204311,
+      "surface_mean_K": 212.23316332806016,
+      "kappa_model": [
+       0.8254994703103823,
+       0.8248762866017592
+      ],
+      "gradient_model_K_per_m": 2.081891221547422,
+      "J": 0.314949718601099,
+      "delta_aicc_global_minus_fit": 20.069007430950812
+     },
+     "temperature_only": {
+      "A": 0.06290929841915001,
+      "kd_star_mW": 4.1990132893179855,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.8994048845063847,
+      "bias_K": 0.0352474188087269,
+      "surface_mean_K": 211.15927208622978,
+      "kappa_model": [
+       0.6602876434985342,
+       0.6596497023708723
+      ],
+      "gradient_model_K_per_m": 2.601314824890168,
+      "J": -1.5026698334025106,
+      "delta_aicc_global_minus_fit": -5.4828266377643065
+     }
+    },
+    "form_hayne2017": {
+     "with_diffusivity": {
+      "A": 0.033508766957562504,
+      "kd_star_mW": 4.867549685122283,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9070565742544863,
+      "bias_K": 0.08286716838959965,
+      "surface_mean_K": 211.53529357401942,
+      "kappa_model": [
+       0.825672596366003,
+       0.8250490085523922
+      ],
+      "gradient_model_K_per_m": 2.0809615364688465,
+      "J": 0.3236695364417983,
+      "delta_aicc_global_minus_fit": 20.122228915004378
+     },
+     "temperature_only": {
+      "A": 0.033324021545628094,
+      "kd_star_mW": 4.4294125503991175,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.9026094688891405,
+      "bias_K": 0.071436617215714,
+      "surface_mean_K": 211.00913557105136,
+      "kappa_model": [
+       0.7430003194790757,
+       0.7423694768590334
+      ],
+      "gradient_model_K_per_m": 2.312089567811899,
+      "J": -1.4357583747829787,
+      "delta_aicc_global_minus_fit": -5.48654613648535
+     }
+    }
+   },
+   "reanalysis": {
+    "zb_70": {
+     "A": 0.1348726383529646,
+     "kd_star_mW": 4.876153559294064,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9099350041904082,
+     "bias_K": -0.020448572860736647,
+     "surface_mean_K": 213.72146759014723,
+     "kappa_model": [
+      0.8257285217584618,
+      0.8251047940196465
+     ],
+     "gradient_model_K_per_m": 2.0816768161139105,
+     "J": 0.4906967650213119,
+     "delta_aicc_global_minus_fit": 20.845557593207914
+    },
+    "zb_90": {
+     "A": 0.1353458916491984,
+     "kd_star_mW": 4.864128246439858,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.7414261887442081,
+     "bias_K": 0.024698834044062323,
+     "surface_mean_K": 213.46862910520514,
+     "kappa_model": [
+      0.7843862473690609,
+      0.7837588976125986
+     ],
+     "gradient_model_K_per_m": 2.189154962246281,
+     "J": -1.0084097221787829,
+     "delta_aicc_global_minus_fit": 18.626191336854923
+    },
+    "thr_0.04": {
+     "A": 0.1361980853088328,
+     "kd_star_mW": 4.859862749182431,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9009870061133771,
+     "bias_K": 0.095363660104681,
+     "surface_mean_K": 213.46862910520514,
+     "kappa_model": [
+      0.7843862473690609,
+      0.7837588976125986
+     ],
+     "gradient_model_K_per_m": 2.190144762046189,
+     "J": 0.5336351150298242,
+     "delta_aicc_global_minus_fit": 19.77366385964779
+    },
+    "thr_0.06": {
+     "A": 0.1362014046786918,
+     "kd_star_mW": 4.85988866267401,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.900975735027546,
+     "bias_K": 0.09563212793906116,
+     "surface_mean_K": 213.46862910520514,
+     "kappa_model": [
+      0.7843862473690609,
+      0.7837588976125986
+     ],
+     "gradient_model_K_per_m": 2.190144762046189,
+     "J": 0.5333891769952288,
+     "delta_aicc_global_minus_fit": 19.774796843533345
+    },
+    "thr_0.08": {
+     "A": 0.13625744947432886,
+     "kd_star_mW": 4.867347331846888,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9079268010651023,
+     "bias_K": -0.10963130616706605,
+     "surface_mean_K": 213.3304313801492,
+     "kappa_model": [
+      0.7839249665140678,
+      0.7832987623835522
+     ],
+     "gradient_model_K_per_m": 2.1928921443338534,
+     "J": 0.6068807867674195,
+     "delta_aicc_global_minus_fit": 19.786246083871497
+    },
+    "thr_0.12": {
+     "A": 0.136203739912182,
+     "kd_star_mW": 4.8600942053596885,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9000186137979618,
+     "bias_K": 0.09584009231148068,
+     "surface_mean_K": 213.46862910520514,
+     "kappa_model": [
+      0.7843862473690609,
+      0.7837588976125986
+     ],
+     "gradient_model_K_per_m": 2.190144762046189,
+     "J": 0.5179730586157802,
+     "delta_aicc_global_minus_fit": 19.785170089183502
+    },
+    "thr_0.16": {
+     "A": 0.1364028047166691,
+     "kd_star_mW": 4.866427910664809,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9111957456272961,
+     "bias_K": -0.09800081634167716,
+     "surface_mean_K": 213.3304313801492,
+     "kappa_model": [
+      0.7839249665140678,
+      0.7832987623835522
+     ],
+     "gradient_model_K_per_m": 2.1928921443338534,
+     "J": 0.6594291777803392,
+     "delta_aicc_global_minus_fit": 19.777544865935106
+    },
+    "floor_0.35": {
+     "A": 0.13626698817988342,
+     "kd_star_mW": 4.867243735505137,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9064707938741196,
+     "bias_K": -0.10885661498851716,
+     "surface_mean_K": 213.3304313801492,
+     "kappa_model": [
+      0.7839249665140678,
+      0.7832987623835522
+     ],
+     "gradient_model_K_per_m": 2.1928921443339346,
+     "J": 0.5846770585502554,
+     "delta_aicc_global_minus_fit": 19.784130932297835
+    },
+    "floor_0.45": {
+     "A": 0.13627273006298923,
+     "kd_star_mW": 4.867259947225335,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9066890604451854,
+     "bias_K": -0.10839954463277277,
+     "surface_mean_K": 213.3304313801492,
+     "kappa_model": [
+      0.7839249665140678,
+      0.7832987623835522
+     ],
+     "gradient_model_K_per_m": 2.1928921443339346,
+     "J": 0.5879954955152016,
+     "delta_aicc_global_minus_fit": 19.78626879187987
+    },
+    "floor_0.65": {
+     "A": 0.13615899822027053,
+     "kd_star_mW": 4.859963786103953,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9029064254423937,
+     "bias_K": 0.09218794572145887,
+     "surface_mean_K": 213.46862910520514,
+     "kappa_model": [
+      0.7843862473690609,
+      0.7837588976125986
+     ],
+     "gradient_model_K_per_m": 2.19014476204627,
+     "J": 0.5632318547686168,
+     "delta_aicc_global_minus_fit": 19.778417955660863
+    },
+    "floor_0.75": {
+     "A": 0.13615899822027053,
+     "kd_star_mW": 4.859963786103953,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9029064254423937,
+     "bias_K": 0.09218794572145887,
+     "surface_mean_K": 213.46862910520514,
+     "kappa_model": [
+      0.7843862473690609,
+      0.7837588976125986
+     ],
+     "gradient_model_K_per_m": 2.19014476204627,
+     "J": 0.5632318547686168,
+     "delta_aicc_global_minus_fit": 19.778417955660863
+    },
+    "fallback_0.6": {
+     "A": 0.13657805094198466,
+     "kd_star_mW": 4.866853393469977,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9014037560648094,
+     "bias_K": -0.0835342554543063,
+     "surface_mean_K": 213.3304313801492,
+     "kappa_model": [
+      0.7839249665140678,
+      0.7832987623835522
+     ],
+     "gradient_model_K_per_m": 2.1928921443339346,
+     "J": 0.5067818215864008,
+     "delta_aicc_global_minus_fit": 19.841271791948138
+    },
+    "fallback_0.65": {
+     "A": 0.13645480535704368,
+     "kd_star_mW": 4.867054859958068,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9031766094416278,
+     "bias_K": -0.09366081917067959,
+     "surface_mean_K": 213.3304313801492,
+     "kappa_model": [
+      0.7839249665140678,
+      0.7832987623835522
+     ],
+     "gradient_model_K_per_m": 2.1928921443339346,
+     "J": 0.5339368072079651,
+     "delta_aicc_global_minus_fit": 19.821794158225593
+    },
+    "fallback_0.7": {
+     "A": 0.13636796058554176,
+     "kd_star_mW": 4.867102132005282,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9058281481494002,
+     "bias_K": -0.10073944743236243,
+     "surface_mean_K": 213.3304313801492,
+     "kappa_model": [
+      0.7839249665140678,
+      0.7832987623835522
+     ],
+     "gradient_model_K_per_m": 2.1928921443339346,
+     "J": 0.5749780292804871,
+     "delta_aicc_global_minus_fit": 19.8024797626611
+    },
+    "fallback_0.8": {
+     "A": 0.136124097393247,
+     "kd_star_mW": 4.860072673365729,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9023873848304367,
+     "bias_K": 0.08936985943947613,
+     "surface_mean_K": 213.46862910520514,
+     "kappa_model": [
+      0.7843862473690609,
+      0.7837588976125986
+     ],
+     "gradient_model_K_per_m": 2.19014476204627,
+     "J": 0.554945603876547,
+     "delta_aicc_global_minus_fit": 19.784899207249957
+    },
+    "epoch_T_certified": {
+     "A": 0.13625744947432936,
+     "kd_star_mW": 4.867347331846888,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.9079268010651023,
+     "bias_K": -0.10963130616706605,
+     "surface_mean_K": 213.3304313801492,
+     "kappa_model": [
+      0.7839249665140678,
+      0.7832987623835522
+     ],
+     "gradient_model_K_per_m": 2.1928921443339346,
+     "J": 0.6068807867674195,
+     "delta_aicc_global_minus_fit": 19.786246083871497
+    },
+    "epoch_T_common": {
+     "A": 0.13690891594574456,
+     "kd_star_mW": 4.86482776587759,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.8884554778618384,
+     "bias_K": -0.05578574074955408,
+     "surface_mean_K": 213.3304313801492,
+     "kappa_model": [
+      0.7839249665140678,
+      0.7832987623835522
+     ],
+     "gradient_model_K_per_m": 2.1928921443339346,
+     "J": 0.3090815186683358,
+     "delta_aicc_global_minus_fit": 19.81797796654103
+    }
+   }
+  },
+  "A17": {
+   "variants": {
+    "nominal_compact": {
+     "with_diffusivity": {
+      "A": 0.1374774971965067,
+      "kd_star_mW": 5.891032219086474,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.4257235575495835,
+      "bias_K": -0.002083642862798385,
+      "surface_mean_K": 216.6605162103157,
+      "kappa_model": [
+       0.997780157975421,
+       0.9980614287474256
+      ],
+      "gradient_model_K_per_m": 1.2935988373746525,
+      "J": -25.24372885384031,
+      "delta_aicc_global_minus_fit": 56.93113850999483
+     },
+     "temperature_only": {
+      "A": 0.14755439396302125,
+      "kd_star_mW": 12.0,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 0.3022891988522302,
+      "bias_K": 0.0050033779048508364,
+      "surface_mean_K": 220.3781788942952,
+      "kappa_model": [
+       1.9981769334230808,
+       1.9987765676090852
+      ],
+      "gradient_model_K_per_m": 0.6467826972238646,
+      "J": -37.517137430197735,
+      "delta_aicc_global_minus_fit": 23.842330877478876
+     }
+    },
+    "Qb_10": {
+     "with_diffusivity": {
+      "A": 0.12519899464638282,
+      "kd_star_mW": 5.642299100249484,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.33658933238884625,
+      "bias_K": 0.02018916114436209,
+      "surface_mean_K": 216.88326051733833,
+      "kappa_model": [
+       0.9156208631018093,
+       0.9158627486367763
+      ],
+      "gradient_model_K_per_m": 0.8818903104063632,
+      "J": -33.77316570521333,
+      "delta_aicc_global_minus_fit": 51.22085449214054
+     },
+     "temperature_only": {
+      "A": 0.1353004398263835,
+      "kd_star_mW": 9.381899634530887,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.29262171747369603,
+      "bias_K": 0.030465167198636678,
+      "surface_mean_K": 219.52239700207932,
+      "kappa_model": [
+       1.582637951664977,
+       1.5830902560332074
+      ],
+      "gradient_model_K_per_m": 0.5105414094619076,
+      "J": -38.95317944519036,
+      "delta_aicc_global_minus_fit": 11.301242952995427
+     }
+    },
+    "Qb_12": {
+     "with_diffusivity": {
+      "A": 0.13002694760032735,
+      "kd_star_mW": 5.843420945908917,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.35250850382476073,
+      "bias_K": 0.0024063261015729864,
+      "surface_mean_K": 217.07392942722333,
+      "kappa_model": [
+       0.9985590289096062,
+       0.9988313668540337
+      ],
+      "gradient_model_K_per_m": 0.9701810480471389,
+      "J": -31.40353930367212,
+      "delta_aicc_global_minus_fit": 53.96300826857034
+     },
+     "temperature_only": {
+      "A": 0.1425733697422946,
+      "kd_star_mW": 11.472118470334332,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.29087139280695606,
+      "bias_K": 0.007034571686892477,
+      "surface_mean_K": 220.36734633856537,
+      "kappa_model": [
+       1.9155967711358803,
+       1.916160599493283
+      ],
+      "gradient_model_K_per_m": 0.506173426102364,
+      "J": -38.75889247882617,
+      "delta_aicc_global_minus_fit": 16.132271745433446
+     }
+    },
+    "Qb_14": {
+     "with_diffusivity": {
+      "A": 0.1337565939593316,
+      "kd_star_mW": 5.937303545543153,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.4013273215696395,
+      "bias_K": -0.10582825208915736,
+      "surface_mean_K": 216.79745371575424,
+      "kappa_model": [
+       0.9978609157251148,
+       0.9981376106778944
+      ],
+      "gradient_model_K_per_m": 1.132611346416032,
+      "J": -27.0435813745554,
+      "delta_aicc_global_minus_fit": 54.380590349882844
+     },
+     "temperature_only": {
+      "A": 0.14463365763882452,
+      "kd_star_mW": 11.715401974346362,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.29924665039899817,
+      "bias_K": -0.038101020982606926,
+      "surface_mean_K": 220.22647182387925,
+      "kappa_model": [
+       1.9149597386900412,
+       1.915527897359114
+      ],
+      "gradient_model_K_per_m": 0.5906949604982009,
+      "J": -38.173507953081526,
+      "delta_aicc_global_minus_fit": 20.234656027360803
+     }
+    },
+    "Qb_18": {
+     "with_diffusivity": {
+      "A": 0.14118008071960192,
+      "kd_star_mW": 5.920585287990758,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.47834308911862633,
+      "bias_K": 0.10143309822268876,
+      "surface_mean_K": 216.5232803711137,
+      "kappa_model": [
+       0.9976991418153771,
+       0.9979849862920114
+      ],
+      "gradient_model_K_per_m": 1.4543852132241464,
+      "J": -21.474390304324174,
+      "delta_aicc_global_minus_fit": 57.10214081460801
+     },
+     "temperature_only": {
+      "A": 0.149532401042682,
+      "kd_star_mW": 12.0,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 0.31556256776779523,
+      "bias_K": -0.047311264966465316,
+      "surface_mean_K": 220.23646933948396,
+      "kappa_model": [
+       1.997487858361962,
+       1.9980917840629941
+      ],
+      "gradient_model_K_per_m": 0.7278583561387447,
+      "J": -36.19083881696543,
+      "delta_aicc_global_minus_fit": 26.368065660566284
+     }
+    },
+    "Ks_x0.7": {
+     "with_diffusivity": {
+      "A": 0.13202479920931637,
+      "kd_star_mW": 5.909426617411579,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.4280445094470643,
+      "bias_K": -0.0437783212654157,
+      "surface_mean_K": 215.909242094669,
+      "kappa_model": [
+       0.9975463094578639,
+       0.9978447855942918
+      ],
+      "gradient_model_K_per_m": 1.293923802298166,
+      "J": -25.057490066092214,
+      "delta_aicc_global_minus_fit": 56.94200427995647
+     },
+     "temperature_only": {
+      "A": 0.14289500901736454,
+      "kd_star_mW": 12.0,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 0.3048022693661285,
+      "bias_K": 0.03948878217279095,
+      "surface_mean_K": 219.81068393129314,
+      "kappa_model": [
+       1.9982813863165108,
+       1.998896296999496
+      ],
+      "gradient_model_K_per_m": 0.6466483306727648,
+      "J": -37.438091831685206,
+      "delta_aicc_global_minus_fit": 23.934375309940375
+     }
+    },
+    "Ks_x1.3": {
+     "with_diffusivity": {
+      "A": 0.14176054362887033,
+      "kd_star_mW": 5.893194091044271,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.43114803093239895,
+      "bias_K": -0.06740729439331083,
+      "surface_mean_K": 217.1717537737611,
+      "kappa_model": [
+       0.9977031047875018,
+       0.9979670015692719
+      ],
+      "gradient_model_K_per_m": 1.2941079901317587,
+      "J": -24.79257934736728,
+      "delta_aicc_global_minus_fit": 56.338457418302674
+     },
+     "temperature_only": {
+      "A": 0.15011988224007147,
+      "kd_star_mW": 11.480960748445739,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.30560567113251685,
+      "bias_K": 0.011732247400752627,
+      "surface_mean_K": 220.61028041028638,
+      "kappa_model": [
+       1.914954914828786,
+       1.9155119336963917
+      ],
+      "gradient_model_K_per_m": 0.6748758296268218,
+      "J": -37.08628234035416,
+      "delta_aicc_global_minus_fit": 23.295038754460894
+     }
+    },
+    "rho_d_1700": {
+     "with_diffusivity": {
+      "A": 0.1368252806635224,
+      "kd_star_mW": 5.5733659213971665,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.46009307046641756,
+      "bias_K": -0.060363377717495226,
+      "surface_mean_K": 216.08927124135448,
+      "kappa_model": [
+       0.9679271168541461,
+       0.968214120013739
+      ],
+      "gradient_model_K_per_m": 1.4116899543286419,
+      "J": -23.51974805124354,
+      "delta_aicc_global_minus_fit": 47.76912943736405
+     },
+     "temperature_only": {
+      "A": 0.14698222366921876,
+      "kd_star_mW": 12.0,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 0.3067550640559772,
+      "bias_K": -0.052254588342945496,
+      "surface_mean_K": 220.26142874101367,
+      "kappa_model": [
+       2.115110614099716,
+       2.115782801228553
+      ],
+      "gradient_model_K_per_m": 0.6470058366988358,
+      "J": -37.08819098060865,
+      "delta_aicc_global_minus_fit": 23.410981749128364
+     }
+    },
+    "rho_d_2000": {
+     "with_diffusivity": {
+      "A": 0.1390119680704583,
+      "kd_star_mW": 6.586018736280619,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.4109736913727844,
+      "bias_K": -0.08741309890954341,
+      "surface_mean_K": 217.1640010396094,
+      "kappa_model": [
+       0.9729803577364909,
+       0.9732279286393808
+      ],
+      "gradient_model_K_per_m": 1.1947082771147637,
+      "J": -26.98333928587158,
+      "delta_aicc_global_minus_fit": 72.85491657101934
+     },
+     "temperature_only": {
+      "A": 0.1477204813005345,
+      "kd_star_mW": 11.425989390902648,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.3061739697906317,
+      "bias_K": 0.022097745909276156,
+      "surface_mean_K": 220.3005777416066,
+      "kappa_model": [
+       1.7237698064983105,
+       1.724233077867916
+      ],
+      "gradient_model_K_per_m": 0.674833685339121,
+      "J": -37.164504563868945,
+      "delta_aicc_global_minus_fit": 23.452375702537484
+     }
+    },
+    "H_0.03": {
+     "with_diffusivity": {
+      "A": 0.15394886796420273,
+      "kd_star_mW": 5.964122831648814,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.4360030184245562,
+      "bias_K": -0.09333058874361022,
+      "surface_mean_K": 218.72269589928092,
+      "kappa_model": [
+       0.9989748281799627,
+       0.9990388644086593
+      ],
+      "gradient_model_K_per_m": 1.294310083439353,
+      "J": -24.065217045738677,
+      "delta_aicc_global_minus_fit": 55.39041470566942
+     },
+     "temperature_only": {
+      "A": 0.165,
+      "kd_star_mW": 10.85879376096823,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 0.3115213496498189,
+      "bias_K": 0.0388776336102854,
+      "surface_mean_K": 222.42558318387876,
+      "kappa_model": [
+       1.8345778667953336,
+       1.8346850171158655
+      ],
+      "gradient_model_K_per_m": 0.7054360584132743,
+      "J": -35.813352273618875,
+      "delta_aicc_global_minus_fit": 21.92293983053621
+     }
+    },
+    "H_0.1": {
+     "with_diffusivity": {
+      "A": 0.12668058265526633,
+      "kd_star_mW": 5.888509291688696,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.43200725879565804,
+      "bias_K": -0.07264041041062441,
+      "surface_mean_K": 215.11324201684124,
+      "kappa_model": [
+       0.992149779150169,
+       0.9928810951133826
+      ],
+      "gradient_model_K_per_m": 1.2941489621321915,
+      "J": -24.938510682025026,
+      "delta_aicc_global_minus_fit": 57.465485308593905
+     },
+     "temperature_only": {
+      "A": 0.13237513445526938,
+      "kd_star_mW": 12.0,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 0.30253799498053274,
+      "bias_K": -0.013074930770409665,
+      "surface_mean_K": 218.41172141483275,
+      "kappa_model": [
+       1.985853297821549,
+       1.9874655576753677
+      ],
+      "gradient_model_K_per_m": 0.6468532389738928,
+      "J": -38.02489298972107,
+      "delta_aicc_global_minus_fit": 24.622351484080443
+     }
+    },
+    "chi_1.5": {
+     "with_diffusivity": {
+      "A": 0.105,
+      "kd_star_mW": 7.421181087176071,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 8.442146256570913,
+      "bias_K": -8.43010634125646,
+      "surface_mean_K": 217.7114243114691,
+      "kappa_model": [
+       0.954877037075068,
+       0.9551305712399483
+      ],
+      "gradient_model_K_per_m": 1.3912180881824312,
+      "J": 69.54977804303655,
+      "delta_aicc_global_minus_fit": 74.99985690189331
+     },
+     "temperature_only": {
+      "A": 0.105,
+      "kd_star_mW": 2.0,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 5.278150651061176,
+      "bias_K": -5.015228846007947,
+      "surface_mean_K": 212.21998877837473,
+      "kappa_model": [
+       0.25495575881891996,
+       0.25499804157512457
+      ],
+      "gradient_model_K_per_m": 5.141741978601883,
+      "J": 53.80596438169827,
+      "delta_aicc_global_minus_fit": 9.100362909665122
+     }
+    },
+    "form_vasavada2012": {
+     "with_diffusivity": {
+      "A": 0.07096994580328389,
+      "kd_star_mW": 5.8634123870496175,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.43434536024537035,
+      "bias_K": 0.08699271712111845,
+      "surface_mean_K": 215.2784314783701,
+      "kappa_model": [
+       0.9980382277247043,
+       0.9983198395726948
+      ],
+      "gradient_model_K_per_m": 1.2929047763548749,
+      "J": -24.669632772832358,
+      "delta_aicc_global_minus_fit": 56.728507044102535
+     },
+     "temperature_only": {
+      "A": 0.08028123772378479,
+      "kd_star_mW": 11.397928476732575,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.3067341808655141,
+      "bias_K": 0.02887253074598739,
+      "surface_mean_K": 218.7500257287002,
+      "kappa_model": [
+       1.9149430892925068,
+       1.9155169293521277
+      ],
+      "gradient_model_K_per_m": 0.6748061412627909,
+      "J": -37.571014942035504,
+      "delta_aicc_global_minus_fit": 24.266937286771554
+     }
+    },
+    "form_hayne2017": {
+     "with_diffusivity": {
+      "A": 0.044637427449622576,
+      "kd_star_mW": 5.90999034782223,
+      "at_grid_edge": false,
+      "sensor_rmse_K": 0.4271156318932916,
+      "bias_K": -0.033747459054264795,
+      "surface_mean_K": 214.44242990977472,
+      "kappa_model": [
+       0.9976863907830696,
+       0.9979679766748834
+      ],
+      "gradient_model_K_per_m": 1.2938456173184962,
+      "J": -25.02542925644957,
+      "delta_aicc_global_minus_fit": 57.32957571453746
+     },
+     "temperature_only": {
+      "A": 0.055144845500584,
+      "kd_star_mW": 12.0,
+      "at_grid_edge": true,
+      "sensor_rmse_K": 0.302624705758588,
+      "bias_K": 0.015183726514431228,
+      "surface_mean_K": 218.24476054462943,
+      "kappa_model": [
+       1.9982248052600016,
+       1.99882621054063
+      ],
+      "gradient_model_K_per_m": 0.6467430291669206,
+      "J": -38.04682075657881,
+      "delta_aicc_global_minus_fit": 24.98884895304113
+     }
+    }
+   },
+   "reanalysis": {
+    "zb_70": {
+     "A": 0.1374774955080763,
+     "kd_star_mW": 5.8931447507275845,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.42572342219303405,
+     "bias_K": -0.002083803647222382,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.23899689157122,
+     "delta_aicc_global_minus_fit": 56.92638161325274
+    },
+    "zb_90": {
+     "A": 0.1374774955080763,
+     "kd_star_mW": 5.8931447507275845,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.42572342219303405,
+     "bias_K": -0.002083803647222382,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.23899689157122,
+     "delta_aicc_global_minus_fit": 56.92638161325274
+    },
+    "thr_0.04": {
+     "A": 0.13744302784083673,
+     "kd_star_mW": 5.894279440385634,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.4235575155620382,
+     "bias_K": -0.005354339889235504,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533691706,
+     "J": -25.399641805395447,
+     "delta_aicc_global_minus_fit": 56.96500663403193
+    },
+    "thr_0.06": {
+     "A": 0.13746729661863522,
+     "kd_star_mW": 5.893835886247469,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.42450149697541334,
+     "bias_K": -0.0030506908838301428,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533691706,
+     "J": -25.32950728425618,
+     "delta_aicc_global_minus_fit": 56.95777715314576
+    },
+    "thr_0.08": {
+     "A": 0.1374774955080763,
+     "kd_star_mW": 5.893144750727579,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.42572342219303405,
+     "bias_K": -0.002083803647222382,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533691706,
+     "J": -25.238996891571276,
+     "delta_aicc_global_minus_fit": 56.926381613252794
+    },
+    "thr_0.12": {
+     "A": 0.13751542572263517,
+     "kd_star_mW": 5.8943906412413805,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.42318161737204457,
+     "bias_K": 0.0015210766609659032,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533691706,
+     "J": -25.428542395622856,
+     "delta_aicc_global_minus_fit": 57.03640773432718
+    },
+    "thr_0.16": {
+     "A": 0.1375664405961192,
+     "kd_star_mW": 5.894668150346598,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.4193162321778044,
+     "bias_K": 0.006376638126861067,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533691706,
+     "J": -25.72224682779165,
+     "delta_aicc_global_minus_fit": 57.15088167065519
+    },
+    "floor_0.35": {
+     "A": 0.1375153682290518,
+     "kd_star_mW": 5.892350493971976,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.42591302795005825,
+     "bias_K": 0.001506551308308346,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.22674816054206,
+     "delta_aicc_global_minus_fit": 56.931368376890724
+    },
+    "floor_0.45": {
+     "A": 0.13748745907100432,
+     "kd_star_mW": 5.892854256900635,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.4262732842099835,
+     "bias_K": -0.001139167109611705,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.19836756387724,
+     "delta_aicc_global_minus_fit": 56.917364563593786
+    },
+    "floor_0.65": {
+     "A": 0.13745633309951213,
+     "kd_star_mW": 5.893993264436577,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.42406992835782603,
+     "bias_K": -0.00409147014840805,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.36164421724021,
+     "delta_aicc_global_minus_fit": 56.95991028497516
+    },
+    "floor_0.75": {
+     "A": 0.13743779820449362,
+     "kd_star_mW": 5.894198634216599,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.42331842713986784,
+     "bias_K": -0.005851611478094654,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.417829653689864,
+     "delta_aicc_global_minus_fit": 56.961864723250095
+    },
+    "fallback_0.6": {
+     "A": 0.13774732495942296,
+     "kd_star_mW": 5.882921702413714,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.41679726527037764,
+     "bias_K": 0.023457725082495884,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.94264446894664,
+     "delta_aicc_global_minus_fit": 56.97864584775649
+    },
+    "fallback_0.65": {
+     "A": 0.1376554132835537,
+     "kd_star_mW": 5.885897121836037,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.4204238979570913,
+     "bias_K": 0.01477644438499226,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.657402191971983,
+     "delta_aicc_global_minus_fit": 56.93911903727987
+    },
+    "fallback_0.7": {
+     "A": 0.13755171209929268,
+     "kd_star_mW": 5.888709779728015,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.4249701370840019,
+     "bias_K": 0.00494139690522033,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.305744395887984,
+     "delta_aicc_global_minus_fit": 56.867200976150876
+    },
+    "fallback_0.8": {
+     "A": 0.13739929190749195,
+     "kd_star_mW": 5.897342181814451,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.4268563660247487,
+     "bias_K": -0.009474183067773367,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.14480407620715,
+     "delta_aicc_global_minus_fit": 56.96487453240527
+    },
+    "epoch_T_certified": {
+     "A": 0.1374774955080763,
+     "kd_star_mW": 5.8931447507275845,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.42572342219303405,
+     "bias_K": -0.002083803647222382,
+     "surface_mean_K": 216.6605162103157,
+     "kappa_model": [
+      0.997780157975421,
+      0.9980614287474256
+     ],
+     "gradient_model_K_per_m": 1.2935982533690553,
+     "J": -25.23899689157122,
+     "delta_aicc_global_minus_fit": 56.92638161325274
+    },
+    "epoch_T_common": {
+     "A": 0.13949984688468353,
+     "kd_star_mW": 5.92912681572926,
+     "at_grid_edge": false,
+     "sensor_rmse_K": 0.3059638199317965,
+     "bias_K": -0.049538907754577366,
+     "surface_mean_K": 216.51977301110153,
+     "kappa_model": [
+      0.9971625521470568,
+      0.9974435865712377
+     ],
+     "gradient_model_K_per_m": 1.295256257300951,
+     "J": -35.77585507063321,
+     "delta_aicc_global_minus_fit": 59.95887224520501
+    }
+   }
+  }
+ },
+ "error_budget": {
+  "A15": {
+   "sigma_stat": 0.29570396018944756,
+   "sigma_solver": 0.04,
+   "sigma_Qb": 0.00620219679509848,
+   "sigma_Ks": 0.0016711764259813577,
+   "sigma_rho": 0.3990198006884804,
+   "sigma_zb": 0.006012656427103025,
+   "sigma_thr": 0.0037422913322284757,
+   "sigma_window": 0.0036918886478867208,
+   "sigma_epoch": 0.002519565969298476,
+   "total_quadrature": 0.49836635974463267,
+   "kd_star_mW": 4.8673475633997265,
+   "Qb_asym_up_down": [
+    0.00289224140816291,
+    -0.00951215218203405
+   ],
+   "conditional": {
+    "H": 0.0036097550638660714,
+    "chi_1p5_kd_mW": 6.330909313016228,
+    "chi_1p5_edge": true,
+    "albedo_form_kd_mW": {
+     "form_vasavada2012": 4.868087287419278,
+     "form_hayne2017": 4.867549685122283
+    }
+   },
+   "grid_check_compact_vs_fine": -0.00048144030841879015
+  },
+  "A17": {
+   "sigma_stat": 0.3295292101767133,
+   "sigma_solver": 0.04,
+   "sigma_Qb": 0.14750222264683455,
+   "sigma_Ks": 0.008116263183653771,
+   "sigma_rho": 0.5063264074417262,
+   "sigma_zb": 7.095059340045395e-08,
+   "sigma_thr": 0.000761699809509242,
+   "sigma_window": 0.0072102397003681595,
+   "sigma_epoch": 0.03598206500167578,
+   "total_quadrature": 0.6242803756256339,
+   "kd_star_mW": 5.893144892628771,
+   "Qb_asym_up_down": [
+    0.04415865291438159,
+    -0.2508457923792875
+   ],
+   "conditional": {
+    "H": 0.03780676998005905,
+    "chi_1p5_kd_mW": 7.421181087176071,
+    "chi_1p5_edge": true,
+    "albedo_form_kd_mW": {
+     "form_vasavada2012": 5.8634123870496175,
+     "form_hayne2017": 5.90999034782223
+    }
+   },
+   "grid_check_compact_vs_fine": -0.002112673542296939
+  }
+ },
+ "qb_contrast_map": {
+  "qb_A15": [
+   14.0,
+   16.0,
+   18.5,
+   21.0,
+   23.5,
+   25.0
+  ],
+  "qb_A17": [
+   10.0,
+   12.0,
+   14.0,
+   16.0,
+   18.0
+  ],
+  "contrast_mW": [
+   [
+    0.773225948427636,
+    0.9743477940870688,
+    1.0682303937213051,
+    1.0240717408069235,
+    1.0515121361689106
+   ],
+   [
+    0.7778650258449948,
+    0.9789868715044276,
+    1.072869471138664,
+    1.0287108182242823,
+    1.0561512135862694
+   ],
+   [
+    0.7844636890317913,
+    0.9855855346912241,
+    1.0794681343254604,
+    1.0353094814110788,
+    1.0627498767730659
+   ],
+   [
+    0.7749515368497573,
+    0.9760733825091901,
+    1.0699559821434264,
+    1.0257973292290448,
+    1.0532377245910318
+   ],
+   [
+    0.77400548558614,
+    0.9751273312455728,
+    1.0690099308798091,
+    1.0248512779654275,
+    1.0522916733274146
+   ],
+   [
+    0.7720592954415944,
+    0.9731811411010272,
+    1.0670637407352634,
+    1.0229050878208819,
+    1.050345483182869
+   ]
+  ],
+  "min": 0.7720592954415944,
+  "max": 1.0794681343254604
+ },
+ "model_comparison": {
+  "per_site": {
+   "J": -24.37117199264905,
+   "k": 6,
+   "AICc": -8.552990174467231,
+   "dAICc": 0.0
+  },
+  "shared": {
+   "J": -19.120704237249754,
+   "k": 5,
+   "kd_shared_mW": 5.25,
+   "AICc": -6.512008585075841,
+   "dAICc": 2.0409815893913903
+  },
+  "global_3p4": {
+   "J": 59.3582144798973,
+   "k": 4,
+   "AICc": 69.02488114656397,
+   "dAICc": 77.5778713210312
+  },
+  "N": 29
+ }
+}

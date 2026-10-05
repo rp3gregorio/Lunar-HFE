@@ -101,20 +101,25 @@ EQ_ANCHOR_TOL = 0.005   # convergence tolerance on the anchor temperature [K]
 # revised values: A15 (Hadley Rille) 2.1 uW cm^-2 = 0.021 (regionally
 # representative); A17 (Taurus-Littrow) 1.6 uW cm^-2 = 0.016 (borehole value;
 # the regional topo-corrected estimate is 1.4 = 0.014). Nagihara et al. (2018)
-# supplies the restored record + depth uncertainty, NOT the flux magnitude.
+# supplies the restored record, NOT the flux magnitude.
+# albedo = effective constant Bond albedo, FITTED jointly with K_d to three
+# in-situ measurements (sensor temperatures, measured surface mean, Langseth 1976
+# annual-wave diffusivity) by pipeline/compute/compute_joint_albedo_fit.py
+# (results/joint_albedo_fit.json: 0.13626 / 0.13748; letter Sec. 2.6). Up to
+# v1.1-jgr these were fixed at 0.131 / 0.137, values with no published source.
 SITES = {
     "A15": dict(tag="A15", label="Apollo 15", lat=26.13, lon=3.63,
-                albedo=0.131, emissivity=0.95, Q_BASAL=0.021,
+                albedo=0.1363, emissivity=0.95, Q_BASAL=0.021,
                 T_MEAN_EFF=250.0, MIN_DEPTH_CM=80, mission="a15"),
     "A17": dict(tag="A17", label="Apollo 17", lat=20.19, lon=30.77,
-                albedo=0.137, emissivity=0.95, Q_BASAL=0.016,
+                albedo=0.1375, emissivity=0.95, Q_BASAL=0.016,
                 T_MEAN_EFF=255.0, MIN_DEPTH_CM=80, mission="a17"),
 }
 
 # (K_d sweep grids KD_GRIDS are defined once near the top, beside GRID.)
 
 # --- bootstrap ---------------------------------------------------------------
-DEPTH_SIGMA_CM = 2.5     # Nagihara (2018) sensor-placement uncertainty
+DEPTH_SIGMA_CM = 2.5     # adopted sensor-placement envelope, set at the probe-rod diameter (Nagihara et al. 2018: "2.5-cm diameter" rods); no per-sensor depth error is published
 
 # --- discrete 3-layer diagnostic model (this work) ---------------------------
 TL_Z1, TL_Z2 = 0.02, 0.20             # layer boundaries [m]

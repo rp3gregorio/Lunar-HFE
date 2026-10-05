@@ -7,7 +7,7 @@ whose three fluxes close the nonlinear equation for T_s at every step;
 the base carries the Neumann geothermal condition. Values shown are the
 certified inputs:
   S0 = 1361 W m^-2            (config / Kopp & Lean 2011)
-  A  = 0.131 / 0.137          (config.SITES albedo)
+  A  = 0.1363 / 0.1375        (config.SITES albedo, fitted by the joint retrieval)
   eps = 0.95                  (config emissivity)
   Q_b = 21 / 16 mW m^-2       (config.SITES, Langseth 1976)
   column depth 5 m            (config.GRID z_max)
@@ -34,6 +34,7 @@ from matplotlib.patches import Circle, Rectangle
 _REPO = pathlib.Path(__file__).resolve().parents[1].parent
 sys.path.insert(0, str(_REPO / "src"))
 
+from lunar.config import SITES
 from lunar.plotting.style import (JGR_HALF, C_CHAR, C_DIM, C_GRID, C_CORAL,
                                   C_TEAL, C_FOREST, assert_no_overlap)
 
@@ -106,7 +107,7 @@ def main():
     ax.annotate("", xy=(5.0, 6.5), xytext=(px + 0.06, ysurf + 0.04),
                 arrowprops=dict(color=C_DIM, **arrow), zorder=5)
     ax.text(5.0, 6.68, r"reflected  $A\,F_\odot$" "\n"
-            r"$A = 0.131\,/\,0.137$",
+            rf"$A = {SITES['A15']['albedo']:.4f}\,/\,{SITES['A17']['albedo']:.4f}$",
             fontsize=7.8, color=C_DIM, ha="center", va="bottom",
             linespacing=1.4, bbox=LBOX, zorder=6)
     # emitted: everywhere on the surface; drawn right of the node

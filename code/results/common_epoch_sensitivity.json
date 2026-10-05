@@ -88,30 +88,30 @@
       }
     ],
     "certified": {
-      "kd_star_mW": 4.632,
-      "rmse_K": 0.9998,
-      "boot_median_mW": 4.664,
+      "kd_star_mW": 4.202,
+      "rmse_K": 0.8988,
+      "boot_median_mW": 4.476,
       "ci95_mW": [
-        4.217,
-        6.771
+        3.75,
+        9.134
       ]
     },
     "common_1974": {
-      "kd_star_mW": 4.62,
-      "rmse_K": 1.0114,
-      "boot_median_mW": 4.652,
+      "kd_star_mW": 4.279,
+      "rmse_K": 0.8853,
+      "boot_median_mW": 4.435,
       "ci95_mW": [
-        4.214,
-        6.374
+        3.768,
+        8.654
       ]
     },
     "translated_1974": {
-      "kd_star_mW": 4.627,
-      "rmse_K": 1.0102,
-      "boot_median_mW": 4.654,
+      "kd_star_mW": 4.275,
+      "rmse_K": 0.8918,
+      "boot_median_mW": 4.443,
       "ci95_mW": [
-        4.196,
-        6.424
+        3.75,
+        8.749
       ]
     }
   },
@@ -279,57 +279,57 @@
       }
     ],
     "certified": {
-      "kd_star_mW": 7.047,
-      "rmse_K": 0.3982,
-      "boot_median_mW": 7.011,
+      "kd_star_mW": 7.283,
+      "rmse_K": 0.3861,
+      "boot_median_mW": 7.239,
       "ci95_mW": [
-        6.154,
-        8.145
+        6.252,
+        8.316
       ]
     },
     "common_1974": {
-      "kd_star_mW": 6.157,
-      "rmse_K": 0.3641,
-      "boot_median_mW": 6.169,
+      "kd_star_mW": 6.244,
+      "rmse_K": 0.3408,
+      "boot_median_mW": 6.252,
       "ci95_mW": [
-        5.923,
-        6.81
+        5.949,
+        6.895
       ]
     },
     "translated_1974": {
-      "kd_star_mW": 6.134,
-      "rmse_K": 0.3503,
-      "boot_median_mW": 6.123,
+      "kd_star_mW": 6.133,
+      "rmse_K": 0.3242,
+      "boot_median_mW": 6.146,
       "ci95_mW": [
-        5.898,
-        6.509
+        5.91,
+        6.653
       ]
     }
   },
   "contrast": {
     "certified": {
-      "median_mW": 2.293,
+      "median_mW": 2.395,
       "ci95_mW": [
-        0.08,
-        3.538
+        -2.106,
+        4.121
       ],
-      "p_boot_leq0": 0.024
+      "p_boot_leq0": 0.2167
     },
     "common_1974": {
-      "median_mW": 1.546,
+      "median_mW": 1.767,
       "ci95_mW": [
-        -0.114,
-        2.307
+        -2.408,
+        2.856
       ],
-      "p_boot_leq0": 0.0387
+      "p_boot_leq0": 0.256
     },
     "translated_1974": {
-      "median_mW": 1.483,
+      "median_mW": 1.68,
       "ci95_mW": [
-        -0.333,
-        2.082
+        -2.62,
+        2.668
       ],
-      "p_boot_leq0": 0.062
+      "p_boot_leq0": 0.2927
     }
   }
 }

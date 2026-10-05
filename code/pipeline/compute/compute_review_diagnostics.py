@@ -134,7 +134,7 @@ def best_fit(site_cfg, z_obs, T_obs, qb):
     k0 = KD_COARSE[int(np.argmin(np.sqrt((Rc ** 2).mean(axis=0))))]
     dense = np.round(np.arange(k0 - 1.0e-3, k0 + 1.0001e-3, 0.1e-3), 7)
     dense = dense[dense > 0]
-    grid = np.unique(np.concatenate([KD_COARSE, dense]))
+    grid = np.unique(np.round(np.concatenate([KD_COARSE, dense]), 7))   # round: no last-bit twins
     R = residuals(site_cfg, z_obs, T_obs, grid, qb)
     kd_star, rmse_star = kd_star_from_residuals(R, grid)
     return float(kd_star), float(rmse_star)
@@ -199,11 +199,16 @@ def global_kd_vs_qb():
 # ── question 2 ───────────────────────────────────────────────────────────────
 def diurnal_swing():
     canon = json.loads((_REPO / "results" / "kd_retrieval_results.json").read_text())
+    # the joint (albedo, K_d) fit: config.SITES holds its albedo, so this pair is
+    # the letter's model column (Sec. 2.6); kd_star is the temperature-only value
+    joint = json.loads((_REPO / "results" / "joint_albedo_fit.json").read_text())["sites"]
     out = {}
     for name, cfg in SITES.items():
         z_obs, _ = observed(cfg)
         per_kd = {}
-        for label, kd in (("kd_star", canon[name]['kd_star']), ("kd_global", KD_GLOBAL)):
+        kd_joint = joint[name]["with_diffusivity"]["best"]["kd_star_mW"] * 1e-3
+        for label, kd in (("kd_star", canon[name]['kd_star']), ("kd_joint", kd_joint),
+                          ("kd_global", KD_GLOBAL)):
             _, eq = equilibrium(cfg, kd)
             zc, Tc = eq.out.z, eq.out.T
             p2p = Tc.max(axis=1) - Tc.min(axis=1)

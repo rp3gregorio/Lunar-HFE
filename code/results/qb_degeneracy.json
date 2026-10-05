@@ -4,89 +4,86 @@
   "A15": [
    {
     "qb_mW": 10.0,
-    "kd_star_mW": 7.744004915904267,
-    "rmse_min_K": 0.9751642941711515
+    "kd_star_mW": 9.33889798679284,
+    "rmse_min_K": 0.9836141009563748
    },
    {
     "qb_mW": 12.0,
-    "kd_star_mW": 1.5653825843831453,
-    "rmse_min_K": 0.9360377506089725
+    "kd_star_mW": 8.832884448384632,
+    "rmse_min_K": 0.9724903314789037
    },
    {
     "qb_mW": 14.0,
-    "kd_star_mW": 2.0696241977537664,
-    "rmse_min_K": 0.9166858634162455
+    "kd_star_mW": 8.27207903928484,
+    "rmse_min_K": 0.960559327863393
    },
    {
     "qb_mW": 16.0,
-    "kd_star_mW": 2.7248255118613898,
-    "rmse_min_K": 0.9035202342702284
+    "kd_star_mW": 2.1516773275567425,
+    "rmse_min_K": 0.9352565398283074
    },
    {
     "qb_mW": 18.5,
-    "kd_star_mW": 4.023596702984731,
-    "rmse_min_K": 0.9081373667303154
+    "kd_star_mW": 2.889091157577088,
+    "rmse_min_K": 0.9101811117008809
    },
    {
     "qb_mW": 21.0,
-    "kd_star_mW": 4.596882989099068,
-    "rmse_min_K": 1.0001714469487684
+    "kd_star_mW": 4.192505545606037,
+    "rmse_min_K": 0.8988194059678011
    },
    {
     "qb_mW": 23.5,
-    "kd_star_mW": 5.035970703895611,
-    "rmse_min_K": 1.1584753549144495
+    "kd_star_mW": 4.985494703792847,
+    "rmse_min_K": 0.944402556362966
    },
    {
     "qb_mW": 26.0,
-    "kd_star_mW": 5.444634837641209,
-    "rmse_min_K": 1.3473124571292667
+    "kd_star_mW": 5.431809089196164,
+    "rmse_min_K": 1.0597652506970885
    }
   ],
   "A17": [
    {
     "qb_mW": 7.0,
-    "kd_star_mW": 11.26958594674494,
-    "rmse_min_K": 0.28778345093925245
+    "kd_star_mW": 11.446406680197816,
+    "rmse_min_K": 0.28817970084526123
    },
    {
     "qb_mW": 8.5,
-    "kd_star_mW": 10.722337580333804,
-    "rmse_min_K": 0.2870446203653583
+    "kd_star_mW": 10.903190937464325,
+    "rmse_min_K": 0.2878382475232572
    },
    {
     "qb_mW": 10.0,
-    "kd_star_mW": 10.129421211314737,
-    "rmse_min_K": 0.2907272268906335
+    "kd_star_mW": 10.317042625447888,
+    "rmse_min_K": 0.28945495050218917
    },
    {
     "qb_mW": 12.0,
-    "kd_star_mW": 9.244372847953889,
-    "rmse_min_K": 0.3006413386656615
+    "kd_star_mW": 9.446481588069839,
+    "rmse_min_K": 0.29949753466595175
    },
    {
     "qb_mW": 14.0,
-    "kd_star_mW": 8.199142288257885,
-    "rmse_min_K": 0.3284664584688145
+    "kd_star_mW": 8.42389146220455,
+    "rmse_min_K": 0.32481202825871364
    },
    {
     "qb_mW": 16.0,
-    "kd_star_mW": 7.077875359826806,
-    "rmse_min_K": 0.3981560937303967
+    "kd_star_mW": 7.280206031079165,
+    "rmse_min_K": 0.3859238248822984
    },
    {
     "qb_mW": 18.0,
-    "kd_star_mW": 6.8041422509529985,
-    "rmse_min_K": 0.5643284514259708
+    "kd_star_mW": 6.869133573196467,
+    "rmse_min_K": 0.5374271213742882
    },
    {
     "qb_mW": 20.0,
-    "kd_star_mW": 7.086600482600934,
-    "rmse_min_K": 0.7953798332363842
+    "kd_star_mW": 7.113456343084294,
+    "rmse_min_K": 0.7607946766525715
    }
   ]
- },
- "caveats": {
-  "A15_qb10_is_secondary_basin": "The A15 Q_b=10 entry (K_d*=7.74) is a LOCAL minimum. The global minimum at that flux is K_d ~ 1.20 (RMSE 0.9605 vs 0.9751); see results/qb_basin_audit.json. The A15 objective is bimodal for Q_b <= 16. This entry lies OUTSIDE the adopted A15 envelope [14,25] and no reported number depends on it, but do not interpolate through it: doing so drove the Fig. 10a contrast field negative (-0.94) before the rendered domain was clipped to Q_b(A15) >= 13."
  }
 }

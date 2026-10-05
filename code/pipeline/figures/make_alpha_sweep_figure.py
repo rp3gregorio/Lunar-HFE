@@ -54,7 +54,7 @@ ALPHA_HI = RHO_HI / 1800.0   # 1.111
 ALPHA_BASALT = 3000.0 / 1800.0   # solid lunar basalt absolute upper bound
 
 
-def main():
+def main(out_name="fig_alpha_sweep.pdf"):
     data = json.loads((ROOT / "results" / "headline_rmse.json").read_text())
 
     # Single-panel overlay -- both sites on shared axes so the
@@ -141,7 +141,7 @@ def main():
         title_fontsize=FS_LABEL,
     )
 
-    out = OUT / "fig_alpha_sweep.pdf"
+    out = OUT / out_name
     fig.savefig(out)
     plt.close(fig)
     print(f"  -> {out}")

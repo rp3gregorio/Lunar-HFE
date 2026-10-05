@@ -6,29 +6,40 @@ Apollo 15 and 17 Heat-Flow Experiment (HFE) boreholes from the restored
 
 This is the reproducibility repository for the paper:
 
-> Gregorio, Larsson, Yamada, Kuroda & Kasai (2026), *Difference of Lunar Regolith
+> Gregorio, Larsson, Kamada, Yamada, Kuroda & Kasai (2026), *Difference of Lunar Regolith
 > Thermal Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes*,
 > submitted to **JGR: Planets**.
 
 ## What it does
 
 We retrieve the deep-regolith thermal conductivity $K_d$ separately at each
-Apollo HFE borehole by holding the Hayne (2017) $K(T,z)$ functional form fixed
-and sweeping $K_d$ against the deep-sensor RMSE. The retrieval yields
+Apollo HFE borehole, holding the Hayne (2017) $K(T,z)$ functional form fixed
+and fitting $K_d$ **jointly with the effective surface albedo** to three
+measurements made at the boreholes: the equilibrium temperatures of the
+meter-scale sensors, the measured diurnal-mean surface temperature, and the
+annual-wave thermal diffusivity of Langseth et al. (1976). No albedo is
+assumed. The joint retrieval
+([`code/pipeline/compute/compute_joint_albedo_fit.py`](code/pipeline/compute/compute_joint_albedo_fit.py),
+[`code/results/joint_albedo_fit.json`](code/results/joint_albedo_fit.json)) gives
 
-- $K_{d,\text{A15}}^{*} = 4.60^{+2.36}_{-0.42}$ mW m⁻¹ K⁻¹
-- $K_{d,\text{A17}}^{*} = 7.08^{+0.99}_{-0.92}$ mW m⁻¹ K⁻¹
+| | Apollo 15 | Apollo 17 |
+|---|---|---|
+| fitted albedo $A^*$ | 0.136 [0.128, 0.145] | 0.137 [0.135, 0.140] |
+| $K_d^*$ (mW m⁻¹ K⁻¹) | 4.87 [4.29, 5.47] | 5.89 [5.26, 6.51] |
 
-(95% non-parametric bootstrap, $N_\text{boot}=1500$, conditional on the
-Langseth et al. (1976) basal heat fluxes; inter-site contrast median 2.31,
-95% CI [-0.12, 3.56] — includes zero, so the contrast is marginal —
-p ≈ 0.031). The forward model is solved to a certified periodic steady
-state (see `code/src/lunar/equilibrium.py` and `documents/notes/FLAG_REPORT.md`).
+(95% bootstrap, $N_\text{boot}=1500$, conditional on the Langseth et al.
+(1976) basal heat fluxes and the regolith density). The inter-site contrast
+is +1.0 [+0.1, +1.9] mW m⁻¹ K⁻¹, positive in 99% of bootstrap draws; one
+shared $K_d$ is disfavored only marginally (ΔAICc = 2.0). The published
+global $K_d = 3.4$ is rejected at both sites. The forward model is solved to
+a certified periodic steady state (see `code/src/lunar/equilibrium.py` and
+`documents/notes/FLAG_REPORT.md`).
 
-These per-site values reduce the meter-scale-sensor RMSE relative to the
-published global $K_d = 3.4$ (halving it at Apollo 17) and supply the
-meter-scale $T(z)$ boundary condition needed by sub-surface
-radiative-transfer retrievals.
+`code/src/lunar/config.py` holds the fitted albedos (0.1363 / 0.1375) for
+every fixed-albedo evaluation. Up to v1.1-jgr the albedos were fixed at
+0.131 / 0.137 and $K_d$ was fitted to the temperatures alone
+(`code/results/kd_retrieval_results.json`, now recomputed at the fitted
+albedos as a temperature-only diagnostic).
 
 ## Reproducing the paper
 
@@ -44,8 +55,8 @@ python3 -m venv .venv && source .venv/bin/activate
 make install                 # editable install of the `lunar` package + dev deps
 python code/pipeline/fetch_diviner.py  # ~310 MB from PDS-Geosciences (one-time)
 
-make retrieve                # core retrieval + bootstrap  -> code/results/*.json
-make aux                     # all sensitivity sweeps, model selection, MCMC, closure
+make retrieve                # fixed-albedo retrieval + bootstrap  -> code/results/*.json
+make aux                     # joint (albedo, K_d) fit, sensitivity sweeps, model selection, closure
 make figures                 # regenerate every figure (paper + guidebook) -> figures/
 make paper                   # compile all PDFs
 # or simply:  make all
@@ -61,8 +72,9 @@ which is what reviewers should run. Each file under
 
 ```bash
 make install                                 # editable install into .venv
-.venv/bin/python -m pytest -q                # 49 tests (physics invariants + fast path)
-make retrieve                                # headline K_d* + bootstrap -> code/results/*.json
+.venv/bin/python -m pytest -q                # 51 tests (physics invariants + fast path)
+make retrieve                                # fixed-albedo K_d* + bootstrap -> code/results/*.json
+.venv/bin/python code/pipeline/compute/compute_joint_albedo_fit.py   # the headline joint fit (~25 min)
 make figures && make paper                   # figures + all PDFs (letter, guidebook, thesis, ...)
 clang++ -O3 -std=c++17 -o code/cpp/lunar_solver code/cpp/solver.cpp \
   && .venv/bin/python code/pipeline/compute/benchmark_cpp.py   # C++ <-> Python to ~1e-12 K

@@ -9,6 +9,9 @@ Required inputs (run their generating scripts first if missing):
     results/borestem_sensitivity.json            -- compute_borestem_sensitivity.py
     results/stability_threshold_sensitivity.json -- compute_stability_threshold_sensitivity.py
     results/surface_bias_test.json               -- compute_surface_bias_test.py
+    results/albedo_sensitivity.json              -- compute_albedo_sensitivity.py
+    results/fixed_input_sensitivities.json       -- compute_fixed_input_sensitivities.py
+    results/qb_degeneracy.json                   -- compute_qb_degeneracy.py
     results/common_epoch_sensitivity.json        -- compute_common_epoch.py
     (no input file needed for sigma_Qb -- it is analytical from the
      K_d/Q_b degeneracy, with the published Q_b envelopes hard-coded
@@ -22,7 +25,7 @@ Output schema (kd_error_budget.json):
         "sigma_zb":   float,         # half-range over the borestem-cut sweep
         "sigma_thr":  float,         # half-range over stability-threshold sweep
         "sigma_epoch": float,        # |common-1974 refit - certified| (one-sided)
-        "sigma_A":    float,         # half-range over Bond-albedo sweep
+        "sigma_A":    float,         # half-range of K_d* over the in-situ albedo band
         "sigma_chi":  float,         # Hayne 2017 chi sensitivity (constant)
         "sigma_H":    float,         # joint K_d-H fit sensitivity
         "sigma_Ks":   float,         # surface conductivity (constant)
@@ -32,7 +35,12 @@ Output schema (kd_error_budget.json):
         "ci95_lo": float,            # 95% lower bound (mW/m/K)
         "ci95_hi": float             # 95% upper bound (mW/m/K)
       },
-      "A17": { ... same keys ... }
+      "A17": { ... same keys ... },
+      "albedo_contrast": {           # K_d*(A17) - K_d*(A15) under the albedo (not summed)
+        "common_albedo": [...],       # both sites at the same constant A
+        "common_albedo_min_contrast": float,
+        "band_most_adverse": float    # A17 band minimum - A15 band maximum
+      }
     }
 
 Run with:
@@ -63,6 +71,11 @@ QB_ENVELOPES = {
 # Run that script first if the file is missing.
 
 
+ALB_BIAS_MAX_K = 1.0   # level criterion for the in-situ albedo band [K]
+ALB_TS_TOL_K = 5.0     # Keihm et al. (1973a,b) surface-mean uncertainty [K]
+_ADOPTED_ALBEDO = {s: _SITES[s]["albedo"] for s in ("A15", "A17")}
+
+
 def _half_range(values):
     """Half-range = (max - min) / 2 across a sensitivity sweep."""
     v = np.asarray(values, dtype=float)
@@ -75,6 +88,7 @@ def main() -> int:
     bs = json.loads((OUT / "borestem_sensitivity.json").read_text())
     th = json.loads((OUT / "stability_threshold_sensitivity.json").read_text())
     sb = json.loads((OUT / "surface_bias_test.json").read_text())
+    alb = json.loads((OUT / "albedo_sensitivity.json").read_text())["cases"]
     fx = json.loads((OUT / "fixed_input_sensitivities.json").read_text())
     ce = json.loads((OUT / "common_epoch_sensitivity.json").read_text())
 
@@ -120,7 +134,28 @@ def main() -> int:
         # envelopes do not define a meaningful 1-sigma.
         dA = np.asarray(sb["delta_albedo"], dtype=float)
         kA = np.asarray(sb[site]["kd_star"], dtype=float)
-        sigma_A = _half_range(kA[np.abs(dA) <= 0.0101])
+        sigma_A_pm001 = _half_range(kA[np.abs(dA) <= 0.0101])   # old +-0.01 row (report)
+        # sigma_A over the IN-SITU ALBEDO BAND (audit 2026-10-04). The constant
+        # albedo is an effective, level-setting parameter (no published site
+        # value fits). Two in-situ data sets bound it: the meter-scale sensor
+        # LEVEL (the fitted column may not run warm or cold by more than
+        # ALB_BIAS_MAX_K, the scale of the per-sensor residual scatter) and the
+        # diurnal-mean SURFACE temperature measured at each site (Keihm et al.
+        # 1973a,b via Hayne et al. 2017 Table A2, +-5 K), which excludes the
+        # high-K_d solutions that higher albedos would need.
+        band = sorted((c for c in alb
+                       if c["site"] == site and c["family"] == "constant"
+                       and abs(c["bias_K"]) <= ALB_BIAS_MAX_K
+                       and abs(c["surface_mean_K"] - c["surface_mean_obs_K"]) <= ALB_TS_TOL_K
+                       and not c["at_grid_edge"]), key=lambda c: c["A"])
+        kd_band = [c["kd_star_mW"] for c in band]
+        sigma_A = _half_range(kd_band)
+        albedo_band = dict(albedo_min=band[0]["A"], albedo_max=band[-1]["A"],
+                           albedos=[c["A"] for c in band], kd_star_mW=kd_band,
+                           kd_min_mW=min(kd_band), kd_max_mW=max(kd_band),
+                           asym_up_down=(float(max(kd_band) - kd[site]["kd_star"] * 1e3),
+                                         float(min(kd_band) - kd[site]["kd_star"] * 1e3)),
+                           adopted_albedo_inside=bool(band[0]["A"] <= _ADOPTED_ALBEDO[site] <= band[-1]["A"]))
 
         # Solver systematic: grid+dt convergence (halve dz0 to 1 mm @ 4% growth
         # and halve dt to 1800 s -> <=0.025) combined in quadrature with the
@@ -161,6 +196,8 @@ def main() -> int:
         }
         total = float(np.sqrt(sum(s ** 2 for s in sigmas.values())))
         sigmas["sigma_Qb_asymmetric_up_down"] = qb_asym   # not summed (report)
+        sigmas["sigma_A_band"] = albedo_band               # not summed (report)
+        sigmas["sigma_A_pm001_previous"] = sigma_A_pm001   # not summed (report)
         sigmas["conditional_chi"] = float(fx[site]["sigma_chi"])
         sigmas["conditional_H"] = float(fx[site]["sigma_H"])
         sigmas["kd_at_chi_1p48"] = float(fx[site]["kd_at_chi_1p48"])
@@ -175,8 +212,25 @@ def main() -> int:
 
         print(f"\n  {site}:")
         for k, v in budget[site].items():
-            print(f"    {k:<20} = {v}" if isinstance(v, (tuple, list))
+            print(f"    {k:<20} = {v}" if isinstance(v, (tuple, list, dict))
                   else f"    {k:<20} = {v:.4f}")
+
+    # Inter-site contrast under the albedo (reported, not summed). Two cases:
+    # a COMMON albedo error (both sites shifted to the same constant A) and
+    # INDEPENDENT errors within each site's in-situ band (most adverse pairing).
+    const = {(c["site"], round(c["A"], 4)): c for c in alb
+             if c["family"] == "constant" and not c["at_grid_edge"]}
+    common = [dict(A=A, kd_A15=const[("A15", A)]["kd_star_mW"], kd_A17=const[("A17", A)]["kd_star_mW"],
+                   contrast=const[("A17", A)]["kd_star_mW"] - const[("A15", A)]["kd_star_mW"])
+              for (s, A) in sorted(const) if s == "A15" and ("A17", A) in const]
+    b15, b17 = budget["A15"]["sigma_A_band"], budget["A17"]["sigma_A_band"]
+    budget["albedo_contrast"] = dict(
+        common_albedo=common,
+        common_albedo_min_contrast=min(r["contrast"] for r in common),
+        band_most_adverse=b17["kd_min_mW"] - b15["kd_max_mW"])
+    print(f"\n  albedo contrast: common-A minimum {budget['albedo_contrast']['common_albedo_min_contrast']:+.2f}"
+          f" over A={common[0]['A']}-{common[-1]['A']}; band most adverse "
+          f"{budget['albedo_contrast']['band_most_adverse']:+.2f} mW/m/K")
 
     out_path = OUT / "kd_error_budget.json"
     out_path.write_text(json.dumps(budget, indent=2))

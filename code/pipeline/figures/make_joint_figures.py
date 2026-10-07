@@ -3,7 +3,7 @@
   fig_joint_constraints.pdf      Fig. 3: what fixes A and K_d at each site
   fig_joint_bootstrap.pdf        Fig. 4: bootstrap distributions and the contrast
   fig_joint_thermal_profiles.pdf Fig. 5: T(z) at the joint fit, the global value, Martinez
-  fig_joint_robustness.pdf       Fig. 6: Q_b contrast map and K_d under each systematic
+  fig_joint_robustness.pdf       Fig. S6: K_d under each changed input, grouped as in Table 3
   fig_joint_mcmc.pdf             MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
   fig_joint_annual_wave.pdf      Fig. S9: the annual wave in the full record vs the forward model (compute_annual_wave.py)
   fig_joint_mean_T_profile.pdf   Fig. S4: the two global models at the config (fitted) albedos
@@ -236,50 +236,69 @@ def fig_profiles(res, cache, chk):
 
 
 def fig_robustness(res, sens):
-    fig = plt.figure(figsize=(JGR_FULL, 4.3))
-    gs = fig.add_gridspec(1, 2, width_ratios=[1.0, 1.15], wspace=0.62, left=0.08, right=0.98, top=0.91, bottom=0.15)
-    ax1, ax2 = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
+    """K_d* refitted under each changed input, grouped as in Table 3 of the letter.
+    (Until 2026-10-07 a panel (a) mapped the A17 - A15 difference over the basal-flux
+    pairs; it was dropped with the site-difference claim. The map stays in
+    joint_fit_sensitivities.json as qb_contrast_map.)"""
     chi_path = RES / "joint_chi_density.json"          # radiative factor and site densities (compute_joint_chi_density.py)
     chid = json.loads(chi_path.read_text()) if chi_path.exists() else None
-    m = sens["qb_contrast_map"]
-    q15, q17, C = np.array(m["qb_A15"]), np.array(m["qb_A17"]), np.array(m["contrast_mW"])
-    im = ax1.imshow(C.T, origin="lower", cmap=NEUTRAL_SEQ, aspect="auto", vmin=0, vmax=max(2.0, C.max()))
-    ax1.set_xticks(range(len(q15)), [f"{q:g}" for q in q15]); ax1.set_yticks(range(len(q17)), [f"{q:g}" for q in q17])
-    for i in range(len(q15)):
-        for j in range(len(q17)):
-            ax1.text(i, j, f"{C[i, j]:+.2f}", ha="center", va="center", fontsize=8, color=C_CHAR)
-    i0, j0 = list(q15).index(21.0), list(q17).index(16.0)
-    ax1.add_patch(plt.Rectangle((i0 - 0.5, j0 - 0.5), 1, 1, fill=False, ec=C_CHAR, lw=1.6))
-    fmt_axis(ax1, xlabel=r"$Q_b$ A15 (mW m$^{-2}$)", ylabel=r"$Q_b$ A17 (mW m$^{-2}$)", title=r"(a)  $\Delta K_d^*$ over the $Q_b$ envelope")
-    ax1.grid(False)
-    rows = [("$Q_b$ envelope", "Qb"), ("$K_s$ $\\pm$30%", "Ks"), ("$\\rho_d$ 1700 / 2000", "rho_d"), ("$c_p$ $\\pm$3%", "cp_x"),
-            ("$z_b$ 70 / 90 cm", "zb"), ("window threshold", "thr"), ("window start / fallback", ("floor_", "fallback_")), ("common-1974 epoch", "epoch_T_common"),
-            ("$H$ 3 / 10 cm", "H_"), ("angular albedo form", "form")]
-    if chid:
-        rows += [("$\\chi$ 2.2 to 3.2", "chi_"), ("site densities", "rho_site")]
-    for s, dy in (("A15", -0.15), ("A17", 0.15)):
+    # (label, key prefix); key None = group heading. chi = 1.5 is excluded (no physical albedo fits; Text S15)
+    rows = [("Measured inputs", None),
+            ("basal flux $Q_b$, site range", "Qb"),
+            ("density $\\rho_d$ 1700–2000 kg m$^{-3}$", "rho_d"),
+            ("measured core densities", "rho_site"),
+            ("heat capacity $c_p$ $\\pm$3%", "cp_x"),
+            ("surface conductivity $K_s$ $\\pm$30%", "Ks"),
+            ("Methodological choices", None),
+            ("borestem cut $z_b$ 70–90 cm", "zb"),
+            ("window threshold", "thr"),
+            ("window start", ("floor_", "fallback_")),
+            ("common 1974 window", "epoch_T_common"),
+            ("Conditionality", None),
+            ("radiative coefficient $\\chi$ 2.2–3.2", "chi_"),
+            ("compaction depth $H$ 3–10 cm", "H_"),
+            ("angular albedo laws", "form")]
+    if not chid:
+        rows = [r for r in rows if r[1] not in ("rho_site", "chi_")]
+    fig, ax = plt.subplots(figsize=(JGR_FULL, 4.4))
+    fig.subplots_adjust(left=0.36, right=0.97, top=0.98, bottom=0.12)
+    for s, dy in (("A15", -0.14), ("A17", 0.14)):
         b = res["sites"][s]["with_diffusivity"]
         k0 = b["best"]["kd_star_mW"]; q = b["bootstrap"]["kd_mW"]
-        ax2.axvspan(q["p2.5"], q["p97.5"], color=SITE_COL[s], alpha=0.10, lw=0)
-        ax2.axvline(k0, color=SITE_COL[s], lw=1.2)
+        ax.axvspan(q["p2.5"], q["p97.5"], color=SITE_COL[s], alpha=0.10, lw=0)
+        ax.axvline(k0, color=SITE_COL[s], lw=1.2)
         V = {**{k: v["with_diffusivity"]["kd_star_mW"] for k, v in sens["sites"][s]["variants"].items()},
              **{k: v["kd_star_mW"] for k, v in sens["sites"][s]["reanalysis"].items()}}
-        if chid:   # chi = 1.5 is excluded (no physical albedo fits; Text S15); the H/albedo rows keep their own keys
+        if chid:
             V = {k: v for k, v in V.items() if not k.startswith("chi_")}
             V.update({k: v["kd_star_mW"] for k, v in chid["sites"][s].items()
                       if (k.startswith("chi_") and k != "chi_1.5") or k == "rho_site"})
         for i, (lab, key) in enumerate(rows):
+            if key is None:
+                continue
             vals = [v for k, v in V.items() if k.startswith(key) and k != "nominal_compact"]
             if vals:
-                ax2.plot([min(vals), max(vals)], [i + dy] * 2, color=SITE_COL[s], lw=2.2, solid_capstyle="round")
-                ax2.plot(vals, [i + dy] * len(vals), "o", ms=4, color=SITE_COL[s], mec="white", mew=0.5)
-    ax2.set_yticks(range(len(rows)), [r[0] for r in rows]); ax2.invert_yaxis()
-    ax2.axvline(3.4, color=C_TEAL, ls=":", lw=1.4)
-    fmt_axis(ax2, xlabel=r"$K_d^{*}$ (mW m$^{-1}$ K$^{-1}$)", title="(b)  Joint $K_d^*$ under each systematic")
-    handles = [Line2D([], [], color=C_A15, lw=2.2), Line2D([], [], color=C_A17, lw=2.2),
-               Patch(fc=C_DIM, alpha=0.15), Line2D([], [], color=C_TEAL, ls=":", lw=1.4), Patch(fc="white", ec=C_CHAR, lw=1.6)]
-    labels = ["Apollo 15", "Apollo 17", "bootstrap 95% (shaded)", "global $K_d$ = 3.4", "(a) adopted fluxes 21 / 16"]
-    legend_below(fig, handles, labels)
+                ax.plot([min(vals), max(vals)], [i + dy] * 2, color=SITE_COL[s], lw=2.2, solid_capstyle="round")
+                ax.plot(vals, [i + dy] * len(vals), "o", ms=4, color=SITE_COL[s], mec="white", mew=0.5)
+    ax.axvline(3.4, color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)
+    ax.set_yticks([i for i, r in enumerate(rows) if r[1] is not None], [r[0] for r in rows if r[1] is not None])
+    ax.set_ylim(len(rows) - 0.5, -0.6)
+    ax.set_xlim(3.2, 6.9)
+    fmt_axis(ax, xlabel=r"$K_d^{*}$ (mW m$^{-1}$ K$^{-1}$)")
+    ax.grid(axis="y", visible=False)
+    from matplotlib.transforms import blended_transform_factory
+    head = blended_transform_factory(fig.transFigure, ax.transData)
+    for i, (lab, key) in enumerate(rows):          # group headings: italic, flush left, with a rule above
+        if key is None:
+            ax.text(0.015, i, lab, transform=head, ha="left", va="center", fontstyle="italic", color=C_DIM)
+            if i:
+                ax.axhline(i - 0.5, color=C_GRID, lw=0.8)
+    handles = [(Line2D([], [], color=C_A15, lw=2.2), Line2D([], [], ls="", marker="o", ms=4, color=C_A15, mec="white", mew=0.5)),
+               (Line2D([], [], color=C_A17, lw=2.2), Line2D([], [], ls="", marker="o", ms=4, color=C_A17, mec="white", mew=0.5)),
+               Line2D([], [], color=C_DIM, lw=1.2), Patch(fc=C_DIM, alpha=0.15),
+               Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)]
+    labels = ["Apollo 15", "Apollo 17", "adopted fit", "bootstrap 95% interval", "global $K_d$ = 3.4"]
+    legend_below(fig, handles, labels, handler_map={tuple: HandlerTuple(ndivide=1)})
     out = FIG / "fig_joint_robustness.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")

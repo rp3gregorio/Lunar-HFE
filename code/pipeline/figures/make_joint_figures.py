@@ -264,7 +264,7 @@ def fig_robustness(res, sens):
         ax2.axvline(k0, color=SITE_COL[s], lw=1.2)
         V = {**{k: v["with_diffusivity"]["kd_star_mW"] for k, v in sens["sites"][s]["variants"].items()},
              **{k: v["kd_star_mW"] for k, v in sens["sites"][s]["reanalysis"].items()}}
-        if chid:   # chi = 1.5 is excluded (no physical albedo fits; Text S17); the H/albedo rows keep their own keys
+        if chid:   # chi = 1.5 is excluded (no physical albedo fits; Text S15); the H/albedo rows keep their own keys
             V = {k: v for k, v in V.items() if not k.startswith("chi_")}
             V.update({k: v["kd_star_mW"] for k, v in chid["sites"][s].items()
                       if (k.startswith("chi_") and k != "chi_1.5") or k == "rho_site"})

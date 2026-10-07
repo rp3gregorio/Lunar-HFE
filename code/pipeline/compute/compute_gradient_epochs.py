@@ -1,7 +1,7 @@
 """How the measured meter-scale gradient depends on the window epoch (2026-10-05).
 
 The retrieval uses per-sensor stability windows, which end at different dates
-(Table S4); because the column warmed throughout the record, mostly from the
+(Table S2); because the column warmed throughout the record, mostly from the
 top, a temperature difference between sensors depends on when each was
 averaged. This script compares the observed gradient (OLS over the retained
 sensors, with its standard error) for

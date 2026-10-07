@@ -27,7 +27,7 @@ Two variants are reported:
 
 Model: the Hayne et al. (2017) form at its published K_s, H, chi, rho, eps,
 the Langseth et al. (1976) site Q_b, constant effective albedo A (the
-angular-law alternatives are the conditionality of Text S13).
+angular-law alternatives are the conditionality of Text S2).
 
 Objective (Gaussian likelihood, sensor variance profiled out, so no sensor
 noise scale is chosen by hand):

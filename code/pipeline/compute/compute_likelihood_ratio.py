@@ -19,12 +19,12 @@ This script only post-processes stored fits; it solves nothing.
     (df = 2) against separate values per site
     (joint_fit_sensitivities.json, model_comparison; Table 2, Sec. 4.1);
   * the global value under other radiative coefficients chi and the site
-    densities (joint_chi_density.json; Sec. 4.2, Text S17). That file keeps
+    densities (joint_chi_density.json; Sec. 4.2, Text S15). That file keeps
     only Delta-AICc, which is converted back to Delta J exactly:
     Delta J = Delta AICc - [pen(2) - pen(3)], pen(k) = 2k + 2k(k+1)/(N-k-1),
     N = n + 3 (compute_joint_albedo_fit.analyse);
   * the temperature-only fits at a fixed albedo (albedo_sensitivity.json,
-    albedo_anchor.json; Text S13): Delta J = n ln(RMSE_global^2 / RMSE_fit^2),
+    albedo_anchor.json; Text S2): Delta J = n ln(RMSE_global^2 / RMSE_fit^2),
     over the admissible treatments of compute_albedo_anchor.py;
   * a stress test of the weakest input: the global value against the joint
     fit with the Langseth et al. (1976) diffusivity uncertainties doubled,

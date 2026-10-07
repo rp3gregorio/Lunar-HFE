@@ -19,7 +19,7 @@ This script only post-processes stored fits; it solves nothing.
     (df = 2) against separate values per site
     (joint_fit_sensitivities.json, model_comparison; Table 2, Sec. 4.1);
   * the global value under other radiative coefficients chi and the site
-    densities (joint_chi_density.json; Sec. 4.2, Text S15). That file keeps
+    densities (joint_chi_density.json; Sec. 4.2, Text S12). That file keeps
     only Delta-AICc, which is converted back to Delta J exactly:
     Delta J = Delta AICc - [pen(2) - pen(3)], pen(k) = 2k + 2k(k+1)/(N-k-1),
     N = n + 3 (compute_joint_albedo_fit.analyse);

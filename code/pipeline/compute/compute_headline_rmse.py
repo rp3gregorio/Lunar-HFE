@@ -41,7 +41,7 @@ KD_GRID = pap.KD_GRIDS   # single-sourced from lunar.config (dense vertex grid)
 # baseline (rho_d = 1800 kg/m^3); the sweep runs past the solid-basalt
 # bound (alpha ~1.67) so that any second branch is visible.  At the fitted
 # albedos both minima lie inside the Apollo-core 1700-2000 kg/m^3 envelope
-# (SI Text S5).
+# (SI Text S4).
 MS_ALPHA_GRID = np.linspace(0.7, 2.2, 31)   # rho_d in [1260, 3960] kg/m^3
 N_WORKERS = 5   # the Martinez form has no njit fast path (~3 min per solve)
 

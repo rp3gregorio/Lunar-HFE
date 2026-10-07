@@ -1,19 +1,19 @@
 """Letter figures for the joint (albedo, K_d) retrieval (2026-10-05).
 
   fig_joint_constraints.pdf      Fig. 3: what fixes A and K_d at each site
-  fig_joint_bootstrap.pdf        Fig. 4: bootstrap distributions and the contrast
-  fig_joint_thermal_profiles.pdf Fig. 5: T(z) at the joint fit, the global value, Martinez
-  fig_joint_robustness.pdf       Fig. S6: K_d under each changed input, grouped as in Table 3
-  fig_joint_mcmc.pdf             MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
-  fig_joint_annual_wave.pdf      Fig. S9: the annual wave in the full record vs the forward model (compute_annual_wave.py)
-  fig_joint_mean_T_profile.pdf   Fig. S4: the two global models at the config (fitted) albedos
-  fig_joint_alpha_sweep.pdf      Fig. S5: Martinez density sweep (reads results/headline_rmse.json)
+  fig_joint_bootstrap.pdf        bootstrap distributions and the contrast (not in the paper since 2026-10-07)
+  fig_joint_thermal_profiles.pdf Fig. 4: T(z) at the joint fit, the global value, Martinez
+  fig_joint_robustness.pdf       Fig. S5: K_d under each changed input, grouped as in Table 3
+  fig_joint_mcmc.pdf             Fig. 6: MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
+  fig_joint_annual_wave.pdf      Fig. 5: the annual wave in the full record vs the forward model (compute_annual_wave.py)
+  fig_joint_mean_T_profile.pdf   (not in the paper) the two global models at the config (fitted) albedos
+  fig_joint_alpha_sweep.pdf      (not in the paper) Martinez density sweep (reads results/headline_rmse.json)
   fig_joint_intro_column.pdf     Fig. 1: the modeled column (swing depth from review_diagnostics.json)
   fig_joint_anchor_method.pdf    Fig. S2: the flux-anchored solver, Apollo 15 at the joint fit (~3 min)
   fig_joint_apollo_timeline_probes.pdf  Fig. 2: stability-window timeline (site colours)
   fig_joint_amplitude_vs_depth.pdf      Fig. S3: diurnal amplitude vs depth
 
-Figs. 1, 2, S2-S5 reuse the make_intro_column / make_apollo_timeline_letter /
+Figs. 1, 2, S2, S3 and the two figures not in the paper reuse the make_intro_column / make_apollo_timeline_letter /
 make_anchor_method_figure / make_letter_figures / make_alpha_sweep_figure generators
 under new names, so the older-named copies
 used by other documents (thesis, v1.1 letter) are kept.
@@ -242,7 +242,7 @@ def fig_robustness(res, sens):
     joint_fit_sensitivities.json as qb_contrast_map.)"""
     chi_path = RES / "joint_chi_density.json"          # radiative factor and site densities (compute_joint_chi_density.py)
     chid = json.loads(chi_path.read_text()) if chi_path.exists() else None
-    # (label, key prefix); key None = group heading. chi = 1.5 is excluded (no physical albedo fits; Text S15)
+    # (label, key prefix); key None = group heading. chi = 1.5 is excluded (no physical albedo fits; Text S12)
     rows = [("Measured inputs", None),
             ("basal flux $Q_b$, site range", "Qb"),
             ("density $\\rho_d$ 1700–2000 kg m$^{-3}$", "rho_d"),
@@ -305,7 +305,7 @@ def fig_robustness(res, sens):
 
 
 def fig_annual_wave():
-    """Fig. S9: the annual wave in the full record against the forward model (compute_annual_wave.py).
+    """Fig. 5: the annual wave in the full record against the forward model (compute_annual_wave.py).
     Left: chi^2 profile over K_d (all sensors: amplitude and phase; amplitude only; phase only).
     Middle and right: amplitude and phase lag against depth, data divided by the fitted probe factor,
     with the model at the annual-wave best fit, at the joint fit and at the global K_d."""
@@ -456,7 +456,7 @@ def main():
         fig_robustness(res, sens)
     else:
         print("  (fig_joint_robustness waits for results/joint_fit_sensitivities.json)")
-    # Fig. S2 first, while the house rcParams are in force; then S4, S5 and
+    # Fig. S2 first, while the house rcParams are in force; then the others and
     # Fig. 1, whose generators set their own rcParams (fonts, legend sizes)
     import make_letter_figures, make_alpha_sweep_figure, make_intro_column, make_anchor_method_figure
     import make_apollo_timeline_letter

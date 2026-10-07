@@ -8,7 +8,7 @@ each requested time step on COMMENSURATE lunation grids
 (``solver.periodic_time_grid``) and reports the vertex K_d* per dt, plus the
 successive differences. Convergence criterion: |dK_d*| < 0.05 mW per halving.
 
-History (results/dt_kdstar_certification_A17wide.json): with the
+History (results/archive/dt_kdstar_certification_A17wide.json): with the
 frozen-property march the A17 ladder was first order -- 7.699 / 7.397 /
 7.251 mW at dt = 1800/900/450 s, Richardson limit 7.104 mW. That measurement
 motivated ``config.CN_PICARD_SWEEPS`` (midpoint-property corrector in

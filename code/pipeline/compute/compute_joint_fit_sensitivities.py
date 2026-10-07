@@ -18,7 +18,7 @@ K_d 2-12 in 0.5 mW plus 3.4; vertex-refined):
 Re-analysed on the nominal fine grid (no new solves; the model profile is
 interpolated at the variant's sensor depths):
   * borestem cut z_b 70 / 90 cm;
-  * stability-window slope threshold 0.04-0.16 K/yr;
+  * stability-window slope threshold 0.04-0.37 K/yr (0.37 K/yr = 1e-3 K/day);
   * the other two window-selector choices: scan floor 35-75 % and fallback
     start 60-80 % of the samples (compute_window_criteria_sensitivity.py);
   * common-1974 equilibrium temperatures (compute_common_epoch.py).
@@ -154,6 +154,8 @@ def main():
     fine = np.load(_REPO / "results" / "joint_albedo_fit_cache.npz")
     epoch = json.loads((_REPO / "results" / "common_epoch_sensitivity.json").read_text())
     from compute_stability_threshold_sensitivity import deep_obs_at_threshold, THRESHOLDS_K_PER_YR
+    # extended to 0.25 and 0.365 K/yr (= 1e-3 K/day), the loosest value a reader might expect
+    THRESHOLDS_JOINT = sorted(set(THRESHOLDS_K_PER_YR) | {0.25, 0.365})
     from compute_window_criteria_sensitivity import (deep_obs as window_obs, SWEEPS as WINDOW_SWEEPS,
                                                      ADOPTED as WINDOW_ADOPTED)
     import retrieve_kd as rk
@@ -182,7 +184,7 @@ def main():
             o = rk.extract_sensor_stability(cfg["mission"], min_depth_cm=zb)
             m = np.asarray(o["deep_mask"], bool)
             site["reanalysis"][f"zb_{zb}"] = refit(np.asarray(o["depth_cm_all"])[m] / 100.0, np.asarray(o["T_eq_all"])[m])
-        for thr in THRESHOLDS_K_PER_YR:
+        for thr in THRESHOLDS_JOINT:
             zz, TT, _ = deep_obs_at_threshold(cfg["mission"], cfg["MIN_DEPTH_CM"], thr)
             site["reanalysis"][f"thr_{thr:g}"] = refit(np.asarray(zz, float), np.asarray(TT, float))
         for knob in ("floor", "fallback"):               # the other two window-selector choices
@@ -212,7 +214,7 @@ def main():
                    sigma_rho=half([V["rho_d_1700"], V["rho_d_2000"]]),
                    sigma_cp=half([V[f"cp_x{f:g}"] for f in CP_SCALES]),
                    sigma_zb=half([R["zb_70"], k0, R["zb_90"]]),
-                   sigma_thr=half([R[f"thr_{t:g}"] for t in THRESHOLDS_K_PER_YR]),
+                   sigma_thr=half([R[f"thr_{t:g}"] for t in THRESHOLDS_JOINT]),
                    sigma_window=half([k0] + [v for k, v in R.items() if k.startswith(("floor_", "fallback_"))]),
                    sigma_epoch=abs(R["epoch_T_common"] - R["epoch_T_certified"]))
         total = float(np.sqrt(sum(x ** 2 for x in sig.values())))

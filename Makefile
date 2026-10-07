@@ -52,12 +52,20 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) code/pipeline/compute/compute_error_budget.py   # after all of its inputs (qb_degeneracy, common_epoch, albedo_sensitivity, ...)
 	$(PY) code/pipeline/compute/audit_qb_basins.py   # ~10 min: wide-grid basin audit
 	$(PY) code/pipeline/compute/audit_qb_basin_followup.py   # ~1 min: narrow A15 basin at Q_b=10 (letter Sec. 2.4)
+	$(PY) code/pipeline/compute/compute_stability_windows.py   # seconds: every sensor's stability window (letter Sec. 2.1, SI Table S4)
 	$(PY) code/pipeline/compute/compute_joint_albedo_fit.py   # ~25 min: joint (albedo, K_d) retrieval + bootstrap (letter Sec. 2.6, 3.2)
-	$(PY) code/pipeline/compute/compute_joint_valley.py   # seconds: the A17 worked example (letter Sec. 3.3, Table 2)
+	$(PY) code/pipeline/compute/compute_joint_valley.py   # seconds: the A17 worked example (SI Text S15, Table S5)
+	$(PY) code/pipeline/compute/compute_joint_probe_checks.py   # seconds: per-probe and transient-diffusivity K_d, the +-5 K Apollo test (letter Sec. 3.3, 4.1)
 	$(PY) code/pipeline/compute/compute_joint_block_bootstrap.py   # ~1 min: bootstrap with sensors grouped by probe (Text S8)
-	$(PY) code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min: joint-fit error budget (incl. c_p), Q_b map, model comparison (Tables 3-4)
+	$(PY) code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min: joint-fit error budget (incl. c_p), Q_b map, model comparison (letter Table 2 pooled comparison, Table 3 error budget; SI Fig S7)
 	$(PY) code/pipeline/compute/compute_joint_fit_checks.py   # ~1 min, after the sensitivities: hold-out, TG/TR, epoch, gradient-matching Q_b
 	$(PY) code/pipeline/compute/compute_joint_diviner.py   # ~3 min: Diviner comparison at the joint fit (Text S10)
+	$(PY) code/pipeline/compute/compute_gradient_epochs.py   # seconds: A17/A15 gradient under each window epoch + drill-core gradient (letter Sec. 3.1, 3.2)
+	$(PY) code/pipeline/compute/compute_joint_chi_density.py   # ~50 min: joint fit for chi 1.5-3.2 and site-specific densities (letter Sec. 4.2; SI Text S17, Table S6)
+	$(PY) code/pipeline/compute/compute_likelihood_ratio.py   # seconds, after the joint fit, sensitivities, chi sweep and albedo anchor: likelihood-ratio tests (letter Tables 1-2, Sec. 3.2, 4.1, 4.2; SI Texts S13, S17)
+	$(PY) code/pipeline/compute/compute_annual_wave.py   # ~3 min: annual wave measured in the full record + SPICE-forced forward model (letter Sec. 3.4, SI Text S18)
+	$(PY) code/pipeline/compute/compute_transient_warming.py   # ~2 min, after the annual wave: surface darkening at deployment, warming in the windows, refit (letter Sec. 3.2, 3.3, 4.3; SI Text S19, Table S8)
+	$(PY) code/pipeline/compute/compute_joint_mcmc.py   # ~2 h (resumable grid) + 1 min sampling: posterior of A, K_d, Q_b, rho_d (letter Fig 6, SI Text S14)
 
 figures:             ## regenerate every figure (writes figures/) for the paper + guidebook
 	$(PY) code/pipeline/make_all_figures.py

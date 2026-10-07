@@ -31,12 +31,17 @@ def find_stable_window(
     slope_thresh_K_per_year: float = 0.08,
     min_frac: float = 0.20,
 ) -> tuple[int, float, str, float]:
-    """Scan 55%–85% of a record; pick the earliest start where the trailing
-    linear fit has |slope| < threshold.  Fallback: last 25% of records.
+    """Scan starts at 55%-80% of a record; pick the earliest start where the
+    trailing linear fit has |slope| < threshold.  Fallback: last 25% of records.
+
+    Starts are tried every 2.5% from 55% to 85%, but a start must leave at
+    least ``min_frac`` (20%) of the record, which skips the 82.5% and 85%
+    starts; the effective range is 55%-80% (letter Sec. 2.1).
 
     0.08 K/yr (~2.2e-4 K/day) is the stated criterion in the paper (letter
-    §2.1).  It is ~4.6× stricter than the naive 1e-3 K/day often cited;
-    the stricter value reduces bias from residual post-disturbance drift.
+    §2.1). It is our choice, not a published standard; any threshold from
+    0.04 to 0.37 K/yr (1e-3 K/day) gives the same K_d to 0.01 mW m^-1 K^-1
+    (compute_joint_fit_sensitivities.py).
     """
     n = len(subset)
     t_sec = iso_to_seconds(subset['time_iso'])
@@ -48,13 +53,14 @@ def find_stable_window(
     method = 'fallback_last25'
     slope_out = np.nan
 
-    # Scan candidate start points EARLIEST-first (55% before 85%): the
+    # Scan candidate start points EARLIEST-first (55% before 80%): the
     # borehole disturbance from drilling decays over years, so the earlier
     # a flat-trend window is found, the more of the record it keeps,
     # giving a lower-noise T_eq average. 55% is a floor below which the
-    # disturbance transient is not expected to have settled at any site;
-    # 85% is a ceiling that still leaves >= min_frac of the record to
-    # average over.
+    # disturbance transient is not expected to have settled at any site.
+    # The loop runs to 85%, but the min_frac test below skips every start
+    # that would leave less than 20% of the record, so the last start tried
+    # is 80%.
     for frac in np.linspace(0.55, 0.85, 13):
         i0 = int(frac * n)
         if n - i0 < max(40, int(min_frac * n)):

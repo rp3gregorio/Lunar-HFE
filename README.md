@@ -6,9 +6,9 @@ Apollo 15 and 17 Heat-Flow Experiment (HFE) boreholes from the restored
 
 This is the reproducibility repository for the paper:
 
-> Gregorio, Larsson, Kamada, Yamada, Kuroda & Kasai (2026), *Difference of Lunar Regolith
-> Thermal Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes*,
-> submitted to **JGR: Planets**.
+> Gregorio, Larsson, Kamada, Yamada, Kuroda & Kasai (2026), *Difference of the Lunar
+> Regolith Thermal Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes from
+> Global Model Values*, in preparation for **JGR: Planets**.
 
 ## What it does
 
@@ -28,10 +28,15 @@ assumed. The joint retrieval
 | $K_d^*$ (mW m⁻¹ K⁻¹) | 4.87 [4.29, 5.47] | 5.89 [5.26, 6.51] |
 
 (95% bootstrap, $N_\text{boot}=1500$, conditional on the Langseth et al.
-(1976) basal heat fluxes and the regolith density). The inter-site contrast
-is +1.0 [+0.1, +1.9] mW m⁻¹ K⁻¹, positive in 99% of bootstrap draws; one
-shared $K_d$ is disfavored only marginally (ΔAICc = 2.0). The published
-global $K_d = 3.4$ is rejected at both sites. The forward model is solved to
+(1976) basal heat fluxes and the regolith density). The Moon-wide
+$K_d = 3.4$ of Hayne et al. (2017) is rejected at both sites (likelihood-ratio
+$p = 9\times10^{-7}$ at Apollo 15 and $10^{-14}$ at Apollo 17;
+[`code/results/likelihood_ratio.json`](code/results/likelihood_ratio.json)), and
+so is the revised 3.8 of Feng et al. (2020). With the published diffusivities
+the bootstrap gives an inter-site contrast of +1.0 [+0.1, +1.9] mW m⁻¹ K⁻¹,
+but it does not survive sampling the basal flux and density (MCMC: +1.1
+[−0.1, +2.3]) or a forward model of the annual wave in the full record
+($K_d$ 5.7 and 5.6), so the paper claims no difference between the sites. The forward model is solved to
 a certified periodic steady state (see `code/src/lunar/equilibrium.py` and
 `documents/notes/FLAG_REPORT.md`).
 
@@ -172,9 +177,9 @@ If you use this code or data, please cite both the paper and the repository:
 
 ```bibtex
 @article{gregorio2026,
-  author  = {Gregorio, R.~P. and Larsson, R. and Yamada, T. and Kuroda, T. and Kasai, Y.},
-  title   = {Difference of Lunar Regolith Thermal Conductivity $K_d$
-             at the Apollo 15 and 17 Heat-Flow Boreholes},
+  author  = {Gregorio, R.~P. and Larsson, R. and Kamada, A. and Yamada, T. and Kuroda, T. and Kasai, Y.},
+  title   = {Difference of the Lunar Regolith Thermal Conductivity $K_d$
+             at the Apollo 15 and 17 Heat-Flow Boreholes from Global Model Values},
   journal = {Journal of Geophysical Research: Planets},
   year    = {2026},
   doi     = {TBD}

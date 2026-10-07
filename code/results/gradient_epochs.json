@@ -1,0 +1,101 @@
+{
+ "tl_a17": {
+  "gradient_K_per_m": 1.0,
+  "sigma": 0.5,
+  "depth_cm": [
+   133,
+   291
+  ],
+  "source": "Sehlke et al. (2026), thermoluminescence"
+ },
+ "sites": {
+  "A15": {
+   "model_gradient_K_per_m": {
+    "joint_fit": 2.140106572870411,
+    "global_3p4": 3.0600329940263133,
+    "martinez": 2.6647527149087438
+   },
+   "observed": {
+    "certified": {
+     "gradient_K_per_m": 2.5415821971059294,
+     "se": 2.0215664894392833,
+     "tension_sigma": {
+      "joint_fit": -0.19859629961855704,
+      "global_3p4": 0.2564599282926308,
+      "martinez": 0.060928254621483116
+     },
+     "qb_matching_mW": 25.471453921874552
+    },
+    "common_1974": {
+     "gradient_K_per_m": 2.632659652294684,
+     "se": 1.985074169629281,
+     "tension_sigma": {
+      "joint_fit": -0.24812830017140308,
+      "global_3p4": 0.21529338715411464,
+      "martinez": 0.01616718564226411
+     },
+     "qb_matching_mW": 26.380307060919705
+    },
+    "translated_1974": {
+     "gradient_K_per_m": 2.587874617658634,
+     "se": 2.002592214579709,
+     "tension_sigma": {
+      "joint_fit": -0.22359422029521744,
+      "global_3p4": 0.23577360030173344,
+      "martinez": 0.038389291983862345
+     },
+     "qb_matching_mW": 25.933401520719173
+    }
+   }
+  },
+  "A17": {
+   "model_gradient_K_per_m": {
+    "joint_fit": 1.317644378682202,
+    "global_3p4": 2.282550329606658,
+    "martinez": 1.9939517909508915
+   },
+   "observed": {
+    "certified": {
+     "gradient_K_per_m": 0.36659278446577714,
+     "se": 0.2260563454533039,
+     "tension_sigma": {
+      "joint_fit": 4.2071439857585515,
+      "global_3p4": 8.475575154941437,
+      "martinez": 7.19890876419249
+     },
+     "qb_matching_mW": 3.6016082722555947
+    },
+    "common_1974": {
+     "gradient_K_per_m": 0.8099202262546569,
+     "se": 0.1994141031377345,
+     "tension_sigma": {
+      "joint_fit": 2.546079461976981,
+      "global_3p4": 7.384784125999663,
+      "martinez": 5.937551788292671
+     },
+     "qb_matching_mW": 9.47595591569907
+    },
+    "translated_1974": {
+     "gradient_K_per_m": 0.8863295461147893,
+     "se": 0.18202954179445094,
+     "tension_sigma": {
+      "joint_fit": 2.3694771096795737,
+      "global_3p4": 7.670297742486718,
+      "martinez": 6.084848832322158
+     },
+     "qb_matching_mW": 10.488424050417516
+    },
+    "thermoluminescence": {
+     "gradient_K_per_m": 1.0,
+     "se": 0.5,
+     "tension_sigma": {
+      "joint_fit": 0.6352887573644042,
+      "global_3p4": 2.565100659213316,
+      "martinez": 1.987903581901783
+     },
+     "qb_matching_mW": 11.994623982944423
+    }
+   }
+  }
+ }
+}

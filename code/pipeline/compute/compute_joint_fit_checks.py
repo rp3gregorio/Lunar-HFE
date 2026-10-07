@@ -16,7 +16,13 @@ diffusivity), and at the global K_d = 3.4 with its own fitted albedo:
     trailing slope for 1 and 2 yr (compute_common_epoch.py rows), refit;
   * the basal flux at which the model gradient at the fitted point equals
     the observed one (if results/joint_fit_sensitivities.json is present,
-    from its Q_b variants).
+    from its Q_b variants);
+  * the fixed-albedo sensitivity to a uniform +-1 K bias of the T_eq
+    (temperatures only, albedo held at the joint fit; letter Sec. 3.3);
+  * the published global K_d values -- 3.4 (Hayne et al. 2017), 3.8 (Feng et
+    al. 2020) and 7 (Vasavada et al. 2012, whose radiative term differs, so
+    only indicative) -- scored by Delta-AICc against the joint fit, each with
+    its own fitted albedo (profile of J over the albedo).
 
 Reads:  results/joint_albedo_fit.json, results/joint_albedo_fit_cache.npz,
         results/joint_fit_sensitivities.json (optional)
@@ -123,6 +129,19 @@ def main():
             J, _ = jf.objective(interp_profiles(prof, ze), TT, Ts, jf.TS_OBS[s], kap=kap, kobs=kobs, ksig=ksig)
             a_d, kd_d, _, _ = jf.best_point(J)
             site[f"drift_forward_{tau:g}yr"] = dict(A=a_d, kd_mW=kd_d * 1e3, observed_gradient_K_per_m=float(np.polyfit(ze, TT, 1)[0]))
+        # fixed-albedo sensitivity to a uniform bias (letter Sec. 3.3): temperatures only
+        # (sensors + surface mean, no diffusivity), albedo held at the joint fit, every T_eq
+        # shifted by -1, 0 and +1 K
+        aj = res["sites"][s]["with_diffusivity"]["best"]["A"]
+        ia = int(np.clip(np.searchsorted(jf.A_GRID, aj) - 1, 0, len(jf.A_GRID) - 2))
+        u = (aj - jf.A_GRID[ia]) / (jf.A_GRID[ia + 1] - jf.A_GRID[ia])
+        Tzi, Tsi = (1 - u) * Tz[ia] + u * Tz[ia + 1], (1 - u) * Ts[ia] + u * Ts[ia + 1]
+        kdb = {}
+        for d in (-1.0, 0.0, 1.0):
+            Jb, _ = jf.objective(Tzi, Tobs + d, Tsi, jf.TS_OBS[s])
+            kdb[d] = jf.vertex(jf.KD_GRID, Jb, int(np.argmin(Jb)))[0] * 1e3
+        site["fixed_albedo_uniform_bias"] = dict(A=aj, kd_mW={f"{d:+g}K": v for d, v in kdb.items()},
+                                                 shift_plus1K_mW=kdb[1.0] - kdb[0.0], shift_minus1K_mW=kdb[-1.0] - kdb[0.0])
         # basal flux that would make the model gradient match the observed one
         if sens is not None:
             from compute_joint_fit_sensitivities import QB, QB_NOMINAL
@@ -134,6 +153,13 @@ def main():
             go = site["fit_with_diffusivity"]["gradient_observed_K_per_m"]
             se = res["sites"][s]["with_diffusivity"]["best"]["gradient_observed_K_per_m"]
             site["qb_matching_observed_gradient"] = dict(points=pts, qb_mW=float(np.polyval(p, go)))
+        # published global K_d values against the joint fit, each with its own fitted albedo
+        wd = res["sites"][s]["with_diffusivity"]
+        Jp, J0, N = np.asarray(wd["profile_kd"]["J"]), wd["best"]["J"], len(z) + 3
+        aicc = lambda J, k: J + 2 * k + 2 * k * (k + 1) / (N - k - 1)
+        site["published_global_values"] = {
+            name: dict(kd_mW=v, delta_aicc=float(aicc(np.interp(v, jf.KD_GRID * 1e3, Jp), 2) - aicc(J0, 3)))
+            for name, v in (("hayne2017", 3.4), ("feng2020", 3.8), ("vasavada2012", 7.0))}
         out[s] = site
         f = site["fit_with_diffusivity"]
         print(f"{s}: joint A={f['A']:.4f} K_d={f['kd_mW']:.2f} RMSE {f['rmse_K']:.3f} bias {f['bias_K']:+.2f} "
@@ -156,6 +182,10 @@ def main():
             print(f"     forward drift {tau} yr: K_d {dd['kd_mW']:.2f}, A {dd['A']:.4f}, observed gradient {dd['observed_gradient_K_per_m']:+.2f}")
         if "qb_matching_observed_gradient" in site:
             print(f"     Q_b matching the observed gradient: {site['qb_matching_observed_gradient']['qb_mW']:.1f} mW/m2")
+        fb = site["fixed_albedo_uniform_bias"]
+        print(f"     fixed albedo {fb['A']:.4f}, temperatures only: uniform +1 K -> {fb['shift_plus1K_mW']:+.2f}, -1 K -> {fb['shift_minus1K_mW']:+.2f} mW/m/K")
+        print("     published global values, dAICc vs joint fit: "
+              + ", ".join(f"{k} {v['kd_mW']:g}: {v['delta_aicc']:+.1f}" for k, v in site["published_global_values"].items()))
     p = _REPO / "results" / "joint_fit_checks.json"
     p.write_text(json.dumps(out, indent=1))
     print(f"wrote {p.relative_to(_REPO)}")

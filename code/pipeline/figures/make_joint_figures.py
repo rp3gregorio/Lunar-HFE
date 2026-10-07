@@ -4,6 +4,8 @@
   fig_joint_bootstrap.pdf        Fig. 4: bootstrap distributions and the contrast
   fig_joint_thermal_profiles.pdf Fig. 5: T(z) at the joint fit, the global value, Martinez
   fig_joint_robustness.pdf       Fig. 6: Q_b contrast map and K_d under each systematic
+  fig_joint_mcmc.pdf             MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
+  fig_joint_annual_wave.pdf      Fig. S9: the annual wave in the full record vs the forward model (compute_annual_wave.py)
   fig_joint_mean_T_profile.pdf   Fig. S4: the two global models at the config (fitted) albedos
   fig_joint_alpha_sweep.pdf      Fig. S5: Martinez density sweep (reads results/headline_rmse.json)
   fig_joint_intro_column.pdf     Fig. 1: the modeled column (swing depth from review_diagnostics.json)
@@ -17,7 +19,7 @@ under new names, so the older-named copies
 used by other documents (thesis, v1.1 letter) are kept.
 
 Reads results/joint_albedo_fit.json (+ _cache.npz), joint_fit_checks.json,
-joint_fit_sensitivities.json, albedo_sensitivity.json, headline_rmse.json.
+joint_fit_sensitivities.json, joint_valley.json, headline_rmse.json.
 Writes to the top-level figures/ folder.
 
 Run with:
@@ -31,6 +33,7 @@ sys.path.insert(0, str(_REPO)); sys.path.insert(0, str(_REPO / "src")); sys.path
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.legend_handler import HandlerTuple
 from matplotlib.patches import Patch
 from lunar.plotting.style import *          # noqa: F401,F403 (rcParams + palette)
 import compute_joint_albedo_fit as jf
@@ -39,17 +42,6 @@ FIG = _REPO.parent / "figures"
 RES = _REPO / "results"
 SITE_COL = {"A15": C_A15, "A17": C_A17}
 SITE_LAB = {"A15": "Apollo 15", "A17": "Apollo 17"}
-DRAFT_A = {"A15": 0.131, "A17": 0.137}   # the v1.1 fixed albedos, shown for comparison (Fig. 3 cross)
-
-
-def fixed_albedo_points():
-    """(A, K_d*) of the temperature-only retrieval at the v1.1 fixed albedos,
-    from compute_albedo_sensitivity.py (its COMPARISON_ALBEDOS rows)."""
-    cases = json.loads((RES / "albedo_sensitivity.json").read_text())["cases"]
-    return {s: (A, next(c["kd_star_mW"] for c in cases if c["site"] == s and c["family"] == "constant"
-                        and abs(c["A"] - A) < 1e-9)) for s, A in DRAFT_A.items()}
-
-
 def load():
     res = json.loads((RES / "joint_albedo_fit.json").read_text())
     cache = np.load(RES / "joint_albedo_fit_cache.npz")
@@ -66,67 +58,98 @@ def fine_along_A(J, A, n=241):
     return Af, CubicSpline(A, J, axis=0)(Af)
 
 
+def fine_map(J, A, K, nA=241, nK=801):
+    """Cubic resampling of a (nA, nK) map along both axes, for smooth contours and profiles."""
+    from scipy.interpolate import CubicSpline
+    Af, J1 = fine_along_A(J, A, nA)
+    Kf = np.linspace(K[0], K[-1], nK)
+    return Af, Kf, CubicSpline(K, J1, axis=1)(Kf)
+
+
 def refined_profile(J, A):
     """Profile over K_d: the minimum over A at each K_d, refined by a parabola in A."""
     return np.array([jf.vertex(A, J[:, k], int(np.argmin(J[:, k])))[1] for k in range(J.shape[1])])
 
 
 def fig_constraints(res, cache):
+    """Fig. 3: (a, b) the (A, K_d) plane with the three measurements and the fits;
+    (c, d) the misfit along K_d (profile: best albedo at each K_d)."""
     A, K = jf.A_GRID, jf.KD_GRID * 1e3
-    DRAFT = fixed_albedo_points()
-    fig = plt.figure(figsize=(JGR_FULL, 6.0))
-    gs = fig.add_gridspec(2, 2, height_ratios=[1.25, 0.85], hspace=0.42, wspace=0.28,
-                          left=0.09, right=0.98, top=0.95, bottom=0.08)
-    ylim = {"A15": (1.0, 16.0), "A17": (1.0, 24.0)}
+    KLIM = (1.0, 17.0)                     # one K_d range in all four panels
+    valley = json.loads((RES / "joint_valley.json").read_text())   # temperatures only at the fitted A
+    fig = plt.figure(figsize=(JGR_FULL, 6.2))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.2, 0.85], hspace=0.42, wspace=0.25,
+                          left=0.08, right=0.955, top=0.95, bottom=0.09)
+    top = []
     for col, s in enumerate(("A15", "A17")):
-        ax = fig.add_subplot(gs[0, col])
+        ax = fig.add_subplot(gs[0, col]); top.append(ax)
         J2 = np.array(res["sites"][s]["temperature_only"]["J_map"]); J3 = np.array(res["sites"][s]["with_diffusivity"]["J_map"])
         Ts = cache[f"{s}_Ts"]; kap = cache[f"{s}_kap"]
         kobs = np.array([p[2] for p in jf.KAPPA_OBS[s]]); ksig = np.array([p[3] for p in jf.KAPPA_OBS[s]])
         Jk = (((kap - kobs) / ksig) ** 2).sum(axis=-1)
-        Af, J2f = fine_along_A(J2, A)
-        _, J3f = fine_along_A(J3, A)
+        Af, Kf, J2f = fine_map(J2, A, K)
+        _, _, J3f = fine_map(J3, A, K)
         AA, KK = np.meshgrid(A, K, indexing="ij")
-        AF, KF = np.meshgrid(Af, K, indexing="ij")
+        AF, KF = np.meshgrid(Af, Kf, indexing="ij")
         d2 = J2f - J2f.min()
+        # sensor temperatures alone (ochre), the diffusivity (blue), the surface mean (grey dashed)
         ax.contourf(AF, KF, d2, levels=[0, 1, 4, 9, 25, 100], colors=["#F1E6CC", "#F5EDDB", "#F9F3E8", "#FBF8F1", "#FDFBF8"], extend="neither")
         ax.contour(AF, KF, d2, levels=[1, 4, 9], colors=[C_OBS_T], linewidths=0.6, alpha=0.8)
-        tsm = jf.TS_OBS[s]
-        ax.contourf(AA, KK, np.abs(Ts - tsm), levels=[0, 5], colors=[C_NEUTRAL], alpha=0.22)
-        ax.contour(AA, KK, Ts - tsm, levels=[-5, 5], colors=[C_OBS_TS], linewidths=0.9, linestyles="--")
-        ax.contourf(AA, KK, Jk - Jk.min(), levels=[0, 1], colors=[C_OBS_KAPPA], alpha=0.22)
-        ax.contour(AA, KK, Jk - Jk.min(), levels=[1, 4], colors=[C_OBS_KAPPA], linewidths=[0.9, 0.6])
+        ax.contour(AA, KK, Ts - jf.TS_OBS[s], levels=[-5, 5], colors=[C_OBS_TS], linewidths=1.0, linestyles="--")
+        ax.contourf(AA, KK, Jk - Jk.min(), levels=[0, 1], colors=[C_OBS_KAPPA], alpha=0.25)
+        ax.contour(AA, KK, Jk - Jk.min(), levels=[1], colors=[C_OBS_KAPPA], linewidths=0.9)
+        ax.axhline(3.4, color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4, zorder=3)
+        # the fits: joint (star, 68% region), temperatures only (open circle), and the
+        # temperatures only at the fitted albedo (cross), joined to the star at the same A
         ax.contour(AF, KF, J3f - J3f.min(), levels=[2.30], colors=[C_CHAR], linewidths=1.3)
         b3 = res["sites"][s]["with_diffusivity"]["best"]; b2 = res["sites"][s]["temperature_only"]["best"]
-        ax.plot(b3["A"], b3["kd_star_mW"], marker="*", ms=13, color=SITE_COL[s], mec="white", mew=0.8, zorder=6, ls="none")
+        v = valley[s]
+        ax.plot([v["A"], v["A"]], [b3["kd_star_mW"], v["kd_temperatures_only_mW"]], color=C_DIM, lw=0.8, ls=(0, (1, 1.5)), zorder=5)
+        ax.plot(v["A"], v["kd_temperatures_only_mW"], marker="X", ms=8, color=C_DIM, mec="white", mew=0.6, zorder=6, ls="none")
         ax.plot(b2["A"], b2["kd_star_mW"], marker="o", ms=7, mfc="white", mec=C_CHAR, mew=1.2, zorder=6, ls="none")
-        ax.plot(*DRAFT[s], marker="X", ms=8, color=C_DIM, mec="white", mew=0.6, zorder=6, ls="none")
-        ax.axhline(3.4, color=C_TEAL, ls=":", lw=1.4, zorder=3)
-        ax.set_xlim(A[0], A[-1]); ax.set_ylim(*ylim[s])
+        ax.plot(b3["A"], b3["kd_star_mW"], marker="*", ms=14, color=SITE_COL[s], mec="white", mew=0.8, zorder=7, ls="none")
+        ax.set_xlim(A[0], A[-1]); ax.set_ylim(*KLIM)
         fmt_axis(ax, xlabel="Effective albedo $A$", ylabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)" if col == 0 else "",
                  title=f"({'ab'[col]})  {SITE_LAB[s]}")
+        # (c, d): misfit along K_d, the albedo re-optimized at each K_d
         ax = fig.add_subplot(gs[1, col])
-        for v, ls, lab in (("temperature_only", "--", "temperatures only"), ("with_diffusivity", "-", "with diffusivity")):
-            pr = refined_profile(np.array(res["sites"][s][v]["J_map"]), A); pr = pr - pr.min()
-            ax.plot(K, pr, ls=ls, color=SITE_COL[s], lw=1.8 if ls == "-" else 1.4)
-        for L in (1.0, 3.84):
-            ax.axhline(L, color=C_DIM, lw=0.7, ls=(0, (2, 2)))
-        ax.axvline(3.4, color=C_TEAL, ls=":", lw=1.4)
-        ax.set_xlim(*ylim[s]); ax.set_ylim(0, 30)
-        fmt_axis(ax, xlabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", ylabel=r"$\Delta J$ (profile)" if col == 0 else "",
-                 title=f"({'cd'[col]})  {SITE_LAB[s]}: profile likelihood")
-    handles = [Patch(fc=C_NEUTRAL, alpha=0.35, ec=C_OBS_TS, ls="--"), Patch(fc=C_OBS_KAPPA, alpha=0.3, ec=C_OBS_KAPPA),
-               Patch(fc="#F1E6CC", ec=C_OBS_T),
+        # profile = lowest misfit over the albedo at each K_d, on the smooth map
+        curves = {}
+        for v_, Jf, ls, lw in (("temperature_only", J2f, "--", 1.4), ("with_diffusivity", J3f, "-", 1.9)):
+            pr = Jf.min(axis=0)
+            if v_ == "temperature_only":
+                # the A17 temperature-only valley is narrower than the albedo grid step, which
+                # leaves a < 0.5 ripple in the profile; smooth it for display (sigma 0.3 mW)
+                from scipy.ndimage import gaussian_filter1d
+                pr = gaussian_filter1d(pr, 0.3 / (Kf[1] - Kf[0]), mode="nearest")
+            pr = pr - pr.min()
+            ax.plot(Kf, pr, ls=ls, color=SITE_COL[s], lw=lw)
+            curves[v_] = pr
+        for L, lab in ((1.0, "68%"), (3.84, "95%")):
+            ax.axhline(L, color=C_DIM, lw=0.7, ls=(0, (2, 2)), zorder=1)
+            ax.text(1.012, L, lab, transform=ax.get_yaxis_transform(), fontsize=8, color=C_DIM,
+                    ha="left", va="center", clip_on=False)
+        ax.axvline(3.4, color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)
+        ax.set_xlim(*KLIM); ax.set_ylim(0, 30)
+        fmt_axis(ax, xlabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", ylabel=r"$\Delta J$ (misfit above best)" if col == 0 else "",
+                 title=f"({'cd'[col]})  {SITE_LAB[s]}: misfit along $K_d$")
+    handles = [Line2D([], [], color=C_OBS_TS, ls="--", lw=1.0),
+               Patch(fc=C_OBS_KAPPA, alpha=0.3, ec=C_OBS_KAPPA),
+               (Patch(fc="#F1E6CC", ec=C_OBS_T), Line2D([], [], marker="o", ms=6, mfc="white", mec=C_CHAR, ls="none")),
                (Line2D([], [], color=C_CHAR, lw=1.3), Line2D([], [], marker="*", ms=11, color=C_CHAR, ls="none", mec="white")),
-               Line2D([], [], marker="o", ms=7, mfc="white", mec=C_CHAR, ls="none"),
                Line2D([], [], marker="X", ms=8, color=C_DIM, ls="none", mec="white"),
-               Line2D([], [], color=C_TEAL, ls=":", lw=1.4),
-               Line2D([], [], color=C_CHAR, ls="-", lw=1.8), Line2D([], [], color=C_CHAR, ls="--", lw=1.4)]
+               Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)]
     labels = ["surface mean $\\pm$5 K", "diffusivity ($\\Delta J_\\kappa\\leq1$)",
-              "temperatures only ($\\Delta J$ = 1, 4, 9)", "joint fit (star; 68% region)",
-              "best fit, temperatures only", "fixed albedo 0.131 / 0.137", "global $K_d$ = 3.4",
-              "(c, d) with diffusivity", "(c, d) temperatures only"]
-    legend_below(fig, handles, labels)
+              "temperatures only ($\\Delta J$ = 1, 4, 9; best fit)", "joint fit (68% region)",
+              "temperatures only, fitted $A$", "global $K_d$ = 3.4"]
+    legend_between(fig, top, handles, labels)
+    # (c, d): one entry per curve type, each drawn in both site colours
+    pair = lambda ls, lw: (Line2D([], [], color=C_A15, ls=ls, lw=lw), Line2D([], [], color=C_A17, ls=ls, lw=lw))
+    legend_below(fig, [pair("-", 1.9), pair("--", 1.4),
+                       Line2D([], [], color=C_DIM, lw=0.7, ls=(0, (2, 2))),
+                       Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)],
+                 ["with diffusivity (joint fit)", "temperatures only", r"$\Delta J$ = 1 (68%), 3.84 (95%)", "global $K_d$ = 3.4"],
+                 handlelength=3.0, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.4)})
     out = FIG / "fig_joint_constraints.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")
@@ -181,7 +204,9 @@ def fig_profiles(res, cache, chk):
         obs = extract_sensor_stability(SITES[s]["mission"], min_depth_cm=0)["sensors"]
         zo = np.array([o["depth_cm"] for o in obs]); To = np.array([o["T_eq"] for o in obs]); eo = np.array([o["T_std"] for o in obs])
         deep = zo >= SITES[s]["MIN_DEPTH_CM"]
-        for row, (zlo, zhi) in enumerate(((0, 300), (75, 245))):
+        # meter-scale band: A15 sensors end at 139 cm, so its panel stops at 175 cm
+        band = (75, 175) if s == "A15" else (75, 245)
+        for row, (zlo, zhi) in enumerate(((0, 300), band)):
             ax = fig.add_subplot(gs[row, col])
             ax.axhspan(0, 80, color=C_EXCL_FILL, lw=0)
             ax.axhline(80, color=C_EXCL_EDGE, ls="--", lw=0.8)
@@ -211,9 +236,11 @@ def fig_profiles(res, cache, chk):
 
 
 def fig_robustness(res, sens):
-    fig = plt.figure(figsize=(JGR_FULL, 3.9))
-    gs = fig.add_gridspec(1, 2, width_ratios=[1.0, 1.15], wspace=0.62, left=0.08, right=0.98, top=0.90, bottom=0.16)
+    fig = plt.figure(figsize=(JGR_FULL, 4.3))
+    gs = fig.add_gridspec(1, 2, width_ratios=[1.0, 1.15], wspace=0.62, left=0.08, right=0.98, top=0.91, bottom=0.15)
     ax1, ax2 = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
+    chi_path = RES / "joint_chi_density.json"          # radiative factor and site densities (compute_joint_chi_density.py)
+    chid = json.loads(chi_path.read_text()) if chi_path.exists() else None
     m = sens["qb_contrast_map"]
     q15, q17, C = np.array(m["qb_A15"]), np.array(m["qb_A17"]), np.array(m["contrast_mW"])
     im = ax1.imshow(C.T, origin="lower", cmap=NEUTRAL_SEQ, aspect="auto", vmin=0, vmax=max(2.0, C.max()))
@@ -228,6 +255,8 @@ def fig_robustness(res, sens):
     rows = [("$Q_b$ envelope", "Qb"), ("$K_s$ $\\pm$30%", "Ks"), ("$\\rho_d$ 1700 / 2000", "rho_d"), ("$c_p$ $\\pm$3%", "cp_x"),
             ("$z_b$ 70 / 90 cm", "zb"), ("window threshold", "thr"), ("window start / fallback", ("floor_", "fallback_")), ("common-1974 epoch", "epoch_T_common"),
             ("$H$ 3 / 10 cm", "H_"), ("angular albedo form", "form")]
+    if chid:
+        rows += [("$\\chi$ 2.2 to 3.2", "chi_"), ("site densities", "rho_site")]
     for s, dy in (("A15", -0.15), ("A17", 0.15)):
         b = res["sites"][s]["with_diffusivity"]
         k0 = b["best"]["kd_star_mW"]; q = b["bootstrap"]["kd_mW"]
@@ -235,6 +264,10 @@ def fig_robustness(res, sens):
         ax2.axvline(k0, color=SITE_COL[s], lw=1.2)
         V = {**{k: v["with_diffusivity"]["kd_star_mW"] for k, v in sens["sites"][s]["variants"].items()},
              **{k: v["kd_star_mW"] for k, v in sens["sites"][s]["reanalysis"].items()}}
+        if chid:   # chi = 1.5 is excluded (no physical albedo fits; Text S17); the H/albedo rows keep their own keys
+            V = {k: v for k, v in V.items() if not k.startswith("chi_")}
+            V.update({k: v["kd_star_mW"] for k, v in chid["sites"][s].items()
+                      if (k.startswith("chi_") and k != "chi_1.5") or k == "rho_site"})
         for i, (lab, key) in enumerate(rows):
             vals = [v for k, v in V.items() if k.startswith(key) and k != "nominal_compact"]
             if vals:
@@ -252,11 +285,154 @@ def fig_robustness(res, sens):
     print(f"  -> {out}")
 
 
+def fig_annual_wave():
+    """Fig. S9: the annual wave in the full record against the forward model (compute_annual_wave.py).
+    Left: chi^2 profile over K_d (all sensors: amplitude and phase; amplitude only; phase only).
+    Middle and right: amplitude and phase lag against depth, data divided by the fitted probe factor,
+    with the model at the annual-wave best fit, at the joint fit and at the global K_d."""
+    aw = json.loads((RES / "annual_wave.json").read_text())
+    prof = np.load(RES / "annual_wave_model.npz"); kds = prof["kd_scan_mW"]; o = np.argsort(kds)
+    fig = plt.figure(figsize=(JGR_FULL, 5.4))
+    gs = fig.add_gridspec(2, 3, width_ratios=[1.05, 1, 1], hspace=0.42, wspace=0.34, left=0.075, right=0.985, top=0.95, bottom=0.10)
+    MK = {"TG": "o", "TR": "s", "TC": "^"}
+    for r, s in enumerate(("A15", "A17")):
+        col = SITE_COL[s]; site = aw["sites"][s]; V = site["variants"]
+        ax0, ax1, ax2 = (fig.add_subplot(gs[r, c]) for c in range(3))
+        # (left) chi^2 profiles, each scaled by its own error factor
+        lo, hi = aw["meta"]["kd_joint_mW"][s], None
+        jb = json.loads((RES / "joint_albedo_fit.json").read_text())["sites"][s]["with_diffusivity"]["bootstrap"]["kd_mW"]
+        ax0.axvspan(jb["p2.5"], jb["p97.5"], color=col, alpha=0.12, lw=0)
+        for v, ls in (("nominal", "-"), ("amplitude_only", "--"), ("phase_only", ":")):
+            c2 = prof[f"{s}_chi2_{v}"][o]; sc = V[v]["error_scale"] ** 2
+            ax0.plot(kds[o], (c2 - c2.min()) / sc, ls=ls, color=col, lw=1.6)
+        ax0.axhline(3.84, color=C_DIM, lw=0.8, ls="-", alpha=0.6)
+        ax0.axvline(3.4, color=C_TEAL, ls=":", lw=1.4)
+        ax0.set_xlim(2.5, 9.0); ax0.set_ylim(0, 40)
+        fmt_axis(ax0, xlabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", ylabel=r"$\Delta\chi^2$",
+                 title=f"({'ad'[r]})  {SITE_LAB[s]}: fit over $K_d$")
+        # (middle, right) data in the model frame of the best fit
+        cv = site["curves"]; z = np.array(cv["z_m"])
+        gbest = {p: complex(*f) for p, f in cv["annual_wave"]["factor"].items()}
+        ref = np.unwrap(np.angle(np.array([complex(*ab) for ab in cv["annual_wave"]["ab"]])))
+        for name, ls, cc in (("annual_wave", "-", col), ("joint", "-.", col), ("global", ":", C_TEAL)):
+            m = np.array([complex(*ab) for ab in cv[name]["ab"]]) * (complex(*cv[name]["factor"]["p1"]) / gbest["p1"])
+            ph = np.unwrap(np.angle(m)); ph += 2 * np.pi * np.round((ref[0] - ph[0]) / (2 * np.pi))
+            ax1.plot(np.abs(m), z * 100, ls=ls, color=cc, lw=1.5)
+            ax2.plot(np.degrees(ph - ref[0]), z * 100, ls=ls, color=cc, lw=1.5)
+        for key, d in site["sensors"].items():
+            p, sname = key.split("_"); g = gbest[p]
+            ob = complex(*d["obs_ab"]) / g; C = np.array(d["obs_cov"]) / abs(g) ** 2
+            A = abs(ob); sA = float(np.sqrt(np.array([ob.real, ob.imag]) @ C @ np.array([ob.real, ob.imag]))) / A
+            sph = float(np.sqrt(np.array([-ob.imag, ob.real]) @ C @ np.array([-ob.imag, ob.real]))) / A ** 2
+            if A < 3 * sA:          # below 3 sigma: amplitude only (open), no phase
+                ax1.errorbar(A, d["z_m"] * 100, xerr=min(sA, 0.9 * A), marker=MK[sname[:2]], ms=4.5, mfc="white",
+                             mec=col, color=col, ls="none", elinewidth=0.7, alpha=0.8)
+                continue
+            zi = np.interp(d["z_m"], z, ref); ph = np.angle(ob); ph += 2 * np.pi * np.round((zi - ph) / (2 * np.pi))
+            ax1.errorbar(A, d["z_m"] * 100, xerr=sA, marker=MK[sname[:2]], ms=5, color=col, mec="white", mew=0.7, ls="none", elinewidth=0.9)
+            ax2.errorbar(np.degrees(ph - ref[0]), d["z_m"] * 100, xerr=np.degrees(sph), marker=MK[sname[:2]], ms=5,
+                         color=col, mec="white", mew=0.7, ls="none", elinewidth=0.9)
+        ax1.set_xscale("log"); ax1.set_xlim(3e-4, 3.0)
+        for ax in (ax1, ax2):
+            ax.set_ylim(245, 0)
+        fmt_axis(ax1, xlabel="annual amplitude (model scale, K)", ylabel="Depth (cm)", title=f"({'be'[r]})  Amplitude")
+        fmt_axis(ax2, xlabel="phase lag (deg)", title=f"({'cf'[r]})  Phase lag")
+    handles = [Line2D([], [], color=C_DIM, lw=1.6), Line2D([], [], color=C_DIM, lw=1.6, ls="--"),
+               Line2D([], [], color=C_DIM, lw=1.6, ls=":"), Line2D([], [], color=C_DIM, lw=1.5, ls="-."),
+               Line2D([], [], color=C_TEAL, ls=":", lw=1.4), Patch(fc=C_DIM, alpha=0.15),
+               Line2D([], [], marker="o", color=C_DIM, ls="none"), Line2D([], [], marker="s", color=C_DIM, ls="none"),
+               Line2D([], [], marker="^", color=C_DIM, ls="none"), Line2D([], [], marker="o", mfc="white", mec=C_DIM, ls="none")]
+    labels = ["annual wave, amplitude and phase", "amplitude only (a, d)", "phase only (a, d)",
+              "model at the joint fit", "global $K_d$ = 3.4", "joint-fit 95% interval (a, d)",
+              "gradient bridge", "ring bridge", "thermocouple", "below 3$\\sigma$ (amplitude only)"]
+    legend_below(fig, handles, labels)
+    out = FIG / "fig_joint_annual_wave.pdf"
+    fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
+    print(f"  -> {out}")
+
+
+def fig_mcmc(res):
+    """MCMC posterior of the joint retrieval (compute_joint_mcmc.py), with A, K_d, Q_b and
+    rho_d sampled at each site: (a) K_d, (b) the contrast, (c) Q_b against its prior,
+    (d) K_d against rho_d. The joint fit and its bootstrap 95% interval are overlaid in (a, b)."""
+    from scipy.ndimage import gaussian_filter
+    from matplotlib.transforms import blended_transform_factory as blend
+    mc = json.loads((RES / "joint_mcmc.json").read_text())
+    ch = np.load(RES / "joint_mcmc_chains.npz")
+    grid = mc["meta"]["grid"]
+    fig = plt.figure(figsize=(JGR_FULL, 5.6))
+    gs = fig.add_gridspec(2, 2, hspace=0.45, wspace=0.26, left=0.08, right=0.98, top=0.95, bottom=0.09)
+    ax1, ax2, ax3, ax4 = (fig.add_subplot(gs[i, j]) for i in range(2) for j in range(2))
+    boot_bar = dict(lw=1.6, solid_capstyle="butt")
+    h1, l1 = [], []
+    for k, s in enumerate(("A15", "A17")):
+        c = ch[s]; col = SITE_COL[s]; q = mc[s]["posterior"]["kd_mW"]
+        # (a) K_d posterior; above it, the joint fit (star) and its bootstrap 95 % interval
+        ax1.hist(c[:, 3], bins=np.arange(3.0, 8.51, 0.1), density=True, color=col, alpha=0.75, ec="white", lw=0.3)
+        bs = res["sites"][s]["with_diffusivity"]["bootstrap"]["kd_mW"]; best = res["sites"][s]["with_diffusivity"]["best"]["kd_star_mW"]
+        tr = blend(ax1.transData, ax1.transAxes); y = 0.95 - 0.07 * k
+        ax1.plot([bs["p2.5"], bs["p97.5"]], [y, y], color=col, transform=tr, **boot_bar)
+        ax1.plot(best, y, marker="*", ms=10, color=col, mec="white", mew=0.6, transform=tr, ls="none", zorder=5)
+        h1.append(Patch(fc=col, alpha=0.75)); l1.append(f"{SITE_LAB[s]}: {q['p50']:.2f} [{q['p2.5']:.2f}, {q['p97.5']:.2f}]")
+        # (c) Q_b posterior and its Gaussian prior
+        q0, qs = mc[s]["prior"]["Qb_mW"]
+        ax3.hist(c[:, 1], bins=np.arange(3.0, 31.01, 0.5), density=True, color=col, alpha=0.75, ec="white", lw=0.3)
+        x = np.linspace(3, 31, 400)
+        ax3.plot(x, np.exp(-0.5 * ((x - q0) / qs) ** 2) / (qs * np.sqrt(2 * np.pi)), color=col, ls="--", lw=1.3)
+        # (d) K_d vs rho_d: 68 / 95 % regions
+        H, xe, ye = np.histogram2d(c[:, 2], c[:, 3], bins=60, range=[[1450, 2350], [3.0, 8.5]])
+        H = gaussian_filter(H, 1.2).T
+        f = np.sort(H.ravel())[::-1]; cdf = np.cumsum(f) / f.sum()
+        lv = [f[np.searchsorted(cdf, qq)] for qq in (0.95, 0.68)]
+        xc, yc = 0.5 * (xe[1:] + xe[:-1]), 0.5 * (ye[1:] + ye[:-1])
+        ax4.contourf(xc, yc, H, levels=[lv[0], lv[1], H.max() * 1.01], colors=[col, col], alpha=0.25)
+        ax4.contour(xc, yc, H, levels=lv, colors=[col], linewidths=[0.8, 1.3])
+    ax1.axvline(3.4, color=C_TEAL, ls=":", lw=1.4)
+    h1.append(Line2D([], [], color=C_TEAL, ls=":", lw=1.4)); l1.append("global $K_d$ = 3.4")
+    ax1.set_xlim(3.0, 8.0); ax1.set_ylim(0, ax1.get_ylim()[1] * 1.3)
+    fmt_axis(ax1, xlabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", ylabel="posterior density", title="(a)  Per-site $K_d$")
+    # (b) contrast from independent draws of the two posteriors (as in compute_joint_mcmc.py)
+    rng = np.random.default_rng([42, 9])
+    m = min(len(ch["A15"]), len(ch["A17"]))
+    dc = ch["A17"][rng.permutation(len(ch["A17"]))[:m], 3] - ch["A15"][rng.permutation(len(ch["A15"]))[:m], 3]
+    cq = mc["contrast_mW"]; cb = res["contrast"]["with_diffusivity"]
+    ax2.axvspan(cq["p2.5"], cq["p97.5"], color=C_NEUTRAL, alpha=0.25, lw=0)
+    ax2.hist(dc, bins=np.arange(-1.5, 3.51, 0.1), density=True, color=C_DIM, alpha=0.8, ec="white", lw=0.3)
+    ax2.axvline(0, color=C_CHAR, lw=0.9, ls="--")
+    ax2.axvline(cq["p50"], color=C_CONTRAST, lw=1.6)
+    tr = blend(ax2.transData, ax2.transAxes)
+    ax2.plot([cb["p2_5"], cb["p97_5"]], [0.95, 0.95], color=C_CHAR, transform=tr, **boot_bar)
+    ax2.plot(cb["median"], 0.95, marker="*", ms=10, color=C_CHAR, mec="white", mew=0.6, transform=tr, ls="none", zorder=5)
+    ax2.set_xlim(-1.5, 3.5); ax2.set_ylim(0, ax2.get_ylim()[1] * 1.3)
+    fmt_axis(ax2, xlabel=r"$\Delta K_d$ (A17 $-$ A15)", ylabel="", title="(b)  Inter-site contrast")
+    h1 += [(Patch(fc=C_NEUTRAL, alpha=0.4), Line2D([], [], color=C_CONTRAST, lw=1.6)),
+           (Line2D([], [], color=C_CHAR, **boot_bar), Line2D([], [], marker="*", ms=10, color=C_CHAR, mec="white", ls="none"))]
+    l1 += [f"contrast: {cq['p50']:+.2f} [{cq['p2.5']:+.2f}, {cq['p97.5']:+.2f}]".replace("-", "\u2212"),
+           "joint fit, bootstrap 95%"]
+    ax2.text(0.03, 0.86, f"P($\\Delta K_d\\leq0$) = {cq['p_leq0']:.3f}", transform=ax2.transAxes, ha="left", va="top",
+             fontsize=FS_TICK, bbox=dict(fc="white", ec=C_GRID, pad=3), zorder=6)
+    ax3.set_xlim(3, 31)
+    fmt_axis(ax3, xlabel=r"$Q_b$ (mW m$^{-2}$)", ylabel="posterior density", title="(c)  Basal heat flux")
+    ax4.set_xlim(1450, 2350); ax4.set_ylim(3.0, 8.5)
+    fmt_axis(ax4, xlabel=r"$\rho_d$ (kg m$^{-3}$)", ylabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", title=r"(d)  $K_d$ and deep density")
+    legend_between(fig, [ax1, ax2], h1, l1)
+    legend_below(fig, [Line2D([], [], color=C_DIM, ls="--", lw=1.3),
+                       (Patch(fc=C_DIM, alpha=0.25, ec=C_DIM, lw=1.3), Patch(fc=C_DIM, alpha=0.12, ec=C_DIM, lw=0.8))],
+                 ["prior (site color)", "68% and 95% regions"])
+    out = FIG / "fig_joint_mcmc.pdf"
+    fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
+    print(f"  -> {out}")
+
+
 def main():
     res, cache, chk, sens = load()
     fig_constraints(res, cache)
     fig_bootstrap(res)
     fig_profiles(res, cache, chk)
+    if (RES / "joint_mcmc.json").exists():
+        fig_mcmc(res)
+    if (RES / "annual_wave.json").exists():
+        fig_annual_wave()
     if sens is not None:
         fig_robustness(res, sens)
     else:

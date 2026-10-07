@@ -11,3 +11,9 @@ trail from the dt-convergence investigation (`docs/notes/AUDIT_2026-07-03.md`).
   (Picard alone did not remove the dt drift); superseded by
   `../dt_kdstar_certification_{A15,A17}_wrapfix.json`, the certified
   acceptance record cited in the audit note.
+
+- `dt_kdstar_certification.json` and `dt_kdstar_certification_A17wide.json`
+  (moved here 2026-10-07) — the time-step ladders from before the wrap-step
+  fix (A17 K_d* 7.70 / 7.40 / 7.25 at dt = 1800 / 900 / 450 s). Superseded by
+  `../dt_kdstar_certification_{A15,A17}_wrapfix.json`, which give changes of
+  0.002 (A15) and 0.025 (A17) over the same ladder (SI Text S5).

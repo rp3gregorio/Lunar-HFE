@@ -1,7 +1,8 @@
 cff-version: 1.2.0
 title: >-
-  Code and data for "Difference of Lunar Regolith Thermal Conductivity
-  K_d at the Apollo 15 and 17 Heat-Flow Boreholes"
+  Code and data for "Difference of the Lunar Regolith Thermal
+  Conductivity K_d at the Apollo 15 and 17 Heat-Flow Boreholes from
+  Global Model Values"
 message: >-
   If you use this software or the bundled HFE record, please cite both
   the associated paper (preferred) and this repository.
@@ -32,8 +33,8 @@ authors:
 repository-code: 'https://github.com/rp3gregorio/Lunar-HFE'
 doi: 10.5281/zenodo.22183100   # concept DOI (all versions)
 license: MIT
-version: v1.2-jgr
-date-released: '2026-10-05'
+version: v1.3-jgr
+date-released: '2026-10-07'
 preferred-citation:
   type: article
   authors:
@@ -51,8 +52,8 @@ preferred-citation:
     - given-names: Yasuko
       family-names: Kasai
   title: >-
-    Difference of Lunar Regolith Thermal Conductivity K_d at the
-    Apollo 15 and 17 Heat-Flow Boreholes
+    Difference of the Lunar Regolith Thermal Conductivity K_d at the
+    Apollo 15 and 17 Heat-Flow Boreholes from Global Model Values
   journal: Journal of Geophysical Research, Planets
   year: 2026
   doi: 10.0000/TBD

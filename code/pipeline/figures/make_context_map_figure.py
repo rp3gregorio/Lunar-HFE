@@ -159,7 +159,7 @@ def draw_global_topo(ax):
               aspect="auto", zorder=1, interpolation="bilinear")
     _global_axes(ax); _mark_sites(ax, callout=True, rects=True)
     ax.set_title("(a)  Topography (LOLA)", fontsize=FS_TITLE,
-                 fontweight="bold", pad=4)
+                 fontweight="bold", pad=4, loc="left")
     sm = cm.ScalarMappable(norm=Normalize(vmin, vmax), cmap=TOPO_CMAP)
     return sm
 
@@ -171,7 +171,7 @@ def draw_global_temp(ax):
     _global_axes(ax); _mark_sites(ax, callout=False, rects=False)
     ax.set_yticklabels([])                    # same latitude axis as (a)
     ax.set_title("(b)  Mean surface temperature", fontsize=FS_TITLE,
-                 fontweight="bold", pad=4)
+                 fontweight="bold", pad=4, loc="left")
     return cm.ScalarMappable(norm=Normalize(tmin, tmax), cmap=TEMP_CMAP)
 
 
@@ -203,7 +203,7 @@ def draw_zoom(ax, site_key, panel):
     ax.set_title(rf"({panel})  {s['label']} "
                  rf"({s['lat']:.1f}$^\circ$N, {s['lon']:.1f}$^\circ$E)",
                  fontsize=FS_TITLE - 0.5, fontweight="bold", pad=4,
-                 color=SITE_COLOR[site_key])
+                 color=SITE_COLOR[site_key], loc="left")
 
 
 def main():

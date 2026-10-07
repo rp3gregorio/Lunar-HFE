@@ -152,22 +152,13 @@ LEGEND_KW = dict(frameon=False, fontsize=9.0, handlelength=1.6, handleheight=0.7
                  handletextpad=0.8, columnspacing=1.3, borderaxespad=0.0)
 
 
-def legend_below(fig, handles, labels, *, ncols="auto", pad_in=0.10, **kw):
-    """Shared legend in a reserved strip below all axes; grows the figure
-    downward so no axis label is ever overlapped. Styled like the letter's
-    Fig. 2 (no frame, 9 pt, compact handles), the house legend since
-    2026-10-05; keyword arguments override LEGEND_KW.
-
-    ncols="auto" (default) uses the FEWEST rows that fit the figure width,
-    then spreads the entries evenly over those rows (no lonely half-row), and
-    orders them to read left to right, row by row.
-    """
+def _legend_layout(fig, handles, labels, ncols, style):
+    """Column count and row-major order for a figure legend (see legend_below)."""
     import math
-    fig.canvas.draw()
-    style = {**LEGEND_KW, **kw}
     handles, labels = list(handles), list(labels)
     n = len(handles)
     if ncols == "auto":
+        fig.canvas.draw()
         avail = fig.get_size_inches()[0] * fig.dpi * 0.97
         nc = 1
         for c in range(n, 0, -1):
@@ -184,8 +175,21 @@ def legend_below(fig, handles, labels, *, ncols="auto", pad_in=0.10, **kw):
     # matplotlib fills a legend column by column; reorder so it reads row by row
     rows = math.ceil(n / ncols)
     order = [k * ncols + j for j in range(ncols) for k in range(rows) if k * ncols + j < n]
-    handles = [handles[i] for i in order]
-    labels = [labels[i] for i in order]
+    return [handles[i] for i in order], [labels[i] for i in order], ncols
+
+
+def legend_below(fig, handles, labels, *, ncols="auto", pad_in=0.10, **kw):
+    """Shared legend in a reserved strip below all axes; grows the figure
+    downward so no axis label is ever overlapped. Styled like the letter's
+    Fig. 2 (no frame, 9 pt, compact handles), the house legend since
+    2026-10-05; keyword arguments override LEGEND_KW.
+
+    ncols="auto" (default) uses the FEWEST rows that fit the figure width,
+    then spreads the entries evenly over those rows (no lonely half-row), and
+    orders them to read left to right, row by row.
+    """
+    style = {**LEGEND_KW, **kw}
+    handles, labels, ncols = _legend_layout(fig, handles, labels, ncols, style)
     leg = fig.legend(handles, labels, loc="lower center",
                      bbox_to_anchor=(0.5, 0.0), ncols=ncols, **style)
     fig.canvas.draw()
@@ -201,6 +205,46 @@ def legend_below(fig, handles, labels, *, ncols="auto", pad_in=0.10, **kw):
         ax.set_position([p.x0, frac + p.y0 * (1 - frac),
                          p.width, p.height * (1 - frac)])
     leg.set_bbox_to_anchor((0.5, pad_in / new_h / 2), transform=fig.transFigure)
+    return leg
+
+
+def legend_between(fig, above, handles, labels, *, ncols="auto", pad_in=0.10, **kw):
+    """Legend for one row of panels, in a measured gap between that row
+    (``above``, a list of Axes) and the panels below it. The gap is resized
+    to the legend height plus ``pad_in`` on each side (the figure grows or
+    shrinks; the rows keep their sizes), so it can overlap neither row.
+
+    Same style and column rule as legend_below. Call it BEFORE legend_below:
+    the legend is anchored to the row above it, so it moves with that row
+    when legend_below later adds the bottom strip.
+    """
+    from matplotlib.transforms import ScaledTranslation, blended_transform_factory
+    style = {**LEGEND_KW, **kw}
+    handles, labels, ncols = _legend_layout(fig, handles, labels, ncols, style)
+    above = list(above)
+    below = [ax for ax in fig.axes if ax not in above]
+    leg = fig.legend(handles, labels, loc="center", bbox_to_anchor=(0.5, 0.0), ncols=ncols, **style)
+    fig.canvas.draw()
+    r = fig.canvas.get_renderer()
+    dpi = fig.dpi
+    leg_h = leg.get_window_extent().height
+    gap = (min(ax.get_tightbbox(r).y0 for ax in above)
+           - max(ax.get_tightbbox(r).y1 for ax in below))
+    shift_in = (leg_h + 2 * pad_in * dpi - gap) / dpi
+    fig_w, fig_h = fig.get_size_inches()
+    new_h = fig_h + shift_in
+    for ax in fig.axes:                       # keep every panel's size and the lower row's place
+        p = ax.get_position()
+        y0_in = p.y0 * fig_h + (shift_in if ax in above else 0.0)
+        ax.set_position([p.x0, y0_in / new_h, p.width, p.height * fig_h / new_h])
+    fig.set_size_inches(fig_w, new_h)
+    fig.canvas.draw()
+    r = fig.canvas.get_renderer()
+    mid = 0.5 * (min(ax.get_tightbbox(r).y0 for ax in above) + max(ax.get_tightbbox(r).y1 for ax in below))
+    ref = above[0]
+    offset_in = (ref.get_window_extent().y0 - mid) / dpi
+    tr = blended_transform_factory(fig.transFigure, ref.transAxes) + ScaledTranslation(0, -offset_in, fig.dpi_scale_trans)
+    leg.set_bbox_to_anchor((0.5, 0.0), transform=tr)
     return leg
 
 

@@ -88,6 +88,16 @@
    "kd_mW": 4.8576651935517505,
    "observed_gradient_K_per_m": 2.5135272441053473
   },
+  "fixed_albedo_uniform_bias": {
+   "A": 0.13625747387571432,
+   "kd_mW": {
+    "-1K": 4.515658590537841,
+    "+0K": 3.997002729720659,
+    "+1K": 2.3875163729097664
+   },
+   "shift_plus1K_mW": -1.6094863568108928,
+   "shift_minus1K_mW": 0.5186558608171818
+  },
   "qb_matching_observed_gradient": {
    "points": [
     [
@@ -116,6 +126,20 @@
     ]
    ],
    "qb_mW": 25.471453921876247
+  },
+  "published_global_values": {
+   "hayne2017": {
+    "kd_mW": 3.4,
+    "delta_aicc": 19.810925550431932
+   },
+   "feng2020": {
+    "kd_mW": 3.8,
+    "delta_aicc": 8.486991260178563
+   },
+   "vasavada2012": {
+    "kd_mW": 7.0,
+    "delta_aicc": 46.58543092186744
+   }
   }
  },
  "A17": {
@@ -207,6 +231,16 @@
    "kd_mW": 5.865339405227105,
    "observed_gradient_K_per_m": -0.20615671300791225
   },
+  "fixed_albedo_uniform_bias": {
+   "A": 0.1374774971965067,
+   "kd_mW": {
+    "-1K": 5.859245075053173,
+    "+0K": 7.247862732538374,
+    "+1K": 12.808069113482652
+   },
+   "shift_plus1K_mW": 5.560206380944278,
+   "shift_minus1K_mW": -1.3886176574852014
+  },
   "qb_matching_observed_gradient": {
    "points": [
     [
@@ -231,6 +265,20 @@
     ]
    ],
    "qb_mW": 3.601608272255689
+  },
+  "published_global_values": {
+   "hayne2017": {
+    "kd_mW": 3.4,
+    "delta_aicc": 57.04366936624247
+   },
+   "feng2020": {
+    "kd_mW": 3.8,
+    "delta_aicc": 39.396998973501866
+   },
+   "vasavada2012": {
+    "kd_mW": 7.0,
+    "delta_aicc": 9.145838249203258
+   }
   }
  }
 }

@@ -67,6 +67,10 @@ Open Jupyter Lab and run the seven notebooks in order:
 jupyter lab code/notebooks/
 ```
 
+The notebooks reproduce the earlier fixed-albedo analysis (up to v1.1-jgr);
+the figure and table numbers below refer to that version. The current
+letter's results and figures come from the scripts of Step 5b.
+
 | Notebook | Wall time | Produces |
 |---|---|---|
 | `00_setup.ipynb` | <1 min | sanity check, data integrity |
@@ -94,18 +98,28 @@ surface mean, Langseth et al. 1976 annual-wave diffusivity). These scripts
 take the albedo explicitly, so they do not depend on the config albedo:
 
 ```bash
-python code/pipeline/compute/compute_joint_albedo_fit.py          # ~25 min (5 workers): Table 1, Figs 3-5
-python code/pipeline/compute/compute_joint_valley.py              # seconds: Table 2 (what the diffusivity adds)
+python code/pipeline/compute/compute_stability_windows.py        # seconds: per-sensor windows (SI Table S4); they are NOT aligned in time
+python code/pipeline/compute/compute_joint_albedo_fit.py          # ~25 min (5 workers): Table 1, Figs 3-4, Fig S8
+python code/pipeline/compute/compute_joint_valley.py              # seconds: SI Table S5 (what the diffusivity adds)
+python code/pipeline/compute/compute_joint_probe_checks.py        # seconds: per-probe / transient K_d, +-5 K test (Sec. 3.3, 4.1)
 python code/pipeline/compute/compute_joint_block_bootstrap.py     # ~1 min: probe-grouped bootstrap (Text S8)
-python code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min (5 workers): Tables 3-4, Fig 6
+python code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min (5 workers): Tables 2-3, Fig S7
 python code/pipeline/compute/compute_joint_fit_checks.py          # ~1 min, after the sensitivities
 python code/pipeline/compute/compute_joint_diviner.py             # ~3 min: Text S10
-python code/pipeline/figures/make_joint_figures.py                # Figs 3-6, S4, S5
+python code/pipeline/compute/compute_gradient_epochs.py           # seconds: gradient vs window epoch (Sec. 3.1-3.2)
+python code/pipeline/compute/compute_joint_chi_density.py         # ~50 min (5 workers): chi sweep + site densities (Sec. 4.2, Text S17)
+python code/pipeline/compute/compute_likelihood_ratio.py          # seconds: likelihood-ratio tests from the stored fits (Tables 1-2, Sec. 3.2, 4.1, 4.2; Texts S13, S17)
+python code/pipeline/compute/compute_annual_wave.py               # ~3 min (5 workers): annual wave, measured + forward-modeled (Sec. 3.4, Text S18)
+python code/pipeline/compute/compute_transient_warming.py         # ~2 min: post-deployment warming modeled and removed, refit (Sec. 3.2, 3.3, 4.3; Text S19)
+python code/pipeline/compute/compute_joint_mcmc.py                # ~2 h grid (resumes) + 1 min emcee: Fig 6, Text S14
+python code/pipeline/figures/make_joint_figures.py                # Figs 1-6, S2-S5, S7
 ```
 
 `compute_joint_albedo_fit.py --reuse` re-analyses the committed grid
 (`code/results/joint_albedo_fit_cache.npz`) in seconds; the sensitivity
-script accepts `--reuse` once its own cache exists.
+script accepts `--reuse` once its own cache exists, and
+`compute_joint_mcmc.py --sample` re-runs only the sampler on the committed
+grid (`code/results/joint_mcmc_grid.npz`).
 
 ## Step 6 — Compile the manuscript
 

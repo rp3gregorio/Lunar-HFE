@@ -19,16 +19,18 @@ The true periodic equilibrium is characterised by two properties:
 2. the cycle-mean conductive flux equals Q_b at every depth, so the
    cycle-mean profile below the skin satisfies the ODE
 
-       d<T>/dz = Q_b / K(<T>, z).                                  (*)
+       d<T>/dz = (Q_b - u_rect) / K(<T>, z),                       (*)
+
+   with u_rect = <K dT/dz> - K(<T>) d<T>/dz the rectified (eddy) flux
+   (``_rectified_flux``; note the MINUS sign).
 
 The skin equilibrates in a few lunations (tau(z0) ~ z0^2 / kappa, about
 10 lunations at the default z0 = 0.55 m); only the deep column is slow.
 The anchor must sit below the diurnal *rectification* zone: where the
-diurnal amplitude is still ~K-level, the cycle-mean flux contains an
-eddy-correlation term <K' dT'/dz> that the mean-field ODE (*) omits.
-At 0.55 m the amplitude is ~0.15 K and that term is < 1 % of Q_b
-(validated by the 120-lunation drift test below). We exploit this
-split:
+diurnal amplitude is still ~K-level, u_rect is a sizeable fraction of
+Q_b. At 0.55 m the amplitude is ~0.15 K and u_rect is < 1 % of Q_b
+(validated by the 120-lunation drift test below); the reconstruction
+still carries it. We exploit this split:
 
   repeat:
     (i)  run ``n_inner`` lunations of the full nonlinear solver from the
@@ -45,8 +47,10 @@ is periodic by construction of step (i), and the deep column satisfies
 mean-flux closure by construction of step (ii). Because the skin-mean
 temperature is dominated by the surface radiation balance (Q_b is ~1e-4
 of the diurnal flux scale), the map is strongly contractive and
-converges in 3-5 outer iterations -- comparable in cost to the previous
-30-lunation spin-up, but with no dependence on the initial guess.
+converges in a few outer iterations per anchor stage, with no
+dependence on the initial guess. Step (i) runs on the truncated skin
+sub-grid only (see ``solve_periodic_equilibrium``); its cost is set by
+``config.EQ_N_INNER``.
 
 Validation (see tests/test_equilibrium.py and the audit notebook):
 initial guesses 240 K and 260 K converge to sensor-depth mean
@@ -55,6 +59,7 @@ Q_b to < 2 % at all depths below 0.3 m.
 """
 from __future__ import annotations
 
+import functools
 from dataclasses import dataclass
 
 import numpy as np
@@ -192,10 +197,10 @@ def solve_periodic_equilibrium(
     cp_func=None,
     rho_func=None,
     T_guess: float = 250.0,
-    z_anchor: float = 0.55,
+    z_anchor: float | None = None,
     n_inner: int | None = None,
-    max_outer: int = 20,
-    anchor_tol_K: float = 0.005,
+    max_outer: int | None = None,
+    anchor_tol_K: float | None = None,
     step_a_depth_m: float | None = None,
     hayne_params: tuple | None = None,
 ) -> EquilibriumResult:
@@ -206,15 +211,22 @@ def solve_periodic_equilibrium(
     only seeds the first iterate and is eliminated by the outer
     iteration -- see the module docstring.
 
-    ``n_inner`` defaults to the PRODUCTION converged value
-    (``config.EQ_N_INNER``): the old hardcoded default of 12 was the
-    under-resolved setting that biased K_d*(A17) ~0.4 mW high, and callers
-    kept inheriting it silently. Pass a smaller value explicitly only for
-    speed-insensitive mechanics tests.
+    ``z_anchor``, ``n_inner``, ``max_outer`` and ``anchor_tol_K`` default to
+    the PRODUCTION values in ``config`` (EQ_Z_ANCHOR, EQ_N_INNER,
+    EQ_MAX_OUTER, EQ_ANCHOR_TOL), resolved at call time. A hardcoded
+    signature default is how the under-resolved ``n_inner=12`` (K_d*(A17)
+    ~0.4 mW high) survived long after config moved on. Pass a smaller
+    ``n_inner`` explicitly only for speed-insensitive mechanics tests.
     """
+    from . import config
+    if z_anchor is None:
+        z_anchor = config.EQ_Z_ANCHOR
     if n_inner is None:
-        from .config import EQ_N_INNER
-        n_inner = EQ_N_INNER
+        n_inner = config.EQ_N_INNER
+    if max_outer is None:
+        max_outer = config.EQ_MAX_OUTER
+    if anchor_tol_K is None:
+        anchor_tol_K = config.EQ_ANCHOR_TOL
     if z_anchor > grid.z_mid[-1]:
         raise ValueError(
             f"z_anchor={z_anchor} m lies below the grid bottom "
@@ -314,6 +326,57 @@ def solve_periodic_equilibrium(
         flux_closure=closure,
         converged=bool(drift < anchor_tol_K),
         history=tuple(history),
+    )
+
+
+def solve_hayne_equilibrium(
+    grid: DepthGrid,
+    t: np.ndarray,
+    insolation: np.ndarray,
+    *,
+    albedo: float,
+    emissivity: float,
+    Q_b: float,
+    kd: float,
+    ks: float | None = None,
+    H: float | None = None,
+    chi: float | None = None,
+    rho_s: float | None = None,
+    rho_d: float | None = None,
+    T_guess: float = 250.0,
+    n_inner: int | None = None,
+) -> EquilibriumResult:
+    """:func:`solve_periodic_equilibrium` for the standard Hayne (2017)
+    property set, on the compiled march.
+
+    The conductivity, specific heat and density functions and the compiled
+    kernel's ``hayne_params`` are all built here from ONE parameter set, so
+    the march and the equilibrium's own K(T, z) evaluations cannot disagree.
+    ``ks``/``H``/``chi`` default to ``config.HAYNE``; ``rho_s``/``rho_d``
+    (both or neither) default to the Hayne densities. As in the compiled
+    kernel, the density profile uses the same ``H`` as the conductivity.
+    Convergence settings are the config production values.
+    """
+    from . import config
+    from .properties import conductivity_hayne, density_hayne, specific_heat
+    ks = config.HAYNE["K_S"] if ks is None else ks
+    H = config.HAYNE["H"] if H is None else H
+    chi = config.HAYNE["CHI"] if chi is None else chi
+    if (rho_s is None) != (rho_d is None):
+        raise ValueError("give both rho_s and rho_d, or neither")
+    if rho_s is None:
+        hayne_params: tuple = (ks, kd, H, chi)
+        rho_func = functools.partial(density_hayne, H=H)
+    else:
+        hayne_params = (ks, kd, H, chi, rho_s, rho_d)
+        rho_func = functools.partial(density_hayne, rho_s=rho_s, rho_d=rho_d, H=H)
+    return solve_periodic_equilibrium(
+        grid=grid, t=t, insolation=insolation, albedo=albedo,
+        emissivity=emissivity, Q_b=Q_b,
+        K_func=functools.partial(conductivity_hayne, Ks=ks, Kd=kd, H=H, chi=chi),
+        cp_func=functools.partial(specific_heat, model="hayne"),
+        rho_func=rho_func, T_guess=T_guess, n_inner=n_inner,
+        hayne_params=hayne_params,
     )
 
 

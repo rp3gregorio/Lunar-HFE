@@ -70,11 +70,10 @@ VASAVADA_MARE_A0 = 0.07                # Vasavada et al. (2012) para. 27
 def standard_column(job):
     """Hayne et al. (2017) standard set at one latitude, constant or eq. A8 albedo."""
     lat, mode = job
-    from lunar.config import HAYNE, GRID, DT_STEP, T_LUNAR, EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL
+    from lunar.config import GRID, DT_STEP, T_LUNAR
     from lunar.grid import make_geometric_grid
     from lunar.solver import periodic_time_grid, standard_insolation
-    from lunar.properties import conductivity_hayne, specific_heat
-    from lunar.equilibrium import solve_periodic_equilibrium
+    from lunar.equilibrium import solve_hayne_equilibrium
     G = make_geometric_grid(**GRID)
     t = periodic_time_grid(DT_STEP)
     S = standard_insolation(lat, t)
@@ -85,12 +84,8 @@ def standard_column(job):
         insol, alb = (1 - np.clip(A, 0, 1)) * S, 0.0
     else:
         insol, alb = S, A0_STANDARD
-    eq = solve_periodic_equilibrium(
-        grid=G, t=t, insolation=insol, albedo=alb, emissivity=0.95, Q_b=Q_STANDARD,
-        K_func=lambda T, z: conductivity_hayne(T, z, Ks=HAYNE["K_S"], Kd=KD_STANDARD, H=HAYNE["H"], chi=HAYNE["CHI"]),
-        cp_func=lambda T: specific_heat(T, model="hayne"), T_guess=250.0, z_anchor=EQ_Z_ANCHOR,
-        n_inner=EQ_N_INNER, max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL,
-        hayne_params=(HAYNE["K_S"], KD_STANDARD, HAYNE["H"], HAYNE["CHI"]))
+    eq = solve_hayne_equilibrium(G, t, insol, albedo=alb, emissivity=0.95,
+                                 Q_b=Q_STANDARD, kd=KD_STANDARD, T_guess=250.0)
     Ts = eq.out.T_surface
     return dict(lat=lat, albedo=mode, surface_mean_K=float(Ts.mean()),
                 T_1m_K=float(np.interp(1.0, G.z_mid, eq.T_mean)),

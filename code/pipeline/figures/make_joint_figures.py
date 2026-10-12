@@ -3,15 +3,15 @@
   fig_joint_constraints.pdf      Fig. 3: what fixes A and K_d at each site
   fig_joint_bootstrap.pdf        bootstrap distributions and the contrast (not in the paper since 2026-10-07)
   fig_joint_thermal_profiles.pdf Fig. 4: T(z) at the joint fit, the global value, Martinez
-  fig_joint_robustness.pdf       Fig. S5: K_d under each changed input, grouped as in Table 3
+  fig_joint_robustness.pdf       Fig. S6: K_d under each changed input, grouped as in Table 3
   fig_joint_mcmc.pdf             Fig. 6: MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
   fig_joint_annual_wave.pdf      Fig. 5: the annual wave in the full record vs the forward model (compute_annual_wave.py)
   fig_joint_mean_T_profile.pdf   (not in the paper) the two global models at the config (fitted) albedos
   fig_joint_alpha_sweep.pdf      (not in the paper) Martinez density sweep (reads results/headline_rmse.json)
   fig_joint_intro_column.pdf     Fig. 1: the modeled column (swing depth from review_diagnostics.json)
-  fig_joint_anchor_method.pdf    Fig. S2: the flux-anchored solver, Apollo 15 at the joint fit (~3 min)
+  fig_joint_anchor_method.pdf    Fig. S3: the flux-anchored solver, Apollo 15 at the joint fit (~3 min)
   fig_joint_apollo_timeline_probes.pdf  Fig. 2: stability-window timeline (site colours)
-  fig_joint_amplitude_vs_depth.pdf      Fig. S3: diurnal amplitude vs depth
+  fig_joint_amplitude_vs_depth.pdf      Fig. S4: diurnal amplitude vs depth
 
 Figs. 1, 2, S2, S3 and the two figures not in the paper reuse the make_intro_column / make_apollo_timeline_letter /
 make_anchor_method_figure / make_letter_figures / make_alpha_sweep_figure generators
@@ -42,6 +42,8 @@ FIG = _REPO.parent / "figures"
 RES = _REPO / "results"
 SITE_COL = {"A15": C_A15, "A17": C_A17}
 SITE_LAB = {"A15": "Apollo 15", "A17": "Apollo 17"}
+SITES2 = lambda make: (make(C_A15), make(C_A17))     # legend entry in both site colours
+PAIR_MAP = {tuple: HandlerTuple(ndivide=None, pad=0.3)}
 def load():
     res = json.loads((RES / "joint_albedo_fit.json").read_text())
     cache = np.load(RES / "joint_albedo_fit_cache.npz")
@@ -71,6 +73,9 @@ def refined_profile(J, A):
     return np.array([jf.vertex(A, J[:, k], int(np.argmin(J[:, k])))[1] for k in range(J.shape[1])])
 
 
+D2_68, D2_95, D2_997 = 2.30, 6.18, 11.83     # Delta J for 68, 95, 99.7% regions of two parameters
+
+
 def fig_constraints(res, cache):
     """Fig. 3: (a, b) the (A, K_d) plane with the three measurements and the fits;
     (c, d) the misfit along K_d (profile: best albedo at each K_d)."""
@@ -93,15 +98,18 @@ def fig_constraints(res, cache):
         AF, KF = np.meshgrid(Af, Kf, indexing="ij")
         d2 = J2f - J2f.min()
         # sensor temperatures alone (ochre), the diffusivity (blue), the surface mean (grey dashed)
-        ax.contourf(AF, KF, d2, levels=[0, 1, 4, 9, 25, 100], colors=["#F1E6CC", "#F5EDDB", "#F9F3E8", "#FBF8F1", "#FDFBF8"], extend="neither")
-        ax.contour(AF, KF, d2, levels=[1, 4, 9], colors=[C_OBS_T], linewidths=0.6, alpha=0.8)
+        # two-parameter (A, K_d) confidence regions, Delta J = 2.30, 6.18, 11.83 for 68, 95
+        # and 99.7% (chi^2 with 2 dof); the same levels for the joint fit below
+        ax.contourf(AF, KF, d2, levels=[0, D2_68, D2_95, D2_997, 25, 100], colors=["#F1E6CC", "#F5EDDB", "#F9F3E8", "#FBF8F1", "#FDFBF8"], extend="neither")
+        ax.contour(AF, KF, d2, levels=[D2_68, D2_95, D2_997], colors=[C_OBS_T], linewidths=0.6, alpha=0.8)
         ax.contour(AA, KK, Ts - jf.TS_OBS[s], levels=[-5, 5], colors=[C_OBS_TS], linewidths=1.0, linestyles="--")
         ax.contourf(AA, KK, Jk - Jk.min(), levels=[0, 1], colors=[C_OBS_KAPPA], alpha=0.25)
         ax.contour(AA, KK, Jk - Jk.min(), levels=[1], colors=[C_OBS_KAPPA], linewidths=0.9)
         ax.axhline(3.4, color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4, zorder=3)
         # the fits: joint (star, 68% region), temperatures only (open circle), and the
         # temperatures only at the fitted albedo (cross), joined to the star at the same A
-        ax.contour(AF, KF, J3f - J3f.min(), levels=[2.30], colors=[C_CHAR], linewidths=1.3)
+        ax.contour(AF, KF, J3f - J3f.min(), levels=[D2_68, D2_95], colors=[C_CHAR], linewidths=[1.3, 1.0],
+                   linestyles=["-", (0, (4, 2))])
         b3 = res["sites"][s]["with_diffusivity"]["best"]; b2 = res["sites"][s]["temperature_only"]["best"]
         v = valley[s]
         ax.plot([v["A"], v["A"]], [b3["kd_star_mW"], v["kd_temperatures_only_mW"]], color=C_DIM, lw=0.8, ls=(0, (1, 1.5)), zorder=5)
@@ -133,16 +141,19 @@ def fig_constraints(res, cache):
         ax.set_xlim(*KLIM); ax.set_ylim(0, 30)
         fmt_axis(ax, xlabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", ylabel=r"$\Delta J$ (misfit above best)" if col == 0 else "",
                  title=f"({'cd'[col]})  {SITE_LAB[s]}: misfit along $K_d$")
-    handles = [Line2D([], [], color=C_OBS_TS, ls="--", lw=1.0),
+    # one entry per marker: the stars carry the site colours, so the legend shows both
+    star = lambda c: Line2D([], [], marker="*", ms=12, color=c, ls="none", mec="white", mew=0.8)
+    handles = [Patch(fc="#F1E6CC", ec=C_OBS_T),
                Patch(fc=C_OBS_KAPPA, alpha=0.3, ec=C_OBS_KAPPA),
-               (Patch(fc="#F1E6CC", ec=C_OBS_T), Line2D([], [], marker="o", ms=6, mfc="white", mec=C_CHAR, ls="none")),
-               (Line2D([], [], color=C_CHAR, lw=1.3), Line2D([], [], marker="*", ms=11, color=C_CHAR, ls="none", mec="white")),
-               Line2D([], [], marker="X", ms=8, color=C_DIM, ls="none", mec="white"),
-               Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)]
-    labels = ["surface mean $\\pm$5 K", "diffusivity ($\\Delta J_\\kappa\\leq1$)",
-              "temperatures only ($\\Delta J$ = 1, 4, 9; best fit)", "joint fit (68% region)",
-              "temperatures only, fitted $A$", "global $K_d$ = 3.4"]
-    legend_between(fig, top, handles, labels)
+               Line2D([], [], color=C_OBS_TS, ls="--", lw=1.0),
+               (star(C_A15), star(C_A17)),
+               Line2D([], [], marker="o", ms=7, mfc="white", mec=C_CHAR, mew=1.2, ls="none"),
+               Line2D([], [], marker="X", ms=8, color=C_DIM, ls="none", mec="white")]
+    labels = ["temperatures only (68, 95, 99.7% regions)", "diffusivity ($\\Delta J_\\kappa\\leq1$)",
+              "surface mean $\\pm$5 K", "joint fit (68% solid, 95% dashed)",
+              "temperatures only: best fit", "temperatures only at the joint-fit $A$"]
+    # the dotted global line is defined once, in the legend below all four panels
+    legend_between(fig, top, handles, labels, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.3)})
     # (c, d): one entry per curve type, each drawn in both site colours
     pair = lambda ls, lw: (Line2D([], [], color=C_A15, ls=ls, lw=lw), Line2D([], [], color=C_A17, ls=ls, lw=lw))
     legend_below(fig, [pair("-", 1.9), pair("--", 1.4),
@@ -225,11 +236,12 @@ def fig_profiles(res, cache, chk):
                      title=f"({'abcd'[2*row+col]})  {SITE_LAB[s]}" + (": meter-scale band" if row == 1 else ""))
     handles = [Line2D([], [], color=C_TEAL, lw=2.0), Line2D([], [], color=C_TEAL_L, lw=1.6, ls="--"),
                Line2D([], [], color=C_MS, lw=1.6, ls=":"),
-               Line2D([], [], marker="o", color=C_CHAR, ls="none", mec="white"), Line2D([], [], marker="o", mfc="white", mec=C_CHAR, ls="none"),
+               SITES2(lambda c: Line2D([], [], marker="o", color=c, ls="none", mec="white")),
+               SITES2(lambda c: Line2D([], [], marker="o", mfc="white", mec=c, ls="none")),
                Patch(fc=C_EXCL_FILL, ec=C_EXCL_EDGE, ls="--")]
     labels = ["Hayne, joint fit", "Hayne, global $K_d$ (own $A$)", "Martínez & Siegler",
               "sensor, used", "sensor, borestem zone", "borestem zone"]
-    legend_below(fig, handles, labels)
+    legend_below(fig, handles, labels, handlelength=2.6, handler_map=PAIR_MAP)
     out = FIG / "fig_joint_thermal_profiles.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")
@@ -242,7 +254,7 @@ def fig_robustness(res, sens):
     joint_fit_sensitivities.json as qb_contrast_map.)"""
     chi_path = RES / "joint_chi_density.json"          # radiative factor and site densities (compute_joint_chi_density.py)
     chid = json.loads(chi_path.read_text()) if chi_path.exists() else None
-    # (label, key prefix); key None = group heading. chi = 1.5 is excluded (no physical albedo fits; Text S12)
+    # (label, key prefix); key None = group heading. chi = 1.5 is excluded (no physical albedo fits; Table S14)
     rows = [("Measured inputs", None),
             ("basal flux $Q_b$, site range", "Qb"),
             ("density $\\rho_d$ 1700–2000 kg m$^{-3}$", "rho_d"),
@@ -318,7 +330,6 @@ def fig_annual_wave():
         col = SITE_COL[s]; site = aw["sites"][s]; V = site["variants"]
         ax0, ax1, ax2 = (fig.add_subplot(gs[r, c]) for c in range(3))
         # (left) chi^2 profiles, each scaled by its own error factor
-        lo, hi = aw["meta"]["kd_joint_mW"][s], None
         jb = json.loads((RES / "joint_albedo_fit.json").read_text())["sites"][s]["with_diffusivity"]["bootstrap"]["kd_mW"]
         ax0.axvspan(jb["p2.5"], jb["p97.5"], color=col, alpha=0.12, lw=0)
         for v, ls in (("nominal", "-"), ("amplitude_only", "--"), ("phase_only", ":")):
@@ -356,15 +367,17 @@ def fig_annual_wave():
             ax.set_ylim(245, 0)
         fmt_axis(ax1, xlabel="annual amplitude (model scale, K)", ylabel="Depth (cm)", title=f"({'be'[r]})  Amplitude")
         fmt_axis(ax2, xlabel="phase lag (deg)", title=f"({'cf'[r]})  Phase lag")
-    handles = [Line2D([], [], color=C_DIM, lw=1.6), Line2D([], [], color=C_DIM, lw=1.6, ls="--"),
-               Line2D([], [], color=C_DIM, lw=1.6, ls=":"), Line2D([], [], color=C_DIM, lw=1.5, ls="-."),
-               Line2D([], [], color=C_TEAL, ls=":", lw=1.4), Patch(fc=C_DIM, alpha=0.15),
-               Line2D([], [], marker="o", color=C_DIM, ls="none"), Line2D([], [], marker="s", color=C_DIM, ls="none"),
-               Line2D([], [], marker="^", color=C_DIM, ls="none"), Line2D([], [], marker="o", mfc="white", mec=C_DIM, ls="none")]
+    handles = [SITES2(lambda c: Line2D([], [], color=c, lw=1.6)), SITES2(lambda c: Line2D([], [], color=c, lw=1.6, ls="--")),
+               SITES2(lambda c: Line2D([], [], color=c, lw=1.6, ls=":")), SITES2(lambda c: Line2D([], [], color=c, lw=1.5, ls="-.")),
+               Line2D([], [], color=C_TEAL, ls=":", lw=1.4), SITES2(lambda c: Patch(fc=c, alpha=0.15)),
+               SITES2(lambda c: Line2D([], [], marker="o", color=c, mec="white", ls="none")),
+               SITES2(lambda c: Line2D([], [], marker="s", color=c, mec="white", ls="none")),
+               SITES2(lambda c: Line2D([], [], marker="^", color=c, mec="white", ls="none")),
+               SITES2(lambda c: Line2D([], [], marker="o", mfc="white", mec=c, ls="none"))]
     labels = ["annual wave, amplitude and phase", "amplitude only (a, d)", "phase only (a, d)",
               "model at the joint fit", "global $K_d$ = 3.4", "joint-fit 95% interval (a, d)",
               "gradient bridge", "ring bridge", "thermocouple", "below 3$\\sigma$ (amplitude only)"]
-    legend_below(fig, handles, labels)
+    legend_below(fig, handles, labels, handlelength=2.6, handler_map=PAIR_MAP)
     out = FIG / "fig_joint_annual_wave.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")
@@ -378,7 +391,6 @@ def fig_mcmc(res):
     from matplotlib.transforms import blended_transform_factory as blend
     mc = json.loads((RES / "joint_mcmc.json").read_text())
     ch = np.load(RES / "joint_mcmc_chains.npz")
-    grid = mc["meta"]["grid"]
     fig = plt.figure(figsize=(JGR_FULL, 5.6))
     gs = fig.add_gridspec(2, 2, hspace=0.45, wspace=0.26, left=0.08, right=0.98, top=0.95, bottom=0.09)
     ax1, ax2, ax3, ax4 = (fig.add_subplot(gs[i, j]) for i in range(2) for j in range(2))
@@ -435,9 +447,9 @@ def fig_mcmc(res):
     ax4.set_xlim(1450, 2350); ax4.set_ylim(3.0, 8.5)
     fmt_axis(ax4, xlabel=r"$\rho_d$ (kg m$^{-3}$)", ylabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", title=r"(d)  $K_d$ and deep density")
     legend_between(fig, [ax1, ax2], h1, l1)
-    legend_below(fig, [Line2D([], [], color=C_DIM, ls="--", lw=1.3),
-                       (Patch(fc=C_DIM, alpha=0.25, ec=C_DIM, lw=1.3), Patch(fc=C_DIM, alpha=0.12, ec=C_DIM, lw=0.8))],
-                 ["prior (site color)", "68% and 95% regions"])
+    legend_below(fig, [SITES2(lambda c: Line2D([], [], color=c, ls="--", lw=1.3)),
+                       SITES2(lambda c: Patch(fc=c, alpha=0.25, ec=c, lw=1.1))],
+                 ["prior", "68% and 95% regions"], handlelength=2.6, handler_map=PAIR_MAP)
     out = FIG / "fig_joint_mcmc.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")
@@ -456,13 +468,13 @@ def main():
         fig_robustness(res, sens)
     else:
         print("  (fig_joint_robustness waits for results/joint_fit_sensitivities.json)")
-    # Fig. S2 first, while the house rcParams are in force; then the others and
+    # Fig. S3 first, while the house rcParams are in force; then the others and
     # Fig. 1, whose generators set their own rcParams (fonts, legend sizes)
     import make_letter_figures, make_alpha_sweep_figure, make_intro_column, make_anchor_method_figure
     import make_apollo_timeline_letter
-    make_anchor_method_figure.main(out_name="fig_joint_anchor_method.pdf")   # Fig. S2 (A15 at the joint fit)
+    make_anchor_method_figure.main(out_name="fig_joint_anchor_method.pdf")   # Fig. S3 (A15 at the joint fit)
     make_apollo_timeline_letter.main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False)  # Fig. 2
-    make_letter_figures.fig_amplitude_vs_depth(out_name="fig_joint_amplitude_vs_depth.pdf")   # Fig. S3
+    make_letter_figures.fig_amplitude_vs_depth(out_name="fig_joint_amplitude_vs_depth.pdf")   # Fig. S4
     make_letter_figures.fig_mean_T_profile(out_name="fig_joint_mean_T_profile.pdf")
     make_alpha_sweep_figure.main(out_name="fig_joint_alpha_sweep.pdf")
     make_intro_column.main(out_stem="fig_joint_intro_column", font="times")   # Fig. 1 (swing depth at the joint K_d*)

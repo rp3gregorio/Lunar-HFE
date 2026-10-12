@@ -21,9 +21,9 @@ Output:
   results/figures/fig_posterior_compare.pdf
   results/bayesian_crosscheck_samples.json (posterior summary statistics)
 
-Runtime: ~10 min — ~200 fast-path solves for the two RMSE surfaces
-(cached across scripts by retrieve_kd._PROFILE_CACHE within a process),
-then 32 walkers × 4000 steps × 2 sites.
+Runtime: 234 fast-path solves for the two RMSE surfaces, run on
+retrieve_kd.N_WORKERS processes (retrieve_kd.prefetch_profiles), then
+32 walkers × 4000 steps × 2 sites.
 """
 from __future__ import annotations
 import json, sys, pathlib, time
@@ -33,7 +33,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 import emcee
-import corner
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "pipeline"))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "pipeline" / "figures"))
@@ -42,7 +41,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "src"))
 from lunar.plotting.style import (   # type: ignore
     JGR_FULL,
     FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
-    C_HAYNE, C_MS, C_A15, C_A17, C_CHAR, C_DIM, C_GRID, C_CORAL,
+    C_A15, C_A17, C_CHAR, C_DIM, C_GRID, C_CORAL,
     fmt_axis,
 )
 
@@ -220,6 +219,15 @@ def main():
     print("Phase B-1: emcee MCMC for the joint (K_d, Q_b) posterior",
           flush=True)
 
+    # Every RMSE-surface node of both sites is an independent solve: run them
+    # on worker processes up front; build_rmse_surface then reads them from
+    # retrieve_kd's cache (bit-identical to solving them in its loop).
+    from retrieve_kd import prefetch_profiles
+    prefetch_profiles([(SITES[name], dict(kd=float(kd), qb=float(qb), k_model="hayne"))
+                       for name, g in SURFACE_GRIDS.items()
+                       for qb in g["qb"] for kd in g["kd"]],
+                      desc="RMSE surfaces")
+
     samples = {}
     summary_all = {}
     for name in ("A15", "A17"):
@@ -265,7 +273,6 @@ def main():
                          H_smooth, levels=18, cmap="rocket_r"
                          if False else "Reds", alpha=0.85)
         # 1- and 2-sigma contours
-        levels = [0.05, 0.32, 0.68] * np.array([H_smooth.max()])
         ax_main.contour(xed[:-1] + 0.5*(xed[1]-xed[0]),
                          yed[:-1] + 0.5*(yed[1]-yed[0]),
                          H_smooth, levels=[H_smooth.max()*x for x in (0.05, 0.32, 0.68)],

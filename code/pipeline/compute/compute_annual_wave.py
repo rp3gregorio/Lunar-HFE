@@ -149,21 +149,18 @@ def spice_insolation(site):
 def model_run(job):
     """Daily-mean model temperature at each depth for one (site, A, K_d [mW], overrides)."""
     site, A, kd_mW, depths, ov = job
-    from lunar.config import SITES, GRID, DT_STEP, HAYNE, EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL
+    from lunar.config import SITES, GRID, DT_STEP, HAYNE
     from lunar.grid import make_geometric_grid
     from lunar.solver import periodic_time_grid, standard_insolation, PixelInputs, solve_pixel
-    from lunar.properties import conductivity_hayne, specific_heat
-    from lunar.equilibrium import solve_periodic_equilibrium
+    from lunar.equilibrium import solve_hayne_equilibrium
     cfg = SITES[site]; kd = kd_mW * 1e-3
     ks, H, chi = HAYNE["K_S"], HAYNE["H"], ov.get("chi", HAYNE["CHI"])
     qb = ov.get("Q_b", cfg["Q_BASAL"])
     G = make_geometric_grid(**GRID)
     tp = periodic_time_grid(DT_STEP)
-    eq = solve_periodic_equilibrium(
-        grid=G, t=tp, insolation=standard_insolation(cfg["lat"], tp), albedo=A, emissivity=cfg["emissivity"], Q_b=qb,
-        K_func=lambda T, zz: conductivity_hayne(T, zz, Ks=ks, Kd=kd, H=H, chi=chi),
-        cp_func=lambda T: specific_heat(T, model="hayne"), T_guess=cfg["T_MEAN_EFF"], z_anchor=EQ_Z_ANCHOR,
-        n_inner=EQ_N_INNER, max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL, hayne_params=(ks, kd, H, chi))
+    eq = solve_hayne_equilibrium(
+        G, tp, standard_insolation(cfg["lat"], tp), albedo=A, emissivity=cfg["emissivity"], Q_b=qb,
+        kd=kd, ks=ks, H=H, chi=chi, T_guess=cfg["T_MEAN_EFF"])
     t, S, day = spice_insolation(site)
     out = solve_pixel(PixelInputs(grid=G, t=t, bc_mode="radiative", insolation=S, albedo=A,
                                   emissivity=cfg["emissivity"], Q_b=qb, T_init=eq.T_mean.copy(),

@@ -41,6 +41,7 @@ Run with:
 """
 from __future__ import annotations
 import json, sys, pathlib
+from multiprocessing import Pool
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
@@ -50,15 +51,12 @@ sys.path.insert(0, str(_REPO / "pipeline" / "figures"))
 import numpy as np
 
 from lunar.apollo_helpers import extract_sensor_stability
-from lunar.properties import conductivity_hayne, specific_heat, density_hayne
 from lunar.solver import periodic_time_grid, standard_insolation
 from lunar.constants import RHO_SURFACE, RHO_DEEP
-from lunar.equilibrium import solve_periodic_equilibrium
+from lunar.equilibrium import solve_hayne_equilibrium
 from lunar.grid import make_geometric_grid
 from pipeline.compute.retrieve_kd import (
-    SITES, HAYNE, GRID, S0, T_LUNAR, DT_STEP, KD_GRIDS,
-    kd_star_from_residuals,
-    EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL,
+    SITES, HAYNE, GRID, DT_STEP, KD_GRIDS, N_WORKERS, kd_star_from_residuals,
 )
 
 KD_GRID = KD_GRIDS   # single-sourced from lunar.config (dense vertex grid)
@@ -72,35 +70,36 @@ def deep_obs(cfg):
             np.asarray(obs["T_eq_all"])[deep])
 
 
-def retrieve(cfg, kd_grid, *, chi=None, ks=None, rho_d=None):
-    """K_d* with one Hayne input perturbed (chi, K_s, or rho_d)."""
-    chi = HAYNE["CHI"] if chi is None else chi
-    ks = HAYNE["K_S"] if ks is None else ks
+def _T_mean(job):
+    """One equilibrium solve -> cycle-mean profile (a Pool worker: module-level)."""
+    cfg, kd, ks, chi, rho_d = job
     grid_ = make_geometric_grid(**GRID)
     t = periodic_time_grid(DT_STEP)   # commensurate lunation grid (audit 2026-07-03)
-    insol = standard_insolation(cfg["lat"], t)
-    cpf = lambda T: specific_heat(T, model="hayne")
-    rho_func = (None if rho_d is None
-                else (lambda z: density_hayne(z, rho_d=rho_d)))
+    # every perturbation is still the standard Hayne FORM, so it rides the
+    # compiled kernel
+    return solve_hayne_equilibrium(
+        grid_, t, standard_insolation(cfg["lat"], t), albedo=cfg["albedo"],
+        emissivity=cfg["emissivity"], Q_b=cfg["Q_BASAL"], kd=kd,
+        ks=ks, chi=chi, rho_s=RHO_SURFACE,
+        rho_d=RHO_DEEP if rho_d is None else rho_d,
+        T_guess=cfg["T_MEAN_EFF"]).T_mean
+
+
+def retrieve(cfg, kd_grid, *, chi=None, ks=None, rho_d=None, pool=None):
+    """K_d* with one Hayne input perturbed (chi, K_s, or rho_d).
+
+    With ``pool`` (a multiprocessing Pool) the K_d sweep's independent solves
+    run in parallel; the result is identical to the serial sweep.
+    """
+    chi = HAYNE["CHI"] if chi is None else chi
+    ks = HAYNE["K_S"] if ks is None else ks
+    z_mid = make_geometric_grid(**GRID).z_mid
     z_obs, T_obs = deep_obs(cfg)
+    jobs = [(cfg, kd, ks, chi, rho_d) for kd in kd_grid]
+    profiles = pool.imap(_T_mean, jobs) if pool is not None else map(_T_mean, jobs)
     R = np.empty((len(z_obs), len(kd_grid)))
-    for k, kd in enumerate(kd_grid):
-        kf = (lambda T, z, kd_=kd: conductivity_hayne(
-            T, z, Ks=ks, Kd=kd_, H=HAYNE["H"], chi=chi))
-        eq = solve_periodic_equilibrium(
-            grid=grid_, t=t, insolation=insol,
-            albedo=cfg["albedo"], emissivity=cfg["emissivity"],
-            Q_b=cfg["Q_BASAL"], K_func=kf, cp_func=cpf,
-            rho_func=rho_func, T_guess=cfg["T_MEAN_EFF"],
-            z_anchor=EQ_Z_ANCHOR, n_inner=EQ_N_INNER,
-            max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL,
-            # compiled march: every perturbation here is still the standard
-            # Hayne FORM, just with different parameter values, so it rides
-            # the fast kernel (6-tuple exposes the densities); K_func/rho_func
-            # above still serve the equilibrium diagnostics
-            hayne_params=(ks, kd, HAYNE["H"], chi, RHO_SURFACE,
-                          RHO_DEEP if rho_d is None else rho_d))
-        R[:, k] = np.interp(z_obs, grid_.z_mid, eq.T_mean) - T_obs
+    for k, T_mean in enumerate(profiles):
+        R[:, k] = np.interp(z_obs, z_mid, T_mean) - T_obs
     kd_star, _ = kd_star_from_residuals(R, kd_grid)
     return kd_star * 1e3   # mW/m/K
 
@@ -128,36 +127,37 @@ def sigma_h_from_joint(site_results):
 def main():
     res = json.loads((_REPO / "results" / "kd_retrieval_results.json").read_text())
     out = {}
-    for s in ("A15", "A17"):
-        cfg = SITES[s]
-        grid = KD_GRID[s]
-        nominal = res[s]["kd_star"] * 1e3
-        print(f"=== {s} (nominal K_d* = {nominal:.2f}) ===", flush=True)
+    with Pool(N_WORKERS) as pool:   # all ten K_d sweeps share it
+        for s in ("A15", "A17"):
+            cfg = SITES[s]
+            grid = KD_GRID[s]
+            nominal = res[s]["kd_star"] * 1e3
+            print(f"=== {s} (nominal K_d* = {nominal:.2f}) ===", flush=True)
 
-        kd_chi = retrieve(cfg, grid, chi=1.48)
-        print(f"  chi=1.48      -> K_d* = {kd_chi:.3f}", flush=True)
-        kd_ks_lo = retrieve(cfg, grid, ks=HAYNE["K_S"] * 0.7)
-        kd_ks_hi = retrieve(cfg, grid, ks=HAYNE["K_S"] * 1.3)
-        print(f"  Ks -/+30%     -> K_d* = {kd_ks_lo:.3f} / {kd_ks_hi:.3f}",
-              flush=True)
-        kd_rho_lo = retrieve(cfg, grid, rho_d=1700.0)
-        kd_rho_hi = retrieve(cfg, grid, rho_d=2000.0)
-        print(f"  rho_d 1700/2000 -> K_d* = {kd_rho_lo:.3f} / {kd_rho_hi:.3f}",
-              flush=True)
-        sigma_h = sigma_h_from_joint(res[s])
-        out[s] = dict(
-            nominal_mW=nominal,
-            sigma_chi=abs(kd_chi - nominal),
-            kd_at_chi_1p48=kd_chi,
-            sigma_Ks=abs(kd_ks_hi - kd_ks_lo) / 2.0,
-            kd_at_Ks_lo=kd_ks_lo, kd_at_Ks_hi=kd_ks_hi,
-            sigma_rho=abs(kd_rho_hi - kd_rho_lo) / 2.0,
-            kd_at_rho_1700=kd_rho_lo, kd_at_rho_2000=kd_rho_hi,
-            sigma_H=sigma_h,
-        )
-        print(f"  sigma: chi={out[s]['sigma_chi']:.3f} "
-              f"H={sigma_h:.3f} Ks={out[s]['sigma_Ks']:.3f} "
-              f"rho={out[s]['sigma_rho']:.3f}", flush=True)
+            kd_chi = retrieve(cfg, grid, chi=1.48, pool=pool)
+            print(f"  chi=1.48      -> K_d* = {kd_chi:.3f}", flush=True)
+            kd_ks_lo = retrieve(cfg, grid, ks=HAYNE["K_S"] * 0.7, pool=pool)
+            kd_ks_hi = retrieve(cfg, grid, ks=HAYNE["K_S"] * 1.3, pool=pool)
+            print(f"  Ks -/+30%     -> K_d* = {kd_ks_lo:.3f} / {kd_ks_hi:.3f}",
+                  flush=True)
+            kd_rho_lo = retrieve(cfg, grid, rho_d=1700.0, pool=pool)
+            kd_rho_hi = retrieve(cfg, grid, rho_d=2000.0, pool=pool)
+            print(f"  rho_d 1700/2000 -> K_d* = {kd_rho_lo:.3f} / {kd_rho_hi:.3f}",
+                  flush=True)
+            sigma_h = sigma_h_from_joint(res[s])
+            out[s] = dict(
+                nominal_mW=nominal,
+                sigma_chi=abs(kd_chi - nominal),
+                kd_at_chi_1p48=kd_chi,
+                sigma_Ks=abs(kd_ks_hi - kd_ks_lo) / 2.0,
+                kd_at_Ks_lo=kd_ks_lo, kd_at_Ks_hi=kd_ks_hi,
+                sigma_rho=abs(kd_rho_hi - kd_rho_lo) / 2.0,
+                kd_at_rho_1700=kd_rho_lo, kd_at_rho_2000=kd_rho_hi,
+                sigma_H=sigma_h,
+            )
+            print(f"  sigma: chi={out[s]['sigma_chi']:.3f} "
+                  f"H={sigma_h:.3f} Ks={out[s]['sigma_Ks']:.3f} "
+                  f"rho={out[s]['sigma_rho']:.3f}", flush=True)
 
     path = _REPO / "results" / "fixed_input_sensitivities.json"
     path.write_text(json.dumps(out, indent=2))

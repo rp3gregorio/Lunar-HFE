@@ -23,7 +23,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "src"))
 from lunar.plotting.style import (  # noqa: E402
-    JGR_HALF, C_A17, C_DIM, C_GRID, fmt_axis, FS_TICK, FS_LEGEND,
+    JGR_HALF, C_A17, C_DIM, fmt_axis, FS_LEGEND,
     assert_no_overlap,
 )
 

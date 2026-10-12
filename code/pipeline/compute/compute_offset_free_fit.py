@@ -49,7 +49,6 @@ sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 import numpy as np
 
 # Single source of physics: the certified retrieval module.
-import retrieve_kd as rk
 from retrieve_kd import (run_with, run_kd_sweep_extended,
                          kd_star_from_residuals, _interp_profile_at_depths)
 from lunar.config import SITES, KD_GRIDS, DEPTH_SIGMA_CM
@@ -198,32 +197,22 @@ def closure_audit(site_cfg, kd_values):
     """Flux-closure of the equilibrium solve at selected K_d (numerical honesty).
 
     run_with() prints a warning when closure exceeds 5% but does not return it,
-    so the solve is repeated here purely to record the number. Duplicates the
-    Hayne k_func construction of retrieve_kd.run_with -- keep in step with it.
+    so the solve is repeated here purely to record the number (same Hayne
+    solve as retrieve_kd.run_with, via lunar.equilibrium.solve_hayne_equilibrium).
     """
-    from copy import deepcopy
     from lunar.grid import make_geometric_grid
-    from lunar.properties import conductivity_hayne, specific_heat
     from lunar.solver import periodic_time_grid, standard_insolation
-    from lunar.equilibrium import solve_periodic_equilibrium
-    from lunar.config import (S0, DT_STEP, GRID, HAYNE, EQ_Z_ANCHOR,
-                              EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL)
-    site = deepcopy(site_cfg)
+    from lunar.equilibrium import solve_hayne_equilibrium
+    from lunar.config import DT_STEP, GRID
     grid_ = make_geometric_grid(**GRID)
     t_s = periodic_time_grid(DT_STEP)
-    insol = standard_insolation(site['lat'], t_s)
+    insol = standard_insolation(site_cfg['lat'], t_s)
     rows = []
     for kd in kd_values:
-        eq = solve_periodic_equilibrium(
-            grid=grid_, t=t_s, insolation=insol, albedo=site['albedo'],
-            emissivity=site['emissivity'], Q_b=site['Q_BASAL'],
-            K_func=lambda T, z, _kd=kd: conductivity_hayne(
-                T, z, Ks=HAYNE['K_S'], Kd=_kd, H=HAYNE['H'], chi=HAYNE['CHI']),
-            cp_func=lambda T: specific_heat(T, model='hayne'),
-            T_guess=site['T_MEAN_EFF'], z_anchor=EQ_Z_ANCHOR,
-            n_inner=EQ_N_INNER, max_outer=EQ_MAX_OUTER,
-            anchor_tol_K=EQ_ANCHOR_TOL,
-            hayne_params=(HAYNE['K_S'], kd, HAYNE['H'], HAYNE['CHI']))
+        eq = solve_hayne_equilibrium(
+            grid_, t_s, insol, albedo=site_cfg['albedo'],
+            emissivity=site_cfg['emissivity'], Q_b=site_cfg['Q_BASAL'], kd=kd,
+            T_guess=site_cfg['T_MEAN_EFF'])
         rows.append(dict(kd_mW=float(kd * 1e3),
                          flux_closure=float(eq.flux_closure),
                          converged=bool(eq.converged),

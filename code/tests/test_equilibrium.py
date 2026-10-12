@@ -148,3 +148,33 @@ def test_profile_at_local_time():
     # midday is hotter at the surface than midnight, as expected
     noon, night = profile_at_local_time(eq, 12.0), profile_at_local_time(eq, 0.0)
     assert noon[0] > night[0]
+
+
+@pytest.mark.parametrize("dens", [None, (1150.0, 1900.0)])
+def test_solve_hayne_equilibrium_matches_explicit_call(dens):
+    """The shared Hayne helper is exactly the explicit call it replaced in the
+    compute scripts (4-tuple and density-perturbed 6-tuple forms)."""
+    from functools import partial
+    from lunar.config import DT_STEP, GRID, HAYNE
+    from lunar.equilibrium import solve_hayne_equilibrium
+    from lunar.solver import periodic_time_grid, standard_insolation
+    grid = make_geometric_grid(**GRID)
+    t = periodic_time_grid(DT_STEP)
+    insol = standard_insolation(26.13, t)
+    kd, chi = 5.0e-3, 2.2
+    hp = (HAYNE["K_S"], kd, HAYNE["H"], chi) + (() if dens is None else dens)
+    explicit = solve_periodic_equilibrium(
+        grid=grid, t=t, insolation=insol, albedo=0.136, emissivity=0.95,
+        Q_b=0.021, K_func=partial(conductivity_hayne, Ks=HAYNE["K_S"], Kd=kd,
+                                  H=HAYNE["H"], chi=chi),
+        cp_func=partial(specific_heat, model="hayne"), T_guess=250.0,
+        n_inner=4, hayne_params=hp)
+    rho = {} if dens is None else dict(rho_s=dens[0], rho_d=dens[1])
+    helper = solve_hayne_equilibrium(
+        grid, t, insol, albedo=0.136, emissivity=0.95, Q_b=0.021, kd=kd,
+        chi=chi, T_guess=250.0, n_inner=4, **rho)
+    assert np.array_equal(helper.T_mean, explicit.T_mean)
+    assert np.array_equal(helper.out.T, explicit.out.T)
+    with pytest.raises(ValueError):
+        solve_hayne_equilibrium(grid, t, insol, albedo=0.136, emissivity=0.95,
+                                Q_b=0.021, kd=kd, rho_s=1150.0)

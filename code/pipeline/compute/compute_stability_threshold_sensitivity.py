@@ -23,7 +23,6 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from copy import deepcopy
 
 import numpy as np
 
@@ -33,8 +32,8 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "pipeline" / "figures"))
 
 from lunar.apollo_helpers import (                                  # noqa: E402
-    extract_sensor_stability, find_stable_window,
-    load_apollo_hfe_depth, iso_to_seconds,
+    find_stable_window,
+    load_apollo_hfe_depth,
 )
 from pipeline.compute.retrieve_kd import (                     # noqa: E402
     SITES, run_with, kd_star_from_residuals,

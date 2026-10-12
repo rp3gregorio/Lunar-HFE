@@ -22,8 +22,7 @@ import retrieve_kd as R                                            # noqa: E402
 from lunar.config import SITES, KD_GRIDS                          # noqa: E402
 from lunar.apollo_helpers import extract_sensor_stability         # noqa: E402
 from lunar.plotting.style import (                                # noqa: E402
-    JGR_HALF, C_A17, C_CHAR, C_DIM, C_GRID, fmt_axis, FS_LEGEND,
-    assert_no_overlap, legend_below,
+    JGR_HALF, C_A17, C_CHAR, C_DIM, fmt_axis, assert_no_overlap, legend_below,
 )
 
 OUT = _REPO / ".." / "figures"

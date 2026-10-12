@@ -27,7 +27,7 @@ Two variants are reported:
 
 Model: the Hayne et al. (2017) form at its published K_s, H, chi, rho, eps,
 the Langseth et al. (1976) site Q_b, constant effective albedo A (the
-angular-law alternatives are the conditionality of Text S2).
+angular-law alternatives are the conditionality of Table S4).
 
 Objective (Gaussian likelihood, sensor variance profiled out, so no sensor
 noise scale is chosen by hand):
@@ -100,12 +100,12 @@ def solve_row(job):
     """
     site, A = job[0], job[1]
     ov = job[2] if len(job) > 2 else {}
-    from lunar.config import SITES, GRID, DT_STEP, HAYNE, T_LUNAR, EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL
+    from lunar.config import SITES, GRID, DT_STEP, HAYNE, T_LUNAR
     from lunar.constants import RHO_SURFACE, RHO_DEEP
     from lunar.grid import make_geometric_grid
     from lunar.solver import periodic_time_grid, standard_insolation
     from lunar.properties import conductivity_hayne, specific_heat, density_hayne
-    from lunar.equilibrium import solve_periodic_equilibrium
+    from lunar.equilibrium import solve_hayne_equilibrium
     cfg = SITES[site]
     qb = ov.get("Q_b", cfg["Q_BASAL"])
     ks, H, chi = ov.get("K_s", HAYNE["K_S"]), ov.get("H", HAYNE["H"]), ov.get("chi", HAYNE["CHI"])
@@ -125,18 +125,13 @@ def solve_row(job):
     s_cp = float(ov.get("cp_scale", 1.0))
     rho_s_e, rho_d_e = RHO_SURFACE * s_cp, rho_d * s_cp          # rho*c_p scaling (see docstring)
     rho = density_hayne(G.z_mid, rho_s=rho_s_e, rho_d=rho_d_e, H=H)
-    rho_func = (None if not ({"rho_d", "H", "cp_scale"} & set(ov))
-                else (lambda zz: density_hayne(zz, rho_s=rho_s_e, rho_d=rho_d_e, H=H)))
     nK, probes = len(kd_grid), KAPPA_OBS[site]
     Tz, prof = np.empty((nK, len(z))), np.empty((nK, len(Z_DENSE)))
     Ts, clos, kap = np.empty(nK), np.empty(nK), np.empty((nK, len(probes)))
     for k, kd in enumerate(kd_grid):
-        eq = solve_periodic_equilibrium(
-            grid=G, t=t, insolation=insol, albedo=alb, emissivity=cfg["emissivity"], Q_b=qb,
-            K_func=lambda T, zz, _k=float(kd): conductivity_hayne(T, zz, Ks=ks, Kd=_k, H=H, chi=chi),
-            cp_func=lambda T: specific_heat(T, model="hayne"), rho_func=rho_func, T_guess=cfg["T_MEAN_EFF"],
-            z_anchor=EQ_Z_ANCHOR, n_inner=EQ_N_INNER, max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL,
-            hayne_params=(ks, float(kd), H, chi, rho_s_e, rho_d_e))
+        eq = solve_hayne_equilibrium(
+            G, t, insol, albedo=alb, emissivity=cfg["emissivity"], Q_b=qb, kd=float(kd),
+            ks=ks, H=H, chi=chi, rho_s=rho_s_e, rho_d=rho_d_e, T_guess=cfg["T_MEAN_EFF"])
         Tz[k] = np.interp(z, G.z_mid, eq.T_mean)
         prof[k] = np.interp(Z_DENSE, G.z_mid, eq.T_mean)
         Ts[k], clos[k] = float(eq.out.T_surface.mean()), float(eq.flux_closure)

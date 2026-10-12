@@ -27,10 +27,9 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch
 
 from lunar.plotting.style import (   # type: ignore
-    C_A15, C_A17, C_HAYNE, C_MS, C_CHAR, C_DIM, C_GRID, C_CORAL, C_TEAL,
+    C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM, C_GRID, C_CORAL, C_TEAL,
     FS_TICK, FS_LABEL, FS_LEGEND, fmt_axis,
 )
 

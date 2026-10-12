@@ -274,7 +274,6 @@ def draw_grid_half(ax):
 
 
 def draw_grid_notes(ax, g):
-    dz = g.dz
     ax.text(0.5 * (BLK_L + X_SPLIT), Y_BOT - 0.17,
             "the material", color=C_CHAR, fontsize=8.5, ha="center",
             va="center")

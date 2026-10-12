@@ -30,7 +30,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
 from lunar.plotting.style import (JGR_HALF, C_A15, C_A17, C_HAYNE, C_PLUM,
-                                  C_DIM, C_CHAR, C_GRID, FS_LEGEND, fmt_axis,
+                                  C_DIM, C_CHAR, C_GRID, fmt_axis,
                                   assert_no_overlap)
 from lunar.properties import conductivity_hayne
 from lunar.apollo_helpers import extract_sensor_stability

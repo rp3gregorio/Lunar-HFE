@@ -80,9 +80,8 @@ def _setup():
 
 def run_case(case):
     """One full K_d sweep for one (site, surface treatment)."""
-    from lunar.config import HAYNE, EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL
-    from lunar.properties import conductivity_hayne, specific_heat
-    from lunar.equilibrium import solve_periodic_equilibrium
+    from lunar.config import HAYNE
+    from lunar.equilibrium import solve_hayne_equilibrium
     from retrieve_kd import kd_star_from_residuals
     rk, SITES, G, T, standard_insolation, T_LUNAR = _setup()
     cfg = SITES[case["site"]]
@@ -108,14 +107,9 @@ def run_case(case):
     def solve(kd):
         key = round(kd, 9)
         if key not in cache:
-            eq = solve_periodic_equilibrium(
-                grid=G, t=T, insolation=insol, albedo=albedo, emissivity=cfg["emissivity"],
-                Q_b=cfg["Q_BASAL"],
-                K_func=lambda TT, zz, k=kd: conductivity_hayne(TT, zz, Ks=HAYNE["K_S"], Kd=k,
-                                                              H=HAYNE["H"], chi=chi),
-                cp_func=lambda TT: specific_heat(TT, model="hayne"), T_guess=cfg["T_MEAN_EFF"],
-                z_anchor=EQ_Z_ANCHOR, n_inner=EQ_N_INNER, max_outer=EQ_MAX_OUTER,
-                anchor_tol_K=EQ_ANCHOR_TOL, hayne_params=(HAYNE["K_S"], kd, HAYNE["H"], chi))
+            eq = solve_hayne_equilibrium(
+                G, T, insol, albedo=albedo, emissivity=cfg["emissivity"],
+                Q_b=cfg["Q_BASAL"], kd=kd, chi=chi, T_guess=cfg["T_MEAN_EFF"])
             cache[key] = (np.interp(z, G.z_mid, eq.T_mean), float(eq.out.T_surface.mean()))
         return cache[key]
 

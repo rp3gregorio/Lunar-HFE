@@ -160,3 +160,6 @@ LCROSS Cabeus impact volatile abundances (Colaprete et al. 2010) are
 available as PDS datasets and supplementary tables on the paper; we
 only need one set of values as priors for `phi_ice`, not a full
 mission archive. Drop them here as `lcross/volatiles.csv` when needed.
+
+## apollo_site_maps/ (SI Figure S1 e, f)
+LROC NAC landing-site mosaics (8-bit gray + no-data alpha) and the LROC team's EVA traverses (1-bit masks) for Apollo 15 and 17, cut from the LROC Lunaserv WMS (https://wms.im-ldi.com/lunaserv.html) in lunar lon/lat by `pipeline/fetch_apollo_site_maps.py`; boxes, layer names and retrieval date in `meta.json`. The traverses lie within 1-10 m of the LROC coordinates of the LM, ALSEP and rover (Wagner et al. 2017).

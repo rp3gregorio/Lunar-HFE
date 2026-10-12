@@ -32,8 +32,7 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lunar.plotting.style import (C_A15, C_A17, C_CHAR, C_DIM, C_GRID,
-                                  fmt_axis, assert_no_overlap)
+from lunar.plotting.style import (C_A15, C_A17, C_CHAR, C_DIM, fmt_axis, assert_no_overlap)
 
 ANIM_OUT = ROOT / ".." / "figures" / "anim"
 FIG_OUT = ROOT / ".." / "figures"

@@ -23,10 +23,10 @@ cd Lunar-HFE
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate     # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -e ".[dev,mcmc]"
 ```
 
-`pip install -e ".[dev]"` installs the `lunar` package in editable mode
+`pip install -e ".[dev,mcmc]"` installs the `lunar` package in editable mode
 plus the development extras (`pytest`, `jupyterlab`, `matplotlib`).
 
 If you want the *exact* dependency versions used to produce the
@@ -100,19 +100,22 @@ take the albedo explicitly, so they do not depend on the config albedo:
 ```bash
 python code/pipeline/compute/compute_stability_windows.py        # seconds: per-sensor windows (SI Table S2); they are NOT aligned in time
 python code/pipeline/compute/compute_joint_albedo_fit.py          # ~25 min (5 workers): Table 1, Figs 3-4
-python code/pipeline/compute/compute_joint_valley.py              # seconds: SI Table S3 (what the diffusivity adds)
+python code/pipeline/compute/compute_joint_valley.py              # seconds: SI Table S9 (what the diffusivity adds)
 python code/pipeline/compute/compute_joint_probe_checks.py        # seconds: per-probe / transient K_d, +-5 K test (Sec. 3.3, 4.1)
-python code/pipeline/compute/compute_joint_block_bootstrap.py     # ~1 min: probe-grouped bootstrap (Text S6)
-python code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min (5 workers): Tables 2-3, Fig S5
+python code/pipeline/compute/compute_joint_block_bootstrap.py     # ~1 min: probe-grouped bootstrap (Table S6)
+python code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min (5 workers): Tables 2-3, Fig S6
 python code/pipeline/compute/compute_joint_fit_checks.py          # ~1 min, after the sensitivities
-python code/pipeline/compute/compute_joint_diviner.py             # ~3 min: Text S9
+python code/pipeline/compute/compute_joint_diviner.py             # ~3 min: Table S11, Fig S5
 python code/pipeline/compute/compute_gradient_epochs.py           # seconds: gradient vs window epoch (Sec. 3.1-3.2)
-python code/pipeline/compute/compute_joint_chi_density.py         # ~50 min (5 workers): chi sweep + site densities (Sec. 4.2, Text S12)
-python code/pipeline/compute/compute_likelihood_ratio.py          # seconds: likelihood-ratio tests from the stored fits (Tables 1-2, Sec. 3.2, 4.1, 4.2; Texts S2, S12)
-python code/pipeline/compute/compute_annual_wave.py               # ~3 min (5 workers): annual wave, measured + forward-modeled (Sec. 3.4, Text S10)
-python code/pipeline/compute/compute_transient_warming.py         # ~2 min: post-deployment warming modeled and removed, refit (Sec. 3.2, 3.3, 4.3; Text S7)
-python code/pipeline/compute/compute_joint_mcmc.py                # ~2 h grid (resumes) + 1 min emcee: Fig 6, Text S8
-python code/pipeline/figures/make_joint_figures.py                # Figs 1-6, S2-S5, S7
+python code/pipeline/compute/compute_joint_chi_density.py         # ~50 min (5 workers): chi sweep + site densities (Sec. 4.2, Table S14)
+python code/pipeline/compute/compute_likelihood_ratio.py          # seconds: likelihood-ratio tests from the stored fits (Tables 1-2, Sec. 3.2, 4.1, 4.2; Tables S4, S14)
+python code/pipeline/compute/compute_annual_wave.py               # ~3 min (5 workers): annual wave, measured + forward-modeled (Sec. 3.4, Table S12)
+python code/pipeline/compute/compute_annual_wave_surface_test.py  # ~6 min (5 workers): near-surface layer vs the annual-wave amplitude factor (Sec. 4.4 (iii), Table S12)
+python code/pipeline/compute/compute_transient_warming.py         # ~2 min: post-deployment warming modeled and removed, refit (Sec. 3.2, 3.3, 4.3; Table S7)
+python code/pipeline/compute/compute_joint_mcmc.py                # ~2 h grid (resumes) + 1 min emcee: Fig 6, Table S8
+python code/pipeline/figures/make_joint_figures.py                # Figs 1-6, S3, S4, S6
+python code/pipeline/figures/make_context_map_figure.py           # Fig S1
+python code/pipeline/figures/make_study_overview.py               # Fig S2 (TikZ source in pipeline/figures/tikz/; needs pdflatex)
 ```
 
 `compute_joint_albedo_fit.py --reuse` re-analyses the committed grid
@@ -121,15 +124,12 @@ script accepts `--reuse` once its own cache exists, and
 `compute_joint_mcmc.py --sample` re-runs only the sampler on the committed
 grid (`code/results/joint_mcmc_grid.npz`).
 
-## Step 6 — Compile the manuscript
+## Step 6 — The figures
 
-```bash
-cd documents/jgr/letter
-latexmk -pdf letter.tex
-```
-
-The compiled `letter.pdf` should match the submitted manuscript
-byte-for-byte modulo figure regeneration timestamps.
+The manuscript itself is not in this repository; its figures are, in
+`figures/`. Every letter and SI figure is written by one of the scripts above
+(letter Figs 1-6 and SI Figs S1-S6), and `make figures` regenerates them
+together with the guidebook and thesis figures.
 
 ## Verification
 
@@ -155,7 +155,7 @@ retrieval at the fixed (fitted) config albedos, a diagnostic since v1.2-jgr.
 ## Troubleshooting
 
 **`pip install -e` fails on macOS with SciPy build errors**: install via
-`pip install --only-binary=:all: -e .[dev]` to force the prebuilt wheels.
+`pip install --only-binary=:all: -e ".[dev,mcmc]"` to force the prebuilt wheels.
 
 **SPICE kernel download fails**: the SPICE ephemeris files are fetched
 on demand by `code/src/lunar/ephem.py`. If your network blocks the JPL/NAIF

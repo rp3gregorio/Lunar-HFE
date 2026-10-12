@@ -23,7 +23,6 @@ from __future__ import annotations
 import pathlib
 import sys
 
-import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -35,7 +34,7 @@ sys.path.insert(0, str(_REPO / "src"))
 from lunar.config import GRID, EQ_Z_ANCHOR
 from lunar.grid import make_geometric_grid
 from lunar.plotting.style import (JGR_FULL, C_CHAR, C_DIM, C_GRID, C_TEAL,
-                                  C_CORAL, C_FOREST, C_CORAL_L, fmt_axis,
+                                  C_CORAL, C_FOREST, fmt_axis,
                                   assert_no_overlap)
 
 OUT = _REPO / ".." / "figures"

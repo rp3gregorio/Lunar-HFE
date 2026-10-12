@@ -30,7 +30,7 @@ sys.path.insert(0, str(ROOT / 'pipeline' / 'figures'))   # make_results_figures
 
 from lunar.apollo_helpers import extract_sensor_stability        # noqa: E402
 from pipeline.compute.retrieve_kd import (                  # noqa: E402
-    SITES, run_with, HAYNE,
+    SITES, run_with,
 )
 
 HAYNE_GLOBAL_KD = 3.4e-3      # Hayne (2017) published global value

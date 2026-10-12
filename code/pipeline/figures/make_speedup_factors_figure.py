@@ -21,7 +21,7 @@ import pathlib
 import numpy as np
 import matplotlib.pyplot as plt
 
-from lunar.plotting.style import (JGR_HALF, C_CORAL, C_FOREST, C_TEAL,
+from lunar.plotting.style import (JGR_HALF, C_FOREST, C_TEAL,
                                   C_CHAR, C_DIM, C_GRID)
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]

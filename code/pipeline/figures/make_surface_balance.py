@@ -58,7 +58,7 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 sys.path.insert(0, str(_REPO / "src"))
 
-from lunar.config import SITES, S0
+from lunar.config import SITES
 from lunar.constants import SIGMA_SB
 from lunar.plotting.style import (JGR_FULL, C_CHAR, C_CORAL, C_DIM, C_TEAL,
                                  assert_no_overlap)

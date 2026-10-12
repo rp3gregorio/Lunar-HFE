@@ -59,20 +59,17 @@ N_WORKERS = 4
 def run(job):
     """Daily-mean T at each depth (and the surface) for one (site, A, K_d [mW], insolation scale after day0)."""
     site, A, kd_mW, depths, day0, scale = job
-    from lunar.config import SITES, GRID, DT_STEP, HAYNE, EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL
+    from lunar.config import SITES, GRID, DT_STEP, HAYNE
     from lunar.grid import make_geometric_grid
     from lunar.solver import periodic_time_grid, standard_insolation, PixelInputs, solve_pixel
-    from lunar.properties import conductivity_hayne, specific_heat
-    from lunar.equilibrium import solve_periodic_equilibrium
+    from lunar.equilibrium import solve_hayne_equilibrium
     cfg = SITES[site]; kd = kd_mW * 1e-3
     ks, H, chi = HAYNE["K_S"], HAYNE["H"], HAYNE["CHI"]
     G = make_geometric_grid(**GRID)
     tp = periodic_time_grid(DT_STEP)
-    eq = solve_periodic_equilibrium(
-        grid=G, t=tp, insolation=standard_insolation(cfg["lat"], tp), albedo=A, emissivity=cfg["emissivity"],
-        Q_b=cfg["Q_BASAL"], K_func=lambda T, zz: conductivity_hayne(T, zz, Ks=ks, Kd=kd, H=H, chi=chi),
-        cp_func=lambda T: specific_heat(T, model="hayne"), T_guess=cfg["T_MEAN_EFF"], z_anchor=EQ_Z_ANCHOR,
-        n_inner=EQ_N_INNER, max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL, hayne_params=(ks, kd, H, chi))
+    eq = solve_hayne_equilibrium(
+        G, tp, standard_insolation(cfg["lat"], tp), albedo=A, emissivity=cfg["emissivity"],
+        Q_b=cfg["Q_BASAL"], kd=kd, ks=ks, H=H, chi=chi, T_guess=cfg["T_MEAN_EFF"])
     t, S, day = aw.spice_insolation(site)
     S = np.where(day >= day0, S * scale, S)
     out = solve_pixel(PixelInputs(grid=G, t=t, bc_mode="radiative", insolation=S, albedo=A,

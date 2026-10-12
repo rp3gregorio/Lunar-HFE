@@ -15,7 +15,6 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
 from copy import deepcopy
 
 # Resolve the repo root from this file's location, not a hard-coded
@@ -37,16 +36,16 @@ from lunar.properties import (conductivity_hayne, conductivity_martinez,
 from lunar.constants import (
     K_SURFACE, K_DEEP, H_PARAMETER, CHI_RADIATIVE, T_REFERENCE, LUNATION_SECONDS,
 )
-from lunar.solver import (PixelInputs, solve_pixel, periodic_time_grid,
+from lunar.solver import (periodic_time_grid,
                           standard_insolation)
 from lunar.apollo_helpers import extract_sensor_stability
 
 # Pull the unified rcParams + palette from the phase-2 figure module.
 from lunar.plotting.style import (   # type: ignore
     JGR_FULL,
-    FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
+    FS_LABEL, FS_TICK, FS_LEGEND,
     C_HAYNE, C_MS, C_A15, C_A17, C_CHAR, C_DIM, C_GRID, C_FOREST,
-    C_TEAL_L, C_NEUTRAL,
+    C_NEUTRAL,
     C_HAYNE_GLOBAL, LS_HAYNE_GLOBAL, LS_MS, C_EXCL_FILL, C_EXCL_EDGE,
     fmt_axis, assert_no_overlap, legend_below,
 )
@@ -451,13 +450,15 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
     from matplotlib.patches import Patch
     h = [Line2D([], [], ls=LS_HAYNE_GLOBAL, color=C_HAYNE_GLOBAL, lw=2.0),
          Line2D([], [], ls=LS_MS, color=C_MS, lw=2.0),
-         Line2D([], [], marker="o", ls="none", color=C_CHAR, mec="white", ms=7),
-         Line2D([], [], marker="o", ls="none", mfc="white", mec=C_CHAR, ms=7),
+         tuple(Line2D([], [], marker="o", ls="none", color=c, mec="white", ms=7) for c in (C_A15, C_A17)),
+         tuple(Line2D([], [], marker="o", ls="none", mfc="white", mec=c, ms=7) for c in (C_A15, C_A17)),
          Patch(fc=C_NEUTRAL, alpha=0.30)]
     l = ["Hayne, global $K_d$", "Martínez & Siegler", "meter-scale sensor",
          "borestem-zone sensor", "noise floor"]
-    # extra clearance so the legend clears the x-axis labels
-    legend_below(fig, h, l, pad_in=0.30)
+    # extra clearance so the legend clears the x-axis labels; sensor entries in both site colours
+    from matplotlib.legend_handler import HandlerTuple
+    legend_below(fig, h, l, pad_in=0.30, handlelength=2.6,
+                 handler_map={tuple: HandlerTuple(ndivide=None, pad=0.3)})
 
     fig.canvas.draw()
     assert_no_overlap(axes[0])

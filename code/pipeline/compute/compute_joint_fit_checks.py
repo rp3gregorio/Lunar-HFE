@@ -151,7 +151,6 @@ def main():
             q, gm = np.array(pts).T
             p = np.polyfit(gm, q, 1)                      # Q_b as a linear function of the model gradient
             go = site["fit_with_diffusivity"]["gradient_observed_K_per_m"]
-            se = res["sites"][s]["with_diffusivity"]["best"]["gradient_observed_K_per_m"]
             site["qb_matching_observed_gradient"] = dict(points=pts, qb_mW=float(np.polyval(p, go)))
         # published global K_d values against the joint fit, each with its own fitted albedo
         wd = res["sites"][s]["with_diffusivity"]

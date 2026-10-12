@@ -34,13 +34,14 @@ Q4 -- does the gradient test depend on albedo?
 Writes:
     results/albedo_diagnostics.json
 
-Runtime: ~10 min (Hayne njit fast path).
+Runtime: ~600 Hayne fast-path solves (~10 min serial), run on N_WORKERS processes.
 
 Run with:
     python pipeline/compute/compute_albedo_diagnostics.py
 """
 from __future__ import annotations
 import json, sys, pathlib, struct, subprocess, time
+from multiprocessing import Pool
 
 _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO))
@@ -50,12 +51,10 @@ sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 import numpy as np
 
 import retrieve_kd as rk
-from lunar.config import (SITES, GRID, DT_STEP, HAYNE, EQ_Z_ANCHOR,
-                          EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL)
+from lunar.config import SITES, GRID, DT_STEP
 from lunar.grid import make_geometric_grid
 from lunar.solver import periodic_time_grid, standard_insolation
-from lunar.properties import conductivity_hayne, specific_heat
-from lunar.equilibrium import solve_periodic_equilibrium
+from lunar.equilibrium import solve_hayne_equilibrium
 
 LOLA_URL = ("https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/"
             "data/lola_gdr/cylindrical/float_img/ldam_10_float.img")
@@ -64,6 +63,7 @@ HAYNE_SCALE = 0.49                    # Hayne et al. (2017) LOLA -> bolometric B
 ANG_A, ANG_B = 0.06, 0.25             # Hayne et al. (2017) eq. A8 constants
 ALBEDO_SCAN = np.round(np.arange(0.09, 0.181, 0.01), 3)
 KD_COARSE = np.arange(1.0, 26.01, 1.0) * 1e-3
+N_WORKERS = 5
 
 GRID_ = make_geometric_grid(**GRID)
 T_ = periodic_time_grid(DT_STEP)
@@ -101,20 +101,46 @@ def observed(cfg):
 
 
 _CACHE = {}
+
+
+def _key(cfg, kd, albedo):
+    return (cfg['tag'], round(kd, 9), round(albedo, 6))
+
+
+def _solve_T_mean(job):
+    """One equilibrium profile (a Pool worker: module-level)."""
+    cfg, kd, albedo = job
+    return solve_hayne_equilibrium(
+        GRID_, T_, standard_insolation(cfg['lat'], T_), albedo=albedo,
+        emissivity=cfg['emissivity'], Q_b=cfg['Q_BASAL'], kd=kd,
+        T_guess=cfg['T_MEAN_EFF']).T_mean
+
+
 def profile(cfg, kd, albedo):
-    key = (cfg['tag'], round(kd, 9), round(albedo, 6))
+    key = _key(cfg, kd, albedo)
     if key not in _CACHE:
-        eq = solve_periodic_equilibrium(
-            grid=GRID_, t=T_, insolation=standard_insolation(cfg['lat'], T_),
-            albedo=albedo, emissivity=cfg['emissivity'], Q_b=cfg['Q_BASAL'],
-            K_func=lambda T, z, k=kd: conductivity_hayne(T, z, Ks=HAYNE['K_S'], Kd=k,
-                                                        H=HAYNE['H'], chi=HAYNE['CHI']),
-            cp_func=lambda T: specific_heat(T, model='hayne'), T_guess=cfg['T_MEAN_EFF'],
-            z_anchor=EQ_Z_ANCHOR, n_inner=EQ_N_INNER, max_outer=EQ_MAX_OUTER,
-            anchor_tol_K=EQ_ANCHOR_TOL,
-            hayne_params=(HAYNE['K_S'], kd, HAYNE['H'], HAYNE['CHI']))
-        _CACHE[key] = (GRID_.z_mid, eq.T_mean)
+        _CACHE[key] = (GRID_.z_mid, _solve_T_mean((cfg, kd, albedo)))
     return _CACHE[key]
+
+
+def prefetch(jobs):
+    """Solve the uncached ``(cfg, kd, albedo)`` jobs on N_WORKERS processes.
+
+    The cache key rounds kd and albedo, so the FIRST call per key decides the
+    exact values solved. Jobs are listed in the order the serial profile()
+    calls make them and only each key's first job is solved, so the cache is
+    bit-identical to the serial run's.
+    """
+    todo = {}
+    for cfg, kd, albedo in jobs:
+        key = _key(cfg, kd, albedo)
+        if key not in _CACHE and key not in todo:
+            todo[key] = (cfg, kd, albedo)
+    if not todo:
+        return
+    with Pool(N_WORKERS) as pool:
+        for key, T_mean in zip(todo, pool.imap(_solve_T_mean, todo.values())):
+            _CACHE[key] = (GRID_.z_mid, T_mean)
 
 
 def main():
@@ -136,6 +162,15 @@ def main():
         print(f"{name}: adopted {cfg['albedo']} | map A0 {a0} | effective "
               f"{maps[name]['bond_incidence_weighted']}", flush=True)
     out["site_albedo"] = maps
+    # Q3-Q5 need ~600 independent profiles: solve them on worker processes in
+    # the order the loops below request them (Q5's dense bands follow there)
+    a17, a0_17 = SITES['A17'], maps['A17']['bond_normal_incidence']
+    prefetch([(cfg, kd, float(A)) for cfg in SITES.values()
+              for A in ALBEDO_SCAN for kd in KD_COARSE]
+             + [(a17, kd, A) for A in (0.095, 0.106, 0.137) for kd in (3.4e-3, 7.08e-3)]
+             + [(a17, kd, round(float(A), 4)) for A in (a17['albedo'], a0_17['pixel'],
+                                                         a0_17['mean3x3'], a0_17['mean5x5'])
+                for kd in KD_COARSE])
     # Q3
     scan = {}
     for name, cfg in SITES.items():
@@ -174,6 +209,7 @@ def main():
         k0 = KD_COARSE[int(np.argmin(rm))]
         grid = np.unique(np.round(np.concatenate([KD_COARSE, np.arange(max(k0 - 1.2e-3, 0.5e-3),
                                                                         k0 + 1.2001e-3, 0.1e-3)]), 7))
+        prefetch([(cfg, kd, A) for kd in grid] + [(cfg, 3.4e-3, A)])
         R = np.array([np.interp(z, *profile(cfg, kd, A)) - Tobs for kd in grid]).T
         ks, rs = kd_star_from_residuals(R, grid)
         rg = float(np.sqrt(np.mean((np.interp(z, *profile(cfg, 3.4e-3, A)) - Tobs) ** 2)))

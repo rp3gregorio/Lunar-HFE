@@ -69,7 +69,6 @@ def main(out_name="fig_alpha_sweep.pdf"):
         rmse = np.array(s["rmse_curve"])
         alpha_star = s["alpha"]
         rmse_star = s["rmse_K"]
-        rho_d_star = s["rho_d_kg_m3"]
 
         (line,) = ax.plot(
             alpha, rmse, "-", color=color, lw=2.4, zorder=3,

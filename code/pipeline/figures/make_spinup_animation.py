@@ -38,8 +38,7 @@ from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import (PixelInputs, solve_pixel, standard_insolation,
                           periodic_time_grid)
 from lunar.equilibrium import solve_periodic_equilibrium
-from lunar.plotting.style import (C_A15, C_CORAL, C_CHAR, C_DIM, C_GRID,
-                                  C_FOREST)
+from lunar.plotting.style import (C_A15, C_CORAL, C_CHAR, C_DIM, C_GRID)
 
 ANIM = _REPO / ".." / "figures" / "anim"
 FIG = _REPO / ".." / "figures"

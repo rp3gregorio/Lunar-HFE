@@ -149,6 +149,10 @@ def _load_lola_dem():
     import numpy as np
     p = ROOT / "data" / "lola" / "ldem_4.img"
     dn = np.fromfile(p, dtype="<i2").reshape(720, 1440)
+    # the LDEM's column 0 is 0 deg E (PDS label WESTERNMOST_LONGITUDE = 0); roll it
+    # to -180..180 E, the layout _sample_equirect assumes (fixed 2026-10-08: the
+    # globe's relief shading was the far side's)
+    dn = np.roll(dn, dn.shape[1] // 2, axis=1)
     return dn * 0.5 / 1000.0                      # meters -> km
 
 
@@ -343,7 +347,7 @@ def build_kd_sweep():
     assert_no_overlap(ax)                         # legend must not touch data
     fig.savefig(ABS_FIGS / "fig_kd_sweep.pdf")
     plt.close(fig)
-    print(f"  -> fig_kd_sweep.pdf (single-column, legend inside)")
+    print("  -> fig_kd_sweep.pdf (single-column, legend inside)")
 
 
 def build_robustness():
@@ -434,8 +438,8 @@ def build_robustness():
                      linewidths=0.8, linestyles="--", alpha=0.6, zorder=2.3)
     axm.clabel(cs, fmt=lambda v: f"{int(v)}$\\sigma$", fontsize=7,
                inline=True, inline_spacing=5)
-    c0 = axm.contour(x, y, contrast, levels=[0.0], colors=C_CHAR,
-                     linewidths=1.6, zorder=3)
+    axm.contour(x, y, contrast, levels=[0.0], colors=C_CHAR,
+                linewidths=1.6, zorder=3)
 
     # MCMC posterior: filled 68/95% credible regions, labelled on-line
     ch = np.load(root / "results" / "bayesian_chains.npz")

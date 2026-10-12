@@ -53,11 +53,11 @@ from lunar.solver import (PixelInputs, solve_pixel, periodic_time_grid,
 from lunar.properties import (conductivity_hayne, conductivity_martinez,
                               specific_heat)
 
-from pipeline.compute.retrieve_kd import SITES, HAYNE, S0, T_LUNAR, GRID
+from pipeline.compute.retrieve_kd import SITES, HAYNE, T_LUNAR, GRID
 
 from lunar.plotting.style import (   # type: ignore
-    C_A15, C_A17, C_HAYNE, C_MS, C_CHAR, C_DIM, C_GRID,
-    FS_TICK, FS_LEGEND, FS_LABEL, fmt_axis,
+    C_HAYNE, C_MS, C_DIM, C_GRID,
+    FS_TICK, FS_LEGEND, fmt_axis,
 )
 
 DT_COARSE = 3600.0   # equilibrium iteration step
@@ -69,7 +69,6 @@ def model_surface_cycle(site_cfg, k_func):
     """Periodic skin-temperature cycle T_s(LST) for one site/model."""
     grid_ = make_geometric_grid(**GRID)
     cpf = lambda T: specific_heat(T, model="hayne")
-    cos_lat = np.cos(np.deg2rad(site_cfg["lat"]))
 
     def forcing(dt):
         # commensurate lunation grid at THIS function's dt (the migration to

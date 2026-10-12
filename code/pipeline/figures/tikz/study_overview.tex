@@ -1,0 +1,148 @@
+% The study in one chart: the joint (albedo, K_d) fit -- v1.3-jgr (2026-10-07).
+% SI figure figures/fig_study_overview.pdf, built by
+% pipeline/figures/make_study_overview.py (part of `make figures`). The
+% guidebook's figures-tikz/pipeline_joint.tex is a symlink to this file.
+% Successor of the v1.2 chart (kept as _archive_pipeline_joint_v1.2_2026-10-05.tex)
+% and of pipeline_abcd.tex (the v1.1 fixed-albedo pipeline). Changes from v1.2:
+% inputs marked as measured (what the fit must match) or assumed (held
+% fixed); step C says why the diffusivity is needed; step D tests the global
+% value with the likelihood-ratio test (not AICc) and lists the independent
+% checks; the results add the effective conductivity and the rejection of
+% 3.4, and report the site difference as NOT established; a bottom line.
+% Numbers from code/results/*.json (joint_albedo_fit, likelihood_ratio,
+% joint_fit_checks, joint_fit_sensitivities, joint_mcmc, annual_wave).
+%   pdflatex study_overview_standalone.tex
+\begin{tikzpicture}[
+  font=\footnotesize,
+  every node/.style={align=left},
+  box/.style={rectangle, inner sep=4pt, fill=white, anchor=north west,
+              minimum height=11mm},
+  meas/.style={box, draw=forest, line width=0.9pt, text width=50mm},
+  assm/.style={box, draw=dim, dashed, line width=0.6pt, text width=50mm},
+  prb/.style={box, draw=black, line width=0.6pt, text width=64mm},
+  rsb/.style={box, draw=black, line width=0.5pt, text width=52mm},
+  hl/.style={rsb, line width=1.0pt, fill=forest!8},
+  col/.style={font=\sffamily\bfseries\small\color{forest}, anchor=west},
+  arr/.style={-{Stealth[length=2mm]}, line width=0.6pt}
+]
+\node[col] at (0,    0) {INPUTS};
+\node[col] at (6.3,  0) {PROCESS};
+\node[col] at (14.0, 0) {RESULTS};
+
+% --- INPUTS (ordered as the steps they feed: A, B, B, C, C) ---
+\node[meas] at (0,-0.4) (i1) {%
+  \textbf{1.\;Borehole temperatures}\\[1pt]
+  $T(z,t)$ at each sensor, 1971--77\\
+  {\color{dim}restored record, Nagihara et al.\ (2018)}};
+\node[assm, below=2mm of i1.south west, anchor=north west] (i2) {%
+  \textbf{2.\;Conductivity form} {\color{dim}(Hayne et al., 2017)}\\[1pt]
+  $K=\bigl[K_d-(K_d-K_s)\,e^{-z/H}\bigr]$\\
+  \hphantom{$K=$}$\times\bigl[1+\chi(T/T_{\rm ref})^3\bigr]$\\
+  {\color{dim}fixed: $K_s$, $H$, $\chi=2.7$, $c_p$,}\\
+  {\color{dim}\hphantom{fixed: }$\rho_d=1800$ kg\,m$^{-3}$}};
+\node[assm, below=2mm of i2.south west, anchor=north west] (i3) {%
+  \textbf{3.\;Basal heat flow $Q_b$}\\[1pt]
+  21 (A15),\; 16 mW\,m$^{-2}$ (A17)\\
+  {\color{dim}Langseth et al.\ (1976)}};
+\node[meas, below=2mm of i3.south west, anchor=north west] (i4) {%
+  \textbf{4.\;Mean surface temperature}\\[1pt]
+  211 (A15),\; 216 K (A17),\; $\pm5$ K\\
+  {\color{dim}Hayne et al.\ (2017), Table A2}};
+\node[meas, below=2mm of i4.south west, anchor=north west] (i5) {%
+  \textbf{5.\;Annual-wave diffusivity $\kappa$}\\[1pt]
+  two probes per site ($10^{-4}$ cm$^2$\,s$^{-1}$):\\
+  0.87, 0.74 (A15);\; 1.00, 0.88 (A17)\\
+  {\color{dim}Langseth et al.\ (1976), Table 1}};
+
+% --- PROCESS ---
+\node[prb] at (6.3,-0.4) (pA) {%
+  \textbf{A.\; Stability windows\; $\to T_{\rm eq}$}\\[1pt]
+  one window per sensor; sensors below 80 cm:\\
+  {\color{dim}7 at A15 (84--139 cm), 16 at A17 (130--234 cm)}};
+\node[prb, below=3mm of pA.south west, anchor=north west] (pB) {%
+  \textbf{B.\; Forward model}\; $\to T(z),\ \langle T_s\rangle,\ \kappa$\\[1pt]
+  heat equation $\rho\,c_p\,\partial_t T=\partial_z(K\,\partial_z T)$\\
+  solved to its periodic steady state\\
+  (flux-anchored solver), for each $A$ and $K_d$};
+\node[prb, below=3mm of pB.south west, anchor=north west, draw=forest, line width=0.9pt] (pC) {%
+  \textbf{C.\; Fit albedo $A$ and $K_d$ together}\\[1pt]
+  minimise\; $J=$ sensors $+$ surface mean $+$ diffusivity\\
+  on 25 albedos $\times$ 94 values of $K_d$\\[2pt]
+  {\color{forest}\itshape The temperatures alone trade $A$ against $K_d$;\\
+  $\kappa=K/(\rho\,c_p)$ does not depend on $A$ or $Q_b$,\\
+  so it fixes $K_d$.}};
+\node[prb, below=3mm of pC.south west, anchor=north west] (pD) {%
+  \textbf{D.\; Test and check}\\[1pt]
+  likelihood-ratio test of the global values 3.4 and 3.8\\
+  bootstrap (1500 draws) and error budget\\
+  MCMC with $Q_b$ and $\rho_d$ also free\\
+  {\color{dim}checks: annual wave in the full record,}\\
+  {\color{dim}post-deployment warming, Diviner}};
+
+% --- RESULTS ---
+\node[rsb] at (14.0,-0.4) (r0) {%
+  \textbf{Fitted albedo} $A^{*}$\\[1pt]
+  \itshape A15: 0.136\quad A17: 0.137};
+\node[hl, below=2mm of r0.south west, anchor=north west] (r1) {%
+  \textbf{Deep conductivity} $K_d^{*}$ {\color{dim}(95\%)}\\[1pt]
+  \textbf{\itshape A15:\; 4.9}\; {\itshape [4.3, 5.5]}\\
+  \textbf{\itshape A17:\; 5.9}\; {\itshape [5.3, 6.5]}\\
+  {\color{dim}mW\,m$^{-1}$\,K$^{-1}$; 1.4--1.7$\times$ the global 3.4}};
+\node[rsb, below=2mm of r1.south west, anchor=north west] (r2) {%
+  \textbf{Effective conductivity}\\[1pt]
+  9.8 (A15),\; 12.1 (A17)\\
+  {\color{dim}in-situ value 9--13 (Langseth et al., 1976)}};
+\node[rsb, below=2mm of r2.south west, anchor=north west] (r3) {%
+  \textbf{Global $K_d=3.4$ rejected}\\[1pt]
+  $p=9\times10^{-7}$ (A15),\; $1\times10^{-14}$ (A17)\\
+  {\color{dim}3.8 (Feng et al., 2020) also rejected}};
+\node[rsb, below=2mm of r3.south west, anchor=north west] (r4) {%
+  \textbf{Uncertainty} {\color{dim}($1\sigma$)}\\[1pt]
+  $\pm0.52$ (A15),\; $\pm0.64$ (A17)\\
+  {\color{dim}conditional on $\rho_d$ and $\chi$ ($\pm9\%$)}};
+\node[rsb, below=2mm of r4.south west, anchor=north west] (r5) {%
+  \textbf{No site difference established}\\[1pt]
+  A17$-$A15: $+1.0$ [$+0.1$, $+1.9$] (bootstrap)\\
+  $+1.1$ [$-0.1$, $+2.3$] (MCMC)\\
+  {\color{dim}full-record annual wave: 5.7 vs 5.6}};
+
+% --- arrows: inputs to process ---
+\draw[arr] (i1.east) -- (pA.west);
+\draw[arr] (i2.east) -- ($(pB.west)+(0,2mm)$);
+\draw[arr] (i3.east) -- ($(pB.west)+(0,-4mm)$);
+\draw[arr] (i4.east) -- ++(3mm,0) |- ($(pC.west)+(0,3mm)$);
+\draw[arr] (i5.east) -- ++(3mm,0) |- ($(pC.west)+(0,-3mm)$);
+
+% --- arrows: process flow ---
+\draw[arr] (pA.south) -- (pB.north);
+\draw[arr] (pB.south) -- (pC.north);
+\draw[arr] (pC.south) -- (pD.north);
+
+% --- arrows: process to results (orthogonal lanes) ---
+\coordinate (laneC) at ($(pC.east)+(3mm,0)$);
+\coordinate (laneD) at ($(pD.east)+(6mm,0)$);
+\draw[arr] (pC.east) -- (laneC) |- (r0.west);
+\draw[arr] (laneC) |- (r1.west);
+\draw[arr] (laneC) |- (r2.west);
+\draw[arr] (pD.east) -- (laneD) |- (r3.west);
+\draw[arr] (laneD) |- (r4.west);
+\draw[arr] (laneD) |- (r5.west);
+
+% --- bottom line ---
+\path (current bounding box.south -| i1.west) ++(0,-4mm) coordinate (bl);
+\path let \p1=(i1.west), \p2=(r1.east) in
+  node[anchor=north west, rectangle, draw=forest, line width=0.9pt,
+       fill=forest!8, inner sep=5pt, text width=\x2-\x1-10pt-1.8pt, align=center]
+  at (bl) (bottom) {%
+  \small\textbf{Answer:} the deep conductivity is \textbf{5--6 mW\,m$^{-1}$\,K$^{-1}$
+  at both boreholes}, not the global 3.4\\
+  {\footnotesize\color{dim}(within the Hayne conductivity form and an assumed deep density of 1800 kg\,m$^{-3}$)}};
+
+% --- legend ---
+\node[anchor=north west, font=\scriptsize\color{dim}, inner sep=0pt]
+  at ($(bottom.south west)+(0,-2.5mm)$) {%
+  \tikz\draw[forest, line width=0.9pt] (0,0) rectangle (3mm,2mm);\; measured at the boreholes (the fit must match)\qquad
+  \tikz\draw[dim, dashed, line width=0.6pt] (0,0) rectangle (3mm,2mm);\; assumed, held fixed\qquad
+  \tikz\draw[black, line width=1.0pt, fill=forest!8] (0,0) rectangle (3mm,2mm);\; main result\qquad
+  free parameters: $A$ and $K_d$ at each site};
+\end{tikzpicture}

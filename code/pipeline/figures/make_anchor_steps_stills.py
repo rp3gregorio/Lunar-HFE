@@ -148,7 +148,7 @@ def draw_swing(ax, D, frame):
 
 
 def draw_column(ax, D, frame):
-    z, i0, s = D["z"], D["i0"], D["i_skin"]
+    z, s = D["z"], D["i_skin"]
     keep = z <= ZMAX
 
     if frame < 4:

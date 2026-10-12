@@ -11,9 +11,12 @@ Source (LOLA LDEM, 16 pixels/degree global topographic map):
   data/lola/ldem_16.img
   16-bit signed integers, row-major, 2880 rows x 5760 cols, elevation in
   units of 0.5 m relative to a 1737.4 km reference sphere. Row 0 is the
-  north pole (+90 deg); column 0 is longitude -180 deg.
+  north pole (+90 deg); column 0 is longitude 0 deg E (PDS label:
+  WESTERNMOST_LONGITUDE = 0, EASTERNMOST_LONGITUDE = 360).
     lat  ->  row = (90 - lat) * 16
-    lon  ->  col = (lon + 180) * 16
+    lon  ->  col = (lon mod 360) * 16, wrapping across 0/360 deg
+  (Until 2026-10-08 this read col = (lon + 180) * 16, which cut both crops
+  from the far side, 180 deg away from the sites.)
 
 Each crop spans +/-15 deg longitude, +/-10 deg latitude about the site
 (matching ZOOM_DLON/ZOOM_DLAT in make_context_map_figure.py): 480 cols
@@ -65,10 +68,11 @@ def load_ldem():
 def crop_site(dem, lat0, lon0):
     """Return the N-up elevation crop (km) centred on (lat0, lon0)."""
     row0 = int(round((90.0 - lat0) * PPD))
-    col0 = int(round((lon0 + 180.0) * PPD))
+    col0 = int(round((lon0 % 360.0) * PPD))
     dr = int(round(ZOOM_DLAT * PPD))     # 160 -> 320 rows total
     dc = int(round(ZOOM_DLON * PPD))     # 240 -> 480 cols total
-    return dem[row0 - dr:row0 + dr, col0 - dc:col0 + dc].copy()
+    cols = np.arange(col0 - dc, col0 + dc) % N_COLS      # wraps across 0/360 deg (A15 at 3.6 E)
+    return dem[row0 - dr:row0 + dr][:, cols].copy()
 
 
 def main():

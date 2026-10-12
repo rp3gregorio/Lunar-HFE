@@ -44,7 +44,7 @@ import numpy as np
 from lunar.config import DT_STEP, EQ_Z_ANCHOR, GRID, HAYNE, SITES
 from lunar.equilibrium import _truncate_grid, solve_periodic_equilibrium
 from lunar.grid import make_geometric_grid
-from lunar.plotting.style import (C_CHAR, C_CORAL, C_DIM, C_FOREST, C_GRID,
+from lunar.plotting.style import (C_CHAR, C_DIM, C_FOREST, C_GRID,
                                   C_PLUM, C_TEAL, fmt_axis)
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import periodic_time_grid, standard_insolation

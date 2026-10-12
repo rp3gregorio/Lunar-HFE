@@ -29,9 +29,8 @@ from matplotlib.patches import FancyBboxPatch
 _REPO = pathlib.Path(__file__).resolve().parents[1].parent
 sys.path.insert(0, str(_REPO / "src"))
 
-from lunar.plotting.style import (JGR_HALF, JGR_SINGLE, C_A15, C_A17, C_TEAL,
-                                  C_CHAR, C_DIM, C_GRID, C_FOREST, C_CORAL,
-                                  fmt_axis, assert_no_overlap)
+from lunar.plotting.style import (JGR_HALF, JGR_SINGLE, C_A17, C_TEAL,
+                                  C_CHAR, C_DIM, C_FOREST, fmt_axis, assert_no_overlap)
 
 OUT = _REPO / ".." / "figures"
 

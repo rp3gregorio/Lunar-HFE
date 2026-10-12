@@ -19,17 +19,21 @@ This script only post-processes stored fits; it solves nothing.
     (df = 2) against separate values per site
     (joint_fit_sensitivities.json, model_comparison; Table 2, Sec. 4.1);
   * the global value under other radiative coefficients chi and the site
-    densities (joint_chi_density.json; Sec. 4.2, Text S12). That file keeps
+    densities (joint_chi_density.json; Sec. 4.2, Table S14). That file keeps
     only Delta-AICc, which is converted back to Delta J exactly:
     Delta J = Delta AICc - [pen(2) - pen(3)], pen(k) = 2k + 2k(k+1)/(N-k-1),
     N = n + 3 (compute_joint_albedo_fit.analyse);
   * the temperature-only fits at a fixed albedo (albedo_sensitivity.json,
-    albedo_anchor.json; Text S2): Delta J = n ln(RMSE_global^2 / RMSE_fit^2),
+    albedo_anchor.json; Table S4): Delta J = n ln(RMSE_global^2 / RMSE_fit^2),
     over the admissible treatments of compute_albedo_anchor.py;
   * a stress test of the weakest input: the global value against the joint
     fit with the Langseth et al. (1976) diffusivity uncertainties doubled,
     per site (df = 1) and over both sites (df = 2), recomputed on the cached
-    joint-fit grid (grid minima, as in the pooled model comparison; Sec. 3.2).
+    joint-fit grid (grid minima, as in the pooled model comparison; Sec. 3.2);
+  * the standard lunar-average albedo 0.12 (Hayne et al. 2017, their Table A1)
+    held fixed against the fitted albedo, with the diffusivity, per site
+    (df = 1): K_d* along K_d at A = 0.12 (parabola vertex, as in the joint
+    fit), the sensor bias and RMSE and the surface mean there (Sec. 3.2).
 
 p is the chi^2 survival probability; "sigma" is the two-sided Gaussian
 equivalent of p.
@@ -53,6 +57,7 @@ from scipy.stats import chi2, norm
 import compute_joint_albedo_fit as jf
 
 PUBLISHED = (("hayne2017", 3.4), ("feng2020", 3.8), ("vasavada2012", 7.0))
+A_STANDARD = 0.12          # lunar-average albedo of the standard model (Hayne et al. 2017, Table A1)
 
 
 def test(dJ, df):
@@ -118,6 +123,32 @@ def main():
     dbl["pooled"] = test(tot, 2)
     out["diffusivity_uncertainty_doubled"] = dbl
 
+    # the standard albedo 0.12 held fixed, with the diffusivity (refined minima, as in the per-site tests)
+    ia = int(np.argmin(np.abs(np.asarray(jf.A_GRID) - A_STANDARD)))
+    assert abs(jf.A_GRID[ia] - A_STANDARD) < 1e-9, "0.12 is not on the albedo grid"
+    K = jf.KD_GRID * 1e3
+    std = {}
+    for s in ("A15", "A17"):
+        z, Tobs = jf.observed(s)
+        kobs = np.array([q[2] for q in jf.KAPPA_OBS[s]]); ksig = np.array([q[3] for q in jf.KAPPA_OBS[s]])
+        J, _ = jf.objective(c[f"{s}_Tz"], Tobs, c[f"{s}_Ts"], jf.TS_OBS[s], kap=c[f"{s}_kap"], kobs=kobs, ksig=ksig)
+        kd, Jk = jf.vertex(K, J[ia], int(np.argmin(J[ia])))
+        r = np.array([np.interp(kd, K, c[f"{s}_Tz"][ia, :, i]) for i in range(len(Tobs))]) - Tobs
+        J0 = jfit["sites"][s]["with_diffusivity"]["best"]["J"]
+        std[s] = dict(A=A_STANDARD, kd_star_mW=float(kd), sensor_bias_K=float(r.mean()),
+                      sensor_rmse_K=float(np.sqrt((r ** 2).mean())),
+                      surface_mean_K=float(np.interp(kd, K, c[f"{s}_Ts"][ia])), surface_mean_obs_K=jf.TS_OBS[s],
+                      fixed_vs_fitted_albedo=test(Jk - J0, 1),
+                      global_3p4_at_standard_albedo=test(J[ia, iG] - J0, 2))
+        # the standard model exactly as published (A = 0.12, K_d = 3.4), at the grid node (letter Table 1)
+        rg = c[f"{s}_Tz"][ia, iG] - Tobs
+        std[s]["hayne_as_published"] = dict(
+            A=A_STANDARD, kd_mW=float(K[iG]), sensor_rmse_K=float(np.sqrt((rg ** 2).mean())),
+            sensor_bias_K=float(rg.mean()), surface_mean_K=float(c[f"{s}_Ts"][ia, iG]),
+            kappa_model_1e4_cm2_s=[float(k) for k in c[f"{s}_kap"][ia, iG]],
+            vs_joint_fit=test(J[ia, iG] - J0, 2))
+    out["standard_albedo_0p12"] = std
+
     f = lambda t: f"dJ {t['delta_J']:6.2f} (df {t['df']}) p {t['p']:.2g} = {t['sigma']:.1f} sigma"
     for s, row in out["sites"].items():
         print(f"{s}: global 3.4 with diffusivity   {f(row['global_3p4_with_diffusivity'])}")
@@ -135,6 +166,10 @@ def main():
         print(f"pooled {k:20s} {f(out['pooled'][k])}")
     for k, v in dbl.items():
         print(f"diffusivity uncertainties doubled, {k:6s} {f(v)}")
+    for k, v in std.items():
+        print(f"A = 0.12 fixed, {k}: K_d* {v['kd_star_mW']:.2f}, sensor bias {v['sensor_bias_K']:+.2f} K,"
+              f" RMSE {v['sensor_rmse_K']:.2f} K, surface {v['surface_mean_K']:.1f} K;"
+              f" fixed vs fitted albedo {f(v['fixed_vs_fitted_albedo'])}")
     p = _REPO / "results" / "likelihood_ratio.json"
     p.write_text(json.dumps(out, indent=1))
     print(f"wrote {p.relative_to(_REPO)}")

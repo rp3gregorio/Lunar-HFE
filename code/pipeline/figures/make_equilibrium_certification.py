@@ -36,11 +36,10 @@ from lunar.grid import make_geometric_grid
 from lunar.solver import (PixelInputs, solve_pixel, periodic_time_grid,
                           standard_insolation)
 from lunar.properties import conductivity_hayne, specific_heat
-from pipeline.compute.retrieve_kd import SITES, HAYNE, GRID, S0, T_LUNAR, DT_STEP
+from pipeline.compute.retrieve_kd import SITES, HAYNE, GRID, DT_STEP
 
 from lunar.plotting.style import (   # type: ignore
-    JGR_FULL, FS_TICK, FS_LEGEND, FS_LABEL,
-    C_A15, C_A17, C_CHAR, C_DIM, C_GRID, fmt_axis,
+    JGR_FULL, FS_TICK, FS_LEGEND, C_A15, C_A17, C_DIM, C_GRID, fmt_axis,
 )
 
 KD_STAR = {"A15": 4.603e-3, "A17": 7.16e-3}   # converged retrievals

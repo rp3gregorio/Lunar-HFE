@@ -19,27 +19,31 @@ on a geometric depth grid. Two upper boundary conditions are supported:
 Spin-up
 -------
 For radiative BC runs, the driver loops over the forcing for
-``n_lunations_spinup`` full diurnal cycles. Convergence is declared
-when ``max |T^{k+1} - T^k| < 0.01 K`` between successive cycles, as
-required by SKILL.md.
+``n_lunations_spinup`` full diurnal cycles (each closed by the wrap step).
+Convergence is declared when ``max |T^{k+1} - T^k| < spinup_tol_K``
+between successive cycles, from the second cycle on.
 
 Performance
 -----------
-Only the two per-cell loops -- ``_face_harmonic_mean`` and the ``_thomas``
-tridiagonal sweep -- carry ``@njit``; the rest of ``_step`` (the tridiagonal
-assembly, the Newton surface solve) runs as interpreted Python for-loops either
-way. So ``@njit`` here buys only a measured ~1.5x on the per-lunation cost
-(83 vs 128 ms/lun with NUMBA_DISABLE_JIT=1). Compiling the WHOLE step is what
-helps: a faithful C port of the entire solver (verified to 9e-13 K) runs the same
-brute-force solve ~170x faster -- and ``@njit``-ing all of ``_step`` would too,
-without a C build. We keep the readable NumPy because the flux-anchored method
-already makes each solve cheap (~7 s). See results/speedup_benchmark.json.
-The ``@njit`` fast path is wired via ``NUMBA_OK``; when Numba is unavailable the
-code falls back to pure NumPy and the tests still pass.
+Two implementations of the same radiative march:
+
+* ``_march_radiative_hayne`` -- the whole spin-up compiled with Numba, used
+  when ``PixelInputs.hayne_params`` declares the standard Hayne property
+  set. This is the production path, ~100x faster per lunation than the
+  generic one, and tested equal to it to <1e-9 K
+  (``tests/test_solver.py::test_fast_march_matches_generic``).
+* ``_step`` -- the generic Python step for any ``K_func``/``rho_func``/
+  ``cp_func`` (3-layer, Martinez, Dirichlet validation). Its assembly is
+  vectorised NumPy; only ``_face_harmonic_mean`` and ``_thomas`` are
+  compiled, so the per-step Python overhead dominates.
+
+Current timings live in results/speedup_benchmark.json. When Numba is
+unavailable ``njit`` is a no-op and both paths run as plain Python.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Callable, Literal
 
@@ -204,16 +208,13 @@ def _face_harmonic_mean(K: np.ndarray) -> np.ndarray:
 
 
 @njit(cache=True)
-def _thomas(a: np.ndarray, b: np.ndarray, c: np.ndarray, d: np.ndarray) -> np.ndarray:
-    """Thomas algorithm for an (a, b, c) tridiagonal system A x = d.
+def _thomas_into(a, b, c, d, cp, dp, x):
+    """Thomas solve of A x = d written into ``x``; ``cp``/``dp`` are scratch.
 
-    ``a`` and ``c`` are the sub- and super-diagonals; ``a[0]`` and
-    ``c[n-1]`` are ignored. All arrays have shape ``(n,)``.
+    Allocation-free twin of :func:`_thomas` (same arithmetic, same order) for
+    the compiled march, which solves three systems per time step.
     """
     n = b.size
-    cp = np.empty(n)
-    dp = np.empty(n)
-    x = np.empty(n)
     cp[0] = c[0] / b[0]
     dp[0] = d[0] / b[0]
     for i in range(1, n):
@@ -223,6 +224,18 @@ def _thomas(a: np.ndarray, b: np.ndarray, c: np.ndarray, d: np.ndarray) -> np.nd
     x[n - 1] = dp[n - 1]
     for i in range(n - 2, -1, -1):
         x[i] = dp[i] - cp[i] * x[i + 1]
+
+
+@njit(cache=True)
+def _thomas(a: np.ndarray, b: np.ndarray, c: np.ndarray, d: np.ndarray) -> np.ndarray:
+    """Thomas algorithm for an (a, b, c) tridiagonal system A x = d.
+
+    ``a`` and ``c`` are the sub- and super-diagonals; ``a[0]`` and
+    ``c[n-1]`` are ignored. All arrays have shape ``(n,)``.
+    """
+    n = b.size
+    x = np.empty(n)
+    _thomas_into(a, b, c, d, np.empty(n), np.empty(n), x)
     return x
 
 
@@ -272,17 +285,21 @@ def _solve_surface_newton(
     The derivative is always negative, so Newton converges from any
     positive starting point.
     """
-    vals = {
-        "insolation": insolation,
-        "albedo": albedo,
-        "emissivity": emissivity,
-        "K_surf": K_surf,
-        "dz_surf": dz_surf,
-        "T_subsurf": T_subsurf,
-        "T_s_guess": T_s_guess,
-    }
-    bad = [name for name, val in vals.items() if not np.isfinite(val)]
-    if bad:
+    # Called 3x per time step: check cheaply, name the culprits only on failure.
+    if not (math.isfinite(insolation) and math.isfinite(albedo)
+            and math.isfinite(emissivity) and math.isfinite(K_surf)
+            and math.isfinite(dz_surf) and math.isfinite(T_subsurf)
+            and math.isfinite(T_s_guess)):
+        vals = {
+            "insolation": insolation,
+            "albedo": albedo,
+            "emissivity": emissivity,
+            "K_surf": K_surf,
+            "dz_surf": dz_surf,
+            "T_subsurf": T_subsurf,
+            "T_s_guess": T_s_guess,
+        }
+        bad = [name for name, val in vals.items() if not np.isfinite(val)]
         raise ValueError(f"surface Newton inputs must be finite; bad: {', '.join(bad)}")
     if not 0.0 <= albedo < 1.0:
         raise ValueError("albedo must satisfy 0 <= albedo < 1")
@@ -337,8 +354,8 @@ def _step(
     dt: float,
     radiative_T_s_prev: float | None = None,
     n_picard: int | None = None,
-) -> np.ndarray:
-    """One Crank-Nicolson step.
+) -> tuple[np.ndarray, float]:
+    """One Crank-Nicolson step; returns ``(T_new, T_surface_new)``.
 
     Physics::
 
@@ -389,11 +406,16 @@ def _step(
     dz = grid.dz
     rho = rho_func(grid.z_mid)  # z-only: loop-invariant
 
+    # centre-to-centre distances; the end entries reach the boundary faces
     dz_c = np.empty(n + 1)
     dz_c[0] = 0.5 * dz[0]
     dz_c[-1] = 0.5 * dz[-1]
-    for i in range(1, n):
-        dz_c[i] = 0.5 * (dz[i - 1] + dz[i])
+    dz_c[1:-1] = 0.5 * (dz[:-1] + dz[1:])
+
+    # Explicit-side neighbours of each cell; the end cells see themselves
+    # (a wall surrogate, replaced by the real boundary terms below).
+    T_left = np.concatenate((T_prev[:1], T_prev[:-1]))
+    T_right = np.concatenate((T_prev[1:], T_prev[-1:]))
 
     # Predictor sweep evaluates properties at T_prev; each corrector
     # sweep re-evaluates them at the midpoint of the step just solved.
@@ -408,34 +430,17 @@ def _step(
         K_face = _face_harmonic_mean(K)
         cap = rho * cp * dz
 
-        # alpha_l[i] = dt * K_face[i]   / (dz_c[i]   * cap[i])
-        # alpha_r[i] = dt * K_face[i+1] / (dz_c[i+1] * cap[i])
-        alpha_l = np.zeros(n)
-        alpha_r = np.zeros(n)
-        for i in range(n):
-            alpha_l[i] = dt * K_face[i] / (dz_c[i] * cap[i])
-            alpha_r[i] = dt * K_face[i + 1] / (dz_c[i + 1] * cap[i])
+        # dt-scaled conductances to the left/right neighbour of each cell
+        alpha_l = dt * K_face[:-1] / (dz_c[:-1] * cap)
+        alpha_r = dt * K_face[1:] / (dz_c[1:] * cap)
 
-        # Build tridiagonal (Crank-Nicolson, theta=0.5). For interior cells
-        # we have both left and right neighbours.
-        a = np.zeros(n)
-        b = np.zeros(n)
-        c = np.zeros(n)
-        for i in range(n):
-            a[i] = -0.5 * alpha_l[i]
-            c[i] = -0.5 * alpha_r[i]
-            b[i] = 1.0 + 0.5 * (alpha_l[i] + alpha_r[i])
-
-        # Explicit-side RHS
-        d = np.zeros(n)
-        for i in range(n):
-            left = T_prev[i - 1] if i > 0 else T_prev[i]
-            right = T_prev[i + 1] if i < n - 1 else T_prev[i]
-            d[i] = (
-                0.5 * alpha_l[i] * left
-                + (1.0 - 0.5 * (alpha_l[i] + alpha_r[i])) * T_prev[i]
-                + 0.5 * alpha_r[i] * right
-            )
+        # Tridiagonal Crank-Nicolson (theta=0.5) system and explicit RHS
+        a = -0.5 * alpha_l
+        c = -0.5 * alpha_r
+        b = 1.0 + 0.5 * (alpha_l + alpha_r)
+        d = (0.5 * alpha_l * T_left
+             + (1.0 - 0.5 * (alpha_l + alpha_r)) * T_prev
+             + 0.5 * alpha_r * T_right)
 
         # --- Upper (surface) BC ---------------------------------------------
         # alpha_l[0] already encodes the conductance between cell 0's center
@@ -546,9 +551,15 @@ def _march_radiative_hayne(z, dz, dz_c, t, insol, T, out, Tsurf,
     n_t = t.size
     dt_wrap = t[1] - t[0]
 
+    # Depth-only factors are time-invariant: evaluate the exponentials once,
+    # not per cell x sweep x step (the expressions are unchanged, so every
+    # value is bit-identical to evaluating them inside the step).
     rho = np.empty(n)
+    Kc = np.empty(n)
     for i in range(n):
-        rho[i] = rho_d - (rho_d - rho_s) * np.exp(-z[i] / Hh)
+        e = np.exp(-z[i] / Hh)
+        rho[i] = rho_d - (rho_d - rho_s) * e
+        Kc[i] = Kd - (Kd - Ks) * e
 
     K = np.empty(n)
     Kf = np.empty(n + 1)
@@ -561,7 +572,9 @@ def _march_radiative_hayne(z, dz, dz_c, t, insol, T, out, Tsurf,
     d = np.empty(n)
     Tprops = np.empty(n)
     T_cycle_start = np.empty(n)
-    x = T.copy()
+    x = np.empty(n)
+    cp_w = np.empty(n)   # Thomas scratch
+    dp_w = np.empty(n)
 
     Ts_at_zero = -1.0
     converged = False
@@ -574,10 +587,9 @@ def _march_radiative_hayne(z, dz, dz_c, t, insol, T, out, Tsurf,
         if Ts_at_zero > 0.0:
             Tsurf[0] = Ts_at_zero
         else:
-            Kc0 = Kd - (Kd - Ks) * np.exp(-z[0] / Hh)
             r0 = T[0] / Tref
             Tsurf[0] = _newton_ts_njit(insol[0], albedo, emissivity,
-                                       Kc0 * (1.0 + chi * r0 * r0 * r0),
+                                       Kc[0] * (1.0 + chi * r0 * r0 * r0),
                                        dz[0], T[0], T[0], sigma)
         # n_t-1 in-grid steps, then the wrap step t[-1] -> P (idx 0 forcing)
         for k in range(1, n_t + 1):
@@ -590,17 +602,19 @@ def _march_radiative_hayne(z, dz, dz_c, t, insol, T, out, Tsurf,
             T_sub = T[0]
             Ts_new = T[0]
             for _sweep in range(n_picard + 1):
+                # K at the sweep's property state, with each face's harmonic
+                # mean formed as soon as both neighbours exist
                 for i in range(n):
-                    Kc = Kd - (Kd - Ks) * np.exp(-z[i] / Hh)
                     r = Tprops[i] / Tref
-                    K[i] = Kc * (1.0 + chi * r * r * r)
+                    K[i] = Kc[i] * (1.0 + chi * r * r * r)
+                    if i > 0:
+                        if K[i - 1] == 0.0 or K[i] == 0.0:
+                            Kf[i] = 0.0
+                        else:
+                            Kf[i] = 2.0 * K[i - 1] * K[i] / (K[i - 1] + K[i])
                 Kf[0] = K[0]
                 Kf[n] = K[n - 1]
-                for i in range(1, n):
-                    if K[i - 1] == 0.0 or K[i] == 0.0:
-                        Kf[i] = 0.0
-                    else:
-                        Kf[i] = 2.0 * K[i - 1] * K[i] / (K[i - 1] + K[i])
+                # one pass: capacity, conductances, CN matrix row, explicit RHS
                 for i in range(n):
                     Tp = Tprops[i]
                     cp_i = c0 + Tp * (c1 + Tp * (c2 + Tp * (c3 + Tp * c4)))
@@ -610,7 +624,6 @@ def _march_radiative_hayne(z, dz, dz_c, t, insol, T, out, Tsurf,
                     a[i] = -0.5 * al[i]
                     c[i] = -0.5 * ar[i]
                     b[i] = 1.0 + 0.5 * (al[i] + ar[i])
-                for i in range(n):
                     left = T[i - 1] if i > 0 else T[i]
                     right = T[i + 1] if i < n - 1 else T[i]
                     d[i] = (0.5 * al[i] * left
@@ -623,7 +636,7 @@ def _march_radiative_hayne(z, dz, dz_c, t, insol, T, out, Tsurf,
                 d[0] += 0.5 * al[0] * Ts_new
                 b[n - 1] -= 0.5 * ar[n - 1]
                 d[n - 1] += dt * Qb / cap[n - 1]
-                x = _thomas(a, b, c, d)
+                _thomas_into(a, b, c, d, cp_w, dp_w, x)
                 for i in range(n):
                     Tprops[i] = 0.5 * (T[i] + x[i])
                 T_sub = x[0]

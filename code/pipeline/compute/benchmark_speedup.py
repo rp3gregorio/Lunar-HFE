@@ -30,7 +30,7 @@ import numpy as np
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lunar.config import (SITES, GRID, HAYNE, S0, T_LUNAR, DT_STEP, KD_GRIDS,
+from lunar.config import (SITES, GRID, HAYNE, DT_STEP, KD_GRIDS,
                           EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL)
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat

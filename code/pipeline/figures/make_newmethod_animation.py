@@ -35,7 +35,7 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
-from lunar.config import (SITES, GRID, HAYNE, S0, T_LUNAR, DT_STEP,
+from lunar.config import (SITES, GRID, HAYNE, DT_STEP,
                           EQ_N_INNER, EQ_Z_ANCHOR)
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat

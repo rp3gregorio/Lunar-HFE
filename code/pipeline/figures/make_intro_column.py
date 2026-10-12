@@ -69,7 +69,7 @@ from lunar.constants import RHO_DEEP, RHO_SURFACE
 from lunar.grid import make_geometric_grid
 from lunar.plotting.style import (C_HAYNE_GLOBAL, LS_HAYNE_GLOBAL, LS_MS)
 from lunar.plotting.style import (C_CHAR, C_CORAL, C_DIM, C_FOREST, C_GRID,
-                                  C_MS, C_TEAL)
+                                  C_MS)
 from lunar.properties import (conductivity_hayne, conductivity_martinez,
                               density_hayne)
 
@@ -336,7 +336,6 @@ def draw_grid_half(ax):
 
 
 def draw_grid_notes(ax, g):
-    dz = g.dz
     ax.text(0.5 * (BLK_L + X_SPLIT), Y_BOT - 0.17,
             "the material", color=C_CHAR, fontsize=8.5, ha="center",
             va="center")
@@ -348,7 +347,7 @@ def draw_grid_notes(ax, g):
     ax.text(0.5 * (BLK_L + BLK_R), Y_BOT - 0.42,
             r"left: log depth (cm, outer axis)  ·  right: linear depth "
             r"(m, inner ticks), each cell $1.08\times$ the last",
-            color=C_DIM, fontsize=7.0, ha="center", va="center")
+            color=C_DIM, fontsize=7.5, ha="center", va="center")
 
 
 def draw_fluxes(ax, mid):
@@ -442,7 +441,7 @@ def draw_fluxes(ax, mid):
     ax.plot([BLK_L, X_SPLIT], [y_dead, y_dead], color=C_DIM,
             lw=0.8, ls=(0, (2.4, 2.0)), zorder=12)
     ax.text(X_SPLIT - 0.04, y_dead + 0.03,
-            rf"$<0.1$ K",
+            r"$<0.1$ K",
             color=C_DIM, fontsize=7.5, ha="right", va="bottom",
             zorder=13, bbox=HALO)
 
@@ -490,9 +489,10 @@ def draw_probes(ax):
                    facecolor=PAPER, edgecolor=col, linewidth=0.8, zorder=14)
 
         side = -1 if mis == "a15" else 1          # labels point away from each other
-        ax.text(x + 0.075 * side, y_e,
+        # A17 label lifted clear of the basal-flux equation and the grid note
+        ax.text(x + 0.075 * side, y_e + (0.11 if side > 0 else 0.0),
                 f"{lab}\n{d.max()/100:.2f} m · {int(m.sum())} sensors",
-                color=_shade(col, -0.2), fontsize=6.6, linespacing=1.35,
+                color=_shade(col, -0.2), fontsize=7.6, linespacing=1.35,
                 ha=("right" if side < 0 else "left"), va="center",
                 zorder=15, bbox=HALO)
 
@@ -515,28 +515,28 @@ def draw_kpanel(ax):
     for v in (0, 3, 6, 9):
         ax.plot([kx(v), kx(v)], [Y_TOP, Y_TOP + 0.055], color=C_DIM, lw=0.7,
                 zorder=4)
-        ax.text(kx(v), Y_TOP + 0.09, f"{v:g}", color=C_DIM, fontsize=7,
+        ax.text(kx(v), Y_TOP + 0.09, f"{v:g}", color=C_DIM, fontsize=8,
                 ha="center", va="bottom", zorder=6)
     ax.text(0.5 * (KPAN_L + KPAN_R), Y_TOP + 0.30,
-            r"$K$ (mW m$^{-1}$ K$^{-1}$) at 250 K", color=C_CHAR,
-            fontsize=7.6, ha="center", va="bottom", zorder=6)
+            r"$K$ (mW m$^{\mathrm{-1}}$ K$^{\mathrm{-1}}$) at 250 K", color=C_CHAR,
+            fontsize=8.5, ha="center", va="bottom", zorder=6)
 
-    ax.text(kx(6.9), ymap(2.2), "Hayne", color=_shade(C_HAYNE_GLOBAL, -0.3), fontsize=7.2,
+    ax.text(kx(6.9), ymap(2.2), "Hayne", color=_shade(C_HAYNE_GLOBAL, -0.3), fontsize=8,
             ha="left", va="center", zorder=7, bbox=HALO)
     ax.text(kx(8.1), ymap(320.0), "Mart\u00ednez\n& Siegler", color=C_MS,
-            fontsize=7.2, ha="left", va="center", zorder=7, bbox=HALO)
+            fontsize=8, ha="left", va="center", zorder=7, bbox=HALO)
 
 
 def draw_bc_labels(ax):
     """Name the two boundary conditions on the fluxes already drawn."""
-    ax.text(BLK_R + SHEAR_X + 0.06, Y_TOP + 0.86,
-            r"$(1-A)F_\odot-\varepsilon\sigma T_s^{4}"
-            r"=\left(-K\,\partial_z T\right)_{z=0}$",
-            color=DARK, fontsize=7.2, ha="right", va="center", zorder=15,
+    ax.text(BLK_R + SHEAR_X + 0.06, Y_TOP + 0.95,
+            r"$(\mathrm{1}-A)\,F_\odot-\varepsilon\sigma T_s^{\mathrm{4}}"
+            r"=\left(-K\,\partial_z T\right)_{z=\mathrm{0}}$",
+            color=DARK, fontsize=11, ha="right", va="center", zorder=15,
             bbox=HALO)
-    ax.text(BLK_L + 0.30, Y_BOT + 0.02,
-            r"$K\,\partial_z T|_{z_{\max}}=Q_b$",
-            color=C_CHAR, fontsize=7.0, ha="left", va="bottom",
+    ax.text(BLK_L + 0.26, Y_BOT + 0.03,
+            r"$K\,\partial_z T\,|_{z_{\max}}=Q_b$",
+            color=C_CHAR, fontsize=10, ha="left", va="bottom",
             zorder=15, bbox=HALO)
 
 
@@ -557,6 +557,14 @@ def draw_density(ax):
     ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.24,
             r"$\rho$ (kg m$^{\mathrm{-3}}$)", color=C_DIM, fontsize=8.5,
             ha="center", va="bottom")
+    # the density law itself (letter Equation 7), with its three constants
+    ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.86,
+            r"$\rho(z)=\rho_d-(\rho_d-\rho_s)\,e^{-z/H}$",
+            color=DARK, fontsize=11, ha="center", va="center", zorder=15)
+    ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.58,
+            rf"$\rho_s$ = {RHO_SURFACE:.0f}, $\rho_d$ = {RHO_DEEP:.0f} kg m$^{{\mathrm{{-3}}}}$,"
+            rf" $H$ = {HAYNE['H'] * 100:.0f} cm",
+            color=C_DIM, fontsize=8.0, ha="center", va="center", zorder=15)
     # --- the tie lines: the packing at a depth <-> the density at that depth --
     # Four depths spanning the transition: 15 %, 63 %, 92 % and 99 % of the way
     # from the surface density to the deep one. Each runs from the block to a dot

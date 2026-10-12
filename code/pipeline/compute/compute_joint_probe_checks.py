@@ -81,6 +81,13 @@ def main():
             kk = K[passes[i]]
             site[f"keihm_test_{name}"] = dict(A=float(A[i]), kd_pass_mW=[float(kk.min()), float(kk.max())] if kk.size else None,
                                               n_pass=int(kk.size), n_tested=int(ok.sum()))
+        # the four compared values at A = 0.12 for a few K_d (SI table of the +-5 K test)
+        i12 = int(np.argmin(abs(A - A_HAYNE)))
+        site["keihm_test_values_A_0.12"] = dict(
+            deep_depth_m=zd, deep_obs_K=Td, surface_obs_K=jf.TS_OBS[s], tol_K=KEIHM_TOL,
+            rows=[dict(kd_mW=float(K[k]), surface_K=float(Ts[i12, k]), deep_K=float(Tdeep[i12, k]),
+                       passes=bool(passes[i12, k]))
+                  for k in [int(np.argmin(abs(K - v))) for v in (1.25, 3.4, 5.0, 6.5, 10.25)]])
         out["sites"][s] = site
     for s in ("A15", "A17"):
         v = [t["kd_mW"] for t in out["sites"][s]["transient"]]

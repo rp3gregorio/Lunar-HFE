@@ -97,7 +97,6 @@ def main():
             surfs.append(surfT)
         out[s] = {"kd_star": kds, "surface_T": surfs}
         kd0 = kds[DA.index(0.0)]
-        st0 = surfs[DA.index(0.0)]
         print(f"\n=== {SITES[s]['label']} ===")
         print(f"{'dA':>7} | {'surf T (K)':>11} | {'K_d* (mW/m/K)':>14} "
               f"| {'dK_d*':>8}")

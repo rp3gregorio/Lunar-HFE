@@ -105,6 +105,9 @@ def load_basemap():
     # LOLA hillshade at the albedo resolution
     if DEM.exists():
         dem = np.fromfile(DEM, dtype="<i2").reshape(2880, 5760).astype(float) * 0.5
+        # the LDEM starts at 0 deg E, the Clementine mosaic at 180 W: roll the DEM
+        # half a turn so the hillshade lines up with the albedo (fixed 2026-10-08)
+        dem = np.roll(dem, dem.shape[1] // 2, axis=1)
         # coarsen to the albedo grid
         fy, fx = 2880 // H, 5760 // W
         dem = dem[:fy * H:fy, :fx * W:fx][:H, :W]

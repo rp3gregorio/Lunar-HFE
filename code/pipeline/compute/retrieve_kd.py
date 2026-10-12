@@ -26,19 +26,23 @@ Sections (search the function name -- line numbers drift):
     holdout_tg_tr / loo_deepest          -- hold-out diagnostics
     main                                 -- orchestrates the above
 
-Runtime: dominated by the equilibrium solves (K_d sweeps, joint grid,
-hold-outs -- a few hundred calls of run_with, deduplicated by
-_PROFILE_CACHE); the bootstrap reuses the cached residual matrix, no new
-physics. Per-solve cost depends on DT_STEP / EQ_N_INNER / CN_PICARD_SWEEPS
-(lunar.config) -- see results/speedup_benchmark.json for the current number
-rather than trusting a stale figure here.
+Runtime: dominated by the equilibrium solves -- the Hayne and 3-layer K_d
+sweeps (one solve per config.KD_GRIDS point per site) and the joint K_d x H
+grid. main() runs these independent solves on N_WORKERS processes
+(prefetch_profiles) and the analysis then reads them from _PROFILE_CACHE;
+each solve is deterministic, so the results are bit-identical to a serial
+run. The
+3-layer sweep has no compiled fast path and is the slowest phase. The
+bootstrap reuses the cached profiles, no new physics (~1 s). Per-solve cost
+depends on DT_STEP / EQ_N_INNER / CN_PICARD_SWEEPS (lunar.config) -- see
+results/speedup_benchmark.json rather than trusting a figure here.
 
 Run with:
     python pipeline/compute/retrieve_kd.py
 """
 from __future__ import annotations
-import json, sys, pathlib, time
-from copy import deepcopy
+import functools, json, sys, pathlib, time
+from multiprocessing import Pool
 
 # Repo root resolved from this file's location, so results and figures
 # are written into the SAME checkout the script is run from.
@@ -60,29 +64,23 @@ import matplotlib.pyplot as plt
 from lunar.grid import make_geometric_grid
 from lunar.properties import (conductivity_hayne, conductivity_martinez,
                               specific_heat)
-from lunar.constants import (
-    K_SURFACE, H_PARAMETER, CHI_RADIATIVE, T_REFERENCE, LUNATION_SECONDS,
-)
-from lunar.solver import (PixelInputs, solve_pixel, periodic_time_grid,
-                          standard_insolation)
+from lunar.solver import periodic_time_grid, standard_insolation
 from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.apollo_helpers import extract_sensor_stability
 
 
 # Shared publication style from the package (no longer a figure-script import).
 from lunar.plotting.style import (   # noqa: E402
-    C_A15, C_A17, C_HAYNE, C_MS, C_LAB, C_TEAL, C_TEAL_L,
-    C_FOREST, C_CORAL, C_CHAR, C_DIM, C_GRID,
-    WARM_DIVERGE, WARM_SEQ,
-    FS_BASE, FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND,
-    fmt_axis,
+    C_A15, C_A17, C_CHAR, C_GRID,
+    FS_LABEL, FS_TICK, fmt_axis,
 )
 # Single source of truth for ALL run configuration (lunar/config.py) --
 # SITES, GRID, the Hayne bundle, the equilibrium-solver settings, the
 # 3-layer parameters. These used to be redefined here and in four figure
 # scripts; now there is exactly one definition.
 from lunar.config import (   # noqa: E402
-    S0, T_LUNAR, DT_STEP,
+    S0, T_LUNAR,   # noqa: F401 -- re-exported (make_equilibrium_certification imports them from here)
+    DT_STEP,
     EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL,
     GRID, HAYNE, SITES, DEPTH_SIGMA_CM, KD_GRIDS,
     TL_Z1, TL_Z2, TL_RHO_REF, TL_RHO_SITE,
@@ -94,6 +92,14 @@ sys.path.insert(0, str(_REPO / 'pipeline' / 'figures'))
 # In-process memo cache for converged mean profiles, keyed on every input
 # that can change the forward model (speeds the repeated sweeps).
 _PROFILE_CACHE: dict = {}
+
+# Worker processes for the independent equilibrium solves in main(); each
+# solve is single-threaded (same count as the other compute scripts).
+N_WORKERS = 5
+
+# The HFE record is otherwise re-read for every sweep (~2 s each); callers
+# only read the returned arrays.
+_sensor_obs = functools.lru_cache(maxsize=None)(extract_sensor_stability)
 
 
 def _interp_profile_at_depths(z_obs, z_model, T_model, *, context):
@@ -125,6 +131,16 @@ def conductivity_3layer(T, z, Kd, rho_deep=TL_RHO_REF):
 
 
 # ── Solver wrappers ──────────────────────────────────────────────────────────
+def _cache_key(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
+               rho_deep=None, martinez_alpha=None):
+    """_PROFILE_CACHE key of one run_with() call (same keyword interface)."""
+    return (site_cfg.get('tag'), site_cfg['lat'], site_cfg['albedo'],
+            site_cfg['emissivity'],
+            site_cfg['Q_BASAL'] if qb is None else qb,
+            kd, HAYNE['H'] if h is None else h, k_model, rho_deep,
+            martinez_alpha)
+
+
 def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
              rho_deep=None, martinez_alpha=None):
     """Drive the 1-D solver for one site under a chosen K(z) model.
@@ -145,15 +161,14 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
         scale the deep asymptote to alpha*1800. Used for the Martinez
         per-site retrieval; ignored under 'hayne' and '3layer'.
     """
-    site = deepcopy(site_cfg)
+    cache_key = _cache_key(site_cfg, kd=kd, h=h, qb=qb, k_model=k_model,
+                           rho_deep=rho_deep, martinez_alpha=martinez_alpha)
+    if cache_key in _PROFILE_CACHE:
+        return _PROFILE_CACHE[cache_key]
+    site = dict(site_cfg)
     if qb is not None:
         site['Q_BASAL'] = qb
     h = HAYNE['H'] if h is None else h
-    cache_key = (site.get('tag'), site['lat'], site['albedo'],
-                 site['emissivity'], site['Q_BASAL'],
-                 kd, h, k_model, rho_deep, martinez_alpha)
-    if cache_key in _PROFILE_CACHE:
-        return _PROFILE_CACHE[cache_key]
     grid_  = make_geometric_grid(**GRID)
     z_mid  = grid_.z_mid
     t_s = periodic_time_grid(DT_STEP)   # commensurate lunation grid (audit 2026-07-03)
@@ -193,21 +208,11 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
                                       H=h, chi=HAYNE['CHI'])
     def cp_func(T):
         return specific_heat(T, model='hayne')
-    # ──────────────────────────────────────────────────────────────────────────
-    # PERFORMANCE: Thermal solver dominates per-call runtime
-    # ──────────────────────────────────────────────────────────────────────────
-    # Flux-anchored equilibrium solver (lunar/equilibrium.py) runs EQ_N_INNER
-    # truncated-skin lunations per outer iteration, typically 3-5 outer
-    # cycles. Each lunation marches round(T_LUNAR/DT_STEP) Crank-Nicolson
-    # steps; each step runs 1+CN_PICARD_SWEEPS assembly+Thomas solves plus a
-    # Newton iteration per sweep for the radiative surface BC (all settings
-    # from lunar.config -- no counts hardcoded here, they drift).
-    #
-    # Called a few hundred times in the full pipeline (K_d sweeps, joint
-    # H x K_d grid, cross-validation), hence the _PROFILE_CACHE above.
-    # Initial guess T_MEAN_EFF only seeds the first iterate; the final
-    # profile is independent of it (F1 audit).
-    # ──────────────────────────────────────────────────────────────────────────
+    # The flux-anchored solve (lunar/equilibrium.py) is the whole cost of this
+    # call: EQ_N_INNER skin lunations per outer iteration, round(T_LUNAR /
+    # DT_STEP) Crank-Nicolson steps per lunation, 1 + CN_PICARD_SWEEPS
+    # tridiagonal solves per step. T_MEAN_EFF only seeds the first iterate;
+    # the converged profile is independent of it (F1 audit).
     eq = solve_periodic_equilibrium(
         grid=grid_, t=t_s, insolation=insol,
         albedo=site['albedo'], emissivity=site['emissivity'],
@@ -226,6 +231,34 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
               f"closure={eq.flux_closure:.3%})", flush=True)
     _PROFILE_CACHE[cache_key] = (z_mid, eq.T_mean)
     return z_mid, eq.T_mean
+
+
+def _solve_job(job):
+    """Pool worker: one run_with() call, tagged with its job index."""
+    i, site_cfg, kw = job
+    return i, run_with(site_cfg, **kw)
+
+
+def prefetch_profiles(jobs, desc):
+    """Solve independent run_with() calls on N_WORKERS processes.
+
+    ``jobs`` is a list of ``(site_cfg, run_with_kwargs)``. The profiles land
+    in _PROFILE_CACHE, so the serial analysis loops that follow are cache
+    hits. Each solve is deterministic and self-contained, so the cached
+    profiles are bit-identical to running the same calls serially. Other
+    compute scripts call it ahead of their own run_with() loops; call it from
+    code under ``if __name__ == "__main__"`` (workers re-import that module).
+    """
+    todo = [(cfg, kw) for cfg, kw in jobs
+            if _cache_key(cfg, **kw) not in _PROFILE_CACHE]
+    if not todo:
+        return
+    tagged = [(i, cfg, kw) for i, (cfg, kw) in enumerate(todo)]
+    with Pool(N_WORKERS) as pool:
+        for i, profile in tqdm(pool.imap_unordered(_solve_job, tagged),
+                               total=len(todo), desc=desc, unit="solve"):
+            cfg, kw = todo[i]
+            _PROFILE_CACHE[_cache_key(cfg, **kw)] = profile
 
 
 # The vertex is only as accurate as the grid spacing AROUND the minimum.
@@ -302,8 +335,8 @@ def run_kd_sweep_extended(site_cfg, kd_grid, k_model='hayne'):
     RMSE. Wall time scales with len(kd_grid) x one equilibrium solve; see
     results/speedup_benchmark.json for the current per-solve cost.
     """
-    obs = extract_sensor_stability(site_cfg['mission'],
-                                   min_depth_cm=site_cfg['MIN_DEPTH_CM'])
+    obs = _sensor_obs(site_cfg['mission'],
+                      min_depth_cm=site_cfg['MIN_DEPTH_CM'])
     z_obs = np.asarray(obs['depth_cm_all']) / 100.0
     T_obs = np.asarray(obs['T_eq_all'])
     deep  = np.asarray(obs['deep_mask'], dtype=bool)
@@ -317,7 +350,7 @@ def run_kd_sweep_extended(site_cfg, kd_grid, k_model='hayne'):
     for k, kd in enumerate(tqdm(kd_grid,
                                 desc=f"K_d sweep {site_cfg['label']} {k_model}",
                                 unit="Kd")):
-        # EXPENSIVE: This calls solve_periodic_equilibrium (~40 lunations)
+        # one full equilibrium solve, unless main() prefetched it
         z_mid, T_mean_z = run_with(site_cfg, kd=kd, k_model=k_model)
         T_pred = _interp_profile_at_depths(
             z_obs_deep, z_mid, T_mean_z,
@@ -353,18 +386,9 @@ def bootstrap_kd_with_depth_uncertainty(
         z_mid, T_mean_z = run_with(site_cfg, kd=kd)
         T_cache[k] = np.interp(z_grid_dense, z_mid, T_mean_z)
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # PERFORMANCE: Bootstrap statistical resampling (65% of runtime)
-    # ──────────────────────────────────────────────────────────────────────────
-    # This is NOT part of K_d retrieval - pure statistical uncertainty analysis.
-    # Reuses cached thermal solver results from above. NO new physics runs.
-    #
-    # Each of 1500 iterations: (1) resample sensor indices with replacement,
-    # (2) jitter depths by ±2.5 cm, (3) interpolate cached T_model(z,K_d),
-    # (4) refit K_d* from resampled data. Total: 18M interpolations (cheap
-    # operations, expensive only due to iteration count). Reduce to 300 for
-    # testing (docs/REPRODUCING.md).
-    # ──────────────────────────────────────────────────────────────────────────
+    # Pure statistics on the cached profiles -- no new physics (~1 s for
+    # 1500 draws). Each draw: resample sensors with replacement, jitter their
+    # depths, re-interpolate the cached T_model(z, K_d), refit K_d*.
     boots = np.empty(n_boot)
     for b in tqdm(range(n_boot),
                   desc=f"bootstrap {site_cfg['label']}", unit="draw"):
@@ -393,8 +417,8 @@ def bootstrap_kd_with_depth_uncertainty(
 # A2 — Densified joint K_d × H grid
 # ══════════════════════════════════════════════════════════════════════════════
 def joint_kd_h_dense(site_cfg, kd_grid, h_grid):
-    obs = extract_sensor_stability(site_cfg['mission'],
-                                   min_depth_cm=site_cfg['MIN_DEPTH_CM'])
+    obs = _sensor_obs(site_cfg['mission'],
+                      min_depth_cm=site_cfg['MIN_DEPTH_CM'])
     z_obs = np.asarray(obs['depth_cm_all']) / 100.0
     T_obs = np.asarray(obs['T_eq_all'])
     deep  = np.asarray(obs['deep_mask'], dtype=bool)
@@ -464,28 +488,30 @@ def main():
     out_dir = _REPO / 'results'
     # One figure home: every generator writes to the top-level shared
     # figures/ folder (see STRUCTURE.md); results/ holds JSON only.
-    fig_letter = _REPO.parent / 'figures'
-    fig_appendix = _REPO.parent / 'figures'
+    fig_dir = _REPO.parent / 'figures'
     results = {}
 
     # ── A1: extended K_d grids ────────────────────────────────────────────
     # Single-sourced in lunar.config.KD_GRIDS (wide span + dense 0.2 mW band at
     # the minimum for a grid-converged parabola vertex; see the comment there).
     kd_grids = KD_GRIDS
-    # ──────────────────────────────────────────────────────────────────────────
-    # PERFORMANCE: Extended K_d sweep accounts for ~20% of total runtime
-    # ──────────────────────────────────────────────────────────────────────────
-    # Run equilibrium solver at 28 (A15) + 30 (A17) = 58 K_d values to map out
-    # RMSE(K_d) curves. Each solver call runs ~40 lunations × 709 timesteps.
-    # This establishes the baseline residual matrix R[sensor, K_d] used for
-    # optimal K_d* retrieval and subsequent bootstrap resampling.
-    # ──────────────────────────────────────────────────────────────────────────
+    # Solve every sweep point of A1 (Hayne) and A1b (3-layer) for both sites
+    # in parallel up front; the loops below then read the cache. The 3-layer
+    # solves run the generic (uncompiled) march and are much slower, so they
+    # are queued first to keep the workers busy to the end.
+    print(f"\n=== A1/A1b: equilibrium solves on {N_WORKERS} workers ===",
+          flush=True)
+    prefetch_profiles([(cfg, dict(kd=kd, k_model=k_model))
+                       for k_model in ('3layer', 'hayne')
+                       for name, cfg in SITES.items() for kd in kd_grids[name]],
+                      desc="K_d sweeps (3-layer + Hayne)")
+    print(f"   [t={time.time()-t0:.0f}s]", flush=True)
+
+    # R[sensor, K_d] per site: the residual matrix behind K_d*, the bootstrap
+    # and the hold-out tests.
     cache = {}
     for name, cfg in SITES.items():
         print(f"\n=== A1: extended K_d sweep — {name} ===", flush=True)
-        # This loop calls the thermal solver 28 (A15) or 30 (A17) times.
-        # Each call runs ~40 lunations × 709 timesteps = ~28k timesteps.
-        # Total: 58 solver runs × 40 lunations = 2320 simulated lunations.
         z_obs, T_obs, R, stype = run_kd_sweep_extended(cfg, kd_grids[name])
         cache[name] = dict(z_obs=z_obs, T_obs=T_obs, R=R,
                            kd_grid=kd_grids[name], stype=stype)
@@ -498,14 +524,8 @@ def main():
               flush=True)
 
     # ── A1b: same K_d sweep under the this-work discrete 3-layer model ────
-    # ──────────────────────────────────────────────────────────────────────────
-    # PERFORMANCE: 3-layer model sweep adds ~5% to total runtime
-    # ──────────────────────────────────────────────────────────────────────────
-    # Repeat K_d sweep (58 solver runs) using discrete 3-layer conductivity
-    # model instead of continuous H-parameter formulation. Same single free
-    # parameter K_d; same retrieval method. Quantifies sensitivity of K_d* to
-    # assumed vertical transition structure between surface and deep regolith.
-    # ──────────────────────────────────────────────────────────────────────────
+    # Same single free parameter and retrieval; quantifies how K_d* depends
+    # on the assumed surface-to-deep transition structure.
     for name, cfg in SITES.items():
         print(f"\n=== A1b: 3-layer K_d sweep — {name} ===", flush=True)
         _, _, R3, _ = run_kd_sweep_extended(cfg, kd_grids[name],
@@ -528,14 +548,8 @@ def main():
               flush=True)
 
     # ── A5: depth-uncertainty bootstrap (extended grid + jittered depths) ─
-    # ──────────────────────────────────────────────────────────────────────────
-    # PERFORMANCE: Statistical post-processing (65% of runtime, but NOT physics)
-    # ──────────────────────────────────────────────────────────────────────────
-    # Bootstrap resampling to quantify uncertainty: 1500 iterations per site
-    # to propagate ±2.5 cm depth uncertainty into K_d* confidence intervals.
-    # Uses cached thermal solver results from A1 above - no new physics runs.
-    # This is pure statistics for error bars. Reduce to 300 for testing.
-    # ──────────────────────────────────────────────────────────────────────────
+    # 1500 draws per site propagate the sensor-depth envelope into the K_d*
+    # CIs; reuses the A1 profiles, no new physics.
     print(f"\n=== A5: bootstrap with depth uncertainty (±{DEPTH_SIGMA_CM} cm) ===",
           flush=True)
     for name, cfg in SITES.items():
@@ -571,24 +585,24 @@ def main():
           f"P_boot(dK<=0)={(contrast<=0).mean():.4g}", flush=True)
     print(f"   [t={time.time()-t0:.0f}s]", flush=True)
 
-    # ── A2: 8x8 joint K_d × H grid ────────────────────────────────────────
-    # ──────────────────────────────────────────────────────────────────────────
-    # PERFORMANCE: Joint parameter grid accounts for ~12% of total runtime
-    # ──────────────────────────────────────────────────────────────────────────
-    # Map 8×8 grid in (K_d, H) space for both sites: 64 runs/site × 2 = 128
-    # solver calls at ~40 lunations each. Tests for degeneracy between deep
-    # conductivity K_d and compaction scale height H. Result: minimal trade-off,
-    # K_d* is robust to H variations.
-    # ──────────────────────────────────────────────────────────────────────────
-    print(f"\n=== A2: dense joint K_d × H per site ===", flush=True)
+    # ── A2: joint K_d × H grid ────────────────────────────────────────────
+    # Degeneracy between deep conductivity K_d and the compaction scale H:
+    # 8 H values x 8 (A15) / 12 (A17) K_d values around each site's K_d*.
+    print("\n=== A2: dense joint K_d × H per site ===", flush=True)
     h_grid = np.linspace(0.03, 0.10, 8)
-    for name, cfg in SITES.items():
+    kd_joint = {}
+    for name in SITES:
         ks = results[name]['kd_star']
         # A17's K_d-H degeneracy valley bottoms ABOVE the old 1.45x edge, so
         # sweep it wider (to ~1.7x, ~12 mW) on a finer grid to capture the
         # interior minimum; A15's minimum is interior already (unchanged).
         hi, npts = (1.70, 12) if name == "A17" else (1.45, 8)
-        kd_g = np.linspace(0.55*ks, hi*ks, npts)
+        kd_joint[name] = np.linspace(0.55*ks, hi*ks, npts)
+    prefetch_profiles([(cfg, dict(kd=kd, h=h)) for name, cfg in SITES.items()
+                       for h in h_grid for kd in kd_joint[name]],
+                      desc="joint K_d×H")
+    for name, cfg in SITES.items():
+        kd_g = kd_joint[name]
         rmse2d = joint_kd_h_dense(cfg, kd_g, h_grid)
         i, j = np.unravel_index(np.argmin(rmse2d), rmse2d.shape)
         results[name]['joint_kd_h'] = dict(
@@ -601,7 +615,7 @@ def main():
     print(f"   [t={time.time()-t0:.0f}s]", flush=True)
 
     # ── A3: held-out validation ───────────────────────────────────────────
-    print(f"\n=== A3: held-out validation ===", flush=True)
+    print("\n=== A3: held-out validation ===", flush=True)
     for name in SITES:
         c = cache[name]
         tgtr = holdout_tg_tr(SITES[name], c['kd_grid'], c['R'], c['stype'])
@@ -621,9 +635,8 @@ def main():
 
     # ── save ──────────────────────────────────────────────────────────────
     def jsonify(o):
-        import numpy as _np
-        if isinstance(o, _np.ndarray): return o.tolist()
-        if isinstance(o, (_np.floating, _np.integer)): return o.item()
+        if isinstance(o, np.ndarray): return o.tolist()
+        if isinstance(o, (np.floating, np.integer)): return o.item()
         if isinstance(o, dict): return {k: jsonify(v) for k, v in o.items()}
         if isinstance(o, (list, tuple)): return [jsonify(x) for x in o]
         return o
@@ -634,9 +647,8 @@ def main():
     # compute_qb_degeneracy.py, which fig_robustness panel (a) and the
     # error budget actually use). Kept only for backward compatibility
     # of the JSON schema; do NOT base any conclusion on this block.
-    import numpy as _np
-    alphas = _np.linspace(0.0, 1.3, 27)
-    g15, g17 = _np.meshgrid(alphas, alphas, indexing='ij')
+    alphas = np.linspace(0.0, 1.3, 27)
+    g15, g17 = np.meshgrid(alphas, alphas, indexing='ij')
     _kd15 = results['A15']['kd_star'] * g15
     _kd17 = results['A17']['kd_star'] * g17
     _contrast = _kd17 - _kd15
@@ -669,13 +681,17 @@ def main():
     print(f"\nSaved: {out_path}", flush=True)
 
     # ── figures ───────────────────────────────────────────────────────────
-    print(f"\n=== Figures ===", flush=True)
+    print("\n=== Figures ===", flush=True)
     from make_results_figures import (   # type: ignore
         fig_bootstrap, fig_robustness,
     )
-    fig_bootstrap(results, fig_letter / 'fig_bootstrap.pdf')
-    fig_robustness(results, fig_letter / 'fig_robustness.pdf')
-    fig_holdout(results, fig_appendix / 'fig_holdout.pdf')
+    fig_bootstrap(results, fig_dir / 'fig_bootstrap.pdf')
+    try:   # v1.1 (fixed-albedo) figure, used only by the GEDES thesis; its guard checks a
+           # claim of that text and must not stop the reproduction of the current paper
+        fig_robustness(results, fig_dir / 'fig_robustness.pdf')
+    except AssertionError as e:
+        print(f"  WARNING: fig_robustness.pdf (v1.1, not in the current paper) not drawn: {e}", flush=True)
+    fig_holdout(results, fig_dir / 'fig_holdout.pdf')
 
     print(f"\n[t={time.time()-t0:.0f}s] Phase-A pipeline complete.", flush=True)
 

@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lunar.plotting.style import (JGR_HALF, C_A17, C_CHAR, C_DIM, C_GRID,
+from lunar.plotting.style import (JGR_HALF, C_A17, C_DIM, C_GRID,
                                   C_FOREST, fmt_axis, assert_no_overlap)
 
 OUT = ROOT / ".." / "figures"

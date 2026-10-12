@@ -14,7 +14,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from lunar.grid import DepthGrid, make_geometric_grid
+from lunar.grid import make_geometric_grid
 from lunar.solver import (
     PixelInputs,
     _solve_surface_newton,

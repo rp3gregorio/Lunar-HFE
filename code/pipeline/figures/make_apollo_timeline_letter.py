@@ -48,6 +48,7 @@ from __future__ import annotations
 import sys
 import pathlib
 
+import datetime
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -68,13 +69,13 @@ boot.ensure_apollo_hfe(mission="a15", probes=())
 boot.ensure_apollo_hfe(mission="a17", probes=())
 from lunar.apollo_helpers import extract_sensor_stability
 from lunar.config import SITES
-from lunar.plotting.style import (C_CORAL, C_CORAL_L, C_TEAL, C_FOREST,
-                                  C_PLUM, C_CHAR, assert_no_overlap,
-                                  C_FOREST_L, C_A15_2, C_A17_2, C_NEUTRAL, C_DIM)
+from lunar.plotting.style import (C_CORAL, C_CORAL_L, C_FOREST,
+                                  C_CHAR, assert_no_overlap,
+                                  C_FOREST_L, C_A15_2, C_A17_2)
 
 # colour roles (letter figures, 2026-10-05): green = Apollo 15, coral = Apollo 17;
 # documented data-quality events are neutral grey, not a site colour
-C_EVENT_FILL, C_EVENT_EDGE = "#D9D4CC", C_NEUTRAL
+C_EVENT_FILL, C_EVENT_EDGE = "#D9D4CC", "#6E6862"   # darker hatch for print
 
 OUT = ROOT / ".." / "figures"
 
@@ -84,8 +85,9 @@ OUT = ROOT / ".." / "figures"
 # (docs/assets/fig_apollo_timeline_probes_archived.pdf, vector content).
 # Everything the style module does cover (palette block colors, fonts via
 # the imported rcParams) is taken from the module above.
-C_CREAM_KEPT = "#F1ECE5"   # full-record bar, kept-sensor rows
-C_CREAM_BORE = "#EFEAE3"   # full-record bar, borestem rows
+C_CREAM_KEPT = "#E6DED3"   # full-record bar, kept-sensor rows (darkened 2026-10-09 for print)
+C_CREAM_BORE = "#ECE6DE"   # full-record bar, borestem rows
+C_BAR_EDGE = "#8F877D"     # outline of the full-record bars, so they survive printing
 C_BORE_BAR = "#D8D4CC"     # borestem-zone window bar
 C_BORE_EDGE = "#A89F95"
 C_BORE_LBL = "#8E8780"     # borestem row labels / "(borestem)" tags
@@ -110,20 +112,20 @@ _DEPTH_ANCHORS = [
 # plus the hand-set axis window (ylim, yticks) of each upper panel.  The
 # upper limits match [p0.1-0.5, p99+0.75] of the kept-sensor data to within
 # measurement error, but the archive values are kept verbatim.
-_PAGE_W, _PAGE_H = 624.5, 684.4
+_PAGE_W, _PAGE_H = 624.5, 676.4
 _AX_X0, _AX_W = 99.7, 449.7
 _BLOCKS = [
     dict(site="A15", probe=1, color=C_FOREST, tint="#F4F8F4",
          upper=(22.0, 63.8), gantt=(69.0, 131.7),
          ylim=(251.41, 254.32), yticks=(252, 254)),
     dict(site="A15", probe=2, color=C_A15_2, tint="#F3F7F3",
-         upper=(181.1, 225.5), gantt=(229.4, 262.8),
+         upper=(173.1, 217.5), gantt=(221.4, 254.8),
          ylim=(250.00, 252.03), yticks=(251, 252)),
     dict(site="A17", probe=1, color=C_CORAL, tint="#FAF2EE",
          upper=(312.2, 353.2), gantt=(359.0, 435.9),
          ylim=(254.53, 257.39), yticks=(255, 256, 257)),
     dict(site="A17", probe=2, color=C_A17_2, tint="#FBF4F0",
-         upper=(485.2, 526.2), gantt=(532.1, 608.9),
+         upper=(477.2, 518.2), gantt=(524.1, 600.9),
          ylim=(255.50, 257.65), yticks=(256, 257)),
 ]
 _XLIM = (0, 1800)
@@ -148,7 +150,7 @@ def _disturbance_events():
     """
     return {
         "A15": [
-            (0, 60, "Drilling /\nemplacement\ntransient",
+            (0, 60, "Drilling\ntransient",
              "drilling heat dissipating into the regolith"),
             (193, 228, "ALSEP\noutage",
              "ALSEP central-station telemetry outage"),
@@ -158,7 +160,7 @@ def _disturbance_events():
              "gap in the archived TG records before the final segment"),
         ],
         "A17": [
-            (0, 71, "Drilling /\nemplacement\ntransient",
+            (0, 71, "Drilling\ntransient",
              "drilling heat dissipating into the regolith"),
             (444, 461, "ALSEP\noutage",
              "ALSEP central-station telemetry outage"),
@@ -229,7 +231,7 @@ def _draw_block(fig, blk, res, events, cmap, dnorm, xlabel=False):
 
     # ── upper sub-panel: traces ─────────────────────────────────────
     for t0, t1, *_ in events[site]:
-        up.axvspan(t0, t1, fc=C_EVENT_FILL, alpha=0.35, ec=C_EVENT_EDGE, lw=0.5, hatch="////",
+        up.axvspan(t0, t1, fc=C_EVENT_FILL, alpha=0.5, ec=C_EVENT_EDGE, lw=0.6, hatch="////",
                    zorder=1.2)
     bore_segs = [np.column_stack([pdata[s["sensor"]]["t_day"],
                                   pdata[s["sensor"]]["T"]])
@@ -269,19 +271,35 @@ def _draw_block(fig, blk, res, events, cmap, dnorm, xlabel=False):
     # Plain colored text (no filled pill) — the section header reads as text
     # in the panel's own site color; its spine/trace color carry the panel
     # identity, so the solid backdrop is redundant.
-    ov.text(0.5, 1.0 + 6.4 / up_h, f"Apollo {site[1:]} — Probe {probe}",
-            transform=ov.transAxes, ha="center", va="center", fontsize=10.5,
-            color=color, fontweight="bold")
-    for t0, t1, label, _note in events[site]:
-        ov.text(0.5 * (t0 + t1), 0.998, label, ha="center", va="top",
-                fontsize=6.2, color=C_DIM, linespacing=0.87, clip_on=False)
+    # site/probe title in the free right margin, beside its own traces
+    ov.text(1.012, 0.5, f"Apollo {site[1:]}\nProbe {probe}",
+            transform=ov.transAxes, ha="left", va="center", fontsize=10.5,
+            color=color, fontweight="bold", linespacing=1.15, clip_on=False)
+    # event labels once per site, just above the Probe 1 panel: both probes
+    # share the same outages, so Probe 2 carries the hatched bands only
+    if probe == 1:
+        renderer = fig.canvas.get_renderer()
+        px_per_day = (ov.transData.transform((1, 0))[0]
+                      - ov.transData.transform((0, 0))[0])
+        gap_px = 4.0 * fig.dpi / 72.0
+        prev_right = None
+        for t0, t1, label, _note in events[site]:
+            x_lab, ha_lab = (t0, "left") if t0 <= 0 else (0.5 * (t0 + t1), "center")
+            txt = ov.text(x_lab, 1.0 + 1.5 / up_h, label, ha=ha_lab, va="bottom",
+                          fontsize=8.0, color=C_CHAR, linespacing=0.95,
+                          clip_on=False)
+            bb = txt.get_window_extent(renderer)
+            if prev_right is not None and bb.x0 < prev_right + gap_px:
+                txt.set_x(x_lab + (prev_right + gap_px - bb.x0) / px_per_day)
+                bb = txt.get_window_extent(renderer)
+            prev_right = bb.x1
 
     # ── lower sub-panel: per-sensor Gantt strip ─────────────────────
     # bands sit BELOW the opaque full-record bars (the archive's striped
     # look: coral shows in the row gaps, cream rows mask it)
     n = len(sensors)
     for t0, t1, *_ in events[site]:
-        gz.axvspan(t0, t1, fc=C_EVENT_FILL, alpha=0.40, ec=C_EVENT_EDGE, lw=0.5, hatch="////",
+        gz.axvspan(t0, t1, fc=C_EVENT_FILL, alpha=0.55, ec=C_EVENT_EDGE, lw=0.6, hatch="////",
                    zorder=1.2)
     tr_right = blended_transform_factory(gz.transAxes, gz.transData)
     labels = []
@@ -292,7 +310,7 @@ def _draw_block(fig, blk, res, events, cmap, dnorm, xlabel=False):
         borestem = s["depth_cm"] < min_depth
         gz.barh(yc, t[-1] - t[0], left=t[0], height=_BAR_H,
                 color=C_CREAM_BORE if borestem else C_CREAM_KEPT,
-                edgecolor="none", zorder=1.5)
+                edgecolor=C_BAR_EDGE, lw=0.45, zorder=1.5)
         for s0, s1 in _subtract_bands(t[pd["i_start"]], t[-1], bands):
             if borestem:
                 gz.barh(yc, s1 - s0, left=s0, height=_BAR_H, color=C_BORE_BAR,
@@ -300,7 +318,7 @@ def _draw_block(fig, blk, res, events, cmap, dnorm, xlabel=False):
             else:
                 gz.barh(yc, s1 - s0, left=s0, height=_BAR_H,
                         color=cmap(dnorm(s["depth_cm"])), alpha=0.95,
-                        edgecolor=color, lw=0.7, zorder=3)
+                        edgecolor=color, lw=0.9, zorder=3)
         labels.append(f"{s['sensor']:>6s} {s['depth_cm']:>4.0f} cm")
         if borestem:
             gz.text(1.005, yc, "(borestem)", transform=tr_right, ha="left",
@@ -323,8 +341,16 @@ def _draw_block(fig, blk, res, events, cmap, dnorm, xlabel=False):
             tick.set_fontstyle("italic")
     gz.tick_params(axis="y", length=0)
     gz.tick_params(axis="x", labelsize=9.0)
+    # calendar start and end of this probe's record, under the two ends of the axis
+    if "date0" in blk:
+        t_end = max(pdata[s["sensor"]]["t_day"][-1] for s in sensors)
+        for x, txt, ha in ((0.0, blk["date0"], "left"),
+                           (t_end, blk["date1"], "right" if t_end > 0.9 * _XLIM[1] else "center")):
+            gz.annotate(txt, xy=(x, 0), xycoords=("data", "axes fraction"), xytext=(0, -19),
+                        textcoords="offset points", ha=ha, va="top", fontsize=8.0,
+                        color=color, fontstyle="italic", annotation_clip=False)
     if xlabel:
-        gz.set_xlabel("Days since first archived sample", fontsize=10.5)
+        gz.set_xlabel("Days since first archived sample", fontsize=10.5, labelpad=16)
 
     return up, gz, ov
 
@@ -334,6 +360,11 @@ def main(out_name="fig_apollo_timeline_probes.pdf", site_figures=True):
                                           SITES[site]["MIN_DEPTH_CM"])
            for site in ("A15", "A17")}
     events = _disturbance_events()
+    # calendar start/end of each probe's record, read from the data (time_iso)
+    for blk in _BLOCKS:
+        d = res[blk["site"]]["d1" if blk["probe"] == 1 else "d2"]["time_iso"]
+        fmt = lambda iso: datetime.date.fromisoformat(str(iso)[:10]).strftime("%-d %b %Y")
+        blk["date0"], blk["date1"] = "start " + fmt(min(d)), "end " + fmt(max(d))
 
     depths = np.concatenate([res[s]["depth_cm_all"] for s in ("A15", "A17")])
     dmin, dmax = depths.min(), depths.max()
@@ -364,7 +395,7 @@ def main(out_name="fig_apollo_timeline_probes.pdf", site_figures=True):
 
     from matplotlib.legend_handler import HandlerTuple
     handles = [
-        Patch(fc=C_CREAM_KEPT, ec="none"),
+        Patch(fc=C_CREAM_KEPT, ec=C_BAR_EDGE, lw=0.45),
         Patch(fc=C_EVENT_FILL, ec=C_EVENT_EDGE, lw=0.4, hatch="////"),
         (Patch(fc=C_FOREST_L, ec=C_FOREST, lw=0.6), Patch(fc=C_CORAL_L, ec=C_CORAL, lw=0.6)),
         Patch(fc=C_BORE_BAR, ec=C_BORE_EDGE, lw=0.4),
@@ -413,7 +444,7 @@ def _render_site(site, res, events, cmap, dnorm):
         axes.extend(_draw_block(fig, blk, res[blk["site"]], events, cmap,
                                 dnorm, xlabel=(j == len(blocks) - 1)))
     handles = [
-        Patch(fc=C_CREAM_KEPT, ec="none"),
+        Patch(fc=C_CREAM_KEPT, ec=C_BAR_EDGE, lw=0.45),
         Patch(fc=C_CORAL_L, ec=C_CORAL, lw=0.4),
         Patch(fc=C_LEG_TAN, ec=C_FOREST, lw=0.6),
         Patch(fc=C_BORE_BAR, ec=C_BORE_EDGE, lw=0.4),

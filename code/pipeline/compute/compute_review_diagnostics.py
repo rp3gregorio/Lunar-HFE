@@ -62,7 +62,8 @@ window-epoch effect, not a sensor-type calibration offset.
 Writes:
     results/review_diagnostics.json
 
-Runtime: ~5 min (Hayne njit fast path; ~0.6 s per equilibrium solve).
+Runtime: ~330 Hayne fast-path solves (~5 min serial); the Q1 and Q5 sweeps
+run on retrieve_kd.N_WORKERS processes.
 
 Run with:
     python pipeline/compute/compute_review_diagnostics.py
@@ -80,12 +81,11 @@ import numpy as np
 # Single source of physics: the certified retrieval module and the solver.
 import retrieve_kd as rk
 from retrieve_kd import run_with, kd_star_from_residuals, _interp_profile_at_depths
-from lunar.config import (SITES, GRID, DT_STEP, HAYNE, EQ_Z_ANCHOR,
-                          EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL)
+from lunar.config import SITES, GRID, DT_STEP, HAYNE
 from lunar.grid import make_geometric_grid
 from lunar.solver import periodic_time_grid, standard_insolation
-from lunar.properties import conductivity_hayne, specific_heat
-from lunar.equilibrium import solve_periodic_equilibrium
+from lunar.properties import conductivity_hayne
+from lunar.equilibrium import solve_hayne_equilibrium
 
 KD_GLOBAL = 3.4e-3                          # Hayne (2017) global value [W/m/K]
 QB_SCAN_MW = [3.7, 5.0, 7.0, 10.0, 14.0, 16.0]   # 3.7 Saito 2007; 14, 16 Langseth 1976
@@ -128,13 +128,18 @@ def residuals(site_cfg, z_obs, T_obs, kd_grid, qb):
     return R
 
 
-def best_fit(site_cfg, z_obs, T_obs, qb):
-    """Coarse bracket, then a dense 0.1 mW band around it, then the certified vertex."""
+def vertex_grid(site_cfg, z_obs, T_obs, qb):
+    """KD_COARSE plus a dense 0.1 mW band around its RMSE minimum."""
     Rc = residuals(site_cfg, z_obs, T_obs, KD_COARSE, qb)
     k0 = KD_COARSE[int(np.argmin(np.sqrt((Rc ** 2).mean(axis=0))))]
     dense = np.round(np.arange(k0 - 1.0e-3, k0 + 1.0001e-3, 0.1e-3), 7)
     dense = dense[dense > 0]
-    grid = np.unique(np.round(np.concatenate([KD_COARSE, dense]), 7))   # round: no last-bit twins
+    return np.unique(np.round(np.concatenate([KD_COARSE, dense]), 7))   # round: no last-bit twins
+
+
+def best_fit(site_cfg, z_obs, T_obs, qb):
+    """Coarse bracket, then a dense 0.1 mW band around it, then the certified vertex."""
+    grid = vertex_grid(site_cfg, z_obs, T_obs, qb)
     R = residuals(site_cfg, z_obs, T_obs, grid, qb)
     kd_star, rmse_star = kd_star_from_residuals(R, grid)
     return float(kd_star), float(rmse_star)
@@ -143,16 +148,10 @@ def best_fit(site_cfg, z_obs, T_obs, qb):
 def equilibrium(site_cfg, kd):
     g = make_geometric_grid(**GRID)
     t = periodic_time_grid(DT_STEP)
-    eq = solve_periodic_equilibrium(
-        grid=g, t=t, insolation=standard_insolation(site_cfg['lat'], t),
+    eq = solve_hayne_equilibrium(
+        g, t, standard_insolation(site_cfg['lat'], t),
         albedo=site_cfg['albedo'], emissivity=site_cfg['emissivity'],
-        Q_b=site_cfg['Q_BASAL'],
-        K_func=lambda T, z, _kd=kd: conductivity_hayne(
-            T, z, Ks=HAYNE['K_S'], Kd=_kd, H=HAYNE['H'], chi=HAYNE['CHI']),
-        cp_func=lambda T: specific_heat(T, model='hayne'),
-        T_guess=site_cfg['T_MEAN_EFF'], z_anchor=EQ_Z_ANCHOR,
-        n_inner=EQ_N_INNER, max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL,
-        hayne_params=(HAYNE['K_S'], kd, HAYNE['H'], HAYNE['CHI']))
+        Q_b=site_cfg['Q_BASAL'], kd=kd, T_guess=site_cfg['T_MEAN_EFF'])
     return g, eq
 
 
@@ -171,6 +170,14 @@ def global_kd_vs_qb():
     z_obs, T_obs = observed(site)
     n = len(z_obs)
     slope_obs, se_obs = ols_slope(z_obs, T_obs)
+    # ~250 independent solves: run them on worker processes first (coarse
+    # sweeps, then the dense bands they select); the loop reads the cache
+    qbs = [qb_mw * 1e-3 for qb_mw in QB_SCAN_MW]
+    rk.prefetch_profiles([(site, dict(kd=kd, qb=qb)) for qb in qbs
+                          for kd in (KD_GLOBAL, *KD_COARSE)], desc="Q1 coarse")
+    rk.prefetch_profiles([(site, dict(kd=kd, qb=qb)) for qb in qbs
+                          for kd in vertex_grid(site, z_obs, T_obs, qb)],
+                         desc="Q1 dense")
     rows = []
     for qb_mw in QB_SCAN_MW:
         qb = qb_mw * 1e-3
@@ -326,6 +333,8 @@ def diviner_site_vs_zonal():
 def thermometer_type_split():
     from lunar.config import KD_GRIDS
     ce = json.loads((_REPO / "results" / "common_epoch_sensitivity.json").read_text())
+    rk.prefetch_profiles([(cfg, dict(kd=kd)) for name, cfg in SITES.items()
+                          for kd in KD_GRIDS[name]], desc="Q5 K_d sweeps")
     out = {}
     for name, cfg in SITES.items():
         kd_grid = KD_GRIDS[name]

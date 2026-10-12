@@ -32,13 +32,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 
-from lunar.config import SITES, GRID, HAYNE, S0, T_LUNAR, DT_STEP
+from lunar.config import SITES, GRID, HAYNE, DT_STEP
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import PixelInputs, solve_pixel, standard_insolation, periodic_time_grid
 from lunar.equilibrium import (solve_periodic_equilibrium,
                                _rectified_flux, _reconstruct_subskin)
-from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM, C_GRID
+from lunar.plotting.style import C_A15, C_A17, C_HAYNE, C_CHAR, C_DIM
 
 DOC = _REPO / ".." / "figures" / "anim"
 FIG = _REPO / ".." / "figures"; FIG.mkdir(parents=True, exist_ok=True)
@@ -100,7 +100,7 @@ def main():
     print(f"  {len(bf)} brute frames; target T(1m)={S['T_target'][S['ip']]:.2f} K")
     fa = _flux_anchored(S)
 
-    z, dz, Tt, K, Qb = S["z"], S["dz"], S["T_target"], S["K"], S["Qb"]
+    z, Tt, K, Qb = S["z"], S["T_target"], S["K"], S["Qb"]
     i0, ip = S["i0"], S["ip"]
     m = z <= ZMAX
     z0_T = fa["settle"][i0]

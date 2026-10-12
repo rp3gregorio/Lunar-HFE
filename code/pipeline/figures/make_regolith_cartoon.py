@@ -52,7 +52,7 @@ from lunar.config import HAYNE, SITES, T_LUNAR
 from lunar.constants import RHO_DEEP, RHO_SURFACE
 from lunar.plotting.style import (JGR_HALF, C_A15, C_CHAR, C_CORAL, C_DIM,
                                   C_FOREST, C_GRID, C_NEUTRAL, C_TEAL,
-                                  FS_TICK, assert_no_overlap)
+                                  assert_no_overlap)
 from lunar.properties import density_hayne
 
 FIGS = _REPO.parent / "figures"
@@ -182,7 +182,7 @@ def draw_column(ax, sens_cm):
     yH = float(ymap(HAYNE["H"] * 100.0))
     ax.plot([COL_L, COL_R], [yH, yH], color=C_CHAR, lw=0.6, ls=(0, (1.8, 1.8)),
             zorder=6)
-    ax.text(COL_R - 0.03, yH + 0.025, rf"$H$", color=C_CHAR, fontsize=FS_LAB,
+    ax.text(COL_R - 0.03, yH + 0.025, r"$H$", color=C_CHAR, fontsize=FS_LAB,
             ha="right", va="bottom", zorder=7, bbox=HALO)
 
     # The cycle icon for the condition that lives in time. It sits beside its own

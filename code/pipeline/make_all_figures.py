@@ -22,7 +22,7 @@ JOBS = [
     ("make_intro_column",   "letter Fig 1: column, probes, density"),
     ("make_intro_figures",      ["fig_intro_probe"]),
     ("make_anchor_method_figure", ["main"]),  # letter Fig: the anchor method
-    ("make_context_map_figure", ["main"]),
+    ("make_context_map_figure", ["main"]),     # SI Fig S1
     ("make_probe_geometry_figure", ["main"]),  # fig_probe_geometry (guidebook
                                                 # Ch.1); was missing from JOBS
                                                 # -- a fresh `make figures` run
@@ -42,7 +42,8 @@ JOBS = [
     ("make_letter_figures",     ["main"]),
     ("make_results_figures",    ["main"]),
     ("make_alpha_sweep_figure", ["main"]),
-    ("make_joint_figures",      ["main"]),     # letter Figs 3-6 (joint albedo + K_d fit)
+    ("make_joint_figures",      ["main"]),     # letter Figs 1-6, SI Figs S3, S4, S6
+    ("make_study_overview",     ["main"]),     # SI Fig S2, study overview (TikZ, needs pdflatex)
     ("make_qb_degeneracy_figure", ["main"]),  # measured K_d*(Q_b) map (F-9)
     ("make_dt_ladder_figure",   ["main"]),    # dt certification teaching fig
     ("make_prior_estimates_figure", ["main"]),  # 5-decade K_d context (verified)

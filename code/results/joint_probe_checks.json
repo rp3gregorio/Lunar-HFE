@@ -69,6 +69,44 @@
     "n_pass": 29,
     "n_tested": 72
    },
+   "keihm_test_values_A_0.12": {
+    "deep_depth_m": 0.8,
+    "deep_obs_K": 252.0,
+    "surface_obs_K": 211.0,
+    "tol_K": 5.0,
+    "rows": [
+     {
+      "kd_mW": 1.25,
+      "surface_K": 209.59400044523343,
+      "deep_K": 255.96423547617533,
+      "passes": true
+     },
+     {
+      "kd_mW": 3.4,
+      "surface_K": 212.7773740752459,
+      "deep_K": 253.42852293512559,
+      "passes": true
+     },
+     {
+      "kd_mW": 5.0,
+      "surface_K": 214.5452683414404,
+      "deep_K": 253.4910476468595,
+      "passes": true
+     },
+     {
+      "kd_mW": 6.500000000000001,
+      "surface_K": 215.93333986354745,
+      "deep_K": 253.76929948104498,
+      "passes": true
+     },
+     {
+      "kd_mW": 10.25,
+      "surface_K": 218.70128819635667,
+      "deep_K": 254.6236811060576,
+      "passes": false
+     }
+    ]
+   },
    "transient_kd_range_mW": [
     3.6963396175709917,
     4.350941050708893
@@ -159,6 +197,44 @@
     ],
     "n_pass": 44,
     "n_tested": 72
+   },
+   "keihm_test_values_A_0.12": {
+    "deep_depth_m": 1.3,
+    "deep_obs_K": 256.0,
+    "surface_obs_K": 216.0,
+    "tol_K": 5.0,
+    "rows": [
+     {
+      "kd_mW": 1.25,
+      "surface_K": 211.67874312579497,
+      "deep_K": 260.61432506850963,
+      "passes": true
+     },
+     {
+      "kd_mW": 3.4,
+      "surface_K": 214.89440382623678,
+      "deep_K": 257.18859858504237,
+      "passes": true
+     },
+     {
+      "kd_mW": 5.0,
+      "surface_K": 216.67952721566394,
+      "deep_K": 257.08635184518096,
+      "passes": true
+     },
+     {
+      "kd_mW": 6.500000000000001,
+      "surface_K": 218.0808982184387,
+      "deep_K": 257.2831867652829,
+      "passes": true
+     },
+     {
+      "kd_mW": 10.25,
+      "surface_K": 220.8749581968133,
+      "deep_K": 258.03570217758346,
+      "passes": true
+     }
+    ]
    },
    "transient_kd_range_mW": [
     3.760922538780385,

@@ -35,7 +35,6 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.patches import Polygon, Rectangle
 
 _HERE = pathlib.Path(__file__).resolve().parent
@@ -48,7 +47,7 @@ from lunar.config import GRID, HAYNE
 from lunar.grid import make_geometric_grid
 from lunar.plotting.style import C_CHAR, C_CORAL, C_DIM, C_GRID, C_TEAL
 
-from make_surface_balance import (GROUND_DEEP, GROUND_LIT, GROUND_MID, PAPER,
+from make_surface_balance import (GROUND_MID, PAPER,
                                  _shade, apply_style, setup_fonts)
 
 FIGS = _REPO.parent / "figures"

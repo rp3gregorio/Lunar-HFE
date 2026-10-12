@@ -26,7 +26,7 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 sys.path.insert(0, str(_REPO / "src"))
 
-from lunar.config import SITES, GRID, HAYNE, S0, T_LUNAR, DT_STEP
+from lunar.config import SITES, GRID, HAYNE, DT_STEP
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import PixelInputs, solve_pixel, standard_insolation, periodic_time_grid

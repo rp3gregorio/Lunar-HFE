@@ -22,7 +22,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, Rectangle, FancyArrowPatch
+from matplotlib.patches import FancyBboxPatch, Rectangle
 from matplotlib.lines import Line2D
 
 # ── shared design tokens (match make_results_figures.py) ────────────────────────

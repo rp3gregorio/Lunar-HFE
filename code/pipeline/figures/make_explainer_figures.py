@@ -39,9 +39,9 @@ from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import periodic_time_grid
 from lunar.equilibrium import solve_periodic_equilibrium, _rectified_flux
-from lunar.plotting.style import (JGR_HALF, JGR_FULL, C_A15, C_A17, C_TEAL,
+from lunar.plotting.style import (JGR_HALF, JGR_FULL, C_TEAL,
                                   C_CORAL, C_FOREST, C_CHAR, C_DIM, C_GRID,
-                                  C_CORAL_L, fmt_axis, assert_no_overlap)
+                                  fmt_axis, assert_no_overlap)
 
 OUT = _REPO / ".." / "figures"
 

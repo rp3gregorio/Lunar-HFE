@@ -22,10 +22,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from lunar.plotting.style import (
-    JGR_HALF, C_FOREST, C_TEAL, C_CORAL, C_CHAR, C_DIM, C_GRID,
+    JGR_HALF, C_FOREST, C_TEAL, C_CHAR, C_DIM, C_GRID,
     assert_no_overlap,
 )
-from lunar.config import SITES, GRID, S0, T_LUNAR, DT_STEP
+from lunar.config import SITES, GRID, DT_STEP
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne
 from lunar.solver import periodic_time_grid, standard_insolation

@@ -23,7 +23,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 
-from lunar.config import SITES, GRID, HAYNE, S0, T_LUNAR, DT_STEP
+from lunar.config import SITES, GRID, HAYNE, DT_STEP
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import standard_insolation, periodic_time_grid

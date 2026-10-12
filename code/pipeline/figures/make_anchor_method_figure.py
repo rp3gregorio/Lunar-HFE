@@ -32,7 +32,7 @@ _REPO = pathlib.Path(__file__).resolve().parents[1].parent
 sys.path.insert(0, str(_REPO))
 sys.path.insert(0, str(_REPO / "src"))
 
-from lunar.config import SITES, GRID, HAYNE, DT_STEP, EQ_Z_ANCHOR, EQ_ANCHOR_TOL
+from lunar.config import SITES, GRID, HAYNE, DT_STEP, EQ_Z_ANCHOR
 from lunar.grid import make_geometric_grid
 from lunar.properties import conductivity_hayne, specific_heat
 from lunar.solver import (PixelInputs, solve_pixel, standard_insolation,

@@ -1,0 +1,51 @@
+{
+ "source": "LROC Lunaserv WMS https://wms1.im-ldi.com/",
+ "srs": "EPSG:4326 (lunar lon/lat)",
+ "retrieved": "2026-10-11",
+ "sites": {
+  "A15": {
+   "bbox": [
+    3.548,
+    25.955,
+    3.712,
+    26.16
+   ],
+   "width": 1100,
+   "height": 1531,
+   "nac_layer": "luna_apollo_15_high_resolution_nac_mosaic",
+   "eva_layers": [
+    "luna_apollo_15_eva1",
+    "luna_apollo_15_eva2",
+    "luna_apollo_15_eva3"
+   ],
+   "nodata_fraction": 0.0,
+   "eva_pixels": [
+    2023,
+    1813,
+    1022
+   ]
+  },
+  "A17": {
+   "bbox": [
+    30.52,
+    20.09,
+    30.892,
+    20.3
+   ],
+   "width": 1600,
+   "height": 962,
+   "nac_layer": "luna_apollo_17_high_resolution_nac_mosaic",
+   "eva_layers": [
+    "luna_apollo_17_eva1",
+    "luna_apollo_17_eva2",
+    "luna_apollo_17_eva3"
+   ],
+   "nodata_fraction": 0.029399038461538463,
+   "eva_pixels": [
+    296,
+    2253,
+    1411
+   ]
+  }
+ }
+}

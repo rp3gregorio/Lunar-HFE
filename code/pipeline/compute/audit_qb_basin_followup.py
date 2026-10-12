@@ -30,12 +30,10 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from lunar.apollo_helpers import extract_sensor_stability
-from lunar.config import (SITES, GRID, DT_STEP, HAYNE, EQ_Z_ANCHOR,
-                          EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL)
+from lunar.config import SITES, GRID, DT_STEP
 from lunar.grid import make_geometric_grid
 from lunar.solver import periodic_time_grid, standard_insolation
-from lunar.properties import conductivity_hayne, specific_heat
-from lunar.equilibrium import solve_periodic_equilibrium
+from lunar.equilibrium import solve_hayne_equilibrium
 from retrieve_kd import _interp_profile_at_depths
 
 SITE, QB = "A15", 10.0e-3
@@ -45,15 +43,9 @@ KD_SECONDARY = 7.70e-3                                       # the basin the coa
 
 def solve(cfg, kd, G, t, insol):
     """The run_with() Hayne call, keeping the convergence diagnostics."""
-    eq = solve_periodic_equilibrium(
-        grid=G, t=t, insolation=insol, albedo=cfg["albedo"],
-        emissivity=cfg["emissivity"], Q_b=QB,
-        K_func=lambda T, z: conductivity_hayne(T, z, Ks=HAYNE["K_S"], Kd=kd,
-                                               H=HAYNE["H"], chi=HAYNE["CHI"]),
-        cp_func=lambda T: specific_heat(T, model="hayne"), T_guess=cfg["T_MEAN_EFF"],
-        z_anchor=EQ_Z_ANCHOR, n_inner=EQ_N_INNER, max_outer=EQ_MAX_OUTER,
-        anchor_tol_K=EQ_ANCHOR_TOL, hayne_params=(HAYNE["K_S"], kd, HAYNE["H"], HAYNE["CHI"]))
-    return eq
+    return solve_hayne_equilibrium(
+        G, t, insol, albedo=cfg["albedo"], emissivity=cfg["emissivity"],
+        Q_b=QB, kd=kd, T_guess=cfg["T_MEAN_EFF"])
 
 
 def main():

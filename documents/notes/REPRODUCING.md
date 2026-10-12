@@ -118,11 +118,13 @@ python code/pipeline/compute/compute_joint_diviner.py             # ~3 min: Tabl
 python code/pipeline/compute/compute_gradient_epochs.py           # seconds: gradient vs window epoch (Sec. 3.1-3.2)
 python code/pipeline/compute/compute_joint_chi_density.py         # ~50 min (5 workers): chi sweep + site densities (Sec. 4.2, Table S14)
 python code/pipeline/compute/compute_likelihood_ratio.py          # seconds: likelihood-ratio tests from the stored fits (Tables 1-2, Sec. 3.2, 4.1, 4.2; Tables S4, S14)
+python code/pipeline/compute/certify_joint_numerics.py            # ~2 min (5 workers): the reported K_d* under each numerical choice (Table S5)
 python code/pipeline/compute/compute_annual_wave.py               # ~3 min (5 workers): annual wave, measured + forward-modeled (Sec. 3.4, Table S12)
+python code/pipeline/compute/compute_own_diffusivity_fit.py      # ~15 s: the joint fit with our own diffusivities instead of Langseth's (Sec. 3.4, Table S12 lower block)
 python code/pipeline/compute/compute_annual_wave_surface_test.py  # ~6 min (5 workers): near-surface layer vs the annual-wave amplitude factor (Sec. 4.4 (iii), Table S12)
 python code/pipeline/compute/compute_transient_warming.py         # ~2 min: post-deployment warming modeled and removed, refit (Sec. 3.2, 3.3, 4.3; Table S7)
 python code/pipeline/compute/compute_joint_mcmc.py                # ~2 h grid (resumes) + 1 min emcee: Fig 6, Table S8
-python code/pipeline/figures/make_joint_figures.py                # Figs 1-6, S3, S4, S6
+python code/pipeline/figures/make_joint_figures.py                # Figs 1-6, S3 (make_anchor_process_figure.py), S4, S6
 python code/pipeline/figures/make_context_map_figure.py           # Fig S1
 python code/pipeline/figures/make_study_overview.py               # Fig S2 (TikZ source in pipeline/figures/tikz/; needs pdflatex)
 ```

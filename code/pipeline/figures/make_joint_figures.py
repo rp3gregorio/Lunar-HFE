@@ -9,7 +9,7 @@
   fig_joint_mean_T_profile.pdf   (not in the paper) the two global models at the config (fitted) albedos
   fig_joint_alpha_sweep.pdf      (not in the paper) Martinez density sweep (reads results/headline_rmse.json)
   fig_joint_intro_column.pdf     Fig. 1: the modeled column (swing depth from review_diagnostics.json)
-  fig_joint_anchor_method.pdf    Fig. S3: the flux-anchored solver, Apollo 15 at the joint fit (~3 min)
+  fig_joint_anchor_process.pdf   Fig. S3: the flux-anchored solver step by step, Apollo 15 at the joint fit (~30 s)
   fig_joint_apollo_timeline_probes.pdf  Fig. 2: stability-window timeline (site colours)
   fig_joint_amplitude_vs_depth.pdf      Fig. S4: diurnal amplitude vs depth
 
@@ -470,9 +470,9 @@ def main():
         print("  (fig_joint_robustness waits for results/joint_fit_sensitivities.json)")
     # Fig. S3 first, while the house rcParams are in force; then the others and
     # Fig. 1, whose generators set their own rcParams (fonts, legend sizes)
-    import make_letter_figures, make_alpha_sweep_figure, make_intro_column, make_anchor_method_figure
+    import make_letter_figures, make_alpha_sweep_figure, make_intro_column, make_anchor_process_figure
     import make_apollo_timeline_letter
-    make_anchor_method_figure.main(out_name="fig_joint_anchor_method.pdf")   # Fig. S3 (A15 at the joint fit)
+    make_anchor_process_figure.main()   # Fig. S3: the solver step by step (A15 at the joint fit)
     make_apollo_timeline_letter.main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False)  # Fig. 2
     make_letter_figures.fig_amplitude_vs_depth(out_name="fig_joint_amplitude_vs_depth.pdf")   # Fig. S4
     make_letter_figures.fig_mean_T_profile(out_name="fig_joint_mean_T_profile.pdf")

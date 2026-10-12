@@ -1,0 +1,419 @@
+{
+ "meta": {
+  "purpose": "numerical certification of the joint-fit K_d* (SI Table S5)",
+  "objective": "J of compute_joint_albedo_fit (with diffusivity) along K_d at the fit's albedo node; 3-point parabola vertex, as best_point",
+  "variants": {
+   "nominal": {},
+   "dt_900": {
+    "dt": 900.0
+   },
+   "dt_450": {
+    "dt": 450.0
+   },
+   "grid_fine": {
+    "grid": {
+     "z_max": 5.0,
+     "dz0": 0.001,
+     "growth": 0.04
+    }
+   },
+   "anchor_0.45": {
+    "z_anchor": 0.45
+   },
+   "anchor_0.70": {
+    "z_anchor": 0.7
+   },
+   "n_inner_64": {
+    "n_inner": 64
+   },
+   "n_inner_128": {
+    "n_inner": 128
+   },
+   "full_column_A": {
+    "step_a_depth_m": 5.0
+   },
+   "start_240K": {
+    "T_guess": 240.0
+   },
+   "start_260K": {
+    "T_guess": 260.0
+   },
+   "kd_step_0.05": {
+    "kd_step": 5e-05
+   }
+  },
+  "sensor_depths_m": [
+   0.8,
+   1.0,
+   1.4,
+   2.4
+  ],
+  "runtime_s": 95.3
+ },
+ "sites": {
+  "A15": {
+   "albedo_node": 0.1375,
+   "kd_nodes_mW": [
+    4.25,
+    4.500000000000001,
+    4.75,
+    5.0,
+    5.25
+   ],
+   "reported_kd_star_mW": 4.8673475633997265,
+   "variants": {
+    "nominal": {
+     "kd_star_mW": 4.8673475633997265,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      5,
+      4
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.0
+    },
+    "dt_900": {
+     "kd_star_mW": 4.867527233006888,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      5,
+      4
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.004240173166579098
+    },
+    "dt_450": {
+     "kd_star_mW": 4.86759465294101,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      5,
+      4
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.005861418289299536
+    },
+    "grid_fine": {
+     "kd_star_mW": 4.867184245791257,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      5,
+      5,
+      4
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.009385761544109528
+    },
+    "anchor_0.45": {
+     "kd_star_mW": 4.867335577873897,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      5,
+      4
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.0001775656078564225
+    },
+    "anchor_0.70": {
+     "kd_star_mW": 4.867409748402931,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      5,
+      4
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.001027369177336368
+    },
+    "n_inner_64": {
+     "kd_star_mW": 4.867445186374751,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      5,
+      4
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.0016406820631971186
+    },
+    "n_inner_128": {
+     "kd_star_mW": 4.867335306313209,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      5,
+      4
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.0001955345508974915
+    },
+    "full_column_A": {
+     "kd_star_mW": 4.867560313425829,
+     "minimum_inside_window": true,
+     "n_outer": [
+      8,
+      8,
+      8,
+      7,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.003138034179897886
+    },
+    "start_240K": {
+     "kd_star_mW": 4.86734788820005,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 6.975017072363698e-06
+    },
+    "start_260K": {
+     "kd_star_mW": 4.867347234030509,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 6.335526876455333e-06
+    },
+    "kd_step_0.05": {
+     "kd_star_mW": 4.867395305639704,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      5,
+      5,
+      5,
+      5
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": null
+    }
+   },
+   "delta_kd_mW": {
+    "nominal": 0.0,
+    "dt_900": 0.00017966960716186975,
+    "dt_450": 0.00024708954128360716,
+    "grid_fine": -0.00016331760846988175,
+    "anchor_0.45": -1.1985525829594224e-05,
+    "anchor_0.70": 6.218500320454012e-05,
+    "n_inner_64": 9.762297502469153e-05,
+    "n_inner_128": -1.2257086517308835e-05,
+    "full_column_A": 0.0002127500261028814,
+    "start_240K": 3.248003235256647e-07,
+    "start_260K": -3.2936921723347723e-07,
+    "kd_step_0.05": 4.774223997738858e-05
+   },
+   "summary": {
+    "dt_per_halving_max": 0.00017966960716186975,
+    "grid_fine": 0.00016331760846988175,
+    "anchor_max": 6.218500320454012e-05,
+    "n_inner_max": 9.762297502469153e-05,
+    "full_column": 0.0002127500261028814,
+    "start_kd_max": 3.2936921723347723e-07,
+    "start_profile_max_K": 1.3310543948819031e-05,
+    "kd_spacing": 4.774223997738858e-05,
+    "all_max": 0.00024708954128360716
+   }
+  },
+  "A17": {
+   "albedo_node": 0.1375,
+   "kd_nodes_mW": [
+    5.5,
+    5.75,
+    6.0,
+    6.25,
+    6.500000000000001
+   ],
+   "reported_kd_star_mW": 5.893144892628771,
+   "variants": {
+    "nominal": {
+     "kd_star_mW": 5.893144892628771,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.0
+    },
+    "dt_900": {
+     "kd_star_mW": 5.894163247984163,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.004051311066859853
+    },
+    "dt_450": {
+     "kd_star_mW": 5.8945525012319635,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.005629453006406493
+    },
+    "grid_fine": {
+     "kd_star_mW": 5.895521201563942,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.014421514455762008
+    },
+    "anchor_0.45": {
+     "kd_star_mW": 5.893142111498466,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 5.187606933532152e-05
+    },
+    "anchor_0.70": {
+     "kd_star_mW": 5.89324155457477,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.0004500584988704759
+    },
+    "n_inner_64": {
+     "kd_star_mW": 5.893303330841752,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.0007313114959686118
+    },
+    "n_inner_128": {
+     "kd_star_mW": 5.893134644093846,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 5.239403753876104e-05
+    },
+    "full_column_A": {
+     "kd_star_mW": 5.893724485305977,
+     "minimum_inside_window": true,
+     "n_outer": [
+      8,
+      8,
+      8,
+      8,
+      8
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 0.002364310741540976
+    },
+    "start_240K": {
+     "kd_star_mW": 5.893144935376244,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 3.125792602531874e-07
+    },
+    "start_260K": {
+     "kd_star_mW": 5.893144878093516,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": 1.0629284474816814e-07
+    },
+    "kd_step_0.05": {
+     "kd_star_mW": 5.893430731639587,
+     "minimum_inside_window": true,
+     "n_outer": [
+      6,
+      6,
+      6,
+      6,
+      6
+     ],
+     "max_abs_dT_sensors_vs_nominal_K": null
+    }
+   },
+   "delta_kd_mW": {
+    "nominal": 0.0,
+    "dt_900": 0.0010183553553915203,
+    "dt_450": 0.001407608603192223,
+    "grid_fine": 0.0023763089351707123,
+    "anchor_0.45": -2.7811303056068937e-06,
+    "anchor_0.70": 9.666194599855515e-05,
+    "n_inner_64": 0.00015843821298044958,
+    "n_inner_128": -1.02485349255943e-05,
+    "full_column_A": 0.0005795926772060866,
+    "start_240K": 4.2747473116833135e-08,
+    "start_260K": -1.4535255665748537e-08,
+    "kd_step_0.05": 0.00028583901081535856
+   },
+   "summary": {
+    "dt_per_halving_max": 0.0010183553553915203,
+    "grid_fine": 0.0023763089351707123,
+    "anchor_max": 9.666194599855515e-05,
+    "n_inner_max": 0.00015843821298044958,
+    "full_column": 0.0005795926772060866,
+    "start_kd_max": 4.2747473116833135e-08,
+    "start_profile_max_K": 4.188721050013555e-07,
+    "kd_spacing": 0.00028583901081535856,
+    "all_max": 0.0023763089351707123
+   }
+  }
+ }
+}

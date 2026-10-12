@@ -47,8 +47,17 @@ This downloads ~310 MB of public PDS data (only the two lat-bands needed
 for Apollo 15 and 17 surface-T closure). Files land under
 `code/data/diviner/gcp/` and are reused on subsequent runs.
 
-The Apollo HFE record is bundled directly under `code/data/apollo/`; no
-download is needed for it.
+SI Figure S1 (the context map) also needs the global LOLA elevation model at
+16 pixels per degree (33 MB, public PDS data, not in git):
+
+```bash
+mkdir -p code/data/lola
+curl -L -o code/data/lola/ldem_16.img https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/cylindrical/img/ldem_16.img
+```
+
+The Apollo HFE record, the SPICE kernels, the LOLA relief crops and the
+landing-site maps (`code/data/apollo_site_maps/`) are bundled in the
+repository; no download is needed for them.
 
 ## Step 4 — Run the test suite
 

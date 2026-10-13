@@ -148,11 +148,14 @@ def fig_constraints(res, cache):
                Line2D([], [], color=C_OBS_TS, ls="--", lw=1.0),
                (star(C_A15), star(C_A17)),
                Line2D([], [], marker="o", ms=7, mfc="white", mec=C_CHAR, mew=1.2, ls="none"),
-               Line2D([], [], marker="X", ms=8, color=C_DIM, ls="none", mec="white")]
-    labels = ["temperatures only (68, 95, 99.7% regions)", "diffusivity ($\\Delta J_\\kappa\\leq1$)",
-              "surface mean $\\pm$5 K", "joint fit (68% solid, 95% dashed)",
-              "temperatures only: best fit", "temperatures only at the joint-fit $A$"]
-    # the dotted global line is defined once, in the legend below all four panels
+               (Line2D([], [], color=C_DIM, lw=0.8, ls=(0, (1, 1.5))),
+                Line2D([], [], marker="X", ms=8, color=C_DIM, ls="none", mec="white")),
+               Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)]
+    labels = ["temperatures only (68, 95, 99.7% regions)", "measured diffusivity ($\\Delta J_\\kappa\\leq1$)",
+              "surface mean = measured $\\pm$5 K", "joint fit (68% solid, 95% dashed)",
+              "temperatures only: best fit", "temperatures only at the joint-fit $A$ (dotted link)",
+              "global $K_d$ = 3.4"]
+    # every element of (a, b) has an entry here; (c, d) have their own legend below
     legend_between(fig, top, handles, labels, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.3)})
     # (c, d): one entry per curve type, each drawn in both site colours
     pair = lambda ls, lw: (Line2D([], [], color=C_A15, ls=ls, lw=lw), Line2D([], [], color=C_A17, ls=ls, lw=lw))

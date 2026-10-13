@@ -60,6 +60,15 @@
    "gradient_model_K_per_m": 2.6647527149087438,
    "gradient_observed_K_per_m": 2.5415821971060994
   },
+  "martinez_forward_H5p6": {
+   "A": 0.13625747387571432,
+   "H_m": 0.056,
+   "rmse_K": 0.91592340839797,
+   "bias_K": 0.17545912798870436,
+   "offset_removed_K": 0.8989603909276527,
+   "gradient_model_K_per_m": 2.6642786688286897,
+   "gradient_observed_K_per_m": 2.5415821971060994
+  },
   "holdout_deepest": {
    "depth_cm": 139.0,
    "A": 0.1365484849982252,
@@ -201,6 +210,15 @@
    "bias_K": 0.04891160061338695,
    "offset_removed_K": 0.6221885114445096,
    "gradient_model_K_per_m": 1.9939517909508915,
+   "gradient_observed_K_per_m": 0.36659278446578425
+  },
+  "martinez_forward_H5p6": {
+   "A": 0.1374774971965067,
+   "H_m": 0.056,
+   "rmse_K": 0.6281783657228317,
+   "bias_K": 0.08740063147189936,
+   "offset_removed_K": 0.622068475957849,
+   "gradient_model_K_per_m": 1.9935530247217026,
    "gradient_observed_K_per_m": 0.36659278446578425
   },
   "holdout_deepest": {

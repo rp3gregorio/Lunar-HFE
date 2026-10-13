@@ -182,8 +182,9 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
             return conductivity_3layer(T, z, Kd=kd, rho_deep=rd)
     elif k_model == 'martinez':
         # Martinez K(T, rho). When martinez_alpha is None the model is
-        # evaluated forward against the published Hayne-form rho(z)
-        # (matches the calibration in the original paper). When
+        # evaluated forward on the Hayne-form rho(z) with H = 6 cm, the
+        # profile of the Hayne runs (Martinez & Siegler 2021 use 5.6 cm;
+        # compute_joint_fit_checks.py runs both). When
         # martinez_alpha is supplied, the deep asymptote of rho(z) is
         # rescaled by alpha, exposing a single per-site free parameter
         # for the Martinez retrieval.

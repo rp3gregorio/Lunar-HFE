@@ -6,7 +6,9 @@ diffusivity), and at the global K_d = 3.4 with its own fitted albedo:
     standard deviation: what is left once the level is matched), the model
     gradient across the retained band against the observed one, and the
     diurnal-mean surface temperature (Table 1 of the letter);
-  * the Martinez & Siegler (2021) forward model at the fitted albedo;
+  * the Martinez & Siegler (2021) forward model at the fitted albedo, with the
+    density profile of the Hayne runs (H = 6 cm; Table 1) and with their own
+    H = 5.6 cm (text above their Eq. 10), applied to the conductivity and to rho*c_p;
   * the hold-out test: refit without the deepest retained sensor, predict it;
   * the thermometer-type split: refit on the gradient-bridge (TG) and
     ring-bridge (TR) sensors alone (surface and diffusivity terms kept);
@@ -27,7 +29,7 @@ diffusivity), and at the global K_d = 3.4 with its own fitted albedo:
 Reads:  results/joint_albedo_fit.json, results/joint_albedo_fit_cache.npz,
         results/joint_fit_sensitivities.json (optional)
 Writes: results/joint_fit_checks.json
-Runtime: ~1 min (two Martinez solves).
+Runtime: ~2 min (four Martinez solves).
 
 Run with:
     python pipeline/compute/compute_joint_fit_checks.py
@@ -39,6 +41,30 @@ sys.path.insert(0, str(_REPO)); sys.path.insert(0, str(_REPO / "src")); sys.path
 
 import numpy as np
 import compute_joint_albedo_fit as jf
+
+
+MS_H_PUBLISHED = 0.056   # Martinez & Siegler (2021): H changed from 6.0 to 5.6 cm (text above their Eq. 10)
+
+
+def martinez_with_H(cfg, H):
+    """Martinez & Siegler K(T, rho) with the density scale height H in both the
+    conductivity and rho*c_p (run_with uses the Hayne profile, H = 6 cm)."""
+    import functools
+    from lunar.config import GRID, DT_STEP, EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL
+    from lunar.grid import make_geometric_grid
+    from lunar.solver import periodic_time_grid, standard_insolation
+    from lunar.properties import conductivity_martinez, density_hayne, specific_heat
+    from lunar.equilibrium import solve_periodic_equilibrium
+    g = make_geometric_grid(**GRID); t = periodic_time_grid(DT_STEP)
+    rho_f = functools.partial(density_hayne, H=H)
+    eq = solve_periodic_equilibrium(
+        grid=g, t=t, insolation=standard_insolation(cfg["lat"], t), albedo=cfg["albedo"],
+        emissivity=cfg["emissivity"], Q_b=cfg["Q_BASAL"],
+        K_func=lambda T, z: conductivity_martinez(T, rho=rho_f(np.asarray(z, dtype=float))),
+        cp_func=functools.partial(specific_heat, model="hayne"), rho_func=rho_f,
+        T_guess=cfg["T_MEAN_EFF"], z_anchor=EQ_Z_ANCHOR, n_inner=EQ_N_INNER,
+        max_outer=EQ_MAX_OUTER, anchor_tol_K=EQ_ANCHOR_TOL)
+    return g.z_mid, eq.T_mean
 
 
 def bilinear(field, a, kd):
@@ -102,6 +128,9 @@ def main():
         cfgA = copy.deepcopy(cfg); cfgA["albedo"] = best["A"]
         zm, Tm = rk.run_with(cfgA, k_model="martinez")
         site["martinez_forward"] = dict(A=best["A"], **metrics(z, np.interp(z, zm, Tm), Tobs))
+        zm56, Tm56 = martinez_with_H(cfgA, MS_H_PUBLISHED)
+        site["martinez_forward_H5p6"] = dict(A=best["A"], H_m=MS_H_PUBLISHED,
+                                             **metrics(z, np.interp(z, zm56, Tm56), Tobs))
         # hold-out: deepest sensor
         kobs = np.array([p[2] for p in jf.KAPPA_OBS[s]]); ksig = np.array([p[3] for p in jf.KAPPA_OBS[s]])
         def fit_subset(mask):

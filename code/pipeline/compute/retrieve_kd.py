@@ -59,7 +59,6 @@ from tqdm.auto import tqdm  # live progress bars: clean HTML widget in Jupyter,
                             # plain text in a terminal (needs ipywidgets for the widget)
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 from lunar.grid import make_geometric_grid
 from lunar.properties import (conductivity_hayne, conductivity_martinez,
@@ -69,17 +68,12 @@ from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.apollo_helpers import extract_sensor_stability
 
 
-# Shared publication style from the package (no longer a figure-script import).
-from lunar.plotting.style import (   # noqa: E402
-    C_A15, C_A17, C_CHAR, C_GRID,
-    FS_LABEL, FS_TICK, fmt_axis,
-)
 # Single source of truth for ALL run configuration (lunar/config.py) --
 # SITES, GRID, the Hayne bundle, the equilibrium-solver settings, the
 # 3-layer parameters. These used to be redefined here and in four figure
 # scripts; now there is exactly one definition.
 from lunar.config import (   # noqa: E402
-    S0, T_LUNAR,   # noqa: F401 -- re-exported (make_equilibrium_certification imports them from here)
+    S0, T_LUNAR,   # noqa: F401 -- re-exported for scripts that import them from here
     DT_STEP,
     EQ_Z_ANCHOR, EQ_N_INNER, EQ_MAX_OUTER, EQ_ANCHOR_TOL,
     GRID, HAYNE, SITES, DEPTH_SIGMA_CM, KD_GRIDS,
@@ -487,9 +481,6 @@ def loo_deepest(R, kd_grid, z_obs_deep):
 def main():
     t0 = time.time()
     out_dir = _REPO / 'results'
-    # One figure home: every generator writes to the top-level shared
-    # figures/ folder (see STRUCTURE.md); results/ holds JSON only.
-    fig_dir = _REPO.parent / 'figures'
     results = {}
 
     # ── A1: extended K_d grids ────────────────────────────────────────────
@@ -644,9 +635,8 @@ def main():
     # Add the PROPORTIONAL Q_b surrogate grid. SUPERSEDED (audit F-9):
     # the proportional rule K_d*(alpha*Qb) = alpha*K_d* is a disproved
     # model of the degeneracy -- the real relation is inverse and
-    # non-proportional (see results/qb_degeneracy.json, written by
-    # compute_qb_degeneracy.py, which fig_robustness panel (a) and the
-    # error budget actually use). Kept only for backward compatibility
+    # non-proportional (the Q_b map of compute_joint_fit_sensitivities.py;
+    # earlier, compute_qb_degeneracy.py in release v1.4.2-jgr). Kept only for backward compatibility
     # of the JSON schema; do NOT base any conclusion on this block.
     alphas = np.linspace(0.0, 1.3, 27)
     g15, g17 = np.meshgrid(alphas, alphas, indexing='ij')
@@ -681,104 +671,7 @@ def main():
     out_path.write_text(json.dumps(jsonify(results), indent=2))
     print(f"\nSaved: {out_path}", flush=True)
 
-    # ── figures ───────────────────────────────────────────────────────────
-    print("\n=== Figures ===", flush=True)
-    from make_results_figures import (   # type: ignore
-        fig_bootstrap, fig_robustness,
-    )
-    fig_bootstrap(results, fig_dir / 'fig_bootstrap.pdf')
-    try:   # v1.1 (fixed-albedo) figure, used only by the GEDES thesis; its guard checks a
-           # claim of that text and must not stop the reproduction of the current paper
-        fig_robustness(results, fig_dir / 'fig_robustness.pdf')
-    except AssertionError as e:
-        print(f"  WARNING: fig_robustness.pdf (v1.1, not in the current paper) not drawn: {e}", flush=True)
-    fig_holdout(results, fig_dir / 'fig_holdout.pdf')
-
     print(f"\n[t={time.time()-t0:.0f}s] Phase-A pipeline complete.", flush=True)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# Held-out figure
-# ══════════════════════════════════════════════════════════════════════════════
-def fig_holdout(d, out_path):
-    fig, axes = plt.subplots(1, 2, figsize=(13.0, 5.0),
-                             gridspec_kw={'wspace': 0.32})
-    fig.subplots_adjust(left=0.07, right=0.78, bottom=0.16, top=0.88)
-    axA, axB = axes
-
-    sites = ['A15', 'A17']
-    width = 0.35
-    x = np.arange(len(sites))
-
-    in_tg  = [d[s]['holdout']['tg_tr']['rmse_tg_in']   for s in sites]
-    in_tr  = [d[s]['holdout']['tg_tr']['rmse_tr_in']   for s in sites]
-    oos_tr = [d[s]['holdout']['tg_tr']['rmse_tr_predicted_from_tg'] for s in sites]
-    oos_tg = [d[s]['holdout']['tg_tr']['rmse_tg_predicted_from_tr'] for s in sites]
-
-    # ── (a) TG↔TR cross-prediction bars ────────────────────────────────────
-    axA.bar(x - width/2, in_tg,  width, color=C_A15, alpha=0.55,
-            edgecolor=C_A15, lw=0.6,
-            label="TG fit, evaluated on TG  (in-sample)")
-    axA.bar(x + width/2, oos_tr, width, color=C_A15, alpha=0.95,
-            edgecolor=C_A15, lw=0.6, hatch='//',
-            label="TG fit, evaluated on TR  (out-of-sample)")
-
-    axA.bar(x - width/2 + 2.4, in_tr,  width, color=C_A17, alpha=0.55,
-            edgecolor=C_A17, lw=0.6,
-            label="TR fit, evaluated on TR  (in-sample)")
-    axA.bar(x + width/2 + 2.4, oos_tg, width, color=C_A17, alpha=0.95,
-            edgecolor=C_A17, lw=0.6, hatch='\\\\',
-            label="TR fit, evaluated on TG  (out-of-sample)")
-
-    axA.set_xticks(np.concatenate([x, x + 2.4]))
-    axA.set_xticklabels(sites + sites)
-    axA.set_xlim(-0.7, 4.9)
-    fmt_axis(axA,
-             ylabel="Deep-sensor RMSE  (K)",
-             title="(a)  TG vs TR cross-prediction")
-    axA.set_xlabel("")
-
-    # text labels above each bar pair
-    for xi, vin, voos in zip(x, in_tg, oos_tr):
-        axA.text(xi, max(vin, voos) + 0.05,
-                 f"$\\Delta$ = {voos-vin:+.2f} K", ha="center", va="bottom",
-                 fontsize=FS_TICK, color=C_A15)
-    for xi, vin, voos in zip(x + 2.4, in_tr, oos_tg):
-        axA.text(xi, max(vin, voos) + 0.05,
-                 f"$\\Delta$ = {voos-vin:+.2f} K", ha="center", va="bottom",
-                 fontsize=FS_TICK, color=C_A17)
-
-    # ── (b) Leave-one-deepest-out residual ────────────────────────────────
-    deepest_z = [d[s]['holdout']['loo_deepest']['z_deepest_cm']  for s in sites]
-    deepest_r = [d[s]['holdout']['loo_deepest']['abs_residual_deepest_cm'] for s in sites]
-
-    bars = axB.bar(sites, deepest_r, color=[C_A15, C_A17], alpha=0.78,
-                   edgecolor=[C_A15, C_A17], lw=0.7,
-                   label="|model − obs| at the deepest withheld sensor")
-    for bar, z, r in zip(bars, deepest_z, deepest_r):
-        axB.text(bar.get_x() + bar.get_width()/2, r + 0.03,
-                 f"z = {z:.0f} cm\n|Δ| = {r:.2f} K",
-                 ha="center", va="bottom", fontsize=FS_TICK, color=C_CHAR,
-                 linespacing=1.3)
-    fmt_axis(axB,
-             ylabel="Out-of-sample residual  |Δ|  (K)",
-             title="(b)  Leave-one-deepest-out residual")
-    axB.set_xlabel("")
-    axB.set_ylim(0, max(deepest_r) * 1.6)
-
-    # shared legend OUTSIDE on the right
-    h0, l0 = axA.get_legend_handles_labels()
-    h1, l1 = axB.get_legend_handles_labels()
-    fig.legend(h0 + h1, l0 + l1,
-               loc="center left", bbox_to_anchor=(0.79, 0.5),
-               frameon=True, edgecolor=C_GRID, framealpha=0.97,
-               handlelength=2.2, borderpad=0.7,
-               title="Held-out validation",
-               title_fontsize=FS_LABEL)
-
-    fig.savefig(out_path)
-    plt.close(fig)
-    print(f"  → {out_path}", flush=True)
 
 
 if __name__ == '__main__':

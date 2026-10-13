@@ -126,3 +126,71 @@ code/references/*.pdf
 code/results/*_cache.npz
 code/results/_cache_*.npz
 !code/results/joint_albedo_fit_cache.npz
+
+# ---------------------------------------------------------------------------
+# Earlier phases of the study (fixed-albedo analysis, GEDES thesis and defense,
+# AOGS poster, guidebook, July solver checks). Kept on the author's computer,
+# not published; every file is in the git history and in release v1.4.2-jgr.
+# ---------------------------------------------------------------------------
+code/notebooks/old_fixed_albedo/
+code/references/*.md
+documents/dev/
+documents/notes/*
+!documents/notes/REPRODUCING.md
+code/pipeline/run_all_timed.py
+code/results/archive/
+# figure scripts: only the paper's are published (add a new one with a ! line)
+code/pipeline/figures/*.py
+!code/pipeline/figures/make_joint_figures.py
+!code/pipeline/figures/make_letter_figures.py
+!code/pipeline/figures/make_intro_column.py
+!code/pipeline/figures/make_surface_balance.py
+!code/pipeline/figures/make_model_anatomy.py
+!code/pipeline/figures/make_apollo_timeline_letter.py
+!code/pipeline/figures/make_anchor_process_figure.py
+!code/pipeline/figures/make_context_map_figure.py
+!code/pipeline/figures/make_study_overview.py
+!code/pipeline/figures/make_spinup_animation.py
+!code/pipeline/figures/make_anchor_method_animation.py
+# analysis scripts and results of the earlier phases
+code/pipeline/compute/audit_qb_basin_followup.py
+code/pipeline/compute/audit_qb_basins.py
+code/pipeline/compute/bayesian_crosscheck.py
+code/pipeline/compute/check_discretization.py
+code/pipeline/compute/compute_borestem_sensitivity.py
+code/pipeline/compute/compute_error_budget.py
+code/pipeline/compute/compute_fixed_input_sensitivities.py
+code/pipeline/compute/compute_headline_rmse.py
+code/pipeline/compute/compute_model_selection.py
+code/pipeline/compute/compute_offset_free_fit.py
+code/pipeline/compute/compute_qb_degeneracy.py
+code/pipeline/compute/compute_surface_bias_test.py
+code/pipeline/compute/compute_uniform_kd_sensitivity.py
+code/pipeline/compute/convergence_scan.py
+code/pipeline/compute/dt_ladder.py
+code/pipeline/compute/qb_prior_width_scan.py
+code/results/bayesian_chains.npz
+code/results/bayesian_crosscheck_samples.json
+code/results/borestem_sensitivity.json
+code/results/convergence_scan.json
+code/results/convergence_scan_n128.json
+code/results/discretization_check.json
+code/results/dt_kdstar_certification_A15_wrapfix.json
+code/results/dt_kdstar_certification_A17_wrapfix.json
+code/results/equilibrium_certification.json
+code/results/fig_retrieval_demo.json
+code/results/fixed_input_sensitivities.json
+code/results/headline_rmse.json
+code/results/kd_error_budget.json
+code/results/method_equivalence_dt.json
+code/results/model_selection.json
+code/results/offset_free_fit.json
+code/results/qb_basin_audit.json
+code/results/qb_basin_followup.json
+code/results/qb_degeneracy.json
+code/results/qb_prior_width_scan.json
+code/results/stability_threshold_sensitivity.json
+code/results/surface_bias_test.json
+code/results/surface_temp_diurnal_field.json
+code/results/uniform_kd_test.json
+code/results/window_criteria_sensitivity.json

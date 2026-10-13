@@ -14,14 +14,14 @@ PY := python3
 # Resolved relative to THIS Makefile, so moving the pair keeps it working.
 LUNAR_DOCS ?= $(abspath $(dir $(lastword $(MAKEFILE_LIST)))../Others)
 
-.PHONY: help install test retrieve aux figures paper all clean
+.PHONY: help install test retrieve aux figures notebooks paper all clean
 
 help:                ## show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 	  | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
 install:             ## editable install of the lunar package + dev extras
-	# mcmc is included: `make aux` runs bayesian_crosscheck.py, which imports emcee
+	# mcmc is included: `make aux` runs compute_joint_mcmc.py, which imports emcee
 	$(PY) -m pip install -e ".[dev,mcmc]"
 
 test:                ## run the unit-test suite
@@ -30,28 +30,13 @@ test:                ## run the unit-test suite
 retrieve:            ## core retrieval + bootstrap (writes code/results/kd_retrieval_results.json)
 	$(PY) code/pipeline/compute/retrieve_kd.py
 
-aux:                 ## all auxiliary sensitivity sweeps + model selection + error budget + MCMC
-	$(PY) code/pipeline/compute/compute_headline_rmse.py
-	$(PY) code/pipeline/compute/compute_borestem_sensitivity.py
-	$(PY) code/pipeline/compute/compute_stability_threshold_sensitivity.py
-	$(PY) code/pipeline/compute/compute_window_criteria_sensitivity.py
-	$(PY) code/pipeline/compute/compute_surface_bias_test.py
-	$(PY) code/pipeline/compute/compute_uniform_kd_sensitivity.py
-	$(PY) code/pipeline/compute/compute_fixed_input_sensitivities.py
-	$(PY) code/pipeline/compute/compute_model_selection.py
-	$(PY) code/pipeline/compute/bayesian_crosscheck.py
-	$(PY) code/pipeline/compute/qb_prior_width_scan.py
+aux:                 ## every analysis of the paper after the retrieval (24 steps with retrieve; ~6 h)
 	$(PY) code/pipeline/compute/compute_common_epoch.py
 	$(PY) code/pipeline/compute/compute_diviner_closure.py
-	$(PY) code/pipeline/compute/compute_qb_degeneracy.py
-	$(PY) code/pipeline/compute/compute_offset_free_fit.py
 	$(PY) code/pipeline/compute/compute_review_diagnostics.py   # ~5 min: flux scan, diurnal swing, level vs K_d, Diviner site vs zonal, TG/TR split
 	$(PY) code/pipeline/compute/compute_albedo_diagnostics.py   # ~13 min: site albedo vs LOLA map, albedo x K_d scan
 	$(PY) code/pipeline/compute/compute_albedo_sensitivity.py   # ~35 min: albedo / angular-law / chi re-retrievals (in-situ band)
 	$(PY) code/pipeline/compute/compute_albedo_anchor.py   # ~5 min: Hayne (2017) standard-model check + published albedo laws at the sites
-	$(PY) code/pipeline/compute/compute_error_budget.py   # after all of its inputs (qb_degeneracy, common_epoch, albedo_sensitivity, ...)
-	$(PY) code/pipeline/compute/audit_qb_basins.py   # ~10 min: wide-grid basin audit
-	$(PY) code/pipeline/compute/audit_qb_basin_followup.py   # ~1 min: narrow A15 basin at Q_b=10 (letter Sec. 2.4)
 	$(PY) code/pipeline/compute/compute_stability_windows.py   # seconds: every sensor's stability window (letter Sec. 2.1, SI Table S2)
 	$(PY) code/pipeline/compute/compute_joint_albedo_fit.py   # ~25 min: joint (albedo, K_d) retrieval + bootstrap (letter Sec. 2.6, 3.2)
 	$(PY) code/pipeline/compute/certify_joint_numerics.py   # ~2 min, after the joint fit, before the sensitivities: the reported K_d* under each numerical choice (grid, time step, anchor, run length, start, K_d spacing; SI Table S5)
@@ -70,8 +55,12 @@ aux:                 ## all auxiliary sensitivity sweeps + model selection + err
 	$(PY) code/pipeline/compute/compute_transient_warming.py   # ~2 min, after the annual wave: surface darkening at deployment, warming in the windows, refit (letter Sec. 3.2, 3.3, 4.3; SI Table S7)
 	$(PY) code/pipeline/compute/compute_joint_mcmc.py   # ~2 h (resumable grid) + 1 min sampling: posterior of A, K_d, Q_b, rho_d (letter Fig 6, SI Table S8)
 
-figures:             ## regenerate every figure (writes figures/) for the paper + guidebook
+figures:             ## regenerate the paper's figures (writes figures/)
 	$(PY) code/pipeline/make_all_figures.py
+
+notebooks:           ## run notebooks 00-05 top to bottom in "show" mode, as a check (a few minutes)
+	cd code/notebooks && for n in 00_setup 01_inputs 02_anchor_method 03_joint_fit 04_uncertainty_and_tests 05_annual_wave_and_posterior; do \
+	  echo "  $$n"; $(PY) -m jupyter nbconvert --to notebook --execute --stdout $$n.ipynb > /dev/null || exit 1; done
 
 paper:               ## compile every document (delegates to the document set at $LUNAR_DOCS)
 	@test -f "$(LUNAR_DOCS)/Makefile" || { \

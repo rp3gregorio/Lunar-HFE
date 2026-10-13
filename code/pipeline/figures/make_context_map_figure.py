@@ -91,6 +91,52 @@ TEMP_CMAP = plt.get_cmap("inferno")
 _DEM_CACHE = {}
 
 
+def mean_surface_temp_by_lat():
+    """Diurnal-MEAN skin temperature vs latitude, from the real solver.
+
+    Runs the model's forward march (fast Hayne kernel) at a ladder of
+    latitudes and averages the true skin temperature over one lunation,
+    so the map layer is a genuine model output -- not an analytic
+    stand-in. Cached in results/abstract_mean_surface_T.json (first made for the
+    GEDES abstract figures), so figure rebuilds are instant.
+    Values are symmetric in latitude; nominal Hayne properties and
+    equatorial Q_b are used (the skin mean is insensitive to K_d/Q_b).
+    """
+    import numpy as np
+    cache = MEANT
+    if cache.exists():
+        d = json.loads(cache.read_text())
+        return np.array(d["lat_deg"]), np.array(d["T_mean_K"])
+
+    from lunar.config import HAYNE, GRID, DT_STEP, SITES
+    from lunar.constants import Q_B_EQUATORIAL
+    from lunar.grid import make_geometric_grid
+    from lunar.solver import (solve_pixel, PixelInputs, standard_insolation,
+                              periodic_time_grid)
+    g = make_geometric_grid(**GRID)
+    t = periodic_time_grid(DT_STEP)
+    Ks, H, chi = HAYNE["K_S"], HAYNE["H"], HAYNE["CHI"]
+    Kd = 0.0034                                   # nominal global value
+    A = float(np.mean([SITES[s]["albedo"] for s in ("A15", "A17")]))
+    lats = np.append(np.arange(0.0, 90.0, 5.0), 89.0)
+    tmean = []
+    for lat in lats:
+        insol = standard_insolation(float(lat), t)
+        out = solve_pixel(PixelInputs(
+            grid=g, t=t, bc_mode="radiative", insolation=insol,
+            albedo=A, emissivity=0.95, Q_b=Q_B_EQUATORIAL,
+            n_lunations_spinup=80, spinup_tol_K=0.05, spinup_depth_m=0.15,
+            hayne_params=(Ks, Kd, H, chi)))
+        skin = out.T_surface if out.T_surface is not None else out.T[0]
+        tmean.append(float(skin.mean()))
+    cache.write_text(json.dumps(
+        {"lat_deg": lats.tolist(), "T_mean_K": tmean, "albedo": A,
+         "note": "diurnal-mean skin temperature vs |lat|, nominal Hayne "
+                 "props, equatorial Q_b; from lunar.solver.solve_pixel"},
+        indent=1))
+    return lats, np.array(tmean)
+
+
 def _dem():
     """LOLA elevation (km) at 1/4 the LDEM_16 resolution (720x1440), columns
     re-ordered to run from 180 W to 180 E for extent=(-180, 180); cached.
@@ -128,8 +174,7 @@ def _temp_field():
     color is a function of |lat| only; multiplying by the grayscale hillshade
     adds the real terrain (craters, maria) the same way panel (a) shows it.
     """
-    d = json.loads(MEANT.read_text())
-    lats = np.asarray(d["lat_deg"]); tmean = np.asarray(d["T_mean_K"])
+    lats, tmean = mean_surface_temp_by_lat()
     hs = _hillshade()                                 # [H, W] in [0,1]
     H, W = hs.shape
     grid_lat = np.linspace(90, -90, H)                # rows N->S (origin upper)

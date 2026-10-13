@@ -1,25 +1,22 @@
-"""Letter figures for the joint (albedo, K_d) retrieval (2026-10-05).
+"""The paper's figures from the joint (albedo, K_d) fit (2026-10-05).
 
-  fig_joint_constraints.pdf      Fig. 3: what fixes A and K_d at each site
-  fig_joint_bootstrap.pdf        bootstrap distributions and the contrast (not in the paper since 2026-10-07)
-  fig_joint_thermal_profiles.pdf Fig. 4: T(z) at the joint fit, the global value, Martinez
-  fig_joint_robustness.pdf       Fig. S6: K_d under each changed input, grouped as in Table 3
-  fig_joint_mcmc.pdf             Fig. 6: MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
-  fig_joint_annual_wave.pdf      Fig. 5: the annual wave in the full record vs the forward model (compute_annual_wave.py)
-  fig_joint_mean_T_profile.pdf   (not in the paper) the two global models at the config (fitted) albedos
-  fig_joint_alpha_sweep.pdf      (not in the paper) Martinez density sweep (reads results/headline_rmse.json)
-  fig_joint_intro_column.pdf     Fig. 1: the modeled column (swing depth from review_diagnostics.json)
-  fig_joint_anchor_process.pdf   Fig. S3: the flux-anchored solver step by step, Apollo 15 at the joint fit (~30 s)
+  fig_joint_intro_column.pdf            Fig. 1: the modeled column (swing depth from review_diagnostics.json)
   fig_joint_apollo_timeline_probes.pdf  Fig. 2: stability-window timeline (site colours)
+  fig_joint_thermal_profiles.pdf        Fig. 3: T(z) at the joint fit, the global value, Martinez
+  fig_joint_constraints.pdf             Fig. 4: what fixes A and K_d at each site
+  fig_joint_annual_wave.pdf             Fig. 5: the annual wave in the full record vs the forward model (compute_annual_wave.py)
+  fig_joint_mcmc.pdf                    Fig. 6: MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
+  fig_joint_anchor_process.pdf          Fig. S3: the flux-anchored solver step by step, Apollo 15 at the joint fit (~30 s)
   fig_joint_amplitude_vs_depth.pdf      Fig. S4: diurnal amplitude vs depth
+  fig_joint_robustness.pdf              Fig. S6: K_d under each changed input, grouped as in Table 3
 
-Figs. 1, 2, S2, S3 and the two figures not in the paper reuse the make_intro_column / make_apollo_timeline_letter /
-make_anchor_method_figure / make_letter_figures / make_alpha_sweep_figure generators
-under new names, so the older-named copies
-used by other documents (thesis, v1.1 letter) are kept.
+Figs. 1, 2, S3 and S4 come from the make_intro_column / make_apollo_timeline_letter /
+make_anchor_process_figure / make_letter_figures generators, called here.
+SI Figs. S1, S2 and S5 come from make_context_map_figure.py, make_study_overview.py
+and compute_joint_diviner.py.
 
 Reads results/joint_albedo_fit.json (+ _cache.npz), joint_fit_checks.json,
-joint_fit_sensitivities.json, joint_valley.json, headline_rmse.json.
+joint_fit_sensitivities.json, joint_valley.json, joint_mcmc.json, annual_wave.json.
 Writes to the top-level figures/ folder.
 
 Run with:
@@ -165,39 +162,6 @@ def fig_constraints(res, cache):
                  ["with diffusivity (joint fit)", "temperatures only", r"$\Delta J$ = 1 (68%), 3.84 (95%)", "global $K_d$ = 3.4"],
                  handlelength=3.0, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.4)})
     out = FIG / "fig_joint_constraints.pdf"
-    fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
-    print(f"  -> {out}")
-
-
-def fig_bootstrap(res):
-    fig = plt.figure(figsize=(JGR_FULL, 3.3))
-    gs = fig.add_gridspec(1, 2, wspace=0.28, left=0.09, right=0.98, top=0.88, bottom=0.20)
-    ax1, ax2 = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])
-    bins = np.arange(3.5, 7.51, 0.1)
-    h, l = [], []
-    for s in ("A15", "A17"):
-        bs = res["sites"][s]["with_diffusivity"]["bootstrap"]
-        x = np.array(bs["samples_kd_mW"]); q = bs["kd_mW"]
-        ax1.hist(x, bins=bins, color=SITE_COL[s], alpha=0.75, ec="white", lw=0.4)
-        h.append(Patch(fc=SITE_COL[s], alpha=0.75))
-        l.append(f"{SITE_LAB[s]}: {q['p50']:.2f} [{q['p2.5']:.2f}, {q['p97.5']:.2f}]")
-    ax1.axvline(3.4, color=C_TEAL, ls=":", lw=1.4)
-    h.append(Line2D([], [], color=C_TEAL, ls=":", lw=1.4)); l.append("global $K_d$ = 3.4")
-    ax1.set_xlim(3.0, 7.5)
-    fmt_axis(ax1, xlabel=r"$K_d^{*}$ (mW m$^{-1}$ K$^{-1}$)", ylabel="bootstrap count", title="(a)  Per-site joint retrieval")
-    c = np.array(res["sites"]["A17"]["with_diffusivity"]["bootstrap"]["samples_kd_mW"]) - np.array(res["sites"]["A15"]["with_diffusivity"]["bootstrap"]["samples_kd_mW"])
-    cc = res["contrast"]["with_diffusivity"]
-    ax2.axvspan(cc["p2_5"], cc["p97_5"], color=C_NEUTRAL, alpha=0.25, lw=0)
-    ax2.hist(c, bins=np.arange(-1.0, 3.01, 0.1), color=C_DIM, alpha=0.8, ec="white", lw=0.4)
-    ax2.axvline(0, color=C_CHAR, lw=0.9, ls="--")
-    ax2.axvline(cc["median"], color=C_CHAR, lw=1.6)
-    ax2.text(0.03, 0.93, f"P($\\Delta K_d^*\\leq0$) = {cc['p_leq0']:.3f}", transform=ax2.transAxes, ha="left", va="top",
-             fontsize=FS_TICK, bbox=dict(fc="white", ec=C_GRID, pad=3), zorder=6)
-    h += [(Patch(fc=C_NEUTRAL, alpha=0.4), Line2D([], [], color=C_CONTRAST, lw=1.6))]
-    l += [f"contrast: {cc['median']:+.2f} [{cc['p2_5']:+.2f}, {cc['p97_5']:+.2f}]"]
-    fmt_axis(ax2, xlabel=r"$\Delta K_d^{*}$ (A17 $-$ A15)", ylabel="bootstrap count", title="(b)  Inter-site contrast")
-    legend_below(fig, h, l)
-    out = FIG / "fig_joint_bootstrap.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")
 
@@ -461,7 +425,6 @@ def fig_mcmc(res):
 def main():
     res, cache, chk, sens = load()
     fig_constraints(res, cache)
-    fig_bootstrap(res)
     fig_profiles(res, cache, chk)
     if (RES / "joint_mcmc.json").exists():
         fig_mcmc(res)
@@ -473,13 +436,11 @@ def main():
         print("  (fig_joint_robustness waits for results/joint_fit_sensitivities.json)")
     # Fig. S3 first, while the house rcParams are in force; then the others and
     # Fig. 1, whose generators set their own rcParams (fonts, legend sizes)
-    import make_letter_figures, make_alpha_sweep_figure, make_intro_column, make_anchor_process_figure
+    import make_letter_figures, make_intro_column, make_anchor_process_figure
     import make_apollo_timeline_letter
     make_anchor_process_figure.main()   # Fig. S3: the solver step by step (A15 at the joint fit)
     make_apollo_timeline_letter.main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False)  # Fig. 2
     make_letter_figures.fig_amplitude_vs_depth(out_name="fig_joint_amplitude_vs_depth.pdf")   # Fig. S4
-    make_letter_figures.fig_mean_T_profile(out_name="fig_joint_mean_T_profile.pdf")
-    make_alpha_sweep_figure.main(out_name="fig_joint_alpha_sweep.pdf")
     make_intro_column.main(out_stem="fig_joint_intro_column", font="times")   # Fig. 1 (swing depth at the joint K_d*)
 
 

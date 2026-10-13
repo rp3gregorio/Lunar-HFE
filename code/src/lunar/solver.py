@@ -381,8 +381,8 @@ def _step(
     whole step FIRST order in dt regardless of the trapezoidal
     averaging, and the error is not academic: the retrieved K_d*(A17)
     drifted -0.30 mW per dt halving (7.699 / 7.397 / 7.251 at dt =
-    1800/900/450 s; Richardson limit 7.104 mW,
-    ``results/dt_kdstar_certification_A17wide.json``).
+    1800/900/450 s; Richardson limit 7.104 mW; the dt-ladder record is in
+    release v1.4.2-jgr).
 
     The fix is ``n_picard`` corrector sweeps: after the predictor solve,
     re-evaluate the properties at the time-midpoint state

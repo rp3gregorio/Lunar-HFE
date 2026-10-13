@@ -1,152 +1,120 @@
 # Reproducing the paper
 
-This document walks through every step from a fresh clone to a compiled
-PDF identical to the submitted manuscript.
+From a fresh copy of the repository to every number and figure of the letter
+and its Supporting Information.
 
 ## Prerequisites
 
-- **Python 3.10+** (`python3 --version`)
-- **Git** (any recent version)
-- **LaTeX** (for the final paper compile only — TeX Live 2023+ or MacTeX)
-- ~1 GB free disk space (code + data)
-- ~1 hour wall time for full reproduction on a recent laptop
+- **Python 3.10+** and **Git**
+- About 1 GB of free disk space (more with the optional Diviner data)
+- For SI Figure S2 only: **pdflatex** (TeX Live or MacTeX)
+- Time: minutes to check the stored results; about 6 hours of wall time for
+  the full analysis on a six-core laptop
 
-## Step 1 — Clone
+## Step 1 — Get the code
 
 ```bash
 git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd Lunar-HFE
+git checkout v1.5-jgr          # the version the paper names
 ```
 
-## Step 2 — Install Python dependencies
+## Step 2 — Install
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate     # Windows: .venv\Scripts\activate
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -e ".[dev,mcmc]"
 ```
 
-`pip install -e ".[dev,mcmc]"` installs the `lunar` package in editable mode
-plus the development extras (`pytest`, `jupyterlab`, `matplotlib`).
-
-If you want the *exact* dependency versions used to produce the
-published figures, use the lock file instead:
+This installs the `lunar` package (the physics) in editable mode, with the
+notebook tools, the tests and the MCMC sampler. For the exact versions used for
+the paper, use the lock file instead:
 
 ```bash
 pip install -r requirements-lock.txt
 pip install -e .
 ```
 
-## Step 3 — Fetch Diviner GCP data
+## Step 3 — Optional downloads
+
+The Apollo record, the SPICE kernels and the site-map crops are in the
+repository. Two public data sets are not, and are needed only to recompute the
+steps that use them:
 
 ```bash
-python code/pipeline/fetch_diviner.py
-```
-
-This downloads ~310 MB of public PDS data (only the two lat-bands needed
-for Apollo 15 and 17 surface-T closure). Files land under
-`code/data/diviner/gcp/` and are reused on subsequent runs.
-
-SI Figure S1 (the context map) also needs the global LOLA elevation model at
-16 pixels per degree (33 MB, public PDS data, not in git):
-
-```bash
+python code/pipeline/fetch_diviner.py     # ~310 MB: Diviner comparison (SI Table S11, SI Fig S5)
 mkdir -p code/data/lola
-curl -L -o code/data/lola/ldem_16.img https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/cylindrical/img/ldem_16.img
+curl -L -o code/data/lola/ldem_16.img https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/cylindrical/img/ldem_16.img   # 33 MB: SI Fig S1
 ```
 
-The Apollo HFE record, the SPICE kernels, the LOLA relief crops and the
-landing-site maps (`code/data/apollo_site_maps/`) are bundled in the
-repository; no download is needed for them.
+Notebook `00_setup` can do both (`DOWNLOAD = True`).
 
-## Step 4 — Run the test suite
+## Step 4 — Run the tests
 
 ```bash
-pytest -q
+make test
 ```
 
-All tests should pass in under a minute. If they don't, stop and check
-your Python/numpy versions before proceeding.
+The unit tests of the physics code pass in under a minute. If they do not,
+check the Python and NumPy versions before going on.
 
-## Step 5 — Run the notebooks
+## Step 5 — Run the analysis
 
-Open Jupyter Lab and run the seven notebooks in order:
+**In the notebooks** (recommended):
 
 ```bash
 jupyter lab code/notebooks/
 ```
 
-The notebooks reproduce the earlier fixed-albedo analysis (up to v1.1-jgr);
-the figure and table numbers below refer to that version. The current
-letter's results and figures come from the scripts of Step 5b.
+Run `00_setup` to `05_annual_wave_and_posterior` in order. The first code cell
+of each sets `MODE`: `"show"` reads the stored results (minutes), `"quick"`
+runs the short steps and the fast form of the long ones (about 30 min),
+`"full"` runs everything from scratch (about 6 h). Each notebook compares its
+results with the numbers printed in the paper. `code/notebooks/README.md`
+lists the script behind every step.
 
-| Notebook | Wall time | Produces |
-|---|---|---|
-| `00_setup.ipynb` | <1 min | sanity check, data integrity |
-| `01_methods.ipynb` | 2-3 min | Figs 1-3 & 5, Table 1 |
-| `02_anchor_method.ipynb` | 2-3 min | the flux-anchored solver, explained + animated |
-| `03_retrieval.ipynb` | ~5 min (fast); ~90-100 min full | per-site K_d sweep + bootstrap + Q_b sensitivity; writes `code/results/kd_retrieval_results.json`. Heavy auxiliary sweeps for Table 3 are opt-in (`RUN_AUXILIARY = True`). |
-| `04_results.ipynb` | 3-5 min | Figs 6-9 & 12, Tables 2-3 |
-| `05_discussion.ipynb` | 2-3 min | Figs 10-11, Tables 4-5 |
-| `06_performance.ipynb` | 2-3 min | the solver kernel in C++ (agreement + speedup), then the K_d retrieval run live (tqdm progress) |
-
-End-to-end on the fast path: about **15 minutes**. The canonical
-auxiliary JSONs already ship with the repo, so the slow auxiliary
-sweeps (~90-100 min) are rarely needed unless you change inputs.
-
-Each notebook is **idempotent**: re-running it overwrites the same
-output files. Notebooks read the canonical JSON results from
-`code/results/`, so once `03_retrieval.ipynb` has run once, subsequent
-notebooks can be re-run independently for figure tuning.
-
-## Step 5b — The joint (albedo, K_d) retrieval: the paper's headline
-
-Since v1.2-jgr the paper's values come from fitting the effective albedo and
-K_d together to three in-situ measurements (sensor temperatures, measured
-surface mean, Langseth et al. 1976 annual-wave diffusivity). These scripts
-take the albedo explicitly, so they do not depend on the config albedo:
+**Without Jupyter**, the same scripts in the same order:
 
 ```bash
-python code/pipeline/compute/compute_stability_windows.py        # seconds: per-sensor windows (SI Table S2); they are NOT aligned in time
-python code/pipeline/compute/compute_joint_albedo_fit.py          # ~25 min (5 workers): Table 1, Figs 3-4
-python code/pipeline/compute/compute_joint_valley.py              # seconds: SI Table S9 (what the diffusivity adds)
-python code/pipeline/compute/compute_joint_probe_checks.py        # seconds: per-probe / transient K_d, +-5 K test (Sec. 3.3, 4.1)
-python code/pipeline/compute/compute_joint_block_bootstrap.py     # ~1 min: probe-grouped bootstrap (Table S6)
-python code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min (5 workers): Tables 2-3, Fig S6
-python code/pipeline/compute/compute_joint_fit_checks.py          # ~1 min, after the sensitivities
-python code/pipeline/compute/compute_joint_diviner.py             # ~3 min: Table S11, Fig S5
-python code/pipeline/compute/compute_gradient_epochs.py           # seconds: gradient vs window epoch (Sec. 3.1-3.2)
-python code/pipeline/compute/compute_joint_chi_density.py         # ~50 min (5 workers): chi sweep + site densities (Sec. 4.2, Table S14)
-python code/pipeline/compute/compute_likelihood_ratio.py          # seconds: likelihood-ratio tests from the stored fits (Tables 1-2, Sec. 3.2, 4.1, 4.2; Tables S4, S14)
-python code/pipeline/compute/certify_joint_numerics.py            # ~2 min (5 workers): the reported K_d* under each numerical choice (Table S5)
-python code/pipeline/compute/compute_annual_wave.py               # ~3 min (5 workers): annual wave, measured + forward-modeled (Sec. 3.4, Table S12)
-python code/pipeline/compute/compute_own_diffusivity_fit.py      # ~15 s: the joint fit with our own diffusivities instead of Langseth's (Sec. 3.4, Table S12 lower block)
-python code/pipeline/compute/compute_annual_wave_surface_test.py  # ~6 min (5 workers): near-surface layer vs the annual-wave amplitude factor (Sec. 4.4 (iii), Table S12)
-python code/pipeline/compute/compute_transient_warming.py         # ~2 min: post-deployment warming modeled and removed, refit (Sec. 3.2, 3.3, 4.3; Table S7)
-python code/pipeline/compute/compute_joint_mcmc.py                # ~2 h grid (resumes) + 1 min emcee: Fig 6, Table S8
-python code/pipeline/figures/make_joint_figures.py                # Figs 1-6, S3 (make_anchor_process_figure.py), S4, S6
-python code/pipeline/figures/make_context_map_figure.py           # Fig S1
-python code/pipeline/figures/make_study_overview.py               # Fig S2 (TikZ source in pipeline/figures/tikz/; needs pdflatex)
+make retrieve aux          # 24 steps, about 6 h; each prints its progress
 ```
 
-`compute_joint_albedo_fit.py --reuse` re-analyses the committed grid
-(`code/results/joint_albedo_fit_cache.npz`) in seconds; the sensitivity
-script accepts `--reuse` once its own cache exists, and
-`compute_joint_mcmc.py --sample` re-runs only the sampler on the committed
-grid (`code/results/joint_mcmc_grid.npz`).
+The order matters: the joint fit (`compute_joint_albedo_fit.py`) reuses the
+outputs of the steps before it, the error budget needs the solver
+certification (`certify_joint_numerics.py`), and the likelihood-ratio tests
+come after the error budget and the χ sweep. The `Makefile` lists every step
+with its runtime and what it gives in the paper.
+
+Three long steps have fast forms that re-analyse stored model runs:
+
+```bash
+python code/pipeline/compute/compute_joint_albedo_fit.py --reuse        # seconds (the grid is in git)
+python code/pipeline/compute/compute_joint_fit_sensitivities.py --reuse # seconds, once its cache exists locally
+python code/pipeline/compute/compute_joint_mcmc.py --sample             # ~1 min (the grid is in git)
+```
 
 ## Step 6 — The figures
 
-The manuscript itself is not in this repository; its figures are, in
-`figures/`. Every letter and SI figure is written by one of the scripts above
-(letter Figs 1-6 and SI Figs S1-S6), and `make figures` regenerates them
-together with the guidebook and thesis figures.
+```bash
+make figures
+```
+
+This writes the letter's Figures 1–6 and SI Figures S1–S4 and S6 to
+`figures/`. SI Figure S5 is written by `compute_joint_diviner.py` (it needs
+the Diviner data); SI Figure S1 needs the LOLA map and SI Figure S2 needs
+pdflatex. The notebooks show every figure.
 
 ## Verification
 
-The repository ships with the canonical JSON results. To verify the
-headline joint retrieval
-([`code/results/joint_albedo_fit.json`](../../code/results/joint_albedo_fit.json)):
+The repository ships every result. After a full run,
+
+```bash
+git diff --stat code/results
+```
+
+shows which results files changed; for an unchanged run only run times and
+the recorded git commit differ. To check the headline values directly:
 
 ```bash
 python -c "
@@ -160,27 +128,23 @@ print('Headline values verified.')
 "
 ```
 
-`code/results/kd_retrieval_results.json` holds the temperature-only
-retrieval at the fixed (fitted) config albedos, a diagnostic since v1.2-jgr.
+`code/results/README.md` maps every results file to the tables and figures
+it feeds.
 
 ## Troubleshooting
 
-**`pip install -e` fails on macOS with SciPy build errors**: install via
-`pip install --only-binary=:all: -e ".[dev,mcmc]"` to force the prebuilt wheels.
+**`pip install -e` fails on macOS with SciPy build errors**: install the
+prebuilt wheels with `pip install --only-binary=:all: -e ".[dev,mcmc]"`.
 
-**SPICE kernel download fails**: the SPICE ephemeris files are fetched
-on demand by `code/src/lunar/ephem.py`. If your network blocks the JPL/NAIF
-mirror, set `SPICE_KERNEL_DIR` to a local directory containing the
-DE440 kernel and the NAIF lunar/earth PCK.
+**Diviner download SSL error**: `fetch_diviner.py` retries with SSL
+verification disabled (PDS data are public).
 
-**Diviner download SSL error**: `code/pipeline/fetch_diviner.py` retries with
-SSL verification disabled (PDS data is public, this is safe).
+**A notebook step stops with "needs ... which is not downloaded"**: run the
+download of Step 3, or keep the mode at `"show"` / `"quick"`, which use the
+stored result.
 
-**LaTeX missing font / package**: install a complete TeX distribution
-(TeX Live 2023+ or MacTeX). Partial installations like BasicTeX will
-fail on Times New Roman + microtype + lineno.
+**SI Figure S2 is not made**: install pdflatex (a full TeX Live or MacTeX).
 
 ## Citing
 
-See [`CITATION.cff`](../../CITATION.cff) and the bottom of the main
-[README](../../README.md).
+See [`CITATION.cff`](../../CITATION.cff) and the main [README](../../README.md).

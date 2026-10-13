@@ -1,111 +1,71 @@
 # Repository structure
 
-This repository is **code only**. Three folders at the top level, each with one
-job:
-
-| Folder | What it holds |
-|---|---|
-| **`code/`** | the engine — the `lunar` package, the pipeline, tests, and data inputs |
-| **`figures/`** | every shared generated figure, in one place |
-| **`documents/`** | how the code works and how to re-run it (notes + developer tour) |
-
-Config files sit at the root. There is exactly **one physical copy of every
-shared figure**, in `figures/`.
-
-The **manuscripts are not here.** The JGR letter and guidebook, the GEDES
-abstract / thesis / defense deck, the AOGS poster and the slide decks live in a
-separate document set outside the repository (see below), so what gets pushed
-to GitHub stays strictly the code and the artifacts needed to reproduce it.
+This repository holds the code, inputs and results of the paper, nothing else.
+The manuscript is kept separately.
 
 ```
 Lunar-HFE/
+├── code/
+│   ├── src/lunar/          the physics, as an installed package (import lunar)
+│   │   ├── config.py         every site value and solver setting (one source of truth)
+│   │   ├── constants.py      cited physical constants
+│   │   ├── properties.py     conductivity K(T,z), density, heat capacity (Hayne et al. 2017)
+│   │   ├── grid.py           the depth grid (69 cells to 5 m)
+│   │   ├── solver.py         the heat equation (Crank-Nicolson, compiled with Numba)
+│   │   ├── equilibrium.py    the flux-anchored periodic-equilibrium solver
+│   │   ├── apollo_helpers.py the Apollo record and each sensor's stability window
+│   │   ├── ephem.py          Sun position (SPICE)
+│   │   ├── diviner.py        Diviner surface temperatures
+│   │   ├── notebook.py       runs the pipeline steps from the notebooks
+│   │   └── plotting/         the figure style
+│   │
+│   ├── pipeline/
+│   │   ├── compute/        one script per analysis; each writes code/results/<name>.json
+│   │   ├── figures/        the figure scripts (writes figures/)
+│   │   ├── make_all_figures.py   all of the paper's figures ("make figures")
+│   │   └── fetch_diviner.py, fetch_apollo_site_maps.py, extract_lola_relief.py   data preparation
+│   │
+│   ├── notebooks/          00-06: run the whole study, step by step (README.md inside)
+│   ├── results/            every result the paper reports (README.md maps file -> paper)
+│   ├── data/               inputs: Apollo HFE record, SPICE kernels, site maps, LOLA relief
+│   ├── tests/              unit tests of the physics code (make test)
+│   └── cpp/                an independent C++ copy of the solver (SI Table S5)
 │
-├── code/                      ← THE ENGINE (logic + inputs, no manuscripts)
-│   ├── src/lunar/             the importable package (solver, equilibrium,
-│   │                          properties, grid, config, plotting/style …)
-│   ├── pipeline/              scripts that USE the package
-│   │   ├── compute/           retrieval, bootstrap, MCMC, error budget
-│   │   ├── figures/           every letter/guidebook/thesis figure generator
-│   │   └── make_all_figures.py   JOBS registry ("make figures")
-│   ├── cpp/  tests/  notebooks/
-│   ├── data/                  INPUTS: Apollo HFE, Diviner, SPICE records
-│   ├── references/            INPUTS: cited-paper PDFs (anti-hallucination, gitignored)
-│   └── results/               OUTPUTS: *.json (+ bayesian_chains.npz, archive/)
-│
-├── figures/                   ← EVERY SHARED FIGURE (one physical copy)
-│   ├── *.pdf                  the letter / guidebook / thesis / abstract graphs
-│   ├── anim/                  the GIFs + filmstrips
-│   └── _archive/              retired figures kept for reference
-│
-├── documents/                 ← HOW THE CODE WORKS (not the manuscripts)
-│   ├── notes/                 REPRODUCING.md, FLAG_REPORT.md, error-budget
-│   │                          provenance, Numba-vs-C++ justification, audits
-│   └── dev/                   CODE_TOUR (md/tex/pdf) + wrap-step notes
-│
-└── README.md  Makefile  pyproject.toml  STRUCTURE.md  CITATION.cff  LICENSE*
+├── figures/                generated figures (not in git; make figures, or the notebooks)
+├── documents/notes/REPRODUCING.md   the step-by-step recipe
+└── README.md  Makefile  pyproject.toml  CITATION.cff  LICENSE  LICENSE-CC-BY-4.0
 ```
 
-## The document set (outside this repository)
+## How the parts connect
 
-The manuscripts live at `$LUNAR_DOCS` — by default the sibling `Others/`
-folder, i.e. the project is a pair:
-
-```
-Lunar-HFE/
-├── github/                 this repository
-└── Others/                 the document set
-    ├── jgr/letter/         jgr/guidebook/
-    ├── gedes/abstract/     gedes/thesis/     gedes/defense/
-    └── aogs/               slides/           overleaf/
-```
-
-That tree reaches back into this repository through six symlinks — a `code`
-link (so `find_repo_root()` and the AOGS scripts still locate the `lunar`
-package), three `figures` links, `references.bib`, and `aogs/data/lola`. Its
-own `Makefile` provides `make paper` and a `make check` that verifies every
-bridge is alive. `make paper` in *this* repo delegates to it.
-
-## Where figures live (important)
-
-Every shared figure has **one** physical copy, in the top-level **`figures/`**
-folder. The JGR and GEDES manuscripts reach it through a symlink:
+Data flow one way:
 
 ```
-Others/jgr/letter/figures         -> <repo>/figures
-Others/jgr/guidebook/figures      -> <repo>/figures
-Others/gedes/thesis/figures       -> <repo>/figures
-Others/gedes/thesis/references.bib -> ../../jgr/letter/references.bib
+code/data/  ->  code/pipeline/compute/  ->  code/results/  ->  code/pipeline/figures/  ->  figures/
+                       ^                                              ^
+                 code/src/lunar/ (the physics)                code/src/lunar/plotting/
 ```
 
-The **GEDES abstract** and the **AOGS poster** are self-contained instead —
-each keeps its own `figures/` folder at its own printed width, so it carries
-its graphics with it. The abstract's generator finds the document set as the
-sibling `Others/` (override with `$LUNAR_DOCS`):
+- **The physics lives only in `code/src/lunar/`.** The pipeline scripts call
+  it; they never redefine a site value or a solver setting (`config.py` is the
+  one source).
+- **Each analysis is one script** in `code/pipeline/compute/`, with its purpose,
+  inputs, outputs and runtime in its first lines. The `Makefile` (`make aux`)
+  and the notebooks run them in the same order.
+- **Figures never compute physics.** They read `code/results/`.
+- **The notebooks are the interface.** Each cell calls one script through
+  `lunar.notebook.step`, so the notebooks and `make` run exactly the same code.
 
-```bash
-.venv/bin/python code/pipeline/figures/make_abstract_figures.py
-```
+## Order of the analysis
 
-**Consequence:** to change a shared figure, edit its generator in
-`code/pipeline/figures/` and re-run it — every generator writes **only** to the
-top-level `figures/` folder, so every JGR/GEDES document updates at once and
-moving or renaming a document can never break a generator.
+`retrieve_kd.py` and the analyses the joint fit builds on (common 1974 window,
+Diviner comparison, albedo models) come first; then the joint fit
+(`compute_joint_albedo_fit.py`), its tests and error budget, and the
+independent checks (annual wave, warming after deployment, posterior). The
+`Makefile` lists all 24 steps in order, with their runtimes.
 
-## How the code finds its own root
+## Earlier versions
 
-`lunar._bootstrap.find_repo_root()` returns `code/` (the directory holding
-`src/`, `data/`, `results/`). Figure generators write to
-`find_repo_root().parent / "figures"` (the top-level shared folder). The Python
-package is installed editable via `pyproject.toml` (`package-dir = code/src`);
-`pytest` runs `testpaths = code/tests`.
-
-## House rules
-
-- **Code and manuscripts stay separated:** never move a `.tex` manuscript back
-  into this repository, and never copy a shared figure out of `figures/`.
-- **Numbers match code:** every value in a document traces to
-  `code/results/*.json`; never hand-edit a figure or manuscript number.
-- **One figure home:** never copy a shared figure into a document folder; use
-  the existing `figures/` link.
-- **Cleanup + verify:** after any tidy-up, prove the code still runs and every
-  document still compiles.
+Analyses and figures of the study's earlier stages (the fixed-albedo
+analysis, the GEDES thesis, the AOGS poster, the guidebook) are not in the
+current tree. They are in the git history and in release v1.4.2-jgr.

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Regenerate every figure in the paper and guidebook (plus supplementary).
+"""Regenerate every figure of the paper (letter and SI).
 
 One command to "draw out the figures." Each generator is run in turn,
 timed, and reported; a failure in one does not stop the others. Assumes
-the result JSONs already exist in results/ (run the retrieval first:
-`python pipeline/compute/retrieve_kd.py`, or `make retrieve`).
+the results JSONs exist in results/ (the repository ships them; `make aux`
+or the notebooks recompute them). SI Figure S5 is drawn by
+compute/compute_joint_diviner.py, which needs the Diviner data.
 
 Run:  python pipeline/make_all_figures.py    (or: make figures)
 """
@@ -19,94 +20,11 @@ sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 
 # (module, callables) — each module's figure entry point(s), in run order.
 JOBS = [
-    ("make_intro_column",   "letter Fig 1: column, probes, density"),
-    ("make_intro_figures",      ["fig_intro_probe"]),
-    ("make_anchor_method_figure", ["main"]),  # letter Fig: the anchor method
-    ("make_context_map_figure", ["main"]),     # SI Fig S1
-    ("make_probe_geometry_figure", ["main"]),  # fig_probe_geometry (guidebook
-                                                # Ch.1); was missing from JOBS
-                                                # -- a fresh `make figures` run
-                                                # could not reproduce it
-                                                # (audit 2026-07-05)
-    ("make_apollo_timeline",    ["main"]),    # slim redesign (guidebook)
-    ("make_apollo_timeline_letter", ["main"]), # original rich design (letter Fig 3)
-    ("make_window_criteria_figures", ["main"]),  # (1) the 5-box window process
-                                                # (2) all four selector knobs
-                                                # swept through the retrieval
-                                                # (window_criteria_sensitivity)
-    ("make_stability_selection_flow", ["main"]),  # how each sensor's stabilized
-                                                # window is chosen: the
-                                                # find_stable_window decision
-                                                # flow + one worked sensor per
-                                                # branch (trend_flat / fallback)
-    ("make_letter_figures",     ["main"]),
-    ("make_results_figures",    ["main"]),
-    ("make_alpha_sweep_figure", ["main"]),
-    ("make_joint_figures",      ["main"]),     # letter Figs 1-6, SI Figs S3, S4, S6
-    ("make_study_overview",     ["main"]),     # SI Fig S2, study overview (TikZ, needs pdflatex)
-    ("make_qb_degeneracy_figure", ["main"]),  # measured K_d*(Q_b) map (F-9)
-    ("make_dt_ladder_figure",   ["main"]),    # dt certification teaching fig
-    ("make_prior_estimates_figure", ["main"]),  # 5-decade K_d context (verified)
-    ("make_sweep_worked_figure", ["main"]),    # App-C worked sweep bowl (book)
-    ("make_method_flowchart",   ["main"]),    # thesis Ch-3 flux-anchored outer loop (fig:methodflow)
-    ("make_bc_illustration",    ["main"]),    # thesis Ch-3 boundary-condition schematic
-    ("make_grid_illustration",  ["main"]),    # the geometric depth grid: all 69
-                                              # cells to scale, a zoom on the fine
-                                              # end, and dz vs depth
-    ("make_column_illustration", ["main"]),   # the lit column beside Hayne's
-                                              # density profile. Unlabelled by
-                                              # design: the boundary-condition
-                                              # equations are added in the
-                                              # document, not baked in here
-    ("make_column_and_retrieval", ["main"]),  # the full 5 m column: both
-                                              # boundaries, the diurnal skin, the
-                                              # compaction, and the measured
-                                              # RMSE(K_d) bowls that define K_d*
-    ("make_surface_balance",    ["main"]),    # lit cutaway of the surface energy
-                                              # balance: sunlight in, scattered,
-                                              # absorbed, radiated, conducted.
-                                              # Equations set in Cambria Math
-                                              # (falls back if Office is absent)
-    ("make_regolith_cartoon",   ["main"]),    # thesis Ch-3 opener: the column,
-                                              # its density, its three bounding
-                                              # conditions, the Apollo probe.
-                                              # Deliberately equation-free.
-    ("make_model_anatomy",      ["main"]),    # thesis Ch-3 candidates: the heat
-                                              # equation + Hayne K(T,z) + the
-                                              # three closure conditions, in four
-                                              # registers (cutaway / equation map
-                                              # / stencil / per-condition grid)
-    ("make_pipeline_flowchart", ["main"]),    # thesis Ch-1 whole-pipeline overview
-    ("make_discussion_figures", ["main"]),    # thesis Ch-6 waterfall/mechanisms/TSUKIMI
-    ("make_numerics_figure",    ["main"]),    # thesis Ch-3 grid + matrix diagram
-    ("make_explainer_figures",  ["main"]),    # thesis window/epoch/urect explainers
-    ("make_more_explainers",    ["main"]),    # thesis bootstrap/Newton/AICc explainers
-    ("make_speedup_factors_figure", ["main"]),  # thesis hardware-independent speed-up factors
-    ("compute_diviner_closure", ["main"]),    # surface-T closure figure
-    ("make_book_figures",       ["main"]),
-    ("make_book3d_figures",     ["main"]),    # 3D illustrations + 2D field/wave
-    ("make_equilibrium_certification", ["main"]),
-    ("make_anchor_convergence",  ["main"]),   # flux-anchored convergence trace (real history)
-    ("make_convergence_study",   ["main"]),   # n_inner convergence: K_d* plateau + flux-closure criterion
-    ("make_anchor_anatomy",      ["main"]),   # one solve: skin (Step A) / anchor / deep (Step B) + flux=Q_b
-    ("make_retrieval_demo",      ["main"]),   # the sweep: A+B per K_d vs Apollo -> RMSE minimum = K_d*
-    ("make_anchor_placement",    ["main"]),   # why z0=0.55 m: amplitude + u_rect decay with depth
-    ("make_reconstruct_animation", ["filmstrip"]),  # Step-B slope-walk filmstrip (guidebook still)
-    ("make_spinup_animation",   ["main"]),    # brute spin-up filmstrip + GIF
-    ("make_newmethod_animation", ["main"]),
-    ("make_results_animation", ["main"]),  # results-explainer GIF + filmstrip
-    ("make_anchor_method_animation", ["main"]),  # step-by-step anchor-method GIF + filmstrip   # anchor-method filmstrip + GIF
-    ("make_old_vs_new_animation", ["main"]),  # old-vs-new filmstrip + GIF (was
-                                              # unregistered -> went stale across
-                                              # two solver revisions; audit 2026-07-04)
-    ("make_surface_temp_animation", ["render"]),  # outreach: Sun-driven surface-T
-                                                  # globe GIF + filmstrip (figures/anim)
-    ("make_speedup_figure",      ["main"]),    # measured wall-clock speed-up
-    ("make_baselayer_figure",    ["main"]),    # with/without bedrock base layer
-    ("make_equilibrium_demo",    ["main"]),   # guess-independence proof
-    ("make_headline_figure",     ["main"]),    # the result in one glance (forest plot)
-    ("make_stats_figures",       ["main"]),    # statistics chapter: bootstrap clouds + contrast/p-value
-    ("make_svg_figures",        ["main"]),    # hand-authored SVG illustrations (run last: wins)
+    ("make_joint_figures",           ["main"]),   # letter Figs 1-6, SI Figs S3, S4, S6
+    ("make_context_map_figure",      ["main"]),   # SI Fig S1 (needs the LOLA map: REPRODUCING.md, Step 3)
+    ("make_study_overview",          ["main"]),   # SI Fig S2 (TikZ, needs pdflatex)
+    ("make_spinup_animation",        ["main"]),   # notebook 02: brute-force spin-up
+    ("make_anchor_method_animation", ["main"]),   # notebook 02: the flux-anchored method
 ]
 
 

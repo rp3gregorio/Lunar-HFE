@@ -55,7 +55,10 @@ LAWS = {"form_vasavada2012": (0.045, 0.14), "form_hayne2017": (0.06, 0.25)}
 # c_p envelope +-3 %: covers all five samples of Hemingway et al. (1973, Table 6:
 # soils, breccia, basalt; -1.7 to +2.6 % about the Hayne polynomial at 240-260 K)
 CP_SCALES = (0.97, 1.03)
-SIGMA_SOLVER = 0.04                    # grid & dt convergence (unchanged; compute_error_budget.py)
+# solver row: the largest change of the reported K_d* under any numerical choice (grid,
+# time step, anchor depth, run length, start, K_d spacing), measured by
+# certify_joint_numerics.py (SI Table S5); run that script first
+CERT = _REPO / "results" / "joint_numerics_certification.json"
 
 
 def variants():
@@ -209,7 +212,7 @@ def main():
         qvals = [V[f"Qb_{q:g}"] for q in QB[s]] + [k0]
         kq[s] = {**{q: V[f"Qb_{q:g}"] for q in QB[s]}, QB_NOMINAL[s]: k0}
         bs = nom["bootstrap"]["kd_mW"]
-        sig = dict(sigma_stat=0.5 * (bs["p84"] - bs["p16"]), sigma_solver=SIGMA_SOLVER,
+        sig = dict(sigma_stat=0.5 * (bs["p84"] - bs["p16"]), sigma_solver=json.loads(CERT.read_text())["sites"][s]["summary"]["all_max"],
                    sigma_Qb=half(qvals), sigma_Ks=half([V["Ks_x0.7"], V["Ks_x1.3"]]),
                    sigma_rho=half([V["rho_d_1700"], V["rho_d_2000"]]),
                    sigma_cp=half([V[f"cp_x{f:g}"] for f in CP_SCALES]),

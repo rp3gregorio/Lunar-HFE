@@ -18,7 +18,7 @@ fully outside the axes, larger type, and holds at each phase change.
 Right panel: the REAL per-outer-cycle anchor drift from
 EquilibriumResult.history, contracting to the 0.005 K tolerance.
 
-Outputs (filenames unchanged -- notebook 02 and the guidebook embed them):
+Outputs (filenames unchanged -- the optional_anchor_method notebook and the guidebook embed them):
   figures/anim/anchor_method_steps.gif
   figures/anchor_method_filmstrip.pdf
 Run: python code/pipeline/figures/make_anchor_method_animation.py

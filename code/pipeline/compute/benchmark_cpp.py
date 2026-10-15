@@ -52,7 +52,7 @@ KD = retrieved_kd_star("A15")   # same problem as the main benchmark; single-sou
 
 def dump_inputs(path, g, t, insol, T_init, site, n_lun, kd=None):
     # kd overrides the default K_d so the C++ kernel can be driven across a
-    # K_d sweep (used by the C++ brute-force retrieval demo in notebook 06);
+    # K_d sweep (used by the C++ brute-force retrieval demo in the optional_performance notebook);
     # the binary reads K_d from this file, so no recompile is needed.
     kd_use = KD if kd is None else float(kd)
     with open(path, "wb") as f:

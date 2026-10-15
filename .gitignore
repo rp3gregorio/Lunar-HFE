@@ -133,6 +133,8 @@ code/results/_cache_*.npz
 # not published; every file is in the git history and in release v1.4.2-jgr.
 # ---------------------------------------------------------------------------
 code/notebooks/old_fixed_albedo/
+# the notebooks of v1.5-jgr (00-05), replaced by run_everything.ipynb
+code/notebooks/old_v1.5/
 code/references/*.md
 documents/dev/
 documents/notes/*

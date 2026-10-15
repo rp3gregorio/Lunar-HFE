@@ -91,7 +91,7 @@ C_HAYNE = C_TEAL
 C_MS = "#6C4CA6"  # Martinez violet
 C_LAB = C_PLUM
 
-# measurement roles (letter Fig. 3: what constrains A and K_d), kept apart from
+# measurement roles (letter Fig. 4: what constrains A and K_d), kept apart from
 # the site (forest / coral) and model (teal / violet) hues
 C_OCHRE = "#A8822E"      # meter-scale sensor temperatures
 C_OCHRE_L = "#EADBB8"

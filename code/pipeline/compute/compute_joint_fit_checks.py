@@ -5,31 +5,36 @@ diffusivity), and at the global K_d = 3.4 with its own fitted albedo:
   * meter-scale-sensor RMSE, mean bias, offset-removed misfit (the residual
     standard deviation: what is left once the level is matched), the model
     gradient across the retained band against the observed one, and the
-    diurnal-mean surface temperature (Table 1 of the letter);
+    diurnal-mean surface temperature (Table 1 of the letter, Sec. 3.1);
   * the Martinez & Siegler (2021) forward model at the fitted albedo, with the
     density profile of the Hayne runs (H = 6 cm; Table 1) and with their own
     H = 5.6 cm (text above their Eq. 10), applied to the conductivity and to rho*c_p;
   * the hold-out test: refit without the deepest retained sensor, predict it;
   * the thermometer-type split: refit on the gradient-bridge (TG) and
     ring-bridge (TR) sensors alone (surface and diffusivity terms kept);
+  * the probe split: refit on the sensors of one probe alone, where it has at
+    least 3 below the cut (A15 probe 1, i.e. probe 2 left out; A17 probes 1 and 2);
   * the residuals of the global value at the shallowest and deepest
     retained sensors (the depth trend of the misfit);
+  * each sensor minus the joint fit, with its probe, thermometer type and the
+    year its stability window ends, and the offsets between probes and between
+    thermometer types at matched depths (letter Sec. 3.1, Fig. 3c, d);
   * the forward-drift bound: each sensor's T_eq carried forward at its own
     trailing slope for 1 and 2 yr (compute_common_epoch.py rows), refit;
   * the basal flux at which the model gradient at the fitted point equals
     the observed one (if results/joint_fit_sensitivities.json is present,
     from its Q_b variants);
   * the fixed-albedo sensitivity to a uniform +-1 K bias of the T_eq
-    (temperatures only, albedo held at the joint fit; letter Sec. 3.3);
+    (temperatures only, albedo held at the joint fit; letter Sec. 3.4);
   * the published global K_d values -- 3.4 (Hayne et al. 2017), 3.8 (Feng et
     al. 2020) and 7 (Vasavada et al. 2012, whose radiative term differs, so
     only indicative) -- scored by Delta-AICc against the joint fit, each with
     its own fitted albedo (profile of J over the albedo).
 
-Reads:  results/joint_albedo_fit.json, results/joint_albedo_fit_cache.npz,
+Reads:  results/joint_albedo_fit.json, results/joint_albedo_fit_cache.npz, results/stability_windows.json,
         results/joint_fit_sensitivities.json (optional)
 Writes: results/joint_fit_checks.json
-Runtime: ~2 min (four Martinez solves).
+Runtime: ~4 min (four Martinez solves and the subset refits).
 
 Run with:
     python pipeline/compute/compute_joint_fit_checks.py
@@ -86,6 +91,41 @@ def metrics(z, Tm, Tobs, Ts=None):
     return out
 
 
+def sensor_residuals(sensors, resid, window_year):
+    """Each sensor minus the joint fit, and the offsets the letter quotes (Sec. 3.1):
+    the range of each probe; the mean of each probe and thermometer type; probe 2
+    minus probe 1 at matched depths (within 5 cm), by the window year of the pair;
+    and TG minus TR within a probe, for pairs averaged in the same year and at most
+    12 cm apart."""
+    rows = [dict(probe=int(x["probe"]), sensor=str(x["sensor"]), type=str(x["stype"]).strip().upper()[:2],
+                 depth_cm=float(x["depth_cm"]), year=window_year[(x["probe"], x["sensor"])], residual_K=float(r))
+            for x, r in zip(sensors, resid)]
+    out = dict(sensors=rows, probe_range_K={}, type_mean_K={}, probe2_minus_probe1_K={}, tg_minus_tr_same_year_K=[])
+    for pr in (1, 2):
+        v = [r["residual_K"] for r in rows if r["probe"] == pr]
+        out["probe_range_K"][f"probe{pr}"] = [min(v), max(v)]
+        for ty in ("TG", "TR"):
+            w = [r["residual_K"] for r in rows if r["probe"] == pr and r["type"] == ty]
+            if w:
+                out["type_mean_K"][f"probe{pr}_{ty}"] = float(np.mean(w))
+    for r2 in (r for r in rows if r["probe"] == 2):
+        p1 = [r for r in rows if r["probe"] == 1 and abs(r["depth_cm"] - r2["depth_cm"]) <= 5]
+        if p1:
+            r1 = min(p1, key=lambda r: abs(r["depth_cm"] - r2["depth_cm"]))
+            key = r2["year"] if r1["year"] == r2["year"] else f"{r1['year']}/{r2['year']}"
+            out["probe2_minus_probe1_K"].setdefault(key, []).append(
+                dict(depth_cm=[r1["depth_cm"], r2["depth_cm"]], diff_K=r2["residual_K"] - r1["residual_K"]))
+    for tr in (r for r in rows if r["type"] == "TR"):
+        tg = [r for r in rows if r["type"] == "TG" and r["probe"] == tr["probe"] and r["year"] == tr["year"]
+              and abs(r["depth_cm"] - tr["depth_cm"]) <= 12]
+        if tg:
+            g = min(tg, key=lambda r: abs(r["depth_cm"] - tr["depth_cm"]))
+            out["tg_minus_tr_same_year_K"].append(dict(probe=tr["probe"], year=tr["year"],
+                                                       depth_cm=[g["depth_cm"], tr["depth_cm"]],
+                                                       diff_K=g["residual_K"] - tr["residual_K"]))
+    return out
+
+
 def main():
     import retrieve_kd as rk
     from lunar.config import SITES
@@ -93,6 +133,7 @@ def main():
     c = np.load(_REPO / "results" / "joint_albedo_fit_cache.npz")
     sens_p = _REPO / "results" / "joint_fit_sensitivities.json"
     sens = json.loads(sens_p.read_text()) if sens_p.exists() else None
+    win = json.loads((_REPO / "results" / "stability_windows.json").read_text())
     out = {}
     for s in ("A15", "A17"):
         cfg = SITES[s]
@@ -100,6 +141,7 @@ def main():
         m = np.asarray(o["deep_mask"], bool)
         z, Tobs = np.asarray(o["depth_cm_all"])[m] / 100.0, np.asarray(o["T_eq_all"])[m]
         stype = np.asarray(o["stype_all"])[m]
+        probe = np.asarray([x["probe"] for x in o["sensors"]])[m]   # same order as the *_all arrays
         Tz, prof, Ts, clos, kap = (c[f"{s}_{k}"] for k in ("Tz", "prof", "Ts", "clos", "kap"))
         site = {}
         for v in ("with_diffusivity", "temperature_only"):
@@ -115,6 +157,10 @@ def main():
         Tj = bilinear(Tz, bj["A"], bj["kd_star_mW"] * 1e-3)
         Keff = conductivity_hayne(Tj, z, Ks=HAYNE["K_S"], Kd=bj["kd_star_mW"] * 1e-3, H=HAYNE["H"], chi=HAYNE["CHI"])
         site["effective_conductivity_mW"] = dict(mean=float(Keff.mean() * 1e3), radiative_factor=float((Keff / (bj["kd_star_mW"] * 1e-3)).mean()))
+        # each sensor minus the joint fit, by probe, thermometer type and window year
+        year = {(r["probe"], r["sensor"]): int(r["window_end"][:4]) for r in win[s]}
+        deep = [x for x, keep in zip(o["sensors"], m) if keep]
+        site["sensor_residuals"] = sensor_residuals(deep, Tobs - Tj, year)
         g = res["sites"][s]["with_diffusivity"]["global_test"]
         rg = bilinear(Tz, g["A_fitted"], 3.4e-3) - Tobs
         i_sh, i_dp = int(np.argmin(z)), int(np.argmax(z))
@@ -148,6 +194,13 @@ def main():
             if msk.sum() >= 3:
                 a_t, kd_t = fit_subset(msk)
                 site[f"split_{t}"] = dict(n=int(msk.sum()), A=a_t, kd_mW=kd_t * 1e3)
+        # probe split: the sensors of one probe only (both diffusivities kept); at A15 probe 2
+        # has only two sensors below the cut, so "probe 1 only" there is "probe 2 left out"
+        for pr in (1, 2):
+            msk = probe == pr
+            if msk.sum() >= 3:
+                a_p, kd_p = fit_subset(msk)
+                site[f"probe{pr}_only"] = dict(n=int(msk.sum()), A=a_p, kd_mW=kd_p * 1e3)
         # forward-drift bound (per-sensor trailing slopes from compute_common_epoch.py)
         ep = json.loads((_REPO / "results" / "common_epoch_sensitivity.json").read_text())[s]["sensors"]
         ze = np.array([r["depth_cm"] for r in ep]) / 100.0
@@ -158,7 +211,7 @@ def main():
             J, _ = jf.objective(interp_profiles(prof, ze), TT, Ts, jf.TS_OBS[s], kap=kap, kobs=kobs, ksig=ksig)
             a_d, kd_d, _, _ = jf.best_point(J)
             site[f"drift_forward_{tau:g}yr"] = dict(A=a_d, kd_mW=kd_d * 1e3, observed_gradient_K_per_m=float(np.polyfit(ze, TT, 1)[0]))
-        # fixed-albedo sensitivity to a uniform bias (letter Sec. 3.3): temperatures only
+        # fixed-albedo sensitivity to a uniform bias (letter Sec. 3.4): temperatures only
         # (sensors + surface mean, no diffusivity), albedo held at the joint fit, every T_eq
         # shifted by -1, 0 and +1 K
         aj = res["sites"][s]["with_diffusivity"]["best"]["A"]
@@ -202,6 +255,17 @@ def main():
         for t in ("TG", "TR"):
             if f"split_{t}" in site:
                 print(f"     {t} only (n={site[f'split_{t}']['n']}): K_d {site[f'split_{t}']['kd_mW']:.2f}, A {site[f'split_{t}']['A']:.4f}")
+        for pr in (1, 2):
+            if f"probe{pr}_only" in site:
+                q = site[f"probe{pr}_only"]
+                print(f"     probe {pr} sensors only (n={q['n']}): K_d {q['kd_mW']:.2f}, A {q['A']:.4f}")
+        sr = site["sensor_residuals"]
+        print("     sensor minus joint fit, range by probe: " + ", ".join(f"{k} {v[0]:+.2f}..{v[1]:+.2f}" for k, v in sr["probe_range_K"].items())
+              + "; mean by probe and type: " + ", ".join(f"{k} {v:+.2f}" for k, v in sr["type_mean_K"].items()))
+        for y, pairs in sr["probe2_minus_probe1_K"].items():
+            print(f"     probe 2 minus probe 1 at matched depths ({y}): " + ", ".join(f"{q['diff_K']:+.2f}" for q in pairs))
+        if sr["tg_minus_tr_same_year_K"]:
+            print("     TG minus TR, same probe and year: " + ", ".join(f"{q['diff_K']:+.2f}" for q in sr["tg_minus_tr_same_year_K"]))
         print(f"     effective K at the sensors: {site['effective_conductivity_mW']['mean']:.2f} mW/m/K (factor {site['effective_conductivity_mW']['radiative_factor']:.3f})")
         gt = site["global_residual_trend"]
         print(f"     global residuals: {gt['shallow_K']:+.2f} K at {gt['shallow_cm']:.0f} cm -> {gt['deep_K']:+.2f} K at {gt['deep_cm']:.0f} cm")

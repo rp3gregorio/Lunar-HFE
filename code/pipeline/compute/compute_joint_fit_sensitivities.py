@@ -57,7 +57,7 @@ LAWS = {"form_vasavada2012": (0.045, 0.14), "form_hayne2017": (0.06, 0.25)}
 CP_SCALES = (0.97, 1.03)
 # solver row: the largest change of the reported K_d* under any numerical choice (grid,
 # time step, anchor depth, run length, start, K_d spacing), measured by
-# certify_joint_numerics.py (SI Table S5); run that script first
+# certify_joint_numerics.py (SI Table S3); run that script first
 CERT = _REPO / "results" / "joint_numerics_certification.json"
 
 

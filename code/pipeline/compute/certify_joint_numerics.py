@@ -1,6 +1,6 @@
-"""Numerical certification of the reported K_d* (SI Table S5; 2026-10-12).
+"""Numerical certification of the reported K_d* (SI Table S3; 2026-10-12).
 
-The solver tests of SI Table S5 were run in July on the temperature-only fit
+The solver tests of the SI (now Table S3) were run in July on the temperature-only fit
 at the albedos then in use (0.131 / 0.137), and several came from one-off
 studies. This script certifies THE REPORTED QUANTITY instead: the joint-fit
 K_d* (compute_joint_albedo_fit.py, letter Eq. 11), found exactly as the joint
@@ -126,7 +126,7 @@ def main():
         for site, name, Tz, Ts, kap, Tsens, n_outer in pool.imap_unordered(solve_variant, jobs):
             res[(site, name)] = (Tz, Ts, kap, Tsens, n_outer)
             print(f"  {site} {name:14s} done ({len(res)}/{len(jobs)}, {time.time()-t0:.0f} s)", flush=True)
-    out = dict(meta=dict(purpose="numerical certification of the joint-fit K_d* (SI Table S5)",
+    out = dict(meta=dict(purpose="numerical certification of the joint-fit K_d* (SI Table S3)",
                          objective="J of compute_joint_albedo_fit (with diffusivity) along K_d at the fit's albedo node; "
                                    "3-point parabola vertex, as best_point",
                          variants=VARIANTS, sensor_depths_m=SENSOR_Z.tolist()), sites={})

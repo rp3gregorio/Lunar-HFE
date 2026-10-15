@@ -4,7 +4,7 @@ Holds the albedo at each site's joint-fit value and tabulates, for a set of
 K_d, how well the model matches each measurement: the meter-scale sensor
 temperatures (RMSE and their term of the objective), the surface mean, and the
 two annual-wave diffusivities. This is the letter's worked example (Sec. 3.3,
-Table 2): at Apollo 17 the sensor temperatures barely separate K_d = 6 from 7,
+SI Table S11): at Apollo 17 the sensor temperatures barely separate K_d = 6 from 7,
 while the diffusivity does.
 
 No new solves: the solved grid of compute_joint_albedo_fit.py is interpolated

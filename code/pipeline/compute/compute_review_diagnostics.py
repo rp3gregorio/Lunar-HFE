@@ -207,7 +207,7 @@ def global_kd_vs_qb():
 def diurnal_swing():
     canon = json.loads((_REPO / "results" / "kd_retrieval_results.json").read_text())
     # the joint (albedo, K_d) fit: config.SITES holds its albedo, so this pair is
-    # the letter's model column (Sec. 2.6); kd_star is the temperature-only value
+    # the letter's model column (Fig. 1); kd_star is the temperature-only value
     joint = json.loads((_REPO / "results" / "joint_albedo_fit.json").read_text())["sites"]
     out = {}
     for name, cfg in SITES.items():

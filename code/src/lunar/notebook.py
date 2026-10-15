@@ -1,15 +1,15 @@
-"""Run the analysis from the notebooks.
+"""Run the analysis from the notebook (code/notebooks/run_everything.ipynb).
 
 Each analysis step is one script in ``code/pipeline/``. A notebook cell calls
 ``step(...)`` with that script, and the script's own printout streams into the
-notebook while it runs. The run mode, set once at the top of each notebook,
+notebook while it runs. The run mode, set once at the top of the notebook,
 decides what actually runs:
 
   "show"   run nothing; read the stored results (the repository ships them).
            Minutes.
   "quick"  run every step that takes a few minutes, and the long ones in their
            fast form where they have one (re-analysing the stored model runs);
-           the remaining long steps show their stored results. About 30 min.
+           the remaining long steps show their stored results. About 45 min.
   "full"   run every step from scratch, as the paper did. About 6 h on a
            six-core laptop.
 
@@ -17,7 +17,8 @@ Figures are made in every mode when they are missing (a fresh clone has
 none), and remade in "quick" and "full". On macOS each run is wrapped in
 ``caffeinate`` so the computer does not sleep during a long step.
 
-``Checks`` puts each value next to the number printed in the paper.
+``Checks`` puts each value next to the number printed in the paper, and
+``summary()`` counts every check the notebook has shown.
 """
 from __future__ import annotations
 
@@ -39,6 +40,7 @@ FIGURES = REPO / "figures"
 MODES = ("show", "quick", "full")
 QUICK_MAX_MIN = 6                          # "quick" runs steps up to this long
 _mode = "show"
+_shown: dict[str, list] = {}               # every Checks table shown, by title (for summary())
 
 
 def set_mode(mode: str) -> None:
@@ -108,7 +110,7 @@ def step(script: str, minutes: float, writes: str | tuple[str, ...] = (), args: 
     name = pathlib.Path(script).name
     lacking = [n for n in needs if not (CODE / n).exists()]
     if lacking and _mode != "show":
-        msg = f"{name} needs {', '.join(lacking)}, which is not downloaded (see notebook 00)"
+        msg = f"{name} needs {', '.join(lacking)}, which is not downloaded (see section 1.5 of run_everything.ipynb)"
         if _mode == "full":
             raise FileNotFoundError(msg)
         print(f"■ {msg}; stored result used, {_stored(writes)}.")
@@ -143,7 +145,7 @@ def figures(script: str, makes: str | tuple[str, ...], minutes: float = 1, args:
     missing = [m for m in makes if not (FIGURES / (m if "." in m else f"{m}.pdf")).exists()]
     lacking = [n for n in needs if not (CODE / n).exists()]
     if lacking:
-        print(f"■ {pathlib.Path(script).name} needs {', '.join(lacking)}, which is not downloaded (see notebook 00).")
+        print(f"■ {pathlib.Path(script).name} needs {', '.join(lacking)}, which is not downloaded (see section 1.5 of run_everything.ipynb).")
         return
     if _mode == "show" and not missing:
         print(f"■ {pathlib.Path(script).name}: figures already made ({', '.join(makes)}).")
@@ -169,6 +171,20 @@ def load(name: str) -> dict:
     return json.loads((RESULTS / name).read_text())
 
 
+def rounded(value: float, fmt: str = ".2f") -> str:
+    """``value`` as the paper prints it: rounded half up (5.25 -> 5.3), no "-0.00"."""
+    from decimal import Decimal, ROUND_HALF_UP
+    n = int(fmt.lstrip("+").split(".")[1].rstrip("f"))
+    d = Decimal(repr(float(value))).quantize(Decimal(1).scaleb(-n), rounding=ROUND_HALF_UP)
+    return format(abs(d) if d == 0 else d, fmt)
+
+
+def span(values, fmt: str = ".1f") -> str:
+    """The range of ``values`` as printed in the paper, e.g. "4.5-6.6"."""
+    v = [float(x) for x in values]
+    return f"{rounded(min(v), fmt)}-{rounded(max(v), fmt)}"
+
+
 class Checks:
     """Each value next to the number printed in the paper.
 
@@ -189,10 +205,7 @@ class Checks:
             shown = f"{m}e{int(e)}"
             ok = shown == paper
         else:                                           # round half up, as printed (5.25 -> 5.3)
-            from decimal import Decimal, ROUND_HALF_UP
-            n = int(fmt.split(".")[1].rstrip("f"))
-            d = Decimal(repr(float(value))).quantize(Decimal(1).scaleb(-n), rounding=ROUND_HALF_UP)
-            shown = format(abs(d) if d == 0 else d, fmt)    # no "-0.00"
+            shown = rounded(value, fmt)
             ok = shown == paper
         self.rows.append((label, shown, paper, "✓" if ok else "✗ differs"))
 
@@ -208,4 +221,16 @@ class Checks:
         display(df.style.hide(axis="index"))
         bad = [r[0] for r in self.rows if r[3] != "✓"]
         print("All values match the paper." if not bad else f"{len(bad)} value(s) differ: {', '.join(bad)}")
+        _shown[self.title] = list(self.rows)
         return not bad
+
+
+def summary() -> bool:
+    """Count every check shown so far; list any value that differs from the paper."""
+    rows = [(t, r) for t, rs in _shown.items() for r in rs]
+    bad = [(t, r) for t, r in rows if r[3] != "✓"]
+    print(f"{len(rows)} values checked against the paper in {len(_shown)} tables: "
+          f"{len(rows) - len(bad)} match, {len(bad)} differ.")
+    for t, r in bad:
+        print(f"  ✗ {t} {r[0]}: this repository {r[1]}, paper {r[2]}")
+    return not bad

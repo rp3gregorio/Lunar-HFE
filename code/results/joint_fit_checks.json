@@ -32,6 +32,103 @@
    "mean": 9.80933166036717,
    "radiative_factor": 2.015334128618418
   },
+  "sensor_residuals": {
+   "sensors": [
+    {
+     "probe": 1,
+     "sensor": "TG11B",
+     "type": "TG",
+     "depth_cm": 84.0,
+     "year": 1975,
+     "residual_K": 0.9957737012999246
+    },
+    {
+     "probe": 2,
+     "sensor": "TR22B",
+     "type": "TR",
+     "depth_cm": 87.0,
+     "year": 1974,
+     "residual_K": -1.386757228289099
+    },
+    {
+     "probe": 1,
+     "sensor": "TG12A",
+     "type": "TG",
+     "depth_cm": 91.0,
+     "year": 1975,
+     "residual_K": 0.8017138470140708
+    },
+    {
+     "probe": 2,
+     "sensor": "TG22B",
+     "type": "TG",
+     "depth_cm": 97.0,
+     "year": 1975,
+     "residual_K": -1.3218183847363036
+    },
+    {
+     "probe": 1,
+     "sensor": "TR12A",
+     "type": "TR",
+     "depth_cm": 101.0,
+     "year": 1974,
+     "residual_K": 0.5737895481672126
+    },
+    {
+     "probe": 1,
+     "sensor": "TR12B",
+     "type": "TR",
+     "depth_cm": 129.0,
+     "year": 1974,
+     "residual_K": 0.20035337121296948
+    },
+    {
+     "probe": 1,
+     "sensor": "TG12B",
+     "type": "TG",
+     "depth_cm": 139.0,
+     "year": 1975,
+     "residual_K": 0.15221435981845843
+    }
+   ],
+   "probe_range_K": {
+    "probe1": [
+     0.15221435981845843,
+     0.9957737012999246
+    ],
+    "probe2": [
+     -1.386757228289099,
+     -1.3218183847363036
+    ]
+   },
+   "type_mean_K": {
+    "probe1_TG": 0.6499006360441513,
+    "probe1_TR": 0.38707145969009105,
+    "probe2_TG": -1.3218183847363036,
+    "probe2_TR": -1.386757228289099
+   },
+   "probe2_minus_probe1_K": {
+    "1975/1974": [
+     {
+      "depth_cm": [
+       84.0,
+       87.0
+      ],
+      "diff_K": -2.3825309295890236
+     }
+    ],
+    "1974/1975": [
+     {
+      "depth_cm": [
+       101.0,
+       97.0
+      ],
+      "diff_K": -1.8956079329035163
+     }
+    ]
+   },
+   "tg_minus_tr_same_year_K": []
+  },
   "global_residual_trend": {
    "shallow_cm": 84.0,
    "shallow_K": -1.1599556486711151,
@@ -86,6 +183,11 @@
    "n": 3,
    "A": 0.13879427471676417,
    "kd_mW": 4.859484142021334
+  },
+  "probe1_only": {
+   "n": 5,
+   "A": 0.12981162991790146,
+   "kd_mW": 4.9854454299633195
   },
   "drift_forward_1yr": {
    "A": 0.13474513421384302,
@@ -184,6 +286,254 @@
    "mean": 12.14790965087127,
    "radiative_factor": 2.061362799015182
   },
+  "sensor_residuals": {
+   "sensors": [
+    {
+     "probe": 1,
+     "sensor": "TG11A",
+     "type": "TG",
+     "depth_cm": 130.0,
+     "year": 1977,
+     "residual_K": 0.7729352726366017
+    },
+    {
+     "probe": 2,
+     "sensor": "TG21A",
+     "type": "TG",
+     "depth_cm": 131.0,
+     "year": 1977,
+     "residual_K": 0.8702612459433112
+    },
+    {
+     "probe": 1,
+     "sensor": "TR11A",
+     "type": "TR",
+     "depth_cm": 140.0,
+     "year": 1974,
+     "residual_K": -0.166612250916927
+    },
+    {
+     "probe": 2,
+     "sensor": "TR21A",
+     "type": "TR",
+     "depth_cm": 140.0,
+     "year": 1974,
+     "residual_K": 0.3967885085766625
+    },
+    {
+     "probe": 1,
+     "sensor": "TR11B",
+     "type": "TR",
+     "depth_cm": 167.0,
+     "year": 1974,
+     "residual_K": -0.31300570053491583
+    },
+    {
+     "probe": 2,
+     "sensor": "TR21B",
+     "type": "TR",
+     "depth_cm": 169.0,
+     "year": 1974,
+     "residual_K": 0.1569408886703627
+    },
+    {
+     "probe": 1,
+     "sensor": "TG11B",
+     "type": "TG",
+     "depth_cm": 177.0,
+     "year": 1977,
+     "residual_K": 0.27081819928827144
+    },
+    {
+     "probe": 2,
+     "sensor": "TG21B",
+     "type": "TG",
+     "depth_cm": 178.0,
+     "year": 1977,
+     "residual_K": 0.40309304969787263
+    },
+    {
+     "probe": 1,
+     "sensor": "TG12A",
+     "type": "TG",
+     "depth_cm": 185.0,
+     "year": 1974,
+     "residual_K": -0.37414231738085846
+    },
+    {
+     "probe": 2,
+     "sensor": "TG22A",
+     "type": "TG",
+     "depth_cm": 186.0,
+     "year": 1974,
+     "residual_K": 0.07786424523624191
+    },
+    {
+     "probe": 1,
+     "sensor": "TR12A",
+     "type": "TR",
+     "depth_cm": 195.0,
+     "year": 1974,
+     "residual_K": -0.4347109414047168
+    },
+    {
+     "probe": 2,
+     "sensor": "TR22A",
+     "type": "TR",
+     "depth_cm": 196.0,
+     "year": 1974,
+     "residual_K": -0.030048220282253624
+    },
+    {
+     "probe": 1,
+     "sensor": "TR12B",
+     "type": "TR",
+     "depth_cm": 223.0,
+     "year": 1974,
+     "residual_K": -0.5541018982448236
+    },
+    {
+     "probe": 2,
+     "sensor": "TR22B",
+     "type": "TR",
+     "depth_cm": 224.0,
+     "year": 1974,
+     "residual_K": -0.20656278966538366
+    },
+    {
+     "probe": 1,
+     "sensor": "TG12B",
+     "type": "TG",
+     "depth_cm": 233.0,
+     "year": 1974,
+     "residual_K": -0.5848739039636257
+    },
+    {
+     "probe": 2,
+     "sensor": "TG22B",
+     "type": "TG",
+     "depth_cm": 234.0,
+     "year": 1974,
+     "residual_K": -0.2386791698169759
+    }
+   ],
+   "probe_range_K": {
+    "probe1": [
+     -0.5848739039636257,
+     0.7729352726366017
+    ],
+    "probe2": [
+     -0.2386791698169759,
+     0.8702612459433112
+    ]
+   },
+   "type_mean_K": {
+    "probe1_TG": 0.021184312645097236,
+    "probe1_TR": -0.3671076977753458,
+    "probe2_TG": 0.27813484276511247,
+    "probe2_TR": 0.07927959682484698
+   },
+   "probe2_minus_probe1_K": {
+    "1977": [
+     {
+      "depth_cm": [
+       130.0,
+       131.0
+      ],
+      "diff_K": 0.09732597330670956
+     },
+     {
+      "depth_cm": [
+       177.0,
+       178.0
+      ],
+      "diff_K": 0.13227485040960119
+     }
+    ],
+    "1974": [
+     {
+      "depth_cm": [
+       140.0,
+       140.0
+      ],
+      "diff_K": 0.5634007594935895
+     },
+     {
+      "depth_cm": [
+       167.0,
+       169.0
+      ],
+      "diff_K": 0.46994658920527854
+     },
+     {
+      "depth_cm": [
+       185.0,
+       186.0
+      ],
+      "diff_K": 0.45200656261710037
+     },
+     {
+      "depth_cm": [
+       195.0,
+       196.0
+      ],
+      "diff_K": 0.40466272112246315
+     },
+     {
+      "depth_cm": [
+       223.0,
+       224.0
+      ],
+      "diff_K": 0.3475391085794399
+     },
+     {
+      "depth_cm": [
+       233.0,
+       234.0
+      ],
+      "diff_K": 0.3461947341466498
+     }
+    ]
+   },
+   "tg_minus_tr_same_year_K": [
+    {
+     "probe": 1,
+     "year": 1974,
+     "depth_cm": [
+      185.0,
+      195.0
+     ],
+     "diff_K": 0.06056862402385832
+    },
+    {
+     "probe": 2,
+     "year": 1974,
+     "depth_cm": [
+      186.0,
+      196.0
+     ],
+     "diff_K": 0.10791246551849554
+    },
+    {
+     "probe": 1,
+     "year": 1974,
+     "depth_cm": [
+      233.0,
+      223.0
+     ],
+     "diff_K": -0.03077200571880212
+    },
+    {
+     "probe": 2,
+     "year": 1974,
+     "depth_cm": [
+      234.0,
+      224.0
+     ],
+     "diff_K": -0.03211638015159224
+    }
+   ]
+  },
   "global_residual_trend": {
    "shallow_cm": 130.0,
    "shallow_K": -1.257628492674769,
@@ -238,6 +588,16 @@
    "n": 8,
    "A": 0.13920942631594557,
    "kd_mW": 5.800450601616592
+  },
+  "probe1_only": {
+   "n": 8,
+   "A": 0.1395041818315357,
+   "kd_mW": 5.782461285041308
+  },
+  "probe2_only": {
+   "n": 8,
+   "A": 0.13528338814394777,
+   "kd_mW": 5.828670675343346
   },
   "drift_forward_1yr": {
    "A": 0.13543163279495016,

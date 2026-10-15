@@ -1,6 +1,6 @@
 {
  "meta": {
-  "purpose": "numerical certification of the joint-fit K_d* (SI Table S5)",
+  "purpose": "numerical certification of the joint-fit K_d* (SI Table S3)",
   "objective": "J of compute_joint_albedo_fit (with diffusivity) along K_d at the fit's albedo node; 3-point parabola vertex, as best_point",
   "variants": {
    "nominal": {},
@@ -48,7 +48,7 @@
    1.4,
    2.4
   ],
-  "runtime_s": 95.3
+  "runtime_s": 157.9
  },
  "sites": {
   "A15": {

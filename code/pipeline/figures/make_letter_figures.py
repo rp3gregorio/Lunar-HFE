@@ -360,7 +360,7 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
         # sinusoid). The window sigma is diurnal-dominated for shallow
         # sensors and noise-dominated below the skin depth, which is
         # precisely the diagnostic contrast the figure shows. The
-        # manuscript (Sec. 2.4) describes this same proxy.
+        # letter (Sec. 2.1) describes this same proxy.
         z_obs = np.array(obs["depth_cm_all"])
         T_std = np.array(obs["T_std_all"])
         amp_obs = np.sqrt(2.0) * T_std
@@ -414,7 +414,7 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
 
         # digitization noise floor of the restored record (0.05-0.2 K,
         # Nagihara 2018): the deep-sensor amplitudes flatten here, which
-        # is why they do not constrain the deep diffusivity (Sec. 2.4).
+        # is why they do not constrain the deep diffusivity (Sec. 2.1).
         ax.axvspan(0.05, 0.2, color=C_NEUTRAL, alpha=0.30, zorder=0)
         # borestem zone (the excluded-zone role colour)
         ax.axhspan(0, 80, color=C_EXCL_FILL, zorder=0)

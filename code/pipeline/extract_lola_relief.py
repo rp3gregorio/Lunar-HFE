@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Extract per-site LOLA shaded-relief crops for the context-map figure.
 
-The letter's context map (Fig. 1) renders each landing site as a LOLA
+The context map (SI Fig. S1) renders each landing site as a LOLA
 topographic shaded-relief inset, so the Apennine front at Apollo 15 and
 the Taurus-Littrow massifs at Apollo 17 read directly from the terrain
 rather than from an albedo mosaic. This script cuts the two regional

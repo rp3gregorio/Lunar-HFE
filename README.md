@@ -29,17 +29,15 @@ rejected at both sites (likelihood-ratio $p = 9\times10^{-7}$ and $10^{-14}$;
 [`likelihood_ratio.json`](code/results/likelihood_ratio.json)). The two sites
 are consistent with one value of about 5–6.
 
-## Running it: the notebooks
+## Running it: one notebook
 
-The notebooks in [`code/notebooks/`](code/notebooks/) are the way in. Run them
-in order; each cell runs one analysis script and shows its result next to the
-number printed in the paper. A setting at the top of each notebook chooses how
-much to recompute:
+[`code/notebooks/run_everything.ipynb`](code/notebooks/run_everything.ipynb)
+runs the whole study. Choose a mode in its first cell, then **Run All**:
 
-| Mode | What runs | Time for all notebooks |
+| Mode | What runs | Time |
 |---|---|---|
 | `"show"` (default) | nothing; the stored results are read | minutes |
-| `"quick"` | the short steps, and the long ones in their fast form | about 30 min |
+| `"quick"` | the short steps, and the long ones in their fast form | about 45 min |
 | `"full"` | everything from scratch, as for the paper | about 6 h (six-core laptop) |
 
 ```bash
@@ -47,21 +45,19 @@ git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd Lunar-HFE
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev,mcmc]"
-jupyter lab code/notebooks/
+jupyter lab code/notebooks/run_everything.ipynb
 ```
 
-| Notebook | Reproduces |
-|---|---|
-| `00_setup` | checks the installation and the data; optional downloads |
-| `01_inputs` | the sensors and their windows, the model inputs; Figs 1, 2; SI Tables S1, S2; SI Figs S1, S2, S4 |
-| `02_anchor_method` | how the equilibrium solver works; SI Fig S3 |
-| `03_joint_fit` | **the main result**: Table 1 fit values, Fig 4; SI Tables S6, S9 |
-| `04_uncertainty_and_tests` | Tables 1–3, Fig 3; SI Tables S5, S11, S14; SI Figs S5, S6 |
-| `05_annual_wave_and_posterior` | Figs 5, 6; SI Tables S7, S8, S12 |
-| `06_performance` | optional: the solver in Python against C++ |
+The notebook has five parts: (1) setup checks and optional downloads; (2) every
+analysis step, in the order the steps need each other; (3) every figure of the
+letter and the SI; (4) the paper section by section, with each number of the
+letter next to the value the repository gives (✓ / ✗); (5) a summary of all
+the checks (244 values in v2.0-jgr, all matching).
 
-[`code/notebooks/README.md`](code/notebooks/README.md) lists the script behind
-every step.
+Two optional notebooks go deeper: `optional_anchor_method.ipynb` (how the
+solver reaches its steady state) and `optional_performance.ipynb` (the solver
+in Python against C++). [`code/notebooks/README.md`](code/notebooks/README.md)
+lists the script behind every step.
 
 ## Without Jupyter
 
@@ -72,7 +68,7 @@ make install        # the lunar package + dependencies
 make test           # unit tests of the physics code
 make retrieve aux   # every analysis, in order (about 6 h)
 make figures        # the paper's figures -> figures/
-make notebooks      # run notebooks 00-05 as a check ("show" mode)
+make notebooks      # run run_everything.ipynb as a check ("show" mode)
 ```
 
 [`documents/notes/REPRODUCING.md`](documents/notes/REPRODUCING.md) is the
@@ -84,14 +80,14 @@ changed.
 
 | Where | What |
 |---|---|
-| `code/src/lunar/` | the physics, as an installed package: `properties.py` ($K$, $\rho$, $c_p$), `solver.py` (the heat equation), `equilibrium.py` (the flux-anchored solver), `config.py` (every site value and setting), `notebook.py` (runs the steps from the notebooks) |
+| `code/src/lunar/` | the physics, as an installed package: `properties.py` ($K$, $\rho$, $c_p$), `solver.py` (the heat equation), `equilibrium.py` (the flux-anchored solver), `config.py` (every site value and setting), `notebook.py` (runs the steps from the notebook) |
 | `code/pipeline/compute/` | one script per analysis; each writes one file in `code/results/` |
 | `code/pipeline/figures/` | the figure scripts; `make_joint_figures.py` draws most of the paper's figures |
 | `code/results/` | every result the paper reports ([`README.md`](code/results/README.md) maps each file to the paper) |
 | `code/data/` | inputs: the Apollo record, SPICE kernels, site maps |
 | `code/tests/` | unit tests of the physics code |
-| `code/cpp/` | an independent C++ copy of the solver (SI Table S5) |
-| `code/notebooks/` | the notebooks |
+| `code/cpp/` | an independent C++ copy of the solver (SI Table S3) |
+| `code/notebooks/` | `run_everything.ipynb`, and two optional notebooks |
 
 Data flow one way: `code/data/` → `code/pipeline/compute/` →
 `code/results/` → `code/pipeline/figures/` → `figures/`. See

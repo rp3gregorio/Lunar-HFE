@@ -11,7 +11,7 @@ axes zoomed on the cycle-MEAN profile (the story), a static legend
 outside the axes, persistent artists updated per frame (no clear/redraw
 flicker), and holds at the two story beats (lunation 30, the end).
 
-Outputs (filenames unchanged -- notebook 02 and the guidebook embed them):
+Outputs (filenames unchanged -- the optional_anchor_method notebook and the guidebook embed them):
   figures/anim/spinup.gif
   figures/spinup_filmstrip.pdf
 

@@ -35,7 +35,7 @@ T_LUNAR = LUNATION_SECONDS   # one synodic lunation [s]
 # first-order: +61 mK/halving at 1800 s, which biased K_d*(A17) by +0.6 mW).
 # With the wrap step + CN_PICARD_SWEEPS below, the attractor drift is
 # ~ -4 mK/halving. Certified in K_d* space: certify_joint_numerics.py halves the
-# step twice at the joint fit (SI Table S5; <=0.001 mW per halving). The earlier
+# step twice at the joint fit (SI Table S3; <=0.001 mW per halving). The earlier
 # dt ladders (dt_ladder.py) are in release v1.4.2-jgr. Re-run the certification
 # if any of these values change.
 DT_STEP = 1800.0
@@ -90,7 +90,7 @@ EQ_Z_ANCHOR = 0.55      # anchor depth [m], below the rectification zone
 # n_inner. RE-DERIVED 2026-08-28 on the CERTIFIED solver (wrap step + Picard
 # sweeps); the previous figures here were from the 2026-06-30 pre-wrap-step study
 # and were quoted in the thesis. Source: convergence_scan.py (release v1.4.2-jgr); at the joint
-# fit, 64 and 128 move K_d* by <=0.0002 (certify_joint_numerics.py, SI Table S5). 96 puts both on the
+# fit, 64 and 128 move K_d* by <=0.0002 (certify_joint_numerics.py, SI Table S3). 96 puts both on the
 # plateau (~13 s/solve). OLD n_inner=12 (closure ~6%) biased K_d*(A17) HIGH ~0.4 mW;
 # the OLD full-column Step A needed n~200 (and ~3-4x the cost) for the same answer.
 # See the n_inner study and the project_ninner_underresolution memory.
@@ -107,7 +107,7 @@ EQ_ANCHOR_TOL = 0.005   # convergence tolerance on the anchor temperature [K]
 # albedo = effective constant Bond albedo, FITTED jointly with K_d to three
 # in-situ measurements (sensor temperatures, measured surface mean, Langseth 1976
 # annual-wave diffusivity) by pipeline/compute/compute_joint_albedo_fit.py
-# (results/joint_albedo_fit.json: 0.13626 / 0.13748; letter Sec. 2.6). Up to
+# (results/joint_albedo_fit.json: 0.13626 / 0.13748; letter Sec. 3.3). Up to
 # v1.1-jgr these were fixed at 0.131 / 0.137, values with no published source.
 SITES = {
     "A15": dict(tag="A15", label="Apollo 15", lat=26.13, lon=3.63,

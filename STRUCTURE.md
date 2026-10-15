@@ -16,7 +16,7 @@ Lunar-HFE/
 │   │   ├── apollo_helpers.py the Apollo record and each sensor's stability window
 │   │   ├── ephem.py          Sun position (SPICE)
 │   │   ├── diviner.py        Diviner surface temperatures
-│   │   ├── notebook.py       runs the pipeline steps from the notebooks
+│   │   ├── notebook.py       runs the pipeline steps from the notebook
 │   │   └── plotting/         the figure style
 │   │
 │   ├── pipeline/
@@ -25,13 +25,13 @@ Lunar-HFE/
 │   │   ├── make_all_figures.py   all of the paper's figures ("make figures")
 │   │   └── fetch_diviner.py, fetch_apollo_site_maps.py, extract_lola_relief.py   data preparation
 │   │
-│   ├── notebooks/          00-06: run the whole study, step by step (README.md inside)
+│   ├── notebooks/          run_everything.ipynb: the whole study in one notebook; two optional ones (README.md inside)
 │   ├── results/            every result the paper reports (README.md maps file -> paper)
 │   ├── data/               inputs: Apollo HFE record, SPICE kernels, site maps, LOLA relief
 │   ├── tests/              unit tests of the physics code (make test)
-│   └── cpp/                an independent C++ copy of the solver (SI Table S5)
+│   └── cpp/                an independent C++ copy of the solver (SI Table S3)
 │
-├── figures/                generated figures (not in git; make figures, or the notebooks)
+├── figures/                generated figures (not in git; make figures, or the notebook)
 ├── documents/notes/REPRODUCING.md   the step-by-step recipe
 └── README.md  Makefile  pyproject.toml  CITATION.cff  LICENSE  LICENSE-CC-BY-4.0
 ```
@@ -51,10 +51,10 @@ code/data/  ->  code/pipeline/compute/  ->  code/results/  ->  code/pipeline/fig
   one source).
 - **Each analysis is one script** in `code/pipeline/compute/`, with its purpose,
   inputs, outputs and runtime in its first lines. The `Makefile` (`make aux`)
-  and the notebooks run them in the same order.
+  and the notebook run them in the same order.
 - **Figures never compute physics.** They read `code/results/`.
-- **The notebooks are the interface.** Each cell calls one script through
-  `lunar.notebook.step`, so the notebooks and `make` run exactly the same code.
+- **The notebook is the interface.** Each cell of `run_everything.ipynb` calls one
+  script through `lunar.notebook.step`, so the notebook and `make` run exactly the same code.
 
 ## Order of the analysis
 

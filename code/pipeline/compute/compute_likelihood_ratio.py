@@ -11,29 +11,29 @@ parameter), so a value outside its 95 % interval has p < 0.05.
 This script only post-processes stored fits; it solves nothing.
   * per site, the global K_d = 3.4 against the joint fit, each with its own
     fitted albedo (joint_albedo_fit.json: global_test J minus best J), with
-    and without the diffusivity; df = 1 (Table 1, Sec. 3.2);
+    and without the diffusivity; df = 1 (Table 1, Sec. 3.3);
   * per site, the published global values 3.4 (Hayne et al. 2017), 3.8
     (Feng et al. 2020) and 7 (Vasavada et al. 2012, whose radiative term
-    differs) read off the profile of J over K_d; df = 1 (Sec. 3.2);
+    differs) read off the profile of J over K_d; df = 1 (Sec. 3.3);
   * pooled over both sites: one shared K_d (df = 1) and the global value
     (df = 2) against separate values per site
-    (joint_fit_sensitivities.json, model_comparison; Table 2, Sec. 4.1);
+    (joint_fit_sensitivities.json, model_comparison; Sec. 4.2);
   * the global value under other radiative coefficients chi and the site
-    densities (joint_chi_density.json; Sec. 4.2, Table S14). That file keeps
+    densities (joint_chi_density.json; Sec. 4.3, SI Table S14). That file keeps
     only Delta-AICc, which is converted back to Delta J exactly:
     Delta J = Delta AICc - [pen(2) - pen(3)], pen(k) = 2k + 2k(k+1)/(N-k-1),
     N = n + 3 (compute_joint_albedo_fit.analyse);
   * the temperature-only fits at a fixed albedo (albedo_sensitivity.json,
-    albedo_anchor.json; Table S4): Delta J = n ln(RMSE_global^2 / RMSE_fit^2),
+    albedo_anchor.json; SI Table S7): Delta J = n ln(RMSE_global^2 / RMSE_fit^2),
     over the admissible treatments of compute_albedo_anchor.py;
   * a stress test of the weakest input: the global value against the joint
     fit with the Langseth et al. (1976) diffusivity uncertainties doubled,
     per site (df = 1) and over both sites (df = 2), recomputed on the cached
-    joint-fit grid (grid minima, as in the pooled model comparison; Sec. 3.2);
+    joint-fit grid (grid minima, as in the pooled model comparison; Sec. 3.3);
   * the standard lunar-average albedo 0.12 (Hayne et al. 2017, their Table A1)
     held fixed against the fitted albedo, with the diffusivity, per site
     (df = 1): K_d* along K_d at A = 0.12 (parabola vertex, as in the joint
-    fit), the sensor bias and RMSE and the surface mean there (Sec. 3.2).
+    fit), the sensor bias and RMSE and the surface mean there (Sec. 3.3).
 
 p is the chi^2 survival probability; "sigma" is the two-sided Gaussian
 equivalent of p.

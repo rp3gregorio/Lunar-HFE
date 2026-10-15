@@ -17,8 +17,8 @@ The Apollo tables are read by `lunar.validation.load_apollo_hfe_depth`, and
 each sensor's stability window is found by
 `lunar.apollo_helpers.extract_sensor_stability`.
 
-The two downloads are optional: notebook `00_setup` fetches them
-(`DOWNLOAD = True`), or see `documents/notes/REPRODUCING.md`, Step 3. Without
+The two downloads are optional: `code/notebooks/run_everything.ipynb` fetches them
+(section 1.5, `DOWNLOAD = True`), or see `documents/notes/REPRODUCING.md`, Step 3. Without
 them, the stored results and every other step still work. The LOLA albedo map
-used for the site-albedo comparison (SI Table S4) is read pixel by pixel from
+used for the site-albedo comparison (SI Table S7) is read pixel by pixel from
 PDS by `compute_albedo_diagnostics.py` and needs no download.

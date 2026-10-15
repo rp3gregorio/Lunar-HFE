@@ -105,7 +105,7 @@ def ensure_packages(packages: Iterable[tuple[str, str]]) -> list[str]:
 
 
 def ensure_lunar(extra: Iterable[str] = ()) -> pathlib.Path:
-    """One-stop bootstrap for notebook 00/01/02/03.
+    """One-stop bootstrap for the notebooks.
 
     1. Locate the repo root and put it on ``sys.path`` so
        ``import lunar`` works without ``pip install -e .``.

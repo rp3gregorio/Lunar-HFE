@@ -43,12 +43,12 @@ repository. Two public data sets are not, and are needed only to recompute the
 steps that use them:
 
 ```bash
-python code/pipeline/fetch_diviner.py     # ~310 MB: Diviner comparison (SI Table S11, SI Fig S5)
+python code/pipeline/fetch_diviner.py     # ~310 MB: Diviner comparison (SI Table S13, SI Fig S6)
 mkdir -p code/data/lola
 curl -L -o code/data/lola/ldem_16.img https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/cylindrical/img/ldem_16.img   # 33 MB: SI Fig S1
 ```
 
-Notebook `00_setup` can do both (`DOWNLOAD = True`).
+The notebook can do both (`run_everything.ipynb`, section 1.5: `DOWNLOAD = True`).
 
 ## Step 4 — Run the tests
 
@@ -61,18 +61,18 @@ check the Python and NumPy versions before going on.
 
 ## Step 5 — Run the analysis
 
-**In the notebooks** (recommended):
+**In the notebook** (recommended):
 
 ```bash
-jupyter lab code/notebooks/
+jupyter lab code/notebooks/run_everything.ipynb
 ```
 
-Run `00_setup` to `05_annual_wave_and_posterior` in order. The first code cell
-of each sets `MODE`: `"show"` reads the stored results (minutes), `"quick"`
-runs the short steps and the fast form of the long ones (about 30 min),
-`"full"` runs everything from scratch (about 6 h). Each notebook compares its
-results with the numbers printed in the paper. `code/notebooks/README.md`
-lists the script behind every step.
+Set `MODE` in its first code cell and *Run All*: `"show"` reads the stored
+results (minutes), `"quick"` runs the short steps and the fast form of the
+long ones (about 45 min), `"full"` runs everything from scratch (about 6 h).
+The notebook then goes through the letter section by section and compares
+every number with the value printed there (244 values in v2.0-jgr).
+`code/notebooks/README.md` lists the script behind every step.
 
 **Without Jupyter**, the same scripts in the same order:
 
@@ -100,10 +100,10 @@ python code/pipeline/compute/compute_joint_mcmc.py --sample             # ~1 min
 make figures
 ```
 
-This writes the letter's Figures 1–6 and SI Figures S1–S4 and S6 to
-`figures/`. SI Figure S5 is written by `compute_joint_diviner.py` (it needs
+This writes the letter's Figures 1–7 and SI Figures S1–S5 to
+`figures/`. SI Figure S6 is written by `compute_joint_diviner.py` (it needs
 the Diviner data); SI Figure S1 needs the LOLA map and SI Figure S2 needs
-pdflatex. The notebooks show every figure.
+pdflatex. The notebook shows every figure.
 
 ## Verification
 

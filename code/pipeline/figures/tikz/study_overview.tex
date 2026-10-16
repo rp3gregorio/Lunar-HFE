@@ -1,16 +1,12 @@
-% The study in one chart: the joint (albedo, K_d) fit -- v1.3-jgr (2026-10-07).
+% The study in one chart, in the order of the v2 letter (v2.0-jgr, 2026-10-16):
+% the windows, the forward model, one measurement at a time, all together (the
+% joint albedo-K_d fit), and the checks.
 % SI figure figures/fig_study_overview.pdf, built by
-% pipeline/figures/make_study_overview.py (part of `make figures`). The
-% guidebook's figures-tikz/pipeline_joint.tex is a symlink to this file.
-% Successor of the v1.2 chart (kept as _archive_pipeline_joint_v1.2_2026-10-05.tex)
-% and of pipeline_abcd.tex (the v1.1 fixed-albedo pipeline). Changes from v1.2:
-% inputs marked as measured (what the fit must match) or assumed (held
-% fixed); step C says why the diffusivity is needed; step D tests the global
-% value with the likelihood-ratio test (not AICc) and lists the independent
-% checks; the results add the effective conductivity and the rejection of
-% 3.4, and report the site difference as NOT established; a bottom line.
-% Numbers from code/results/*.json (joint_albedo_fit, likelihood_ratio,
-% joint_fit_checks, joint_fit_sensitivities, joint_mcmc, annual_wave).
+% pipeline/figures/make_study_overview.py (part of `make figures`).
+% Inputs are marked as measured (what the fit must match) or assumed (held
+% fixed). Numbers from code/results/*.json (joint_albedo_fit, albedo_sensitivity,
+% annual_wave, likelihood_ratio, joint_fit_checks, joint_fit_sensitivities,
+% joint_mcmc); run_everything.ipynb checks the same numbers in the letter.
 %   pdflatex study_overview_standalone.tex
 \begin{tikzpicture}[
   font=\footnotesize,
@@ -29,7 +25,7 @@
 \node[col] at (6.3,  0) {PROCESS};
 \node[col] at (14.0, 0) {RESULTS};
 
-% --- INPUTS (ordered as the steps they feed: A, B, B, C, C) ---
+% --- INPUTS (ordered as the steps they feed: A, B, B, D, D) ---
 \node[meas] at (0,-0.4) (i1) {%
   \textbf{1.\;Borehole temperatures}\\[1pt]
   $T(z,t)$ at each sensor, 1971--77\\
@@ -64,20 +60,25 @@
   heat equation $\rho\,c_p\,\partial_t T=\partial_z(K\,\partial_z T)$\\
   solved to its periodic steady state\\
   (flux-anchored solver), for each $A$ and $K_d$};
-\node[prb, below=3mm of pB.south west, anchor=north west, draw=forest, line width=0.9pt] (pC) {%
-  \textbf{C.\; Fit albedo $A$ and $K_d$ together}\\[1pt]
+\node[prb, below=3mm of pB.south west, anchor=north west] (pC) {%
+  \textbf{C.\; One measurement at a time}\\[1pt]
+  albedo fixed: $K_d$ follows the albedo chosen\\
+  {\color{dim}0.08--0.16 gives 2.9--16 (A15), 5.6--18 (A17)}\\
+  albedo free, temperatures only: a long valley\\
+  annual wave alone: 5.7 (A15), 5.6 (A17)};
+\node[prb, below=3mm of pC.south west, anchor=north west, draw=forest, line width=0.9pt] (pD) {%
+  \textbf{D.\; All together: fit albedo $A$ and $K_d$}\\[1pt]
   minimize\; $J=$ sensors $+$ surface mean $+$ diffusivity\\
   on 25 albedos $\times$ 94 values of $K_d$\\[2pt]
   {\color{forest}\itshape The temperatures alone trade $A$ against $K_d$;\\
   $\kappa=K/(\rho\,c_p)$ does not depend on $A$ or $Q_b$,\\
   so it fixes $K_d$.}};
-\node[prb, below=3mm of pC.south west, anchor=north west] (pD) {%
-  \textbf{D.\; Test and check}\\[1pt]
-  likelihood-ratio test of the global values 3.4 and 3.8\\
-  bootstrap (1500 draws) and error budget\\
-  MCMC with $Q_b$ and $\rho_d$ also free\\
-  {\color{dim}checks: annual wave in the full record,}\\
-  {\color{dim}post-deployment warming, Diviner}};
+\node[prb, below=3mm of pD.south west, anchor=north west] (pE) {%
+  \textbf{E.\; Checks}\\[1pt]
+  likelihood-ratio tests of the global values 3.4 and 3.8\\
+  bootstrap (1500 draws), error budget, MCMC\\
+  {\color{dim}each probe and thermometer type alone, record}\\
+  {\color{dim}choices, our own diffusivities, warming, Diviner}};
 
 % --- RESULTS ---
 \node[rsb] at (14.0,-0.4) (r0) {%
@@ -97,36 +98,42 @@
   $p=9\times10^{-7}$ (A15),\; $1\times10^{-14}$ (A17)\\
   {\color{dim}3.8 (Feng et al., 2020) also rejected}};
 \node[rsb, below=2mm of r3.south west, anchor=north west] (r4) {%
+  \textbf{Every variant with the annual wave}\\[1pt]
+  $K_d=4.5$--6.6 at both sites\\
+  {\color{dim}probes, thermometer types, record, inputs, $\chi$}};
+\node[rsb, below=2mm of r4.south west, anchor=north west] (r5) {%
   \textbf{Uncertainty} {\color{dim}($1\sigma$)}\\[1pt]
   $\pm0.52$ (A15),\; $\pm0.64$ (A17)\\
   {\color{dim}conditional on $\rho_d$ and $\chi$ ($\pm9\%$)}};
-\node[rsb, below=2mm of r4.south west, anchor=north west] (r5) {%
-  \textbf{No site difference established}\\[1pt]
+\node[rsb, below=2mm of r5.south west, anchor=north west] (r6) {%
+  \textbf{One value at both sites}\\[1pt]
   A17$-$A15: $+1.0$ [$+0.1$, $+1.9$] (bootstrap)\\
   $+1.1$ [$-0.1$, $+2.3$] (MCMC)\\
   {\color{dim}full-record annual wave: 5.7 vs 5.6}};
 
-% --- arrows: inputs to process ---
+% --- arrows: inputs to process (the two lanes to D do not cross) ---
 \draw[arr] (i1.east) -- (pA.west);
 \draw[arr] (i2.east) -- ($(pB.west)+(0,2mm)$);
 \draw[arr] (i3.east) -- ($(pB.west)+(0,-4mm)$);
-\draw[arr] (i4.east) -- ++(3mm,0) |- ($(pC.west)+(0,3mm)$);
-\draw[arr] (i5.east) -- ++(3mm,0) |- ($(pC.west)+(0,-3mm)$);
+\draw[arr] (i4.east) -- ++(6mm,0) |- ($(pD.west)+(0,3mm)$);
+\draw[arr] (i5.east) -- ++(3mm,0) |- ($(pD.west)+(0,-3mm)$);
 
 % --- arrows: process flow ---
 \draw[arr] (pA.south) -- (pB.north);
 \draw[arr] (pB.south) -- (pC.north);
 \draw[arr] (pC.south) -- (pD.north);
+\draw[arr] (pD.south) -- (pE.north);
 
 % --- arrows: process to results (orthogonal lanes) ---
-\coordinate (laneC) at ($(pC.east)+(3mm,0)$);
-\coordinate (laneD) at ($(pD.east)+(6mm,0)$);
-\draw[arr] (pC.east) -- (laneC) |- (r0.west);
-\draw[arr] (laneC) |- (r1.west);
-\draw[arr] (laneC) |- (r2.west);
-\draw[arr] (pD.east) -- (laneD) |- (r3.west);
-\draw[arr] (laneD) |- (r4.west);
-\draw[arr] (laneD) |- (r5.west);
+\coordinate (laneD) at ($(pD.east)+(3mm,0)$);
+\coordinate (laneE) at ($(pE.east)+(6mm,0)$);
+\draw[arr] (pD.east) -- (laneD) |- (r0.west);
+\draw[arr] (laneD) |- (r1.west);
+\draw[arr] (laneD) |- (r2.west);
+\draw[arr] (pE.east) -- (laneE) |- (r3.west);
+\draw[arr] (laneE) |- (r4.west);
+\draw[arr] (laneE) |- (r5.west);
+\draw[arr] (laneE) |- (r6.west);
 
 % --- bottom line ---
 \path (current bounding box.south -| i1.west) ++(0,-4mm) coordinate (bl);

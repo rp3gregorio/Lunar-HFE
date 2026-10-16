@@ -30,7 +30,7 @@ Figures are made whenever one is missing (a fresh download has none) and
 remade in "quick" and "full". On a Mac each step keeps the computer awake
 (`caffeinate`), but not with the lid closed. In every mode, the comparison
 tables (✓ / ✗) check the results against the letter, and the last cell counts
-them (244 values in v2.0-jgr).
+them (274 values).
 
 ## What the notebook contains
 
@@ -54,6 +54,7 @@ in `code/pipeline/compute/`; times are for a full run.
 | `compute_joint_block_bootstrap.py` | 1 min | Sec. 2.3; SI Table S5 |
 | `compute_joint_fit_sensitivities.py` (quick: `--reuse`, if its cache is present) | 80 min | Table 2; Sec. 4.2; SI Tables S5, S12 |
 | `compute_joint_fit_checks.py` | 4 min | Table 1, Fig 3; Secs. 3.1, 3.4 |
+| `compute_martinez_density.py` | 20 min | Sec. 4.3; SI Table S4 |
 | `compute_joint_diviner.py` (needs Diviner) | 3 min | SI Table S13, SI Fig S6 |
 | `compute_gradient_epochs.py` | seconds | Secs. 3.1, 3.3; SI Table S2 |
 | `compute_joint_chi_density.py` | 50 min | Sec. 4.3; SI Table S14 |

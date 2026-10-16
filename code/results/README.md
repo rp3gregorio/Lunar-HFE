@@ -19,6 +19,7 @@ whether anything changed.
 | `joint_numerics_certification.json` | `certify_joint_numerics.py` | Sec. 2.2; SI Table S3; Table 2, solver row |
 | `joint_fit_sensitivities.json` | `compute_joint_fit_sensitivities.py` | Table 2 (error budget); the pooled comparison (Sec. 4.2); SI Tables S5, S12; SI Fig S5 |
 | `joint_fit_checks.json` | `compute_joint_fit_checks.py` | Table 1 (RMSE, bias, $\kappa$; Martinez & Siegler); Fig 3 and Sec. 3.1 (each sensor minus the fit); Sec. 3.4 (probe and TG/TR splits, hold-out); Sec. 4.1 (effective conductivity) |
+| `martinez_density_fit.json` | `compute_martinez_density.py` | Sec. 4.3 (the Martinez & Siegler model with its density fitted); SI Table S4 |
 | `joint_diviner.json` | `compute_joint_diviner.py` | Sec. 3.4; SI Table S13; SI Fig S6 |
 | `gradient_epochs.json` | `compute_gradient_epochs.py` | Secs. 3.1, 3.3; SI Table S2 |
 | `joint_chi_density.json` | `compute_joint_chi_density.py` | Sec. 4.3; SI Table S14; Table 2, $\chi$ row |

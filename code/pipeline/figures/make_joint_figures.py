@@ -299,7 +299,9 @@ def fig_annual_wave():
     labels = ["annual wave, amplitude and phase", "amplitude only (a, d)", "phase only (a, d)",
               "model at the joint fit", "global $K_d$ = 3.4", "joint-fit 95% interval (a, d)",
               "gradient bridge", "ring bridge", "thermocouple", "below 3$\\sigma$ (amplitude only)"]
-    legend_below(fig, handles, labels, handlelength=2.6, handler_map=PAIR_MAP)
+    # long handles: each site's half must show a whole dash / dash-dot cycle, or the
+    # dashed and dash-dot samples look alike (a reader would swap them)
+    legend_below(fig, handles, labels, handlelength=4.6, handler_map=PAIR_MAP)
     out = FIG / "fig_joint_annual_wave.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")

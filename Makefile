@@ -30,7 +30,7 @@ test:                ## run the unit-test suite
 retrieve:            ## core retrieval + bootstrap (writes code/results/kd_retrieval_results.json)
 	$(PY) code/pipeline/compute/retrieve_kd.py
 
-aux:                 ## every analysis of the paper after the retrieval (24 steps with retrieve; ~6 h)
+aux:                 ## every analysis of the paper after the retrieval (25 steps with retrieve; ~6 h)
 	$(PY) code/pipeline/compute/compute_common_epoch.py
 	$(PY) code/pipeline/compute/compute_diviner_closure.py
 	$(PY) code/pipeline/compute/compute_review_diagnostics.py   # ~5 min: flux scan, diurnal swing, level vs K_d, Diviner site vs zonal, TG/TR split
@@ -45,6 +45,7 @@ aux:                 ## every analysis of the paper after the retrieval (24 step
 	$(PY) code/pipeline/compute/compute_joint_block_bootstrap.py   # ~1 min: bootstrap with sensors grouped by probe (letter Sec. 2.3; SI Table S5)
 	$(PY) code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min: joint-fit error budget (incl. c_p), Q_b map, model comparison (letter Table 2 error budget, Sec. 4.2 pooled comparison; SI Tables S5, S12; SI Fig S5)
 	$(PY) code/pipeline/compute/compute_joint_fit_checks.py   # ~4 min, after the sensitivities: Table 1, each sensor minus the fit (Fig 3), hold-out, probe and TG/TR splits, gradient-matching Q_b (letter Secs. 3.1, 3.4)
+	$(PY) code/pipeline/compute/compute_martinez_density.py   # ~20 min: Martinez & Siegler with the deep density fitted per site (letter Sec. 4.3; SI Table S4)
 	$(PY) code/pipeline/compute/compute_joint_diviner.py   # ~3 min: Diviner comparison at the joint fit (SI Table S13, Fig S6)
 	$(PY) code/pipeline/compute/compute_gradient_epochs.py   # seconds: A17/A15 gradient under each window epoch + drill-core gradient (letter Secs. 3.1, 3.3; SI Table S2)
 	$(PY) code/pipeline/compute/compute_joint_chi_density.py   # ~50 min: joint fit for chi 1.5-3.2 and site-specific densities (letter Sec. 4.3; SI Table S14)

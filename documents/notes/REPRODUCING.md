@@ -71,13 +71,13 @@ Set `MODE` in its first code cell and *Run All*: `"show"` reads the stored
 results (minutes), `"quick"` runs the short steps and the fast form of the
 long ones (about 45 min), `"full"` runs everything from scratch (about 6 h).
 The notebook then goes through the letter section by section and compares
-every number with the value printed there (244 values in v2.0-jgr).
+every number with the value printed there (274 values).
 `code/notebooks/README.md` lists the script behind every step.
 
 **Without Jupyter**, the same scripts in the same order:
 
 ```bash
-make retrieve aux          # 24 steps, about 6 h; each prints its progress
+make retrieve aux          # 25 steps, about 6 h; each prints its progress
 ```
 
 The order matters: the joint fit (`compute_joint_albedo_fit.py`) reuses the

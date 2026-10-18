@@ -44,7 +44,7 @@ aux:                 ## every analysis of the paper after the retrieval (26 step
 	$(PY) code/pipeline/compute/compute_joint_valley.py   # seconds: the A17 worked example (SI Table S10)
 	$(PY) code/pipeline/compute/compute_joint_probe_checks.py   # seconds: per-probe and transient-diffusivity K_d, the +-5 K Apollo test (letter Secs. 3.4, 4.2; SI Table S9)
 	$(PY) code/pipeline/compute/compute_joint_block_bootstrap.py   # ~1 min: bootstrap with sensors grouped by probe (letter Sec. 2.3; SI Table S5)
-	$(PY) code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min: joint-fit error budget (incl. c_p), Q_b map, model comparison (letter Table 3 error budget, Sec. 4.2 pooled comparison; SI Tables S5, S12; SI Fig S5)
+	$(PY) code/pipeline/compute/compute_joint_fit_sensitivities.py   # ~90 min: joint-fit error budget (incl. c_p), Q_b map, model comparison (letter Sec. 4.2 pooled comparison; SI Table S5 error budget, S12; SI Fig S5)
 	$(PY) code/pipeline/compute/compute_joint_fit_checks.py   # ~4 min, after the sensitivities: Table 2 and Fig 4, each sensor minus the fit (Secs. 3.1, 3.2), hold-out, probe split with both diffusivities, gradient-matching Q_b (letter Secs. 3.3, 3.5)
 	$(PY) code/pipeline/compute/compute_martinez_density.py   # ~20 min: Martinez & Siegler with the deep density fitted per site (letter Sec. 4.3; SI Table S4)
 	$(PY) code/pipeline/compute/compute_joint_diviner.py   # ~3 min: Diviner comparison at the joint fit (SI Table S13, Fig S6)

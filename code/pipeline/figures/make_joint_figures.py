@@ -171,7 +171,7 @@ def fig_constraints(res, cache):
 
 
 def fig_robustness(res, sens):
-    """SI Fig. S5: K_d* refitted under each changed input, grouped as in Table 3 of the letter.
+    """SI Fig. S5: K_d* refitted under each changed input, grouped as in SI Table S5 (the error budget).
     (Until 2026-10-07 a panel (a) mapped the A17 - A15 difference over the basal-flux
     pairs; it was dropped with the site-difference claim. The map stays in
     joint_fit_sensitivities.json as qb_contrast_map.)"""

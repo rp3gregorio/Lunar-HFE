@@ -53,7 +53,7 @@ in `code/pipeline/compute/`; times are for a full run.
 | `compute_joint_valley.py` | seconds | SI Table S10 |
 | `compute_joint_probe_checks.py` | seconds | Secs. 3.4, 4.2; SI Table S9 |
 | `compute_joint_block_bootstrap.py` | 1 min | Sec. 2.3; SI Table S5 |
-| `compute_joint_fit_sensitivities.py` (quick: `--reuse`, if its cache is present) | 80 min | Table 3; Sec. 4.2; SI Tables S5, S12 |
+| `compute_joint_fit_sensitivities.py` (quick: `--reuse`, if its cache is present) | 80 min | Sec. 4.2; SI Tables S5 (error budget), S12 |
 | `compute_joint_fit_checks.py` | 4 min | Table 2, Fig 4; Secs. 3.1–3.3, 3.5 |
 | `compute_martinez_density.py` | 20 min | Sec. 4.3; SI Table S4 |
 | `compute_joint_diviner.py` (needs Diviner) | 3 min | SI Table S13, SI Fig S6 |

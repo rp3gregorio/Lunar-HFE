@@ -1,6 +1,7 @@
-% The study in one chart, in the order of the v2 letter (v2.0-jgr, 2026-10-16):
-% the windows, the forward model, one measurement at a time, all together (the
-% joint albedo-K_d fit), and the checks.
+% The study in one chart, in the order of the letter (v3, 2026-10-18): the
+% windows, the forward model, each probe and each thermometer type on its own,
+% all the sensors together (the joint albedo-K_d fit), and one measurement at a
+% time with the checks.
 % SI figure figures/fig_study_overview.pdf, built by
 % pipeline/figures/make_study_overview.py (part of `make figures`).
 % Inputs are marked as measured (what the fit must match) or assumed (held
@@ -61,24 +62,24 @@
   solved to its periodic steady state\\
   (flux-anchored solver), for each $A$ and $K_d$};
 \node[prb, below=3mm of pB.south west, anchor=north west] (pC) {%
-  \textbf{C.\; One measurement at a time}\\[1pt]
-  albedo fixed: $K_d$ follows the albedo chosen\\
-  {\color{dim}0.08--0.16 gives 2.9--16 (A15), 5.6--18 (A17)}\\
-  albedo free, temperatures only: a long valley\\
-  annual wave alone: 5.7 (A15), 5.6 (A17)};
+  \textbf{C.\; Each probe and each thermometer type}\\[1pt]
+  the fit of D on each probe (its own diffusivity)\\
+  and on each thermometer type (TG, TR)\\
+  $K_d=4.5$--6.2, each rejecting 3.4\\
+  {\color{dim}A15 probe 2 (two sensors): albedo held}};
 \node[prb, below=3mm of pC.south west, anchor=north west, draw=forest, line width=0.9pt] (pD) {%
-  \textbf{D.\; All together: fit albedo $A$ and $K_d$}\\[1pt]
+  \textbf{D.\; All sensors together: fit $A$ and $K_d$}\\[1pt]
   minimize\; $J=$ sensors $+$ surface mean $+$ diffusivity\\
   on 25 albedos $\times$ 94 values of $K_d$\\[2pt]
   {\color{forest}\itshape The temperatures alone trade $A$ against $K_d$;\\
   $\kappa=K/(\rho\,c_p)$ does not depend on $A$ or $Q_b$,\\
   so it fixes $K_d$.}};
 \node[prb, below=3mm of pD.south west, anchor=north west] (pE) {%
-  \textbf{E.\; Checks}\\[1pt]
-  likelihood-ratio tests of the global values 3.4 and 3.8\\
-  bootstrap (1500 draws), error budget, MCMC\\
-  {\color{dim}each probe and thermometer type alone, record}\\
-  {\color{dim}choices, our own diffusivities, warming, Diviner}};
+  \textbf{E.\; One measurement at a time, and checks}\\[1pt]
+  albedo fixed: $K_d$ follows the albedo; albedo free:\\
+  a long valley; annual wave alone: 5.7, 5.6\\
+  likelihood-ratio tests, bootstrap, error budget, MCMC\\
+  {\color{dim}record choices, own diffusivities, warming, Diviner}};
 
 % --- RESULTS ---
 \node[rsb] at (14.0,-0.4) (r0) {%

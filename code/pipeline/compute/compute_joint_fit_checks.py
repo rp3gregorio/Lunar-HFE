@@ -5,7 +5,7 @@ diffusivity), and at the global K_d = 3.4 with its own fitted albedo:
   * meter-scale-sensor RMSE, mean bias, offset-removed misfit (the residual
     standard deviation: what is left once the level is matched), the model
     gradient across the retained band against the observed one, and the
-    diurnal-mean surface temperature (Table 1 of the letter, Sec. 3.1);
+    diurnal-mean surface temperature (Table 1 of the letter, Sec. 3.3);
   * the Martinez & Siegler (2021) forward model at the fitted albedo, with the
     density profile of the Hayne runs (H = 6 cm; Table 1) and with their own
     H = 5.6 cm (text above their Eq. 10), applied to the conductivity and to rho*c_p;
@@ -18,14 +18,14 @@ diffusivity), and at the global K_d = 3.4 with its own fitted albedo:
     retained sensors (the depth trend of the misfit);
   * each sensor minus the joint fit, with its probe, thermometer type and the
     year its stability window ends, and the offsets between probes and between
-    thermometer types at matched depths (letter Sec. 3.1, Fig. 3c, d);
+    thermometer types at matched depths (letter Secs. 3.1, 3.2; Fig. 3);
   * the forward-drift bound: each sensor's T_eq carried forward at its own
     trailing slope for 1 and 2 yr (compute_common_epoch.py rows), refit;
   * the basal flux at which the model gradient at the fitted point equals
     the observed one (if results/joint_fit_sensitivities.json is present,
     from its Q_b variants);
   * the fixed-albedo sensitivity to a uniform +-1 K bias of the T_eq
-    (temperatures only, albedo held at the joint fit; letter Sec. 3.4);
+    (temperatures only, albedo held at the joint fit; letter Sec. 3.5);
   * the published global K_d values -- 3.4 (Hayne et al. 2017), 3.8 (Feng et
     al. 2020) and 7 (Vasavada et al. 2012, whose radiative term differs, so
     only indicative) -- scored by Delta-AICc against the joint fit, each with
@@ -92,7 +92,7 @@ def metrics(z, Tm, Tobs, Ts=None):
 
 
 def sensor_residuals(sensors, resid, window_year):
-    """Each sensor minus the joint fit, and the offsets the letter quotes (Sec. 3.1):
+    """Each sensor minus the joint fit, and the offsets the letter quotes (Secs. 3.1, 3.2):
     the range of each probe; the mean of each probe and thermometer type; probe 2
     minus probe 1 at matched depths (within 5 cm), by the window year of the pair;
     and TG minus TR within a probe, for pairs averaged in the same year and at most
@@ -211,7 +211,7 @@ def main():
             J, _ = jf.objective(interp_profiles(prof, ze), TT, Ts, jf.TS_OBS[s], kap=kap, kobs=kobs, ksig=ksig)
             a_d, kd_d, _, _ = jf.best_point(J)
             site[f"drift_forward_{tau:g}yr"] = dict(A=a_d, kd_mW=kd_d * 1e3, observed_gradient_K_per_m=float(np.polyfit(ze, TT, 1)[0]))
-        # fixed-albedo sensitivity to a uniform bias (letter Sec. 3.4): temperatures only
+        # fixed-albedo sensitivity to a uniform bias (letter Sec. 3.5): temperatures only
         # (sensors + surface mean, no diffusivity), albedo held at the joint fit, every T_eq
         # shifted by -1, 0 and +1 K
         aj = res["sites"][s]["with_diffusivity"]["best"]["A"]

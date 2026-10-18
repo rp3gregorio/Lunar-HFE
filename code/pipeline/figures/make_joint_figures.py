@@ -2,11 +2,12 @@
 
   fig_joint_intro_column.pdf            Fig. 1: the modeled column (swing depth from review_diagnostics.json)
   fig_joint_apollo_timeline_probes.pdf  Fig. 2: stability-window timeline (site colours)
-  fig_joint_sensors.pdf                 Fig. 3: each sensor against the models, and minus the joint fit
-  fig_joint_constraints.pdf             Fig. 4: what fixes A and K_d at each site
-  fig_joint_annual_wave.pdf             Fig. 5: the annual wave in the full record vs the forward model (compute_annual_wave.py)
-  fig_joint_mcmc.pdf                    Fig. 6: MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
-  fig_joint_variants.pdf                Fig. 7: K_d from every variant at each site
+  fig_joint_subsets.pdf                 Fig. 3: each probe and each thermometer type on its own
+  fig_joint_sensors.pdf                 Fig. 4: the models against all the sensors
+  fig_joint_constraints.pdf             Fig. 5: what fixes A and K_d at each site
+  fig_joint_annual_wave.pdf             Fig. 6: the annual wave in the full record vs the forward model (compute_annual_wave.py)
+  fig_joint_mcmc.pdf                    Fig. 7: MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
+  fig_joint_variants.pdf                Fig. 8: K_d from every variant at each site
   fig_joint_amplitude_vs_depth.pdf      Fig. S3: diurnal amplitude vs depth
   fig_joint_anchor_process.pdf          Fig. S4: the flux-anchored solver step by step, Apollo 15 at the joint fit (~30 s)
   fig_joint_robustness.pdf              Fig. S5: K_d under each changed input, grouped as in Table 2
@@ -77,7 +78,7 @@ D2_68, D2_95, D2_997 = 2.30, 6.18, 11.83     # Delta J for 68, 95, 99.7% regions
 
 
 def fig_constraints(res, cache):
-    """Fig. 4: (a, b) the (A, K_d) plane with the three measurements and the fits;
+    """Fig. 5: (a, b) the (A, K_d) plane with the three measurements and the fits;
     (c, d) the misfit along K_d (profile: best albedo at each K_d)."""
     A, K = jf.A_GRID, jf.KD_GRID * 1e3
     KLIM = (1.0, 17.0)                     # one K_d range in all four panels
@@ -239,7 +240,7 @@ def fig_robustness(res, sens):
 
 
 def fig_annual_wave():
-    """Fig. 5: the annual wave in the full record against the forward model (compute_annual_wave.py).
+    """Fig. 6: the annual wave in the full record against the forward model (compute_annual_wave.py).
     Left: chi^2 profile over K_d (all sensors: amplitude and phase; amplitude only; phase only).
     Middle and right: amplitude and phase lag against depth, data divided by the fitted probe factor,
     with the model at the annual-wave best fit, at the joint fit and at the global K_d."""
@@ -380,17 +381,19 @@ def fig_mcmc(res):
 
 
 def fig_sensors(res, cache):
-    """Fig. 3, each sensor against the models: (a, b) the meter-scale profiles,
-    (c, d) each sensor minus the joint fit. TG circles, TR squares; probe 1 filled,
-    probe 2 open. Both sites on the same scale (depth range and temperature width)."""
+    """Fig. 4, the models against all the sensors: the meter-scale profiles at the joint fit
+    (all sensors), at the global K_d with its own fitted albedo, and Martinez & Siegler.
+    TG circles, TR squares; probe 1 filled, probe 2 open. Both sites on the same scale
+    (depth range and temperature width), so equal slopes look equal. (Each sensor's offset
+    from the joint fit is shown in Fig. 3, by probe and by thermometer type.)"""
     import retrieve_kd as rk
     from lunar.config import SITES
     from lunar.apollo_helpers import extract_sensor_stability
     from compute_joint_fit_checks import bilinear
     mark, msz, zlo, zhi = {"TG": "o", "TR": "s"}, {"TG": 6.6, "TR": 6.0}, 70, 245
-    fig = plt.figure(figsize=(JGR_FULL, 5.6))
-    gs = fig.add_gridspec(2, 2, hspace=0.50, wspace=0.30, left=0.10, right=0.97, top=0.95, bottom=0.08)
-    prof_ax, res_ax, prof_rng, res_all = {}, {}, {}, []
+    fig = plt.figure(figsize=(JGR_FULL, 3.0))
+    gs = fig.add_gridspec(1, 2, wspace=0.30, left=0.10, right=0.97, top=0.90, bottom=0.16)
+    prof_ax, prof_rng = {}, {}
     for col, s in enumerate(("A15", "A17")):
         b = res["sites"][s]["with_diffusivity"]["best"]; g = res["sites"][s]["with_diffusivity"]["global_test"]
         prof = cache[f"{s}_prof"]; zc = jf.Z_DENSE * 100
@@ -400,43 +403,121 @@ def fig_sensors(res, cache):
         obs = [o for o in extract_sensor_stability(SITES[s]["mission"], min_depth_cm=0)["sensors"]
                if o["depth_cm"] >= SITES[s]["MIN_DEPTH_CM"]]
         c = SITE_COL[s]
-        ax = fig.add_subplot(gs[0, col]); rx = fig.add_subplot(gs[1, col]); prof_ax[s], res_ax[s] = ax, rx
-        for a_ in (ax, rx):
-            a_.axhspan(0, 80, color=C_EXCL_FILL, lw=0); a_.axhline(80, color=C_EXCL_EDGE, ls="--", lw=0.8)
+        ax = fig.add_subplot(gs[0, col]); prof_ax[s] = ax
+        ax.axhspan(0, 80, color=C_EXCL_FILL, lw=0); ax.axhline(80, color=C_EXCL_EDGE, ls="--", lw=0.8)
         ax.plot(Tj, zc, color=C_HAYNE_FIT, lw=2.0, ls=LS_HAYNE_FIT)
         ax.plot(Tg, zc, color=C_HAYNE_GLOBAL, lw=1.6, ls=LS_HAYNE_GLOBAL)
         ax.plot(Tm, zm * 100, color=C_MS, lw=1.6, ls=LS_MS)
-        rx.axvline(0, color=C_HAYNE_FIT, lw=2.0)
         for o in obs:
             kw = dict(mfc=c, mec=c, mew=0.8) if o["probe"] == 1 else dict(mfc="white", mec=c, mew=1.8)
-            r = o["T_eq"] - float(np.interp(o["depth_cm"], zc, Tj)); res_all.append(r)
             ax.plot(o["T_eq"], o["depth_cm"], marker=mark[o["stype"]], ms=msz[o["stype"]], ls="none", zorder=5, **kw)
-            rx.plot(r, o["depth_cm"], marker=mark[o["stype"]], ms=msz[o["stype"]], ls="none", zorder=5, **kw)
         sel = (zc >= zlo) & (zc <= zhi)
         v = np.concatenate([Tj[sel], Tg[sel], [o["T_eq"] for o in obs]]); prof_rng[s] = (v.min(), v.max())
-        for a_, title, xl in ((ax, "temperatures", "Mean temperature (K)"),
-                              (rx, "sensor minus joint fit", "Sensor minus joint fit (K)")):
-            a_.set_ylim(zhi, zlo)
-            fmt_axis(a_, xlabel=xl, ylabel="Depth (cm)" if col == 0 else "",
-                     title=f"({'abcd'[col + (2 if a_ is rx else 0)]})  {SITE_LAB[s]}: {title}")
+        ax.set_ylim(zhi, zlo)
+        fmt_axis(ax, xlabel="Mean temperature (K)", ylabel="Depth (cm)" if col == 0 else "",
+                 title=f"({'ab'[col]})  {SITE_LAB[s]}: all sensors")
     width = max(hi - lo for lo, hi in prof_rng.values()) + 1.2      # same temperature width at both sites
     for s, (lo, hi) in prof_rng.items():
         prof_ax[s].set_xlim(0.5 * (lo + hi) - width / 2, 0.5 * (lo + hi) + width / 2)
-    rl = max(abs(min(res_all)), abs(max(res_all))) + 0.3
-    for rx in res_ax.values():
-        rx.set_xlim(-rl, rl)
     pair = lambda **kw: SITES2(lambda c: Line2D([], [], ls="none", mec=c, **{k: (c if v == "SITE" else v) for k, v in kw.items()}))
     handles = [Line2D([], [], color=C_HAYNE_FIT, lw=2.0), Line2D([], [], color=C_HAYNE_GLOBAL, lw=1.6, ls=LS_HAYNE_GLOBAL),
                Line2D([], [], color=C_MS, lw=1.6, ls=LS_MS), Patch(fc=C_EXCL_FILL, ec=C_EXCL_EDGE, ls="--"),
                pair(marker="o", ms=6.6, mfc="SITE", mew=0.8), pair(marker="s", ms=6.0, mfc="SITE", mew=0.8),
                pair(marker="o", ms=6.6, mfc="SITE", mew=0.8), pair(marker="o", ms=6.6, mfc="white", mew=1.8)]
-    labels = ["Hayne, joint fit (zero in c, d)", "Hayne, global $K_d$ (own $A$)", "Martinez & Siegler", "borestem zone",
+    labels = ["Hayne, joint fit (all sensors)", "Hayne, global $K_d$ (own $A$)", "Martinez & Siegler", "borestem zone",
               "TG: gradient bridge", "TR: ring bridge", "probe 1: filled", "probe 2: open"]
     legend_below(fig, handles, labels, ncols=4, handlelength=2.6, handler_map=PAIR_MAP)
     fig.canvas.draw()
-    for a_ in list(prof_ax.values()) + list(res_ax.values()):
+    for a_ in prof_ax.values():
         assert_no_overlap(a_)
     out = FIG / "fig_joint_sensors.pdf"
+    fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
+    print(f"  -> {out}")
+
+
+def fig_subsets(res, cache):
+    """Fig. 3: K_d from each probe and each thermometer type on its own (compute_subset_fits.py).
+    Top row, each probe (its sensors, the surface mean and its own diffusivity; A15 probe 2,
+    with two sensors, at the all-sensor albedo); bottom row, each thermometer type (TG, TR;
+    both diffusivities). (a, b, d, e) the sensors and the model at each subset's fit (solid:
+    probe 1 or TG; dashed: probe 2 or TR; thin gray: all sensors); (c, f) K_d and its 95%
+    bootstrap interval, against the all-sensor interval (shaded) and the global 3.4 (dotted)."""
+    from compute_joint_fit_checks import bilinear
+    sf = json.loads((RES / "subset_fits.json").read_text())["sites"]
+    mark, msz, zlo, zhi = {"TG": "o", "TR": "s"}, {"TG": 6.0, "TR": 5.5}, 70, 245
+    rows = (("probe", ("probe1", "probe2"), ("probe 1", "probe 2")), ("type", ("TG", "TR"), ("TG", "TR")))
+    fig = plt.figure(figsize=(JGR_FULL, 5.3))
+    gs = fig.add_gridspec(2, 3, width_ratios=[1, 1, 1.15], hspace=0.55, wspace=0.34,
+                          left=0.085, right=0.985, top=0.95, bottom=0.08)
+    prof_axes, rng = [], {}
+    zc = jf.Z_DENSE * 100
+    for r, (kind, keys, names) in enumerate(rows):
+        for col, s in enumerate(("A15", "A17")):
+            ax = fig.add_subplot(gs[r, col]); prof_axes.append((ax, s))
+            c = SITE_COL[s]; prof = cache[f"{s}_prof"]
+            ax.axhspan(0, 80, color=C_EXCL_FILL, lw=0); ax.axhline(80, color=C_EXCL_EDGE, ls="--", lw=0.8)
+            a_ = sf[s]["all"]
+            ax.plot(bilinear(prof, a_["A"], a_["kd_mW"] * 1e-3), zc, color=C_DIM, lw=0.9, alpha=0.7, zorder=2)
+            vals = []
+            for key, ls in zip(keys, ("-", "--")):
+                f = sf[s][key]
+                Tf = bilinear(prof, f["A"], f["kd_mW"] * 1e-3)
+                ax.plot(Tf, zc, color=c, lw=1.7, ls=ls, zorder=3)
+                vals += list(Tf[(zc >= zlo) & (zc <= zhi)])
+            z_all, T_all = jf.observed(s)
+            for sen, z, T in zip(sf[s]["sensors"], z_all * 100, T_all):
+                kw = dict(mfc=c, mec=c, mew=0.8) if sen["probe"] == 1 else dict(mfc="white", mec=c, mew=1.6)
+                ax.plot(T, z, marker=mark[sen["type"]], ms=msz[sen["type"]], ls="none", zorder=5, **kw)
+                vals.append(T)
+            rng[(r, s)] = (min(vals), max(vals))
+            ax.set_ylim(zhi, zlo)
+            lab = "by probe" if kind == "probe" else "by type"
+            fmt_axis(ax, xlabel="Mean temperature (K)", ylabel="Depth (cm)" if col == 0 else "",
+                     title=f"({'abde'[2 * r + col]})  {SITE_LAB[s]}, {lab}")
+        # K_d summary
+        ax = fig.add_subplot(gs[r, 2])
+        ylab, y = [], 0
+        for s in ("A15", "A17"):
+            c = SITE_COL[s]; a_ = sf[s]["all"]["kd_bootstrap_mW"]
+            ax.fill_between([a_["p2.5"], a_["p97.5"]], y - 0.45, y + 1.45, color=c, alpha=0.15, lw=0, zorder=0)
+            for key, name in zip(keys, names):
+                f = sf[s][key]; kb = f["kd_bootstrap_mW"]
+                if kind == "probe":
+                    kw = dict(marker="o", mfc=c if key == "probe1" else "white", mec=c, mew=1.4)
+                else:
+                    kw = dict(marker=mark[key], mfc=c, mec=c, mew=0.8)
+                ax.plot([kb["p2.5"], kb["p97.5"]], [y, y], color=c, lw=1.6, zorder=2)
+                ax.plot(f["kd_mW"], y, ms=6.5, ls="none", zorder=4, **kw)
+                ylab.append(f"{s} {name}" + ("*" if f["albedo_fixed"] else ""))
+                y += 1
+            y += 0.4
+        ax.axvline(3.4, color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4, zorder=1)
+        ax.set_yticks([0, 1, 2.4, 3.4]); ax.set_yticklabels(ylab)
+        ax.set_ylim(3.95, -0.6); ax.set_xlim(2.5, 9.0)
+        ax.tick_params(axis="y", length=0); ax.grid(axis="y", visible=False)
+        fmt_axis(ax, xlabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", title=f"({'cf'[r]})  $K_d$ {'by probe' if kind == 'probe' else 'by type'}")
+    # same temperature width at both sites in each row, so equal slopes look equal
+    for r in (0, 1):
+        width = max(hi - lo for (rr, s), (lo, hi) in rng.items() if rr == r) + 1.0
+        for ax, s in prof_axes:
+            if (r == 0 and ax in [a for a, _ in prof_axes[:2]]) or (r == 1 and ax in [a for a, _ in prof_axes[2:]]):
+                lo, hi = rng[(r, s)]
+                ax.set_xlim(0.5 * (lo + hi) - width / 2, 0.5 * (lo + hi) + width / 2)
+    pair = lambda **kw: SITES2(lambda c: Line2D([], [], ls="none", mec=c, **{k: (c if v == "SITE" else v) for k, v in kw.items()}))
+    handles = [SITES2(lambda c: Line2D([], [], color=c, lw=1.7)), SITES2(lambda c: Line2D([], [], color=c, lw=1.7, ls="--")),
+               Line2D([], [], color=C_DIM, lw=0.9, alpha=0.7), SITES2(lambda c: Patch(fc=c, alpha=0.15, lw=0)),
+               pair(marker="o", ms=6.0, mfc="SITE", mew=0.8), pair(marker="o", ms=6.0, mfc="white", mew=1.6),
+               pair(marker="o", ms=6.0, mfc="SITE", mew=0.8), pair(marker="s", ms=5.5, mfc="SITE", mew=0.8),
+               Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)]
+    labels = ["fit to probe 1 (a, b) or TG (d, e)", "fit to probe 2 (a, b) or TR (d, e)", "fit to all sensors",
+              "all-sensor 95% interval (c, f)", "probe 1 sensor (filled)", "probe 2 sensor (open)",
+              "TG: gradient bridge (circle)", "TR: ring bridge (square)", "global $K_d$ = 3.4"]
+    legend_below(fig, handles, labels, handlelength=4.0, handler_map=PAIR_MAP)
+    fig.canvas.draw()
+    for ax in fig.axes:
+        if ax.get_legend() is None:
+            assert_no_overlap(ax)
+    out = FIG / "fig_joint_subsets.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")
 
@@ -452,6 +533,19 @@ def variant_rows(res, chk, sens):
         pts = [float(p) for p in pts]
         return dict(best=best, lo=min(pts), hi=max(pts), pts=pts)
     rows = []
+    sf = json.loads((RES / "subset_fits.json").read_text())["sites"]
+    sub = lambda keys: {s: rng([sf[s][k]["kd_mW"] for k in keys]) for s in S}
+    rows.append(("Subsets of the sensors", "Each probe on its own (own diffusivity)", sub(("probe1", "probe2"))))
+    rows.append(("Subsets of the sensors", "Each thermometer type on its own", sub(("TG", "TR"))))
+    wd = {s: res["sites"][s]["with_diffusivity"] for s in S}
+    rows.append(("All sensors together", "Joint fit: sensors, surface mean, diffusivity",
+                 {s: dict(best=wd[s]["best"]["kd_star_mW"], lo=wd[s]["bootstrap"]["kd_mW"]["p2.5"],
+                          hi=wd[s]["bootstrap"]["kd_mW"]["p97.5"], pts=[], headline=True) for s in S}))
+    rows.append(("All sensors together", "Heat flow and density also free (MCMC)",
+                 {s: dict(best=mc[s]["posterior"]["kd_mW"]["p50"], lo=mc[s]["posterior"]["kd_mW"]["p2.5"],
+                          hi=mc[s]["posterior"]["kd_mW"]["p97.5"], pts=[]) for s in S}))
+    rows.append(("All sensors together", "Our own annual-wave diffusivities",
+                 {s: rng([own[v][s]["kd_star_mW"] for v in own if v != "langseth1976"]) for s in S}))
     const = {s: {round(c["A"], 3): c["kd_star_mW"] for c in alb["cases"] if c["site"] == s and c["family"] == "constant"} for s in S}
     rows.append(("One measurement at a time", "Sensors, albedo fixed at 0.12",
                  {s: dict(best=const[s][0.12], lo=None, hi=None, pts=[]) for s in S}))
@@ -464,37 +558,24 @@ def variant_rows(res, chk, sens):
     rows.append(("One measurement at a time", "Annual wave in the full record",
                  {s: dict(best=aw[s]["variants"]["nominal"]["kd_mW"], lo=aw[s]["variants"]["nominal"]["ci95"][0],
                           hi=aw[s]["variants"]["nominal"]["ci95"][1], pts=[]) for s in S}))
-    wd = {s: res["sites"][s]["with_diffusivity"] for s in S}
-    rows.append(("All measurements together", "Joint fit: sensors, surface mean, diffusivity",
-                 {s: dict(best=wd[s]["best"]["kd_star_mW"], lo=wd[s]["bootstrap"]["kd_mW"]["p2.5"],
-                          hi=wd[s]["bootstrap"]["kd_mW"]["p97.5"], pts=[], headline=True) for s in S}))
-    rows.append(("All measurements together", "Heat flux and density also free (MCMC)",
-                 {s: dict(best=mc[s]["posterior"]["kd_mW"]["p50"], lo=mc[s]["posterior"]["kd_mW"]["p2.5"],
-                          hi=mc[s]["posterior"]["kd_mW"]["p97.5"], pts=[]) for s in S}))
-    rows.append(("All measurements together", "Our own annual-wave diffusivities",
-                 {s: rng([own[v][s]["kd_star_mW"] for v in own if v != "langseth1976"]) for s in S}))
-    rows.append(("Checks of the joint fit", "One probe's sensors only",
-                 {s: rng([chk[s][k]["kd_mW"] for k in ("probe1_only", "probe2_only") if k in chk[s]]) for s in S}))
-    rows.append(("Checks of the joint fit", "One thermometer type only",
-                 {s: rng([chk[s][f"split_{t}"]["kd_mW"] for t in ("TG", "TR")]) for s in S}))
     rec = {s: [v["kd_star_mW"] for v in sens["sites"][s]["reanalysis"].values()]
               + [chk[s][f"drift_forward_{t}yr"]["kd_mW"] for t in (1, 2)]
               # the deployment-warming step whose modeled warming rate best matches the measured one
               + [min(tw[s]["cases"].values(), key=lambda c: abs(c["median_rate_ratio_model_over_observed"] - 1))
                  ["surface_as_measured"]["kd_mW"]] for s in S}
-    rows.append(("Checks of the joint fit", "Record reduction: cut, windows, epoch, warming", {s: rng(rec[s]) for s in S}))
+    rows.append(("Other checks", "Record reduction: cut, windows, epoch, warming", {s: rng(rec[s]) for s in S}))
     inp = {s: [v["with_diffusivity"]["kd_star_mW"] for k, v in sens["sites"][s]["variants"].items()
                if k not in ("nominal_compact", "chi_1.5")] for s in S}
-    rows.append(("Checks of the joint fit", "Inputs: heat flux, $K_s$, density, $c_p$, $H$, albedo law", {s: rng(inp[s]) for s in S}))
-    rows.append(("Checks of the joint fit", r"Radiative coefficient $\chi$ = 2.2 to 3.2",
+    rows.append(("Other checks", "Inputs: heat flow, $K_s$, density, $c_p$, $H$, albedo law", {s: rng(inp[s]) for s in S}))
+    rows.append(("Other checks", r"Radiative coefficient $\chi$ = 2.2 to 3.2",
                  {s: rng([cd[s][f"chi_{x}"]["kd_star_mW"] for x in ("2.2", "2.45", "2.95", "3.2")] + [wd[s]["best"]["kd_star_mW"]]) for s in S}))
-    rows.append(("Checks of the joint fit", "Measured site densities",
+    rows.append(("Other checks", "Measured site densities",
                  {s: dict(best=cd[s]["rho_site"]["kd_star_mW"], lo=None, hi=None, pts=[]) for s in S}))
     return rows
 
 
 def fig_variants(res, chk, sens):
-    """Fig. 7, every variant: K_d at each site, best value and 95% interval or the
+    """Fig. 8, every variant: K_d at each site, best value and 95% interval or the
     range of its versions; the joint fit's 95% interval shaded; the global 3.4 dotted."""
     rows = variant_rows(res, chk, sens)
     xmin, xmax = 1.0, 9.0
@@ -566,9 +647,11 @@ def fig_variants(res, chk, sens):
 def main():
     res, cache, chk, sens = load()
     fig_constraints(res, cache)
-    fig_sensors(res, cache)                # Fig. 3: each sensor against the models
+    if (RES / "subset_fits.json").exists():
+        fig_subsets(res, cache)            # Fig. 3: each probe and each thermometer type on its own
+    fig_sensors(res, cache)                # Fig. 4: all sensors against the models
     if sens is not None:
-        fig_variants(res, chk, sens)       # Fig. 7: K_d from every variant
+        fig_variants(res, chk, sens)       # Fig. 8: K_d from every variant
     if (RES / "joint_mcmc.json").exists():
         fig_mcmc(res)
     if (RES / "annual_wave.json").exists():

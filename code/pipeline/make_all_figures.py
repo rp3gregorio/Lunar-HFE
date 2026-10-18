@@ -20,7 +20,7 @@ sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 
 # (module, callables) — each module's figure entry point(s), in run order.
 JOBS = [
-    ("make_joint_figures",           ["main"]),   # letter Figs 1-7, SI Figs S3, S4, S5
+    ("make_joint_figures",           ["main"]),   # letter Figs 1-8, SI Figs S3, S4, S5
     ("make_context_map_figure",      ["main"]),   # SI Fig S1 (needs the LOLA map: REPRODUCING.md, Step 3)
     ("make_study_overview",          ["main"]),   # SI Fig S2 (TikZ, needs pdflatex)
     ("make_spinup_animation",        ["main"]),   # optional_anchor_method notebook: brute-force spin-up

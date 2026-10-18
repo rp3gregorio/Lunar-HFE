@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Diviner GCP surface-temperature closure test (letter Sec. 3.4; inputs to SI Table S13).
+"""Diviner GCP surface-temperature closure test (letter Sec. 3.5; inputs to SI Table S13).
 
 For each Apollo site, compares the modelled diurnal skin temperature
 against the Diviner Global Cumulative Product diurnal composite at the

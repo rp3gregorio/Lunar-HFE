@@ -11,7 +11,7 @@ parameter), so a value outside its 95 % interval has p < 0.05.
 This script only post-processes stored fits; it solves nothing.
   * per site, the global K_d = 3.4 against the joint fit, each with its own
     fitted albedo (joint_albedo_fit.json: global_test J minus best J), with
-    and without the diffusivity; df = 1 (Table 1, Sec. 3.3);
+    and without the diffusivity; df = 1 (Table 2, Sec. 3.3);
   * per site, the published global values 3.4 (Hayne et al. 2017), 3.8
     (Feng et al. 2020) and 7 (Vasavada et al. 2012, whose radiative term
     differs) read off the profile of J over K_d; df = 1 (Sec. 3.3);
@@ -140,7 +140,7 @@ def main():
                       surface_mean_K=float(np.interp(kd, K, c[f"{s}_Ts"][ia])), surface_mean_obs_K=jf.TS_OBS[s],
                       fixed_vs_fitted_albedo=test(Jk - J0, 1),
                       global_3p4_at_standard_albedo=test(J[ia, iG] - J0, 2))
-        # the standard model exactly as published (A = 0.12, K_d = 3.4), at the grid node (letter Table 1)
+        # the standard model exactly as published (A = 0.12, K_d = 3.4), at the grid node (letter Table 2)
         rg = c[f"{s}_Tz"][ia, iG] - Tobs
         std[s]["hayne_as_published"] = dict(
             A=A_STANDARD, kd_mW=float(K[iG]), sensor_rmse_K=float(np.sqrt((rg ** 2).mean())),

@@ -30,7 +30,7 @@ Figures are made whenever one is missing (a fresh download has none) and
 remade in "quick" and "full". On a Mac each step keeps the computer awake
 (`caffeinate`), but not with the lid closed. In every mode, the comparison
 tables (✓ / ✗) check the results against the letter, and the last cell counts
-them (312 values).
+them (369 values).
 
 ## What the notebook contains
 
@@ -48,18 +48,18 @@ in `code/pipeline/compute/`; times are for a full run.
 | `compute_albedo_diagnostics.py`, `compute_albedo_sensitivity.py`, `compute_albedo_anchor.py` | 13, 35, 5 min | Sec. 3.4; SI Table S7 |
 | `compute_stability_windows.py` | seconds | Sec. 2.1; SI Table S1 |
 | **`compute_joint_albedo_fit.py`** (quick: `--reuse`) | 25 min | **Sec. 3.3, Table 1** |
-| `compute_subset_fits.py` | 1 min | Secs. 3.1, 3.2; Fig 3 (each probe, each thermometer type) |
+| `compute_subset_fits.py` | 1 min | Secs. 3.1, 3.2; Table 1, Fig 3 (each probe, each thermometer type) |
 | `certify_joint_numerics.py` | 3 min | SI Table S3 |
 | `compute_joint_valley.py` | seconds | SI Table S10 |
 | `compute_joint_probe_checks.py` | seconds | Secs. 3.4, 4.2; SI Table S9 |
 | `compute_joint_block_bootstrap.py` | 1 min | Sec. 2.3; SI Table S5 |
-| `compute_joint_fit_sensitivities.py` (quick: `--reuse`, if its cache is present) | 80 min | Table 2; Sec. 4.2; SI Tables S5, S12 |
-| `compute_joint_fit_checks.py` | 4 min | Table 1, Fig 4; Secs. 3.1–3.3, 3.5 |
+| `compute_joint_fit_sensitivities.py` (quick: `--reuse`, if its cache is present) | 80 min | Table 3; Sec. 4.2; SI Tables S5, S12 |
+| `compute_joint_fit_checks.py` | 4 min | Table 2, Fig 4; Secs. 3.1–3.3, 3.5 |
 | `compute_martinez_density.py` | 20 min | Sec. 4.3; SI Table S4 |
 | `compute_joint_diviner.py` (needs Diviner) | 3 min | SI Table S13, SI Fig S6 |
 | `compute_gradient_epochs.py` | seconds | Sec. 3.3; SI Table S2 |
 | `compute_joint_chi_density.py` | 50 min | Sec. 4.3; SI Table S14 |
-| `compute_likelihood_ratio.py` | seconds | every $p$: Table 1; Secs. 3.3, 4.2, 4.3 |
+| `compute_likelihood_ratio.py` | seconds | every $p$: Table 2; Secs. 3.3, 4.2, 4.3 |
 | `compute_annual_wave.py` | 3 min | Sec. 3.4, Fig 6; SI Table S11 |
 | `compute_own_diffusivity_fit.py` | seconds | Secs. 3.5, 4.2; SI Table S11 |
 | `compute_annual_wave_surface_test.py` | 6 min | Sec. 4.4; SI Table S11 |

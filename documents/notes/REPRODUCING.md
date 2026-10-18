@@ -71,7 +71,7 @@ Set `MODE` in its first code cell and *Run All*: `"show"` reads the stored
 results (minutes), `"quick"` runs the short steps and the fast form of the
 long ones (about 45 min), `"full"` runs everything from scratch (about 6 h).
 The notebook then goes through the letter section by section and compares
-every number with the value printed there (312 values).
+every number with the value printed there (369 values).
 `code/notebooks/README.md` lists the script behind every step.
 
 **Without Jupyter**, the same scripts in the same order:

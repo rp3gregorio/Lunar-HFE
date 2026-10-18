@@ -1,4 +1,4 @@
-"""K_d from each probe and each thermometer type on its own (letter Secs. 3.1, 3.2; Fig. 3).
+"""K_d from each probe and each thermometer type on its own (letter Secs. 3.1, 3.2; Table 1, Fig. 3).
 
 The joint (A, K_d) fit of compute_joint_albedo_fit.py is repeated on subsets of
 the meter-scale sensors of each site, with the same objective J, the same solved
@@ -66,6 +66,18 @@ def rows_at(arr, a, a_grid):
     return ((1 - u) * arr[i] + u * arr[i + 1])[None]
 
 
+def at_fit(Tz, a, kd, a_grid):
+    """Model temperatures at the refined fit (a, kd): linear in K_d, then in A (the misfit
+    of Table 2 of the letter is evaluated the same way, compute_joint_fit_checks.bilinear)."""
+    K = jf.KD_GRID
+    j = int(np.clip(np.searchsorted(K, kd) - 1, 0, len(K) - 2)); v = (kd - K[j]) / (K[j + 1] - K[j])
+    along_k = lambda row: (1 - v) * row[j] + v * row[j + 1]
+    if len(a_grid) == 1:
+        return along_k(Tz[0])
+    i = int(np.clip(np.searchsorted(a_grid, a) - 1, 0, len(a_grid) - 2)); u = (a - a_grid[i]) / (a_grid[i + 1] - a_grid[i])
+    return (1 - u) * along_k(Tz[i]) + u * along_k(Tz[i + 1])
+
+
 def fit_subset(s, mask, probes, c, a_fixed=None):
     """jf.analyse on the sensors in mask and the diffusivities of the listed probes."""
     z_all, T_all = jf.observed(s)
@@ -79,9 +91,10 @@ def fit_subset(s, mask, probes, c, a_fixed=None):
                      kappa_obs=[jf.KAPPA_OBS[s][p] for p in probes])
     b, bt, g = res["best"], res["bootstrap"], res["global_test"]
     dJ = float(g["J"] - b["J"])
+    r = at_fit(Tz, b["A"], b["kd_star_mW"] * 1e-3, a_grid) - T_all[mask]       # misfit at the refined fit
     return dict(n_sensors=int(mask.sum()), probes_diffusivity=[int(p) + 1 for p in probes],
                 albedo_fixed=a_fixed is not None,
-                A=b["A"], kd_mW=b["kd_star_mW"], sensor_rmse_K=b["sensor_rmse_K"], bias_K=b["bias_K"],
+                A=b["A"], kd_mW=b["kd_star_mW"], sensor_rmse_K=float(np.sqrt(np.mean(r ** 2))), bias_K=float(r.mean()),
                 surface_mean_K=b["surface_mean_K"], kappa_model=b["kappa_model"], kappa_obs=b["kappa_obs"],
                 kd_bootstrap_mW=bt["kd_mW"], A_bootstrap=bt["A"],
                 profile_sets_mW=res["profile_kd"]["sets_mW"],

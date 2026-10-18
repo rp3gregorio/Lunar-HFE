@@ -2,7 +2,7 @@
 
   fig_joint_intro_column.pdf            Fig. 1: the modeled column (swing depth from review_diagnostics.json)
   fig_joint_apollo_timeline_probes.pdf  Fig. 2: stability-window timeline (site colours)
-  fig_joint_subsets.pdf                 Fig. 3: each probe and each thermometer type on its own
+  fig_joint_subsets.pdf                 Fig. 3: each probe and each thermometer type on its own (one panel each)
   fig_joint_sensors.pdf                 Fig. 4: the models against all the sensors
   fig_joint_constraints.pdf             Fig. 5: what fixes A and K_d at each site
   fig_joint_annual_wave.pdf             Fig. 6: the annual wave in the full record vs the forward model (compute_annual_wave.py)
@@ -171,7 +171,7 @@ def fig_constraints(res, cache):
 
 
 def fig_robustness(res, sens):
-    """SI Fig. S5: K_d* refitted under each changed input, grouped as in Table 2 of the letter.
+    """SI Fig. S5: K_d* refitted under each changed input, grouped as in Table 3 of the letter.
     (Until 2026-10-07 a panel (a) mapped the A17 - A15 difference over the basal-flux
     pairs; it was dropped with the site-difference claim. The map stays in
     joint_fit_sensitivities.json as qb_contrast_map.)"""
@@ -436,87 +436,71 @@ def fig_sensors(res, cache):
 
 
 def fig_subsets(res, cache):
-    """Fig. 3: K_d from each probe and each thermometer type on its own (compute_subset_fits.py).
-    Top row, each probe (its sensors, the surface mean and its own diffusivity; A15 probe 2,
-    with two sensors, at the all-sensor albedo); bottom row, each thermometer type (TG, TR;
-    both diffusivities). (a, b, d, e) the sensors and the model at each subset's fit (solid:
-    probe 1 or TG; dashed: probe 2 or TR; thin gray: all sensors); (c, f) K_d and its 95%
-    bootstrap interval, against the all-sensor interval (shaded) and the global 3.4 (dotted)."""
+    """Fig. 3: each probe and each thermometer type on its own (compute_subset_fits.py).
+    One panel per subset and site (columns: probe 1, probe 2, TG, TR; rows: A15, A17),
+    each showing ONLY that subset's sensors and the model at that subset's fit (solid),
+    with the fit to all the sensors as a thin gray reference and the subset's K_d and
+    95% bootstrap interval in the panel. Probes: their own diffusivity; types: both.
+    A15 probe 2 (two sensors) is fitted with the albedo held at the all-sensor value.
+    The numbers are tabulated in Table 1 of the letter."""
     from compute_joint_fit_checks import bilinear
+    from matplotlib.patches import FancyBboxPatch  # noqa: F401  (text boxes use bbox dicts)
     sf = json.loads((RES / "subset_fits.json").read_text())["sites"]
     mark, msz, zlo, zhi = {"TG": "o", "TR": "s"}, {"TG": 6.0, "TR": 5.5}, 70, 245
-    rows = (("probe", ("probe1", "probe2"), ("probe 1", "probe 2")), ("type", ("TG", "TR"), ("TG", "TR")))
-    fig = plt.figure(figsize=(JGR_FULL, 5.3))
-    gs = fig.add_gridspec(2, 3, width_ratios=[1, 1, 1.15], hspace=0.55, wspace=0.34,
-                          left=0.085, right=0.985, top=0.95, bottom=0.08)
-    prof_axes, rng = [], {}
+    cols = (("probe1", "probe 1"), ("probe2", "probe 2"), ("TG", "TG sensors"), ("TR", "TR sensors"))
+    fig = plt.figure(figsize=(JGR_FULL, 5.0))
+    gs = fig.add_gridspec(2, 4, hspace=0.42, wspace=0.12, left=0.075, right=0.99, top=0.93, bottom=0.10)
     zc = jf.Z_DENSE * 100
-    for r, (kind, keys, names) in enumerate(rows):
-        for col, s in enumerate(("A15", "A17")):
-            ax = fig.add_subplot(gs[r, col]); prof_axes.append((ax, s))
-            c = SITE_COL[s]; prof = cache[f"{s}_prof"]
+    rng = {}
+    axes = {}
+    for r, s in enumerate(("A15", "A17")):
+        c = SITE_COL[s]; prof = cache[f"{s}_prof"]
+        z_all, T_all = jf.observed(s)
+        sens = sf[s]["sensors"]
+        a_ = sf[s]["all"]
+        T_allfit = bilinear(prof, a_["A"], a_["kd_mW"] * 1e-3)
+        vals = list(T_all) + list(T_allfit[(zc >= zlo) & (zc <= zhi)])
+        for j, (key, name) in enumerate(cols):
+            ax = fig.add_subplot(gs[r, j], sharey=axes.get((r, 0)) if j else None); axes[(r, j)] = ax
             ax.axhspan(0, 80, color=C_EXCL_FILL, lw=0); ax.axhline(80, color=C_EXCL_EDGE, ls="--", lw=0.8)
-            a_ = sf[s]["all"]
-            ax.plot(bilinear(prof, a_["A"], a_["kd_mW"] * 1e-3), zc, color=C_DIM, lw=0.9, alpha=0.7, zorder=2)
-            vals = []
-            for key, ls in zip(keys, ("-", "--")):
-                f = sf[s][key]
-                Tf = bilinear(prof, f["A"], f["kd_mW"] * 1e-3)
-                ax.plot(Tf, zc, color=c, lw=1.7, ls=ls, zorder=3)
-                vals += list(Tf[(zc >= zlo) & (zc <= zhi)])
-            z_all, T_all = jf.observed(s)
-            for sen, z, T in zip(sf[s]["sensors"], z_all * 100, T_all):
+            ax.plot(T_allfit, zc, color=C_DIM, lw=0.9, alpha=0.7, zorder=2)
+            f = sf[s][key]
+            Tf = bilinear(prof, f["A"], f["kd_mW"] * 1e-3)
+            ax.plot(Tf, zc, color=c, lw=1.8, zorder=3)
+            vals += list(Tf[(zc >= zlo) & (zc <= zhi)])
+            for sen, z, T in zip(sens, z_all * 100, T_all):
+                inside = (key.startswith("probe") and sen["probe"] == int(key[-1])) or sen["type"] == key
+                if not inside:
+                    continue
                 kw = dict(mfc=c, mec=c, mew=0.8) if sen["probe"] == 1 else dict(mfc="white", mec=c, mew=1.6)
                 ax.plot(T, z, marker=mark[sen["type"]], ms=msz[sen["type"]], ls="none", zorder=5, **kw)
-                vals.append(T)
-            rng[(r, s)] = (min(vals), max(vals))
+            kb = f["kd_bootstrap_mW"]
+            ax.text(0.04, 0.05, f"$K_d$ = {f['kd_mW']:.1f}\n[{kb['p2.5']:.1f}, {kb['p97.5']:.1f}]"
+                    + ("\nalbedo held" if f["albedo_fixed"] else ""),
+                    transform=ax.transAxes, ha="left", va="bottom", fontsize=8.5, color=C_CHAR, zorder=6,
+                    bbox=dict(boxstyle="round,pad=0.25", fc="white", ec=C_GRID, lw=0.6))
             ax.set_ylim(zhi, zlo)
-            lab = "by probe" if kind == "probe" else "by type"
-            fmt_axis(ax, xlabel="Mean temperature (K)", ylabel="Depth (cm)" if col == 0 else "",
-                     title=f"({'abde'[2 * r + col]})  {SITE_LAB[s]}, {lab}")
-        # K_d summary
-        ax = fig.add_subplot(gs[r, 2])
-        ylab, y = [], 0
-        for s in ("A15", "A17"):
-            c = SITE_COL[s]; a_ = sf[s]["all"]["kd_bootstrap_mW"]
-            ax.fill_between([a_["p2.5"], a_["p97.5"]], y - 0.45, y + 1.45, color=c, alpha=0.15, lw=0, zorder=0)
-            for key, name in zip(keys, names):
-                f = sf[s][key]; kb = f["kd_bootstrap_mW"]
-                if kind == "probe":
-                    kw = dict(marker="o", mfc=c if key == "probe1" else "white", mec=c, mew=1.4)
-                else:
-                    kw = dict(marker=mark[key], mfc=c, mec=c, mew=0.8)
-                ax.plot([kb["p2.5"], kb["p97.5"]], [y, y], color=c, lw=1.6, zorder=2)
-                ax.plot(f["kd_mW"], y, ms=6.5, ls="none", zorder=4, **kw)
-                ylab.append(f"{s} {name}" + ("*" if f["albedo_fixed"] else ""))
-                y += 1
-            y += 0.4
-        ax.axvline(3.4, color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4, zorder=1)
-        ax.set_yticks([0, 1, 2.4, 3.4]); ax.set_yticklabels(ylab)
-        ax.set_ylim(3.95, -0.6); ax.set_xlim(2.5, 9.0)
-        ax.tick_params(axis="y", length=0); ax.grid(axis="y", visible=False)
-        fmt_axis(ax, xlabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", title=f"({'cf'[r]})  $K_d$ {'by probe' if kind == 'probe' else 'by type'}")
-    # same temperature width at both sites in each row, so equal slopes look equal
-    for r in (0, 1):
-        width = max(hi - lo for (rr, s), (lo, hi) in rng.items() if rr == r) + 1.0
-        for ax, s in prof_axes:
-            if (r == 0 and ax in [a for a, _ in prof_axes[:2]]) or (r == 1 and ax in [a for a, _ in prof_axes[2:]]):
-                lo, hi = rng[(r, s)]
-                ax.set_xlim(0.5 * (lo + hi) - width / 2, 0.5 * (lo + hi) + width / 2)
+            fmt_axis(ax, xlabel="Mean temperature (K)" if r == 1 else "", ylabel="Depth (cm)" if j == 0 else "",
+                     title=f"({'abcdefgh'[4 * r + j]})  {s}, {name}")
+            if j:
+                ax.tick_params(labelleft=False)
+        rng[s] = (min(vals), max(vals))
+    width = max(hi - lo for lo, hi in rng.values()) + 0.8      # same temperature width at both sites
+    for (r, j), ax in axes.items():
+        lo, hi = rng[("A15", "A17")[r]]
+        ax.set_xlim(0.5 * (lo + hi) - width / 2, 0.5 * (lo + hi) + width / 2)
+        ax.xaxis.set_major_locator(plt.MultipleLocator(2))
     pair = lambda **kw: SITES2(lambda c: Line2D([], [], ls="none", mec=c, **{k: (c if v == "SITE" else v) for k, v in kw.items()}))
-    handles = [SITES2(lambda c: Line2D([], [], color=c, lw=1.7)), SITES2(lambda c: Line2D([], [], color=c, lw=1.7, ls="--")),
-               Line2D([], [], color=C_DIM, lw=0.9, alpha=0.7), SITES2(lambda c: Patch(fc=c, alpha=0.15, lw=0)),
+    handles = [pair(marker="o", ms=6.0, mfc="SITE", mew=0.8), pair(marker="s", ms=5.5, mfc="SITE", mew=0.8),
                pair(marker="o", ms=6.0, mfc="SITE", mew=0.8), pair(marker="o", ms=6.0, mfc="white", mew=1.6),
-               pair(marker="o", ms=6.0, mfc="SITE", mew=0.8), pair(marker="s", ms=5.5, mfc="SITE", mew=0.8),
-               Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)]
-    labels = ["fit to probe 1 (a, b) or TG (d, e)", "fit to probe 2 (a, b) or TR (d, e)", "fit to all sensors",
-              "all-sensor 95% interval (c, f)", "probe 1 sensor (filled)", "probe 2 sensor (open)",
-              "TG: gradient bridge (circle)", "TR: ring bridge (square)", "global $K_d$ = 3.4"]
-    legend_below(fig, handles, labels, handlelength=4.0, handler_map=PAIR_MAP)
+               SITES2(lambda c: Line2D([], [], color=c, lw=1.8)), Line2D([], [], color=C_DIM, lw=0.9, alpha=0.7),
+               Patch(fc=C_EXCL_FILL, ec=C_EXCL_EDGE, ls="--")]
+    labels = ["TG: gradient-bridge sensor", "TR: ring-bridge sensor", "probe 1 (filled)", "probe 2 (open)",
+              "fit to the sensors of the panel", "fit to all the sensors", "borestem zone"]
+    legend_below(fig, handles, labels, handlelength=2.6, handler_map=PAIR_MAP)
     fig.canvas.draw()
-    for ax in fig.axes:
-        if ax.get_legend() is None:
-            assert_no_overlap(ax)
+    for ax in axes.values():
+        assert_no_overlap(ax)
     out = FIG / "fig_joint_subsets.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")

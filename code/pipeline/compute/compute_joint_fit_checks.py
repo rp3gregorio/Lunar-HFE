@@ -5,9 +5,9 @@ diffusivity), and at the global K_d = 3.4 with its own fitted albedo:
   * meter-scale-sensor RMSE, mean bias, offset-removed misfit (the residual
     standard deviation: what is left once the level is matched), the model
     gradient across the retained band against the observed one, and the
-    diurnal-mean surface temperature (Table 1 of the letter, Sec. 3.3);
+    diurnal-mean surface temperature (Table 2 of the letter, Sec. 3.3);
   * the Martinez & Siegler (2021) forward model at the fitted albedo, with the
-    density profile of the Hayne runs (H = 6 cm; Table 1) and with their own
+    density profile of the Hayne runs (H = 6 cm; Table 2) and with their own
     H = 5.6 cm (text above their Eq. 10), applied to the conductivity and to rho*c_p;
   * the hold-out test: refit without the deepest retained sensor, predict it;
   * the thermometer-type split: refit on the gradient-bridge (TG) and

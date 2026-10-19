@@ -5,7 +5,7 @@ one script in `code/pipeline/compute/` (run by `make aux` or `code/notebooks/run
 Rerunning a script overwrites its file; `git diff code/results` then shows
 whether anything changed.
 
-| File | Written by | In the paper (v2.0-jgr numbering) |
+| File | Written by | In the paper (v2.1-jgr numbering) |
 |---|---|---|
 | `stability_windows.json` | `compute_stability_windows.py` | Sec. 2.1; SI Table S1 |
 | `kd_retrieval_results.json` | `retrieve_kd.py` | the fixed-albedo, temperature-only retrieval; input to the steps below |

@@ -196,3 +196,8 @@ code/results/surface_bias_test.json
 code/results/surface_temp_diurnal_field.json
 code/results/uniform_kd_test.json
 code/results/window_criteria_sensitivity.json
+
+# compiled C++ benchmark binary (optional_performance.ipynb builds it from solver.cpp)
+code/cpp/lunar_solver
+# guidebook drawings (not used by the paper or any script here)
+code/pipeline/figures/svg/

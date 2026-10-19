@@ -1,4 +1,4 @@
-"""K_d from each probe and each thermometer type on its own (letter Secs. 3.1, 3.2; Table 1, Fig. 3).
+"""K_d from each probe and each thermometer type on its own, and from all the sensors (letter Secs. 3.1-3.3; Table 1, Fig. 3).
 
 The joint (A, K_d) fit of compute_joint_albedo_fit.py is repeated on subsets of
 the meter-scale sensors of each site, with the same objective J, the same solved
@@ -68,7 +68,7 @@ def rows_at(arr, a, a_grid):
 
 def at_fit(Tz, a, kd, a_grid):
     """Model temperatures at the refined fit (a, kd): linear in K_d, then in A (the misfit
-    of Table 2 of the letter is evaluated the same way, compute_joint_fit_checks.bilinear)."""
+    of Table 1 of the letter is evaluated the same way, compute_joint_fit_checks.bilinear)."""
     K = jf.KD_GRID
     j = int(np.clip(np.searchsorted(K, kd) - 1, 0, len(K) - 2)); v = (kd - K[j]) / (K[j + 1] - K[j])
     along_k = lambda row: (1 - v) * row[j] + v * row[j + 1]
@@ -95,7 +95,8 @@ def fit_subset(s, mask, probes, c, a_fixed=None):
     return dict(n_sensors=int(mask.sum()), probes_diffusivity=[int(p) + 1 for p in probes],
                 albedo_fixed=a_fixed is not None,
                 A=b["A"], kd_mW=b["kd_star_mW"], sensor_rmse_K=float(np.sqrt(np.mean(r ** 2))), bias_K=float(r.mean()),
-                surface_mean_K=b["surface_mean_K"], kappa_model=b["kappa_model"], kappa_obs=b["kappa_obs"],
+                surface_mean_K=b["surface_mean_K"], kappa_obs=b["kappa_obs"],
+                kappa_model=at_fit(kap, b["A"], b["kd_star_mW"] * 1e-3, a_grid).tolist(),   # at the refined fit
                 kd_bootstrap_mW=bt["kd_mW"], A_bootstrap=bt["A"],
                 profile_sets_mW=res["profile_kd"]["sets_mW"],
                 global_3p4=dict(delta_J=dJ, df=1, p=float(chi2.sf(max(dJ, 0.0), 1))))
@@ -106,7 +107,7 @@ def main():
     c = np.load(_REPO / "results" / "joint_albedo_fit_cache.npz")
     assert np.allclose(c["A_grid"], jf.A_GRID) and np.allclose(c["kd_grid"], jf.KD_GRID), "cache grid differs"
     joint = json.loads((_REPO / "results" / "joint_albedo_fit.json").read_text())["sites"]
-    out = dict(meta=dict(purpose="K_d from each probe and each thermometer type on its own (letter Secs. 3.1, 3.2; Fig. 3)",
+    out = dict(meta=dict(purpose="K_d from each probe and each thermometer type on its own (letter Secs. 3.1-3.3; Table 1, Fig. 3)",
                          min_sensors_for_free_albedo=MIN_FREE, n_boot=jf.N_BOOT, seed=jf.SEED), sites={})
     for s in ("A15", "A17"):
         probe, stype, names = sensor_table(s)

@@ -16,7 +16,7 @@ and its Supporting Information.
 ```bash
 git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd Lunar-HFE
-git checkout v1.5-jgr          # the version the paper names
+git checkout v2.1-jgr          # the version the paper names
 ```
 
 ## Step 2 — Install
@@ -71,7 +71,7 @@ Set `MODE` in its first code cell and *Run All*: `"show"` reads the stored
 results (minutes), `"quick"` runs the short steps and the fast form of the
 long ones (about 45 min), `"full"` runs everything from scratch (about 6 h).
 The notebook then goes through the letter section by section and compares
-every number with the value printed there (389 values).
+every number with the value printed there (390 values).
 `code/notebooks/README.md` lists the script behind every step.
 
 **Without Jupyter**, the same scripts in the same order:
@@ -100,7 +100,7 @@ python code/pipeline/compute/compute_joint_mcmc.py --sample             # ~1 min
 make figures
 ```
 
-This writes the letter's Figures 1–8 and SI Figures S1–S5 to
+This writes the letter's Figures 1–7 and SI Figures S1–S5 to
 `figures/`. SI Figure S6 is written by `compute_joint_diviner.py` (it needs
 the Diviner data); SI Figure S1 needs the LOLA map and SI Figure S2 needs
 pdflatex. The notebook shows every figure.

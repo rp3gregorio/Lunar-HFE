@@ -30,7 +30,7 @@ Figures are made whenever one is missing (a fresh download has none) and
 remade in "quick" and "full". On a Mac each step keeps the computer awake
 (`caffeinate`), but not with the lid closed. In every mode, the comparison
 tables (✓ / ✗) check the results against the letter, and the last cell counts
-them (389 values).
+them (390 values).
 
 ## What the notebook contains
 

@@ -40,6 +40,8 @@ runs the whole study. Choose a mode in its first cell, then **Run All**:
 | `"quick"` | the short steps, and the long ones in their fast form | about 45 min |
 | `"full"` | everything from scratch, as for the paper | about 6 h (six-core laptop) |
 
+It needs Python 3.10 or newer (`python3 --version`; the `python3` that ships with macOS is 3.9).
+
 ```bash
 git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd Lunar-HFE
@@ -52,7 +54,7 @@ The notebook has five parts: (1) setup checks and optional downloads; (2) every
 analysis step, in the order the steps need each other; (3) every figure of the
 letter and the SI; (4) the paper section by section, with each number of the
 letter next to the value the repository gives (✓ / ✗); (5) a summary of all
-the checks (389 values, all matching).
+the checks (390 values, all matching).
 
 Two optional notebooks go deeper: `optional_anchor_method.ipynb` (how the
 solver reaches its steady state) and `optional_performance.ipynb` (the solver

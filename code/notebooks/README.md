@@ -29,8 +29,8 @@ Choose `MODE` in the first code cell, then *Run All*. In VS Code, pick the
 Figures are made whenever one is missing (a fresh download has none) and
 remade in "quick" and "full". On a Mac each step keeps the computer awake
 (`caffeinate`), but not with the lid closed. In every mode, the comparison
-tables (✓ / ✗) check the results against the letter, and the last cell counts
-them (390 values).
+tables (✓ / ✗) check the results against the letter and the SI tables, and the
+last cell counts them (1,238 values: 390 in the letter, 848 in the SI tables).
 
 ## What the notebook contains
 
@@ -77,7 +77,10 @@ own), 3.3 (all the sensors together), 3.4 (why all three measurements are
 needed), 3.5 (checks of the joint fit) and 4 (discussion), each with its
 tables of checks and its figures.
 
-**Part 5, summary:** how many values were checked and whether all match.
+**Part 5, the Supporting Information table by table:** every number of SI
+Tables S1–S14, cell by cell, next to the value in `code/results/`.
+
+**Part 6, summary:** how many values were checked and whether all match.
 
 ## Optional notebooks
 

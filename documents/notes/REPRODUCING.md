@@ -16,7 +16,7 @@ and its Supporting Information.
 ```bash
 git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd Lunar-HFE
-git checkout v2.1-jgr          # the version the paper names
+git checkout v2.1.1-jgr        # the version the paper names
 ```
 
 ## Step 2 — Install
@@ -70,8 +70,9 @@ jupyter lab code/notebooks/run_everything.ipynb
 Set `MODE` in its first code cell and *Run All*: `"show"` reads the stored
 results (minutes), `"quick"` runs the short steps and the fast form of the
 long ones (about 45 min), `"full"` runs everything from scratch (about 6 h).
-The notebook then goes through the letter section by section and compares
-every number with the value printed there (390 values).
+The notebook then goes through the letter section by section, and the SI
+table by table, and compares every number with the value printed there (1,238
+values: 390 in the letter, 848 in the SI tables).
 `code/notebooks/README.md` lists the script behind every step.
 
 **Without Jupyter**, the same scripts in the same order:

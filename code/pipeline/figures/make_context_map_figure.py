@@ -33,7 +33,7 @@ from matplotlib.patches import Rectangle
 from matplotlib.colors import LightSource, Normalize
 
 # Shared design tokens
-JGR_FULL = 7.48
+JGR_FULL = 16.6 / 2.54 - 0.04   # the SI's text width: printed at 100 %, 11 pt like the text
 C_A15   = "#3D6E4A"
 C_A17   = "#B85B3A"
 SITE_COLOR = {"A15": C_A15, "A17": C_A17}
@@ -41,10 +41,7 @@ C_CHAR  = "#2A2520"
 C_DIM   = "#6E6862"
 C_GRID  = "#E8E5E0"
 C_PAPER = "#FBFAF8"
-FS_LABEL = 9.5
-FS_TICK  = 8.5
-FS_TITLE = 10.5
-FS_SITE  = 9.0
+FS_LABEL = FS_TICK = FS_TITLE = FS_SITE = 11.0     # the document's body size
 
 plt.rcParams.update({
     "font.family": "serif",
@@ -215,8 +212,8 @@ def _global_axes(ax):
         ax.axhline(lat, color="white", lw=0.3, alpha=0.25, zorder=2)
     for lon in range(-150, 151, 30):
         ax.axvline(lon, color="white", lw=0.3, alpha=0.25, zorder=2)
-    ax.set_xticks([-180, -90, 0, 90, 180])
-    ax.set_xticklabels(["180°W", "90°W", "0°", "90°E", "180°E"], fontsize=FS_TICK)
+    ax.set_xticks([-90, 0, 90])
+    ax.set_xticklabels(["90°W", "0°", "90°E"], fontsize=FS_TICK)
     ax.set_yticks([-60, 0, 60])
     ax.set_yticklabels(["60°S", "0°", "60°N"], fontsize=FS_TICK)
     ax.set_xlim(-180, 180); ax.set_ylim(-90, 90)
@@ -265,13 +262,13 @@ def draw_zoom(ax, site_key, panel):
         ax.axvline(lon, color="white", lw=0.3, alpha=0.28, zorder=2)
     ax.plot(lon0, lat0, marker="o", color=SITE_COLOR[site_key], ms=10,
             mec="white", mew=1.5, zorder=5)
-    ax.tick_params(labelsize=FS_TICK - 0.5)
-    ax.set_xlabel("Longitude (°E)", fontsize=FS_LABEL - 0.5)
+    ax.tick_params(labelsize=FS_TICK)
+    ax.set_xlabel("Longitude (°E)", fontsize=FS_LABEL)
     if site_key == "A15":
-        ax.set_ylabel("Latitude (°N)", fontsize=FS_LABEL - 0.5)
+        ax.set_ylabel("Latitude (°N)", fontsize=FS_LABEL)
     ax.set_title(rf"({panel})  {s['label']} "
                  rf"({s['lat']:.1f}$^\circ$N, {s['lon']:.1f}$^\circ$E)",
-                 fontsize=FS_TITLE - 0.5, fontweight="bold", pad=4,
+                 fontsize=FS_TITLE, fontweight="bold", pad=4,
                  color=SITE_COLOR[site_key], loc="left")
 
 
@@ -332,12 +329,12 @@ def draw_site(ax, site, panel):
     xc, yc = _km(site, *hw["CS"])
     ax.plot(xc, yc, marker="o", ms=5.5, color=col, mec="white", mew=1.0, zorder=7)
     ax.set_xlim(x0, x1); ax.set_ylim(y0, y1); ax.set_aspect("equal")
-    ax.tick_params(labelsize=FS_TICK - 0.5)
-    ax.set_xlabel("km east of the lunar module", fontsize=FS_LABEL - 0.5)
+    ax.tick_params(labelsize=FS_TICK)
+    ax.set_xlabel("km east of the lunar module", fontsize=FS_LABEL)
     if site == "A15":
-        ax.set_ylabel("km north of the lunar module", fontsize=FS_LABEL - 0.5)
+        ax.set_ylabel("km north of the lunar module", fontsize=FS_LABEL)
     ax.set_title(rf"({panel})  {SITES[site]['label']} landing site",
-                 fontsize=FS_TITLE - 0.5, fontweight="bold", pad=4,
+                 fontsize=FS_TITLE, fontweight="bold", pad=4,
                  color=col, loc="left")
     # inset: the ALSEP central station and the two probes, in metres
     ins = ax.inset_axes(INSET_POS[site])
@@ -348,27 +345,22 @@ def draw_site(ax, site, panel):
     bx, by = hw["box"]
     ins.plot([hw["p2"][0], hw["p1"][0]], [by, by], color=C_DIM, lw=0.6, ls=":", zorder=2)
     ins.plot(bx, by, marker="s", ms=3.2, mfc="white", mec=C_DIM, mew=0.8, zorder=3)
-    for key, lab, side in (("p1", "probe 1", 1), ("p2", "probe 2", -1)):
+    for key in ("p1", "p2"):          # the two probes (named in the caption)
         px, py = hw[key]
         ins.plot(px, py, marker="o", ms=5.5, color=col, mec="white", mew=0.8, zorder=4)
-        ins.text(px - 0.6 * side, py + 2.0, lab, fontsize=6.5, color=col, va="bottom",
-                 ha="left" if side > 0 else "right")
     # direction and distance to the LM
     dx_m, dy_m = -xc * 1e3, -yc * 1e3
     d = float(np.hypot(dx_m, dy_m)); ux, uy = dx_m / d, dy_m / d
     tip = (7.0 * ux, 7.0 * uy)
     ins.annotate("", xy=tip, xytext=(2.6 * ux, 2.6 * uy),
                  arrowprops=dict(arrowstyle="-|>", color=C_CHAR, lw=0.7, mutation_scale=7))
-    ins.text(tip[0] + 0.6, tip[1], f"LM {d:.0f} m", fontsize=6.5, ha="left", va="center",
-             color=C_CHAR)
-    ins.plot([-15.0, -10.0], [-3.2, -3.2], color=C_CHAR, lw=1.2)
-    ins.text(-12.5, -2.6, "5 m", fontsize=6.5, ha="center", va="bottom", color=C_CHAR)
+    print(f"  {site}: lunar module {d:.0f} m from the central station (the inset arrow; named in the caption)")
     # equal metres on both axes: fit the content box (x -16..19, y -4.5..by+5.5)
     # into the inset's physical size, padding whichever axis has room to spare
     ax.apply_aspect()
     pos, fw, fh = ax.get_position(), ax.figure.get_figwidth(), ax.figure.get_figheight()
     w_in = pos.width * fw * INSET_POS[site][2]; h_in = pos.height * fh * INSET_POS[site][3]
-    cx0, cx1, cy0, cy1 = -16.0, 21.5, -4.5, by + 5.5
+    cx0, cx1, cy0, cy1 = -14.0, 14.0, -4.5, by + 5.5
     if (cx1 - cx0) / (cy1 - cy0) > w_in / h_in:
         pad = 0.5 * ((cx1 - cx0) * h_in / w_in - (cy1 - cy0)); cy0 -= pad; cy1 += pad
     else:
@@ -388,22 +380,24 @@ INSET_ANCHOR = {"A15": (0.5, 1.0), "A17": (0.5, 1.0)}
 
 
 def main():
-    fig = plt.figure(figsize=(JGR_FULL, 8.6))
+    fig = plt.figure(figsize=(JGR_FULL, 8.1))
     gs = fig.add_gridspec(
-        2, 4, width_ratios=[1.0, 0.045, 1.0, 0.045],
-        height_ratios=[1.0, 1.18],
-        left=0.075, right=0.925, top=0.955, bottom=0.44,
-        hspace=0.42, wspace=0.16)
-    ax_topo = fig.add_subplot(gs[0, 0]); cax_topo = fig.add_subplot(gs[0, 1])
-    ax_temp = fig.add_subplot(gs[0, 2]); cax_temp = fig.add_subplot(gs[0, 3])
+        2, 2, height_ratios=[1.0, 1.18],
+        left=0.10, right=0.985, top=0.955, bottom=0.46,
+        hspace=1.05, wspace=0.12)
+    ax_topo = fig.add_subplot(gs[0, 0])
+    ax_temp = fig.add_subplot(gs[0, 1])
+    # colorbars under the two maps, horizontal: at 11 pt a side bar collides with the next panel
+    cax_topo = ax_topo.inset_axes([0.0, -0.36, 1.0, 0.06])
+    cax_temp = ax_temp.inset_axes([0.0, -0.36, 1.0, 0.06])
     ax_a15 = fig.add_subplot(gs[1, 0])
-    ax_a17 = fig.add_subplot(gs[1, 2])
+    ax_a17 = fig.add_subplot(gs[1, 1])
 
     ext15, ext17 = _site_extent("A15")[0], _site_extent("A17")[0]
     w15, w17 = ext15[1] - ext15[0], ext17[1] - ext17[0]
     h15, h17 = ext15[3] - ext15[2], ext17[3] - ext17[2]
     gs2 = fig.add_gridspec(1, 2, width_ratios=[w15 / h15, w17 / h17],
-                           left=0.085, right=0.985, top=0.37, bottom=0.115, wspace=0.12)
+                           left=0.10, right=0.985, top=0.375, bottom=0.18, wspace=0.12)
     ax_s15 = fig.add_subplot(gs2[0, 0]); ax_s17 = fig.add_subplot(gs2[0, 1])
     draw_site(ax_s15, "A15", "e")
     draw_site(ax_s17, "A17", "f")
@@ -413,12 +407,12 @@ def main():
     draw_zoom(ax_a15, "A15", "c")
     draw_zoom(ax_a17, "A17", "d")
 
-    cb1 = fig.colorbar(sm_topo, cax=cax_topo)
-    cb1.set_label("Elevation (km)", fontsize=FS_LABEL - 1)
-    cb1.ax.tick_params(labelsize=FS_TICK - 1.5)
-    cb2 = fig.colorbar(sm_temp, cax=cax_temp)
-    cb2.set_label("Mean surface T (K)", fontsize=FS_LABEL - 1)
-    cb2.ax.tick_params(labelsize=FS_TICK - 1.5)
+    cb1 = fig.colorbar(sm_topo, cax=cax_topo, orientation="horizontal")
+    cb1.set_label("Elevation (km)", fontsize=FS_LABEL)
+    cb1.ax.tick_params(labelsize=FS_TICK)
+    cb2 = fig.colorbar(sm_temp, cax=cax_temp, orientation="horizontal")
+    cb2.set_label("Mean surface T (K)", fontsize=FS_LABEL)
+    cb2.ax.tick_params(labelsize=FS_TICK)
     for cb in (cb1, cb2):
         cb.outline.set_edgecolor(C_DIM)
 
@@ -440,8 +434,8 @@ def main():
     fig.legend(handles=[a15_h, a17_h, zoom_h, trav_h, lm_h, cs_h],
                labels=["Apollo 15 (HFE)", "Apollo 17 (HFE)", zoom_h.get_label(),
                        "EVA traverses (LROC)", "Lunar module", "ALSEP central station"],
-               loc="lower center", bbox_to_anchor=(0.5, 0.0), ncols=3, frameon=False,
-               fontsize=9, handlelength=2.2, columnspacing=2.0,
+               loc="lower center", bbox_to_anchor=(0.5, 0.0), ncols=2, frameon=False,
+               fontsize=FS_TICK, handlelength=2.2, columnspacing=2.0,
                handler_map={tuple: HandlerTuple(ndivide=None, pad=0.3)})
 
     out = OUT / "fig_context_map.pdf"

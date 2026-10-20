@@ -36,6 +36,8 @@ from matplotlib.lines import Line2D
 from matplotlib.legend_handler import HandlerTuple
 from matplotlib.patches import Patch
 from lunar.plotting.style import *          # noqa: F401,F403 (rcParams + palette)
+from lunar.plotting import style as _style
+W_LETTER = TEXT_W - 0.04                    # letter figures: the text width, printed at 100 %
 import compute_joint_albedo_fit as jf
 
 FIG = _REPO.parent / "figures"
@@ -82,9 +84,9 @@ def fig_constraints(res, cache):
     A, K = jf.A_GRID, jf.KD_GRID * 1e3
     KLIM = (1.0, 17.0)                     # one K_d range in all four panels
     valley = json.loads((RES / "joint_valley.json").read_text())   # temperatures only at the fitted A
-    fig = plt.figure(figsize=(JGR_FULL, 6.2))
+    fig = plt.figure(figsize=(W_LETTER, 5.5))
     gs = fig.add_gridspec(2, 2, height_ratios=[1.2, 0.85], hspace=0.42, wspace=0.25,
-                          left=0.08, right=0.955, top=0.95, bottom=0.09)
+                          left=0.10, right=0.92, top=0.95, bottom=0.09)
     top = []
     for col, s in enumerate(("A15", "A17")):
         ax = fig.add_subplot(gs[0, col]); top.append(ax)
@@ -135,7 +137,7 @@ def fig_constraints(res, cache):
             curves[v_] = pr
         for L, lab in ((1.0, "68%"), (3.84, "95%")):
             ax.axhline(L, color=C_DIM, lw=0.7, ls=(0, (2, 2)), zorder=1)
-            ax.text(1.012, L, lab, transform=ax.get_yaxis_transform(), fontsize=8, color=C_DIM,
+            ax.text(1.012, L, lab, transform=ax.get_yaxis_transform(), color=C_DIM,
                     ha="left", va="center", clip_on=False)
         ax.axvline(3.4, color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)
         ax.set_xlim(*KLIM); ax.set_ylim(0, 30)
@@ -151,18 +153,18 @@ def fig_constraints(res, cache):
                (Line2D([], [], color=C_DIM, lw=0.8, ls=(0, (1, 1.5))),
                 Line2D([], [], marker="X", ms=8, color=C_DIM, ls="none", mec="white")),
                Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)]
-    labels = ["temperatures only (68, 95, 99.7% regions)", "measured diffusivity ($\\Delta J_\\kappa\\leq1$)",
-              "surface mean = measured $\\pm$5 K", "joint fit (68% solid, 95% dashed)",
-              "temperatures only: best fit", "temperatures only at the joint-fit $A$ (dotted link)",
+    labels = ["temperatures alone: 68, 95, 99.7%", "measured diffusivity",
+              "surface mean within $\\pm$5 K", "joint fit: 68% (solid), 95% (dashed)",
+              "temperatures alone: best fit", "temperatures alone at the joint-fit $A$",
               "global $K_d$ = 3.4"]
     # every element of (a, b) has an entry here; (c, d) have their own legend below
-    legend_between(fig, top, handles, labels, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.3)})
+    legend_between(fig, top, handles, labels, ncols=2, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.3)})
     # (c, d): one entry per curve type, each drawn in both site colours
     pair = lambda ls, lw: (Line2D([], [], color=C_A15, ls=ls, lw=lw), Line2D([], [], color=C_A17, ls=ls, lw=lw))
     legend_below(fig, [pair("-", 1.9), pair("--", 1.4),
                        Line2D([], [], color=C_DIM, lw=0.7, ls=(0, (2, 2))),
                        Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)],
-                 ["with diffusivity (joint fit)", "temperatures only", r"$\Delta J$ = 1 (68%), 3.84 (95%)", "global $K_d$ = 3.4"],
+                 ["with the diffusivity (joint fit)", "temperatures alone", r"$\Delta J$ = 1 (68%), 3.84 (95%)", "global $K_d$ = 3.4"],
                  handlelength=3.0, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.4)})
     out = FIG / "fig_joint_constraints.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
@@ -194,7 +196,7 @@ def fig_robustness(res, sens):
             ("angular albedo laws", "form")]
     if not chid:
         rows = [r for r in rows if r[1] not in ("rho_site", "chi_")]
-    fig, ax = plt.subplots(figsize=(JGR_FULL, 4.4))
+    fig, ax = plt.subplots(figsize=(W_LETTER, 4.4))
     fig.subplots_adjust(left=0.36, right=0.97, top=0.98, bottom=0.12)
     for s, dy in (("A15", -0.14), ("A17", 0.14)):
         b = res["sites"][s]["with_diffusivity"]
@@ -245,9 +247,10 @@ def fig_annual_wave():
     with the model at the annual-wave best fit, at the joint fit and at the global K_d."""
     aw = json.loads((RES / "annual_wave.json").read_text())
     prof = np.load(RES / "annual_wave_model.npz"); kds = prof["kd_scan_mW"]; o = np.argsort(kds)
-    fig = plt.figure(figsize=(JGR_FULL, 5.4))
+    fig = plt.figure(figsize=(W_LETTER, 5.4))
     gs = fig.add_gridspec(2, 3, width_ratios=[1.05, 1, 1], hspace=0.42, wspace=0.34, left=0.075, right=0.985, top=0.95, bottom=0.10)
     MK = {"TG": "o", "TR": "s", "TC": "^"}
+    lag_axes = []
     for r, s in enumerate(("A15", "A17")):
         col = SITE_COL[s]; site = aw["sites"][s]; V = site["variants"]
         ax0, ax1, ax2 = (fig.add_subplot(gs[r, c]) for c in range(3))
@@ -289,6 +292,10 @@ def fig_annual_wave():
             ax.set_ylim(245, 0)
         fmt_axis(ax1, xlabel="annual amplitude (model scale, K)", ylabel="Depth (cm)", title=f"({'be'[r]})  Amplitude")
         fmt_axis(ax2, xlabel="phase lag (deg)", title=f"({'cf'[r]})  Phase lag")
+        lag_axes.append(ax2)
+    lo = min(ax.get_xlim()[0] for ax in lag_axes); hi = max(ax.get_xlim()[1] for ax in lag_axes)
+    for ax in lag_axes:                       # the same phase-lag scale at both sites
+        ax.set_xlim(lo, hi)
     handles = [SITES2(lambda c: Line2D([], [], color=c, lw=1.6)), SITES2(lambda c: Line2D([], [], color=c, lw=1.6, ls="--")),
                SITES2(lambda c: Line2D([], [], color=c, lw=1.6, ls=":")), SITES2(lambda c: Line2D([], [], color=c, lw=1.5, ls="-.")),
                Line2D([], [], color=C_TEAL, ls=":", lw=1.4), SITES2(lambda c: Patch(fc=c, alpha=0.15)),
@@ -315,7 +322,7 @@ def fig_mcmc(res):
     from matplotlib.transforms import blended_transform_factory as blend
     mc = json.loads((RES / "joint_mcmc.json").read_text())
     ch = np.load(RES / "joint_mcmc_chains.npz")
-    fig = plt.figure(figsize=(JGR_FULL, 5.6))
+    fig = plt.figure(figsize=(W_LETTER, 5.6))
     gs = fig.add_gridspec(2, 2, hspace=0.45, wspace=0.26, left=0.08, right=0.98, top=0.95, bottom=0.09)
     ax1, ax2, ax3, ax4 = (fig.add_subplot(gs[i, j]) for i in range(2) for j in range(2))
     boot_bar = dict(lw=1.6, solid_capstyle="butt")
@@ -365,7 +372,7 @@ def fig_mcmc(res):
     l1 += [f"contrast: {cq['p50']:+.2f} [{cq['p2.5']:+.2f}, {cq['p97.5']:+.2f}]".replace("-", "\u2212"),
            "joint fit, bootstrap 95%"]
     ax2.text(0.03, 0.86, f"P($\\Delta K_d\\leq0$) = {cq['p_leq0']:.3f}", transform=ax2.transAxes, ha="left", va="top",
-             fontsize=FS_TICK, bbox=dict(fc="white", ec=C_GRID, pad=3), zorder=6)
+             bbox=dict(fc="white", ec=C_GRID, pad=3), zorder=6)
     ax3.set_xlim(3, 31)
     fmt_axis(ax3, xlabel=r"$Q_b$ (mW m$^{-2}$)", ylabel="posterior density", title="(c)  Basal heat flux")
     ax4.set_xlim(1450, 2350); ax4.set_ylim(3.0, 8.5)
@@ -393,9 +400,9 @@ def fig_subsets(res, cache):
     from compute_joint_fit_checks import bilinear
     sf = json.loads((RES / "subset_fits.json").read_text())["sites"]
     mark, msz, zlo, zhi = {"TG": "o", "TR": "s"}, {"TG": 5.6, "TR": 5.1}, 70, 245
-    cols = (("probe1", "probe 1"), ("probe2", "probe 2"), ("TG", "TG"), ("TR", "TR"), ("all", "all sensors"))
-    fig = plt.figure(figsize=(JGR_FULL, 4.9))
-    gs = fig.add_gridspec(2, 5, hspace=0.42, wspace=0.10, left=0.07, right=0.99, top=0.93, bottom=0.10)
+    cols = (("probe1", "Probe 1"), ("probe2", "Probe 2"), ("TG", "TG"), ("TR", "TR"), ("all", "All"))
+    fig = plt.figure(figsize=(W_LETTER, 5.4))
+    gs = fig.add_gridspec(2, 5, hspace=0.30, wspace=0.12, left=0.11, right=0.99, top=0.95, bottom=0.10)
     zc = jf.Z_DENSE * 100
     rng, axes = {}, {}
     for r, s in enumerate(("A15", "A17")):
@@ -428,14 +435,9 @@ def fig_subsets(res, cache):
                     continue
                 kw = dict(mfc=c, mec=c, mew=0.8) if sen["probe"] == 1 else dict(mfc="white", mec=c, mew=1.5)
                 ax.plot(T, z, marker=mark[sen["type"]], ms=msz[sen["type"]], ls="none", zorder=5, **kw)
-            kb = f["kd_bootstrap_mW"]
-            ax.text(0.04, 0.04, f"$K_d$ = {f['kd_mW']:.1f}\n[{kb['p2.5']:.1f}, {kb['p97.5']:.1f}]"
-                    + ("\nalbedo held" if f["albedo_fixed"] else ""),
-                    transform=ax.transAxes, ha="left", va="bottom", fontsize=8, color=C_CHAR, zorder=6,
-                    bbox=dict(boxstyle="round,pad=0.25", fc="white", ec=C_GRID, lw=0.6))
-            ax.set_ylim(zhi, zlo)
-            fmt_axis(ax, xlabel="T (K)" if r == 1 else "", ylabel="Depth (cm)" if j == 0 else "",
-                     title=f"({'abcdefghij'[5 * r + j]})  {s}, {name}")
+            ax.set_ylim(zhi, zlo)          # K_d of each panel's fit: Table 1 of the letter
+            fmt_axis(ax, xlabel="$T$ (K)" if r == 1 else "", ylabel=f"{SITE_LAB[s]}: depth (cm)" if j == 0 else "",
+                     title=f"({'abcdefghij'[5 * r + j]})  {name}")
             if j:
                 ax.tick_params(labelleft=False)
         rng[s] = (min(vals), max(vals))
@@ -450,8 +452,8 @@ def fig_subsets(res, cache):
                SITES2(lambda c: Line2D([], [], color=c, lw=1.8)), Line2D([], [], color=C_DIM, lw=0.9, alpha=0.7),
                Line2D([], [], color=C_HAYNE_GLOBAL, lw=1.5, ls=LS_HAYNE_GLOBAL), Line2D([], [], color=C_MS, lw=1.5, ls=LS_MS),
                Patch(fc=C_EXCL_FILL, ec=C_EXCL_EDGE, ls="--")]
-    labels = ["TG: gradient-bridge sensor", "TR: ring-bridge sensor", "probe 1 (filled)", "probe 2 (open)",
-              "fit to the sensors of the panel", "fit to all the sensors", "global $K_d$ = 3.4, own albedo (e, j)",
+    labels = ["TG sensor", "TR sensor", "probe 1 (filled)", "probe 2 (open)",
+              "fit to the panel's sensors", "fit to all the sensors", "global $K_d$ = 3.4 (e, j)",
               "Martinez & Siegler (e, j)", "borestem zone"]
     legend_below(fig, handles, labels, handlelength=2.6, handler_map=PAIR_MAP)
     fig.canvas.draw()
@@ -475,27 +477,27 @@ def variant_rows(res, chk, sens):
     rows = []
     sf = json.loads((RES / "subset_fits.json").read_text())["sites"]
     sub = lambda keys: {s: rng([sf[s][k]["kd_mW"] for k in keys]) for s in S}
-    rows.append(("Subsets of the sensors", "Each probe on its own (own diffusivity)", sub(("probe1", "probe2"))))
-    rows.append(("Subsets of the sensors", "Each thermometer type on its own", sub(("TG", "TR"))))
+    rows.append(("Subsets of the sensors", "Each probe", sub(("probe1", "probe2"))))
+    rows.append(("Subsets of the sensors", "Each thermometer type", sub(("TG", "TR"))))
     wd = {s: res["sites"][s]["with_diffusivity"] for s in S}
-    rows.append(("All sensors together", "Joint fit: sensors, surface mean, diffusivity",
+    rows.append(("All sensors together", "Joint fit",
                  {s: dict(best=wd[s]["best"]["kd_star_mW"], lo=wd[s]["bootstrap"]["kd_mW"]["p2.5"],
                           hi=wd[s]["bootstrap"]["kd_mW"]["p97.5"], pts=[], headline=True) for s in S}))
-    rows.append(("All sensors together", "Heat flow and density also free (MCMC)",
+    rows.append(("All sensors together", "MCMC, heat flow and density free",
                  {s: dict(best=mc[s]["posterior"]["kd_mW"]["p50"], lo=mc[s]["posterior"]["kd_mW"]["p2.5"],
                           hi=mc[s]["posterior"]["kd_mW"]["p97.5"], pts=[]) for s in S}))
-    rows.append(("All sensors together", "Our own annual-wave diffusivities",
+    rows.append(("All sensors together", "Our annual-wave diffusivities",
                  {s: rng([own[v][s]["kd_star_mW"] for v in own if v != "langseth1976"]) for s in S}))
     const = {s: {round(c["A"], 3): c["kd_star_mW"] for c in alb["cases"] if c["site"] == s and c["family"] == "constant"} for s in S}
-    rows.append(("One measurement at a time", "Sensors, albedo fixed at 0.12",
+    rows.append(("One measurement at a time", "Albedo fixed at 0.12",
                  {s: dict(best=const[s][0.12], lo=None, hi=None, pts=[]) for s in S}))
-    rows.append(("One measurement at a time", "Sensors, albedo fixed, 0.08 to 0.16",
+    rows.append(("One measurement at a time", "Albedo fixed, 0.08 to 0.16",
                  {s: rng([v for a, v in const[s].items() if 0.08 <= a <= 0.16]) for s in S}))
     to = {s: res["sites"][s]["temperature_only"] for s in S}
-    rows.append(("One measurement at a time", "Sensors and surface mean, albedo fitted",
+    rows.append(("One measurement at a time", "Temperatures alone",
                  {s: dict(best=to[s]["best"]["kd_star_mW"], lo=to[s]["bootstrap"]["kd_mW"]["p2.5"],
                           hi=to[s]["bootstrap"]["kd_mW"]["p97.5"], pts=[]) for s in S}))
-    rows.append(("One measurement at a time", "Annual wave in the full record",
+    rows.append(("One measurement at a time", "Annual wave alone",
                  {s: dict(best=aw[s]["variants"]["nominal"]["kd_mW"], lo=aw[s]["variants"]["nominal"]["ci95"][0],
                           hi=aw[s]["variants"]["nominal"]["ci95"][1], pts=[]) for s in S}))
     rec = {s: [v["kd_star_mW"] for v in sens["sites"][s]["reanalysis"].values()]
@@ -503,13 +505,13 @@ def variant_rows(res, chk, sens):
               # the deployment-warming step whose modeled warming rate best matches the measured one
               + [min(tw[s]["cases"].values(), key=lambda c: abs(c["median_rate_ratio_model_over_observed"] - 1))
                  ["surface_as_measured"]["kd_mW"]] for s in S}
-    rows.append(("Other checks", "Record reduction: cut, windows, epoch, warming", {s: rng(rec[s]) for s in S}))
+    rows.append(("Other checks", "Record reduction", {s: rng(rec[s]) for s in S}))
     inp = {s: [v["with_diffusivity"]["kd_star_mW"] for k, v in sens["sites"][s]["variants"].items()
                if k not in ("nominal_compact", "chi_1.5")] for s in S}
-    rows.append(("Other checks", "Inputs: heat flow, $K_s$, density, $c_p$, $H$, albedo law", {s: rng(inp[s]) for s in S}))
-    rows.append(("Other checks", r"Radiative coefficient $\chi$ = 2.2 to 3.2",
+    rows.append(("Other checks", "Inputs", {s: rng(inp[s]) for s in S}))
+    rows.append(("Other checks", r"$\chi$ = 2.2 to 3.2",
                  {s: rng([cd[s][f"chi_{x}"]["kd_star_mW"] for x in ("2.2", "2.45", "2.95", "3.2")] + [wd[s]["best"]["kd_star_mW"]]) for s in S}))
-    rows.append(("Other checks", "Measured site densities",
+    rows.append(("Other checks", "Site densities",
                  {s: dict(best=cd[s]["rho_site"]["kd_star_mW"], lo=None, hi=None, pts=[]) for s in S}))
     return rows
 
@@ -531,8 +533,8 @@ def fig_variants(res, chk, sens):
             if gg == g:
                 ypos.append(y); labels.append(lab); y += 1.0
         y += 0.4
-    fig, axes = plt.subplots(1, 2, figsize=(JGR_FULL, 4.4), sharey=True,
-                             gridspec_kw=dict(left=0.36, right=0.98, top=0.93, bottom=0.12, wspace=0.08))
+    fig, axes = plt.subplots(1, 2, figsize=(W_LETTER, 4.4), sharey=True,
+                             gridspec_kw=dict(left=0.38, right=0.98, top=0.93, bottom=0.12, wspace=0.08))
     for ax, s in zip(axes, ("A15", "A17")):
         c, cl = SITE_COL[s], {"A15": C_FOREST_L, "A17": C_CORAL_L}[s]
         hl = [r[2][s] for r in rows if r[2][s].get("headline")][0]
@@ -573,9 +575,9 @@ def fig_variants(res, chk, sens):
                SITES2(lambda c: Patch(fc=c, alpha=0.3, lw=0)),
                Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4),
                SITES2(lambda c: Line2D([], [], marker=">", ms=5.5, color=c, ls="none"))]
-    labels_l = ["joint fit (headline)", "best value and 95% interval", "range over its versions (dots)",
-                "joint fit 95% interval", "global $K_d$ = 3.4", "continues beyond the axis"]
-    legend_below(fig, handles, labels_l, ncols=3, handlelength=2.6, handler_map=PAIR_MAP)
+    labels_l = ["joint fit", "best value, 95% interval", "range of the versions",
+                "joint fit, 95% interval", "global $K_d$ = 3.4", "beyond the axis"]
+    legend_below(fig, handles, labels_l, ncols=3, handlelength=2.2, handler_map=PAIR_MAP)
     fig.canvas.draw()
     for ax in axes:
         assert_no_overlap(ax)
@@ -585,6 +587,7 @@ def fig_variants(res, chk, sens):
 
 
 def main():
+    _style.use_document_fonts()          # every text at the letter's 11 pt
     res, cache, chk, sens = load()
     fig_constraints(res, cache)
     if (RES / "subset_fits.json").exists():

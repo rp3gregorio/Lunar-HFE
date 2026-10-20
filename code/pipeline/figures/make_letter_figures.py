@@ -346,9 +346,10 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
     # sharey + a slim gap: the duplicated depth ticks between the panels
     # were pure whitespace. x-limits are trimmed to the observed/model
     # span (the old 1e-3 decade held nothing but the borestem label).
-    fig, axes = plt.subplots(1, 2, figsize=(JGR_FULL, 4.4), sharey=True,
+    from lunar.plotting import style as _st     # letter/SI: text width, printed at 100 %
+    fig, axes = plt.subplots(1, 2, figsize=(_st.TEXT_W - 0.04, 4.4), sharey=True,
                              gridspec_kw={"wspace": 0.06})
-    fig.subplots_adjust(left=0.075, right=0.975, top=0.92, bottom=0.10)
+    fig.subplots_adjust(left=0.10, right=0.975, top=0.92, bottom=0.12)
     XLIM = (2e-2, 150.0)
     YLIM = (210.0, 0.0)
 
@@ -419,14 +420,7 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
         # borestem zone (the excluded-zone role colour)
         ax.axhspan(0, 80, color=C_EXCL_FILL, zorder=0)
 
-        if name == "A15":
-            # inside the (empty) deep stretch of the noise band, rotated
-            ax.text(0.1, 170, "digitization noise floor", rotation=90,
-                    ha="center", va="center", fontsize=FS_TICK - 1.5,
-                    color=C_DIM, style="italic")
-            ax.text(XLIM[0] * 1.3, 11, "borestem zone (z < 80 cm)",
-                    fontsize=FS_TICK, color=C_DIM, va="center", style="italic")
-        else:
+        if name == "A17":   # the noise floor and the borestem zone are named in the legend
             # name the diagnostic once, on the longest leader (deepest
             # borestem sensor), in the verified-empty mid-panel pocket
             i_deep = int(np.argmax(z_obs[stem]))
@@ -435,7 +429,7 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
             a_m = max(100.0 * np.exp(-z_x / delta_H), XLIM[0])
             ax.annotate("heat-short excess",
                         xy=(np.sqrt(a_m * a_x), z_x), xytext=(0.32, 112),
-                        fontsize=FS_TICK - 1, color=C_DIM, style="italic",
+                        color=C_DIM, style="italic",
                         ha="left", va="center",
                         arrowprops=dict(arrowstyle="-", color=C_DIM, lw=0.8))
 
@@ -452,9 +446,9 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
          Line2D([], [], ls=LS_MS, color=C_MS, lw=2.0),
          tuple(Line2D([], [], marker="o", ls="none", color=c, mec="white", ms=7) for c in (C_A15, C_A17)),
          tuple(Line2D([], [], marker="o", ls="none", mfc="white", mec=c, ms=7) for c in (C_A15, C_A17)),
-         Patch(fc=C_NEUTRAL, alpha=0.30)]
+         Patch(fc=C_NEUTRAL, alpha=0.30), Patch(fc=C_EXCL_FILL)]
     l = ["Hayne, global $K_d$", "Martínez & Siegler", "meter-scale sensor",
-         "borestem-zone sensor", "noise floor"]
+         "borestem-zone sensor", "digitization noise floor", "borestem zone"]
     # extra clearance so the legend clears the x-axis labels; sensor entries in both site colours
     from matplotlib.legend_handler import HandlerTuple
     legend_below(fig, h, l, pad_in=0.30, handlelength=2.6,

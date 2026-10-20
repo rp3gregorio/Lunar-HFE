@@ -198,7 +198,9 @@ def main(out_name="fig_joint_anchor_process.pdf"):
     print(f"  brute force: {gaps[0]:.1f} K off after 1 lunation, {gaps[-1]*1e3:.0f} mK after {luns[-1]}")
 
     # ── figure ──────────────────────────────────────────────────────────────
-    fig, axs = plt.subplots(2, 4, figsize=(JGR_FULL, 5.4))
+    from lunar.plotting import style as _st     # SI: text width, 11 pt, printed at 100 %
+    _st.use_document_fonts()
+    fig, axs = plt.subplots(2, 4, figsize=(_st.TEXT_W - 0.04, 5.2))
     fig.subplots_adjust(left=0.075, right=0.985, top=0.95, bottom=0.08,
                         wspace=0.38, hspace=0.42)
     (a, b, c, d), (e, f, gg, h) = axs
@@ -248,9 +250,9 @@ def main(out_name="fig_joint_anchor_process.pdf"):
     d.axhline(0.10, color=C_DIM, lw=0.7, ls="--", zorder=1)
     d.axhline(EQ_ANCHOR_TOL, color=C_DIM, lw=0.7, ls="--", zorder=1)
     d.text(0.03, 0.10 * 1.2, "0.1 K", transform=d.get_yaxis_transform(), ha="left",
-           va="bottom", fontsize=7.5, color=C_DIM)
+           va="bottom", color=C_DIM)
     d.text(0.03, EQ_ANCHOR_TOL * 1.2, "5 mK", transform=d.get_yaxis_transform(), ha="left",
-           va="bottom", fontsize=7.5, color=C_DIM)
+           va="bottom", color=C_DIM)
     d.set_yscale("log")
     kmax = max(len(traces[s]) for s in SEEDS)
     d.set_xticks(range(1, kmax + 1))

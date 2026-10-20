@@ -1,44 +1,16 @@
 #!/usr/bin/env python3
-"""Build the per-probe Apollo HFE stability-window timeline figure
-(``../figures/fig_apollo_timeline_probes.pdf`` -- the LETTER's
-Figure 2). RESTORED 2026-07-04 from the canonical Lunar-HFE repo at the
-user's request: the letter keeps this information-dense original design
-(all sensors, event bands, per-sensor Gantt windows), while the guidebook
-uses the slim redesign in make_apollo_timeline.py. The two documents share
-a symlinked figures/ directory, hence the distinct filename.
+"""Letter Figure 2: the sensor records and their stability windows.
 
-The figure shows, for each of the four HFE probes (A15-Probe1,
-A15-Probe2, A17-Probe1, A17-Probe2):
+For each site, one panel with the temperature record of every meter-scale
+sensor (below the 80 cm cut) and, under it, one row per sensor: a thin line
+where the sensor recorded and a thick bar over its stability window, the
+stretch averaged into its equilibrium temperature. Both sites share one time
+axis, in UTC, from the first Apollo 15 sample to the last Apollo 17 sample,
+and both temperature panels span the same 3.5 K. Black only; every text at the
+letter's body size (lunar.plotting.style.use_document_fonts).
 
-  * Upper sub-panel: every sensor's raw temperature record -- kept
-    (sub-borestem) sensors depth-coloured, borestem-zone sensors as a
-    pale grey underlay -- with documented data-quality events shown as
-    translucent coral bands annotated with the cause (drilling /
-    emplacement transient; ALSEP telemetry outages; the probe-2 and
-    end-of-mission gaps).  Sources: Langseth et al. (1976); Grott et al.
-    (2010); Nagihara et al. (2018).  The OLS-fit long-term drift on the
-    deepest sensor's window is drawn dashed and annotated.
-  * Lower sub-panel: per-sensor Gantt strip showing each sensor's
-    selected stability window inside its full archived record (borestem
-    sensors grayed and excluded; kept sensors labeled with their
-    window-mean T_eq).
-
-PROVENANCE (2026-07-04): the drawing code for this figure originally
-lived in a notebook cell (notebooks/phase1_letter.ipynb) that no longer
-exists in the canonical repo or on disk; only the rendered PDF survived
-(fetched from Lunar-HFE@main:results/figures/fig_apollo_timeline.pdf
-and archived at docs/assets/fig_apollo_timeline_probes_archived.pdf).
-
-REIMPLEMENTED (2026-07-05): this script now redraws the figure from the
-live data, faithfully to the archived original.  Layout geometry, axis
-limits, the depth colormap, and the event-band intervals were measured
-from the archived PDF's vector content (PyMuPDF); every physical number
-(T_eq, OLS slopes, depths, record extents, window starts) comes from
-``lunar.apollo_helpers.extract_sensor_stability`` at build time.  All
-values reproduce the archive except one label the original got wrong:
-the archived A17-Probe2 row "TR21A" repeats probe-1's T_eq (255.67 K);
-the correct window mean for TR21A is 256.24 K and is what this script
-prints.  The figure is DATA-ONLY (no solver output).
+Reads the Apollo record through lunar.apollo_helpers (the same windows as
+results/stability_windows.json). Data only, no model output.
 
 Run with::
 
@@ -48,368 +20,127 @@ from __future__ import annotations
 import sys
 import pathlib
 
-import datetime
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
-from matplotlib.transforms import blended_transform_factory
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 
 from lunar import _bootstrap as boot
-boot.ensure_lunar(extra=("spiceypy", "scipy"))
 boot.ensure_apollo_hfe(mission="a15", probes=())
 boot.ensure_apollo_hfe(mission="a17", probes=())
 from lunar.apollo_helpers import extract_sensor_stability
 from lunar.config import SITES
-from lunar.plotting.style import (C_CORAL, C_CORAL_L, C_FOREST,
-                                  C_CHAR, assert_no_overlap,
-                                  C_FOREST_L, C_A15_2, C_A17_2)
-
-# colour roles (letter figures, 2026-10-05): green = Apollo 15, coral = Apollo 17;
-# documented data-quality events are neutral grey, not a site colour
-C_EVENT_FILL, C_EVENT_EDGE = "#D9D4CC", "#6E6862"   # darker hatch for print
+from lunar.plotting import style
+from lunar.plotting.style import C_GRID, assert_no_overlap
 
 OUT = ROOT / ".." / "figures"
-
-# ─── archive-measured design constants ───────────────────────────────
-# The letter's original predates lunar.plotting.style; the tones below do
-# not exist in the module and were measured from the archived original
-# (docs/assets/fig_apollo_timeline_probes_archived.pdf, vector content).
-# Everything the style module does cover (palette block colors, fonts via
-# the imported rcParams) is taken from the module above.
-C_CREAM_KEPT = "#E6DED3"   # full-record bar, kept-sensor rows (darkened 2026-10-09 for print)
-C_CREAM_BORE = "#ECE6DE"   # full-record bar, borestem rows
-C_BAR_EDGE = "#8F877D"     # outline of the full-record bars, so they survive printing
-C_BORE_BAR = "#D8D4CC"     # borestem-zone window bar
-C_BORE_EDGE = "#A89F95"
-C_BORE_LBL = "#8E8780"     # borestem row labels / "(borestem)" tags
-C_TRACE_BORE = "#D6D2CC"   # borestem traces (pale grey underlay)
-C_GRIDLINE = "#EDE9E2"     # faint gridlines over the tinted panels
-C_LEG_TAN = "#E0CDB4"      # legend swatch for "stability window (kept)"
-
-# Depth colormap: anchors measured from the archived original's kept-sensor
-# traces/bars (one per kept depth, both missions -- they interleave on a
-# single map).  Normalised over the global sensor depth range (14-234 cm).
-_DEPTH_ANCHORS = [
-    (84, "#8EB6BD"), (87, "#93BAC0"), (91, "#9CBFC4"), (97, "#A7C2C1"),
-    (101, "#AEC3BF"), (129, "#E0CCB3"), (130, "#E0CBB2"), (131, "#E0CAB1"),
-    (140, "#E2C0A6"), (167, "#E4A688"), (169, "#E1A284"), (177, "#DB9879"),
-    (178, "#DA9778"), (185, "#D58D6E"), (186, "#D48C6D"), (195, "#CD8161"),
-    (196, "#CC8060"), (223, "#B04C38"), (224, "#AF4B37"), (233, "#A53728"),
-    (234, "#A43527"),
-]
-
-# Panel geometry measured from the archived page (624.5 x 684.4 pt canvas):
-# (upper y0, upper y1, gantt y0, gantt y1) in pt from the TOP of the page,
-# plus the hand-set axis window (ylim, yticks) of each upper panel.  The
-# upper limits match [p0.1-0.5, p99+0.75] of the kept-sensor data to within
-# measurement error, but the archive values are kept verbatim.
-_PAGE_W, _PAGE_H = 624.5, 676.4
-_AX_X0, _AX_W = 99.7, 449.7
-_BLOCKS = [
-    dict(site="A15", probe=1, color=C_FOREST, tint="#F4F8F4",
-         upper=(22.0, 63.8), gantt=(69.0, 131.7),
-         ylim=(251.41, 254.32), yticks=(252, 254)),
-    dict(site="A15", probe=2, color=C_A15_2, tint="#F3F7F3",
-         upper=(173.1, 217.5), gantt=(221.4, 254.8),
-         ylim=(250.00, 252.03), yticks=(251, 252)),
-    dict(site="A17", probe=1, color=C_CORAL, tint="#FAF2EE",
-         upper=(312.2, 353.2), gantt=(359.0, 435.9),
-         ylim=(254.53, 257.39), yticks=(255, 256, 257)),
-    dict(site="A17", probe=2, color=C_A17_2, tint="#FBF4F0",
-         upper=(477.2, 518.2), gantt=(524.1, 600.9),
-         ylim=(255.50, 257.65), yticks=(256, 257)),
-]
-_XLIM = (0, 1800)
-_XTICKS = range(0, 1801, 200)
-_BAR_H = 0.61          # Gantt bar height in row units
-_ROW_PAD = 0.1         # Gantt ylim margin beyond first/last row
+T_SPAN = 3.5            # K, the same temperature range in both site panels
+GAP_DAYS = 20.0         # a pause longer than this breaks a record line
+# layout [in]
+LEFT, RIGHT = 1.12, 0.62           # sensor labels on the left, probe labels on the right
+TITLE_H, TEMP_H, SEP_H = 0.26, 0.70, 0.10
+ROW_H, PROBE_GAP, SITE_GAP, BOTTOM = 0.175, 0.10, 0.22, 0.62
 
 
-def _disturbance_events():
-    """Documented Apollo HFE data-quality events used to annotate the
-    timeline.  Sources: Langseth et al. (1976); Grott et al. (2010);
-    Nagihara et al. (2018).  Day offsets from each mission's first
-    archived sample.
-
-    Intervals re-measured 2026-07-05 from the archived original figure
-    (docs/assets/fig_apollo_timeline_probes_archived.pdf) and cross-
-    checked against the archived records: the A15 end-of-mission band and
-    the A17 probe-2 / end-of-mission bands (and the late edge of the A17
-    major outage) coincide day-for-day with telemetry gaps in the TG
-    sensor records; the drilling transients and ALSEP outages are
-    documented operational events with no gap in the restored data.
-    """
-    return {
-        "A15": [
-            (0, 60, "Drilling\ntransient",
-             "drilling heat dissipating into the regolith"),
-            (193, 228, "ALSEP\noutage",
-             "ALSEP central-station telemetry outage"),
-            (1108, 1171, "Major\noutage",
-             "extended telemetry outage"),
-            (1246, 1340, "End-of-mission\noutage",
-             "gap in the archived TG records before the final segment"),
-        ],
-        "A17": [
-            (0, 71, "Drilling\ntransient",
-             "drilling heat dissipating into the regolith"),
-            (444, 461, "ALSEP\noutage",
-             "ALSEP central-station telemetry outage"),
-            (610, 637, "ALSEP\noutage",
-             "ALSEP central-station telemetry outage"),
-            (715, 840, "Major\noutage",
-             "extended outage; TG records gap 750-840"),
-            (930, 1174, "Probe-2\noutage",
-             "gap in the archived TG records (restored data)"),
-            (1342, 1595, "End-of-mission\noutage",
-             "gap in the archived TG records before the final segment"),
-        ],
-    }
+def records(site):
+    """Meter-scale sensors of a site, by probe then depth: (name, probe, depth, times, T, i_start)."""
+    cfg = SITES[site]
+    o = extract_sensor_stability(cfg["mission"], min_depth_cm=cfg["MIN_DEPTH_CM"])
+    out = []
+    for probe, tab in ((1, o["d1"]), (2, o["d2"])):
+        for s in sorted((s for s in o["sensors"] if s["probe"] == probe and s["depth_cm"] >= cfg["MIN_DEPTH_CM"]),
+                        key=lambda s: s["depth_cm"]):
+            m = np.char.strip(tab["sensor"].astype(str)) == s["sensor"]
+            t = np.array([np.datetime64(x[:19]) for x in tab["time_iso"][m]])
+            out.append(dict(name=s["sensor"], probe=probe, depth=s["depth_cm"], t=t,
+                            T=tab["T"][m].astype(float), i0=o["probe_data"][probe][s["sensor"]]["i_start"]))
+    return out
 
 
-def _subtract_bands(t0, t1, bands):
-    """Split [t0, t1] into the segments outside the event bands."""
-    segs = [(t0, t1)]
-    for b0, b1 in bands:
-        nxt = []
-        for s0, s1 in segs:
-            if b1 <= s0 or b0 >= s1:
-                nxt.append((s0, s1))
-                continue
-            if s0 < b0:
-                nxt.append((s0, b0))
-            if b1 < s1:
-                nxt.append((b1, s1))
-        segs = nxt
-    return [(s0, s1) for s0, s1 in segs if s1 - s0 > 0]
+def segments(t):
+    """Index ranges of t without a pause longer than GAP_DAYS."""
+    brk = np.where(np.diff(t).astype("timedelta64[s]").astype(float) > GAP_DAYS * 86400)[0]
+    starts = np.r_[0, brk + 1]
+    ends = np.r_[brk, len(t) - 1]
+    return list(zip(starts, ends))
 
 
-def _rect(y0, y1):
-    """Measured pt box (from page top) -> figure-fraction rect."""
-    return [_AX_X0 / _PAGE_W, 1.0 - y1 / _PAGE_H,
-            _AX_W / _PAGE_W, (y1 - y0) / _PAGE_H]
-
-
-def _style_panel(ax, color, grid_axis):
-    for name in ("left", "bottom"):
-        ax.spines[name].set_color(color)
-        ax.spines[name].set_linewidth(1.0)
-    ax.grid(axis=grid_axis, color=C_GRIDLINE, lw=0.4)
-    ax.set_axisbelow(True)
-    ax.set_xlim(*_XLIM)
-    ax.set_xticks(list(_XTICKS))
-
-
-def _draw_block(fig, blk, res, events, cmap, dnorm, xlabel=False):
-    site, probe, color = blk["site"], blk["probe"], blk["color"]
-    min_depth = SITES[site]["MIN_DEPTH_CM"]
-    sensors = [s for s in res["sensors"] if s["probe"] == probe]  # depth-sorted
-    pdata = res["probe_data"][probe]
-    bands = [(e[0], e[1]) for e in events[site]]
-
-    up = fig.add_axes(_rect(*blk["upper"]), facecolor=blk["tint"])
-    gz = fig.add_axes(_rect(*blk["gantt"]), facecolor=blk["tint"])
-    # Transparent overlay for the title pill and event-band labels: the
-    # archive design lets these small labels sit over the pale context
-    # traces, so they live on a line-free axes and the text-on-data guard
-    # polices the data axes' own annotation (the slope box) strictly.
-    ov = fig.add_axes(_rect(*blk["upper"]), facecolor="none")
-    ov.set_xlim(*_XLIM)
-    ov.set_ylim(0, 1)
-    ov.axis("off")
-
-    up_h = blk["upper"][1] - blk["upper"][0]          # panel height [pt]
-
-    # ── upper sub-panel: traces ─────────────────────────────────────
-    for t0, t1, *_ in events[site]:
-        up.axvspan(t0, t1, fc=C_EVENT_FILL, alpha=0.5, ec=C_EVENT_EDGE, lw=0.6, hatch="////",
-                   zorder=1.2)
-    bore_segs = [np.column_stack([pdata[s["sensor"]]["t_day"],
-                                  pdata[s["sensor"]]["T"]])
-                 for s in sensors if s["depth_cm"] < min_depth]
-    up.add_collection(LineCollection(bore_segs, colors=C_TRACE_BORE, lw=0.5,
-                                     alpha=0.4, zorder=1.6))
-    kept = [s for s in sensors if s["depth_cm"] >= min_depth]
-    for k, s in enumerate(kept):                      # shallow -> deep on top
-        pd = pdata[s["sensor"]]
-        up.plot(pd["t_day"], pd["T"], color=cmap(dnorm(s["depth_cm"])),
-                lw=1.0, alpha=0.95, zorder=2.0 + 0.01 * k)
-
-    # OLS drift fit on the deepest sensor's stability window
-    deep = kept[-1]
-    pd = pdata[deep["sensor"]]
-    t_tail = pd["t_day"][pd["i_start"]:]
-    coef = np.polyfit(t_tail, pd["T"][pd["i_start"]:], 1)     # K per day
-    xf = np.array([t_tail[0], t_tail[-1]])
-    up.plot(xf, np.polyval(coef, xf), ls="--", lw=1.7, color=color,
-            alpha=0.95, zorder=3.6)
-    up.text(0.985, 2.5 / up_h,
-            f"deepest sensor {deep['sensor']} ($z$={deep['depth_cm']:.0f} cm):"
-            f"  slope = {deep['tail_slope_Kyr']:+.3f} K yr$^{{-1}}$",
-            transform=up.transAxes, ha="right", va="bottom", fontsize=8.0,
-            color=color, zorder=5,
-            bbox=dict(boxstyle="square,pad=0.25", fc="white", ec=color,
-                      lw=0.4, alpha=0.90))
-
-    _style_panel(up, color, grid_axis="both")
-    up.tick_params(labelbottom=False)
-    up.tick_params(axis="y", labelsize=8.5)
-    up.set_ylim(*blk["ylim"])
-    up.set_yticks(list(blk["yticks"]))
-    up.set_ylabel("$T$ (K)", fontsize=9.5)
-
-    # ── overlay: title pill + event labels ──────────────────────────
-    # Plain colored text (no filled pill) — the section header reads as text
-    # in the panel's own site color; its spine/trace color carry the panel
-    # identity, so the solid backdrop is redundant.
-    # site/probe title in the free right margin, beside its own traces
-    ov.text(1.012, 0.5, f"Apollo {site[1:]}\nProbe {probe}",
-            transform=ov.transAxes, ha="left", va="center", fontsize=10.5,
-            color=color, fontweight="bold", linespacing=1.15, clip_on=False)
-    # event labels once per site, just above the Probe 1 panel: both probes
-    # share the same outages, so Probe 2 carries the hatched bands only
-    if probe == 1:
-        renderer = fig.canvas.get_renderer()
-        px_per_day = (ov.transData.transform((1, 0))[0]
-                      - ov.transData.transform((0, 0))[0])
-        gap_px = 4.0 * fig.dpi / 72.0
-        prev_right = None
-        for t0, t1, label, _note in events[site]:
-            x_lab, ha_lab = (t0, "left") if t0 <= 0 else (0.5 * (t0 + t1), "center")
-            txt = ov.text(x_lab, 1.0 + 1.5 / up_h, label, ha=ha_lab, va="bottom",
-                          fontsize=8.0, color=C_CHAR, linespacing=0.95,
-                          clip_on=False)
-            bb = txt.get_window_extent(renderer)
-            if prev_right is not None and bb.x0 < prev_right + gap_px:
-                txt.set_x(x_lab + (prev_right + gap_px - bb.x0) / px_per_day)
-                bb = txt.get_window_extent(renderer)
-            prev_right = bb.x1
-
-    # ── lower sub-panel: per-sensor Gantt strip ─────────────────────
-    # bands sit BELOW the opaque full-record bars (the archive's striped
-    # look: coral shows in the row gaps, cream rows mask it)
-    n = len(sensors)
-    for t0, t1, *_ in events[site]:
-        gz.axvspan(t0, t1, fc=C_EVENT_FILL, alpha=0.55, ec=C_EVENT_EDGE, lw=0.6, hatch="////",
-                   zorder=1.2)
-    tr_right = blended_transform_factory(gz.transAxes, gz.transData)
-    labels = []
-    for i, s in enumerate(sensors):
-        pd = pdata[s["sensor"]]
-        t = pd["t_day"]
-        yc = i + 0.5
-        borestem = s["depth_cm"] < min_depth
-        gz.barh(yc, t[-1] - t[0], left=t[0], height=_BAR_H,
-                color=C_CREAM_BORE if borestem else C_CREAM_KEPT,
-                edgecolor=C_BAR_EDGE, lw=0.45, zorder=1.5)
-        for s0, s1 in _subtract_bands(t[pd["i_start"]], t[-1], bands):
-            if borestem:
-                gz.barh(yc, s1 - s0, left=s0, height=_BAR_H, color=C_BORE_BAR,
-                        alpha=0.45, edgecolor=C_BORE_EDGE, lw=0.4, zorder=3)
-            else:
-                gz.barh(yc, s1 - s0, left=s0, height=_BAR_H,
-                        color=cmap(dnorm(s["depth_cm"])), alpha=0.95,
-                        edgecolor=color, lw=0.9, zorder=3)
-        labels.append(f"{s['sensor']:>6s} {s['depth_cm']:>4.0f} cm")
-        if borestem:
-            gz.text(1.005, yc, "(borestem)", transform=tr_right, ha="left",
-                    va="center", fontsize=7.5, family="monospace",
-                    color=C_BORE_LBL)
-        else:
-            gz.text(1.005, yc, f"$T_{{eq}}$ = {s['T_eq']:.2f} K",
-                    transform=tr_right, ha="left", va="center", fontsize=7.5,
-                    family="monospace", color=C_CHAR)
-
-    _style_panel(gz, color, grid_axis="x")
-    gz.set_ylim(n + _ROW_PAD, -_ROW_PAD)
-    gz.set_yticks(np.arange(n) + 0.5)
-    gz.set_yticklabels(labels)
-    for tick, s in zip(gz.get_yticklabels(), sensors):
-        tick.set_fontfamily("monospace")
-        tick.set_fontsize(8.0)
-        if s["depth_cm"] < min_depth:
-            tick.set_color(C_BORE_LBL)
-            tick.set_fontstyle("italic")
-    gz.tick_params(axis="y", length=0)
-    gz.tick_params(axis="x", labelsize=9.0)
-    # calendar start and end of this probe's record, under the two ends of the axis
-    if "date0" in blk:
-        t_end = max(pdata[s["sensor"]]["t_day"][-1] for s in sensors)
-        for x, txt, ha in ((0.0, blk["date0"], "left"),
-                           (t_end, blk["date1"], "right" if t_end > 0.9 * _XLIM[1] else "center")):
-            gz.annotate(txt, xy=(x, 0), xycoords=("data", "axes fraction"), xytext=(0, -19),
-                        textcoords="offset points", ha=ha, va="top", fontsize=8.0,
-                        color=color, fontstyle="italic", annotation_clip=False)
-    if xlabel:
-        gz.set_xlabel("Days since first archived sample", fontsize=10.5, labelpad=16)
-
-    return up, gz, ov
-
-
-def main(out_name="fig_apollo_timeline_probes.pdf", site_figures=True):
-    res = {site: extract_sensor_stability(SITES[site]["mission"],
-                                          SITES[site]["MIN_DEPTH_CM"])
-           for site in ("A15", "A17")}
-    events = _disturbance_events()
-    # calendar start/end of each probe's record, read from the data (time_iso)
-    for blk in _BLOCKS:
-        d = res[blk["site"]]["d1" if blk["probe"] == 1 else "d2"]["time_iso"]
-        fmt = lambda iso: datetime.date.fromisoformat(str(iso)[:10]).strftime("%-d %b %Y")
-        blk["date0"], blk["date1"] = "start " + fmt(min(d)), "end " + fmt(max(d))
-
-    depths = np.concatenate([res[s]["depth_cm_all"] for s in ("A15", "A17")])
-    dmin, dmax = depths.min(), depths.max()
-    def dnorm(d):
-        return (d - dmin) / (dmax - dmin)
-    fracs = [dnorm(d) for d, _ in _DEPTH_ANCHORS]
-    cmap = LinearSegmentedColormap.from_list(
-        "hfe_depth",
-        [(0.0, _DEPTH_ANCHORS[0][1])]
-        + [(f, c) for f, (_, c) in zip(fracs, _DEPTH_ANCHORS)]
-        + ([(1.0, _DEPTH_ANCHORS[-1][1])] if fracs[-1] < 1.0 else []))
-
-    # kept sensors are shaded light (shallow) to dark (deep) within their
-    # SITE colour, so every trace and bar reads as its site
-    ramps = {}
-    for site, light, dark in (("A15", C_FOREST_L, C_FOREST), ("A17", C_CORAL_L, C_CORAL)):
-        d = np.asarray(res[site]["depth_cm_all"])[np.asarray(res[site]["deep_mask"], bool)]
-        lo, hi = float(d.min()), float(d.max())
-        ramps[site] = (LinearSegmentedColormap.from_list(f"{site}_depth", [light, dark]),
-                       lambda x, lo=lo, hi=hi: float(np.clip((x - lo) / (hi - lo), 0.0, 1.0)))
-
-    fig = plt.figure(figsize=(_PAGE_W / 72.0, _PAGE_H / 72.0))
+def main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False):
+    style.use_document_fonts()
+    data = {s: records(s) for s in ("A15", "A17")}
+    t0 = min(r["t"][0] for r in data["A15"])
+    t1 = max(r["t"][-1] for r in data["A17"])
+    nrow = {s: len(data[s]) for s in data}
+    h = BOTTOM + sum(TITLE_H + TEMP_H + SEP_H + nrow[s] * ROW_H + PROBE_GAP for s in data) + SITE_GAP
+    W = style.TEXT_W - 0.04
+    fig = plt.figure(figsize=(W, h))
+    ax_x, ax_w = LEFT / W, (W - LEFT - RIGHT) / W
+    y = h                                                  # running top edge [in]
     axes = []
-    for j, blk in enumerate(_BLOCKS):
-        site_cmap, site_norm = ramps[blk["site"]]
-        axes.extend(_draw_block(fig, blk, res[blk["site"]], events, site_cmap,
-                                site_norm, xlabel=(j == len(_BLOCKS) - 1)))
-
-    from matplotlib.legend_handler import HandlerTuple
-    handles = [
-        Patch(fc=C_CREAM_KEPT, ec=C_BAR_EDGE, lw=0.45),
-        Patch(fc=C_EVENT_FILL, ec=C_EVENT_EDGE, lw=0.4, hatch="////"),
-        (Patch(fc=C_FOREST_L, ec=C_FOREST, lw=0.6), Patch(fc=C_CORAL_L, ec=C_CORAL, lw=0.6)),
-        Patch(fc=C_BORE_BAR, ec=C_BORE_EDGE, lw=0.4),
-        Line2D([], [], ls="--", lw=1.5, color=C_CHAR),
-    ]
-    fig.legend(handles,
-               ["full record", "data-quality event (excluded)", "stability window (kept)",
-                "borestem-zone window (excluded)",
-                "OLS slope fit (deepest sensor)"],
-               loc="lower center", bbox_to_anchor=(0.5, 0.018), ncols=5,
-               frameon=False, fontsize=9.0, handlelength=1.6, handleheight=0.7,
-               handletextpad=0.8, columnspacing=1.3, borderaxespad=0.0,
-               handler_map={tuple: HandlerTuple(ndivide=None, pad=0.0)})
-
+    for k, site in enumerate(("A15", "A17")):
+        rs = data[site]
+        # temperature records
+        y -= TITLE_H + TEMP_H
+        at = fig.add_axes([ax_x, y / h, ax_w, TEMP_H / h])
+        for r in rs:
+            for a, b in segments(r["t"]):
+                at.plot(r["t"][a:b + 1], r["T"][a:b + 1], color="black", lw=0.5)
+        Tlo = min(np.percentile(r["T"][r["t"] > r["t"][0] + np.timedelta64(90, "D")], 0.5) for r in rs)
+        Thi = max(np.percentile(r["T"][r["t"] > r["t"][0] + np.timedelta64(90, "D")], 99.5) for r in rs)
+        mid = 0.5 * (Tlo + Thi)
+        at.set_ylim(mid - T_SPAN / 2, mid + T_SPAN / 2)
+        at.yaxis.set_major_locator(plt.MultipleLocator(1.0))
+        at.set_ylabel("$T$ (K)")
+        at.set_title(f"({'ab'[k]})  Apollo {site[1:]}", loc="left")
+        # one row per sensor: where it recorded (thin) and its stability window (thick)
+        y -= SEP_H + nrow[site] * ROW_H + PROBE_GAP
+        ab = fig.add_axes([ax_x, y / h, ax_w, (nrow[site] * ROW_H + PROBE_GAP) / h], sharex=at)
+        ypos, labels, yy = [], [], 0.0
+        for i, r in enumerate(rs):
+            if i and r["probe"] != rs[i - 1]["probe"]:
+                yy += PROBE_GAP / ROW_H
+            for a, b in segments(r["t"]):
+                ab.plot([r["t"][a], r["t"][b]], [yy, yy], color="black", lw=0.6, solid_capstyle="butt")
+            tw = r["t"][r["i0"]:]
+            for a, b in segments(tw):
+                ab.plot([tw[a], tw[b]], [yy, yy], color="black", lw=5.5, solid_capstyle="butt")
+            ypos.append(yy); labels.append(f"{r['name']}, {r['depth']:.0f} cm"); yy += 1.0
+        ab.set_ylim(yy - 0.4, -0.6)
+        ab.set_yticks(ypos, labels)
+        ab.tick_params(axis="y", length=0)
+        for probe in (1, 2):
+            ys = [p for p, r in zip(ypos, rs) if r["probe"] == probe]
+            ab.text(1.01, 0.5 * (min(ys) + max(ys)), f"probe {probe}", transform=ab.get_yaxis_transform(),
+                    ha="left", va="center")
+        for ax in (at, ab):
+            ax.set_xlim(t0, t1)
+            ax.grid(axis="x", color=C_GRID, lw=0.6)
+            ax.set_axisbelow(True)
+        at.tick_params(labelbottom=False)
+        if k == 0:
+            ab.tick_params(labelbottom=False)
+        y -= SITE_GAP
+        axes += [at, ab]
+    # one UTC axis for both sites: its two ends are the first and the last sample
+    years = [np.datetime64(f"{yr}-01-01") for yr in range(1972, 1978)]
+    ab = axes[-1]
+    ab.set_xticks(years, minor=True)
+    ends = [t0.astype("datetime64[D]"), t1.astype("datetime64[D]")]
+    major = [ends[0]] + years[1:-1] + [ends[1]]
+    fmt = lambda d: d.astype(object).strftime("%-d %b %Y")
+    ab.set_xticks(major, [fmt(ends[0])] + [str(d)[:4] for d in years[1:-1]] + [fmt(ends[1])])
+    for lab, ha in zip(ab.get_xticklabels()[::len(major) - 1], ("left", "right")):
+        lab.set_horizontalalignment(ha)
+    ab.set_xlabel("Date (UTC)")
+    for ax in axes:
+        ax.set_xticks(major)
+        ax.set_xticks(years, minor=True)
+        ax.grid(axis="x", which="both", color=C_GRID, lw=0.6)
     fig.canvas.draw()
     for ax in axes:
         assert_no_overlap(ax)
@@ -417,54 +148,7 @@ def main(out_name="fig_apollo_timeline_probes.pdf", site_figures=True):
     dst = OUT / out_name
     fig.savefig(dst)
     plt.close(fig)
-    print(f"  -> {dst.name} (redrawn from live data; faithful to the "
-          "archived original, see module docstring)")
-
-    # per-site half-figures for the thesis (letter/abstract keep the full one)
-    if site_figures:
-        for site in ("A15", "A17"):
-            _render_site(site, res, events, cmap, dnorm)
-
-
-def _render_site(site, res, events, cmap, dnorm):
-    """Two-block (one-site) variant sharing every style element with the
-    full four-block figure; y coordinates shifted so the site's blocks
-    start at the top of a shorter page."""
-    global _PAGE_H
-    blocks = [dict(b) for b in _BLOCKS if b["site"] == site]
-    shift = blocks[0]["upper"][0] - 22.0
-    for b in blocks:
-        b["upper"] = (b["upper"][0] - shift, b["upper"][1] - shift)
-        b["gantt"] = (b["gantt"][0] - shift, b["gantt"][1] - shift)
-    old_h = _PAGE_H
-    _PAGE_H = blocks[-1]["gantt"][1] + 75.5
-    fig = plt.figure(figsize=(_PAGE_W / 72.0, _PAGE_H / 72.0))
-    axes = []
-    for j, blk in enumerate(blocks):
-        axes.extend(_draw_block(fig, blk, res[blk["site"]], events, cmap,
-                                dnorm, xlabel=(j == len(blocks) - 1)))
-    handles = [
-        Patch(fc=C_CREAM_KEPT, ec=C_BAR_EDGE, lw=0.45),
-        Patch(fc=C_CORAL_L, ec=C_CORAL, lw=0.4),
-        Patch(fc=C_LEG_TAN, ec=C_FOREST, lw=0.6),
-        Patch(fc=C_BORE_BAR, ec=C_BORE_EDGE, lw=0.4),
-        Line2D([], [], ls="--", lw=1.5, color=C_CHAR),
-    ]
-    fig.legend(handles,
-               ["full record", "excluded interval", "stability window (kept)",
-                "borestem-zone window (excluded)",
-                "OLS slope fit (deepest sensor)"],
-               loc="lower center", bbox_to_anchor=(0.5, 0.012), ncols=3,
-               frameon=False, fontsize=8.6, handlelength=1.5, handleheight=0.7,
-               handletextpad=0.7, columnspacing=1.2, borderaxespad=0.0)
-    fig.canvas.draw()
-    for ax in axes:
-        assert_no_overlap(ax)
-    dst = OUT / f"fig_apollo_timeline_{site.lower()}.pdf"
-    fig.savefig(dst)
-    plt.close(fig)
-    _PAGE_H = old_h
-    print(f"  -> {dst.name}")
+    print(f"wrote {dst.resolve()}  ({W:.2f} x {h:.2f} in)")
 
 
 if __name__ == "__main__":

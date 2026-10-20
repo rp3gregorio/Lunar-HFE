@@ -79,7 +79,13 @@ from make_surface_balance import (GRAIN_RIM, GROUND_DEEP, GROUND_LIT,
 
 FIGS = _REPO.parent / "figures"
 
-W, H = 7.48, 4.36                     # landscape
+W, H = 7.48, 4.36                     # landscape; drawing coordinates in these inches
+_DOC = {"pt": None, "scale": 1.0}       # letter mode: all text at the body size, canvas at the text width
+
+
+def fs(v):
+    """Font size: the given one, or the letter's body size in letter mode."""
+    return _DOC["pt"] or v
 
 # colour roles (letter figures): coral / green are the sites, teal / violet the
 # models, so the schematic uses gold for sunlight and grey for emitted heat
@@ -275,11 +281,11 @@ def draw_block(ax):
 
     # the depth scale
     ax.text(BLK_L - 0.07, Y_TOP + 0.30, "depth\n(cm)", color=C_DIM,
-            fontsize=8.0, ha="right", va="center", linespacing=1.2)
+            fontsize=fs(8.0), ha="right", va="center", linespacing=1.2)
     for zc, lab in TICKS:
         y = float(ymap(zc))
         ax.plot([BLK_L - 0.05, BLK_L], [y, y], color=C_DIM, lw=0.6, zorder=6)
-        ax.text(BLK_L - 0.08, y, lab, color=C_DIM, fontsize=8.0, ha="right",
+        ax.text(BLK_L - 0.08, y, lab, color=C_DIM, fontsize=fs(8.0), ha="right",
                 va="center")
     return mid
 
@@ -324,30 +330,31 @@ def draw_grid_half(ax):
         ax.plot([BLK_R - 0.07, BLK_R], [y, y], color=_shade(C_CHAR, 0.35),
                 lw=0.6, zorder=7.7)
         ax.text(BLK_R - 0.10, y, f"{z:.0f}", color=_shade(C_CHAR, 0.25),
-                fontsize=7.0, ha="right", va="center", zorder=7.8, bbox=HALO)
+                fontsize=fs(7.0), ha="right", va="center", zorder=7.8, bbox=HALO)
 
     ax.text(X_SPLIT + 0.05, Y_TOP - 0.10,
-            rf"$\Delta z={g.dz[0]*1e3:.0f}$ mm", color=COOL, fontsize=7.5,
+            rf"$\Delta z={g.dz[0]*1e3:.0f}$ mm", color=COOL, fontsize=fs(7.5),
             ha="left", va="top", zorder=13, bbox=HALO)
     ax.text(X_SPLIT + 0.05, float(ylin(z_max - g.dz[-1] / 2)),
-            rf"$\Delta z={g.dz[-1]*100:.0f}$ cm", color=COOL, fontsize=7.5,
+            rf"$\Delta z={g.dz[-1]*100:.0f}$ cm", color=COOL, fontsize=fs(7.5),
             ha="left", va="center", zorder=13, bbox=HALO)
     return g
 
 
 def draw_grid_notes(ax, g):
     ax.text(0.5 * (BLK_L + X_SPLIT), Y_BOT - 0.17,
-            "the material", color=C_CHAR, fontsize=8.5, ha="center",
+            "the material", color=C_CHAR, fontsize=fs(8.5), ha="center",
             va="center")
 
     ax.text(0.5 * (X_SPLIT + BLK_R), Y_BOT - 0.17,
-            f"the grid — {g.n_layers} cells", color=C_CHAR, fontsize=8.5,
+            f"the grid — {g.n_layers} cells", color=C_CHAR, fontsize=fs(8.5),
             ha="center", va="center")
     # one line for both scales: two separate sub-labels overlapped at the split
-    ax.text(0.5 * (BLK_L + BLK_R), Y_BOT - 0.42,
+    if _DOC["pt"] is None:         # the letter says this in the caption
+      ax.text(0.5 * (BLK_L + BLK_R), Y_BOT - 0.42,
             r"left: log depth (cm, outer axis)  ·  right: linear depth "
             r"(m, inner ticks), each cell $1.08\times$ the last",
-            color=C_DIM, fontsize=7.5, ha="center", va="center")
+              color=C_DIM, fontsize=fs(7.5), ha="center", va="center")
 
 
 def draw_fluxes(ax, mid):
@@ -442,7 +449,7 @@ def draw_fluxes(ax, mid):
             lw=0.8, ls=(0, (2.4, 2.0)), zorder=12)
     ax.text(X_SPLIT - 0.04, y_dead + 0.03,
             r"$<0.1$ K",
-            color=C_DIM, fontsize=7.5, ha="right", va="bottom",
+            color=C_DIM, fontsize=fs(7.5), ha="right", va="bottom",
             zorder=13, bbox=HALO)
 
 
@@ -491,8 +498,8 @@ def draw_probes(ax):
         side = -1 if mis == "a15" else 1          # labels point away from each other
         # A17 label lifted clear of the basal-flux equation and the grid note
         ax.text(x + 0.075 * side, y_e + (0.11 if side > 0 else 0.0),
-                f"{lab}\n{d.max()/100:.2f} m · {int(m.sum())} sensors",
-                color=_shade(col, -0.2), fontsize=7.6, linespacing=1.35,
+                ("A" + lab.split()[-1]) if _DOC["pt"] else f"{lab}\n{d.max()/100:.2f} m · {int(m.sum())} sensors",
+                color=_shade(col, -0.2), fontsize=fs(7.6), linespacing=1.35,
                 ha=("right" if side < 0 else "left"), va="center",
                 zorder=15, bbox=HALO)
 
@@ -515,16 +522,23 @@ def draw_kpanel(ax):
     for v in (0, 3, 6, 9):
         ax.plot([kx(v), kx(v)], [Y_TOP, Y_TOP + 0.055], color=C_DIM, lw=0.7,
                 zorder=4)
-        ax.text(kx(v), Y_TOP + 0.09, f"{v:g}", color=C_DIM, fontsize=8,
+        ax.text(kx(v), Y_TOP + 0.09, f"{v:g}", color=C_DIM, fontsize=fs(8),
                 ha="center", va="bottom", zorder=6)
     ax.text(0.5 * (KPAN_L + KPAN_R), Y_TOP + 0.30,
+            (r"$K$ at 250 K" "\n" r"(mW m$^{\mathrm{-1}}$ K$^{\mathrm{-1}}$)") if _DOC["pt"] else
             r"$K$ (mW m$^{\mathrm{-1}}$ K$^{\mathrm{-1}}$) at 250 K", color=C_CHAR,
-            fontsize=8.5, ha="center", va="bottom", zorder=6)
+            fontsize=fs(8.5), ha="center", va="bottom", zorder=6)
 
-    ax.text(kx(6.9), ymap(2.2), "Hayne", color=_shade(C_HAYNE_GLOBAL, -0.3), fontsize=8,
+    if _DOC["pt"]:                 # letter: both names to the right of the curves near the top
+        ax.text(kx(3.6), ymap(0.75), "Hayne", color=_shade(C_HAYNE_GLOBAL, -0.3), fontsize=fs(8),
+                ha="left", va="center", zorder=7, bbox=HALO)
+        ax.text(kx(4.4), ymap(2.3), "Mart\u00ednez\n& Siegler", color=C_MS,
+                fontsize=fs(8), ha="left", va="center", zorder=7, bbox=HALO)
+        return
+    ax.text(kx(6.9), ymap(2.2), "Hayne", color=_shade(C_HAYNE_GLOBAL, -0.3), fontsize=fs(8),
             ha="left", va="center", zorder=7, bbox=HALO)
     ax.text(kx(8.1), ymap(320.0), "Mart\u00ednez\n& Siegler", color=C_MS,
-            fontsize=8, ha="left", va="center", zorder=7, bbox=HALO)
+            fontsize=fs(8), ha="left", va="center", zorder=7, bbox=HALO)
 
 
 def draw_bc_labels(ax):
@@ -532,11 +546,11 @@ def draw_bc_labels(ax):
     ax.text(BLK_R + SHEAR_X + 0.06, Y_TOP + 0.95,
             r"$(\mathrm{1}-A)\,F_\odot-\varepsilon\sigma T_s^{\mathrm{4}}"
             r"=\left(-K\,\partial_z T\right)_{z=\mathrm{0}}$",
-            color=DARK, fontsize=11, ha="right", va="center", zorder=15,
+            color=DARK, fontsize=fs(11), ha="right", va="center", zorder=15,
             bbox=HALO)
     ax.text(BLK_L + 0.26, Y_BOT + 0.03,
             r"$K\,\partial_z T\,|_{z_{\max}}=Q_b$",
-            color=C_CHAR, fontsize=10, ha="left", va="bottom",
+            color=C_CHAR, fontsize=fs(10), ha="left", va="bottom",
             zorder=15, bbox=HALO)
 
 
@@ -552,19 +566,20 @@ def draw_density(ax):
         xv = DENS_L + (v - lo) / (hi - lo) * (DENS_R - DENS_L)
         ax.plot([xv, xv], [Y_BOT, Y_TOP], color=C_GRID, lw=0.6,
                 ls=(0, (1.6, 1.6)), zorder=3)
-        ax.text(xv, Y_TOP + 0.06, f"{v}", color=C_DIM, fontsize=8.0,
+        ax.text(xv, Y_TOP + 0.06, f"{v}", color=C_DIM, fontsize=fs(8.0),
                 ha="center", va="bottom")
     ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.24,
-            r"$\rho$ (kg m$^{\mathrm{-3}}$)", color=C_DIM, fontsize=8.5,
+            r"$\rho$ (kg m$^{\mathrm{-3}}$)", color=C_DIM, fontsize=fs(8.5),
             ha="center", va="bottom")
-    # the density law itself (letter Equation 7), with its three constants
-    ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.86,
+    # the density law itself (letter Equation 7), with its three constants (not in the letter)
+    if _DOC["pt"] is None:
+      ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.86,
             r"$\rho(z)=\rho_d-(\rho_d-\rho_s)\,e^{-z/H}$",
-            color=DARK, fontsize=11, ha="center", va="center", zorder=15)
-    ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.58,
+            color=DARK, fontsize=fs(11), ha="center", va="center", zorder=15)
+      ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.58,
             rf"$\rho_s$ = {RHO_SURFACE:.0f}, $\rho_d$ = {RHO_DEEP:.0f} kg m$^{{\mathrm{{-3}}}}$,"
             rf" $H$ = {HAYNE['H'] * 100:.0f} cm",
-            color=C_DIM, fontsize=8.0, ha="center", va="center", zorder=15)
+            color=C_DIM, fontsize=fs(8.0), ha="center", va="center", zorder=15)
     # --- the tie lines: the packing at a depth <-> the density at that depth --
     # Four depths spanning the transition: 15 %, 63 %, 92 % and 99 % of the way
     # from the surface density to the deep one. Each runs from the block to a dot
@@ -578,7 +593,7 @@ def draw_density(ax):
                 zorder=6)
         tag = f"{zc:.0f}" + ("  ($H$)" if abs(zc - HAYNE["H"] * 100.0) < 0.1
                              else "")
-        ax.text(GAP_L + 0.03, y, tag, color=C_DIM, fontsize=7.0, ha="left",
+        ax.text(GAP_L + 0.03, y, tag, color=C_DIM, fontsize=fs(7.0), ha="left",
                 va="center", zorder=7, bbox=HALO)
 
 
@@ -589,11 +604,11 @@ def draw_texture_notes(ax):
             "grains loosen upward\n"
             r"as $\rho$ falls — the whole" "\n"
             rf"change is above {Z_COMPACT:.0f} cm",
-            color=DARK, fontsize=8.0, ha="left", va="center", linespacing=1.45)
+            color=DARK, fontsize=fs(8.0), ha="left", va="center", linespacing=1.45)
     ax.text(NOTE_X, 0.5 * (y0 + Y_BOT),
             r"below it $\rho$ is constant," "\n"
             "so the packing stops\nchanging as well",
-            color=C_DIM, fontsize=8.0, ha="left", va="center", linespacing=1.45)
+            color=C_DIM, fontsize=fs(8.0), ha="left", va="center", linespacing=1.45)
 
 
 def main(out_stem: str = "fig_intro_column", font: str = "cambria") -> None:
@@ -604,7 +619,10 @@ def main(out_stem: str = "fig_intro_column", font: str = "cambria") -> None:
         family, cambria = setup_fonts()
         apply_style(family, cambria)
 
-    fig = plt.figure(figsize=(W, H))
+    if font == "times":            # letter: printed at 100 % at the text width, 11 pt, no equations
+        from lunar.plotting import style
+        _DOC.update(pt=style.DOC_PT, scale=(style.TEXT_W - 0.10) / W)
+    fig = plt.figure(figsize=(W * _DOC["scale"], H * _DOC["scale"]))
     ax = fig.add_axes([0, 0, 1, 1])
     ax.set_xlim(0, W)
     ax.set_ylim(0, H)
@@ -618,7 +636,8 @@ def main(out_stem: str = "fig_intro_column", font: str = "cambria") -> None:
     draw_grid_notes(ax, g)
     draw_probes(ax)
     draw_kpanel(ax)
-    draw_bc_labels(ax)
+    if _DOC["pt"] is None:         # the equations belong to the text of the letter
+        draw_bc_labels(ax)
 
     fig.canvas.draw()
     FIGS.mkdir(parents=True, exist_ok=True)
@@ -627,7 +646,7 @@ def main(out_stem: str = "fig_intro_column", font: str = "cambria") -> None:
         fig.savefig(FIGS / f"{out_stem}.png", dpi=300)
     plt.close(fig)
     print(f"  wrote figures/{out_stem}.pdf + .png "
-          f"({W:.2f} x {H:.2f} in, landscape)")
+          f"({W * _DOC['scale']:.2f} x {H * _DOC['scale']:.2f} in, landscape)")
     print("  grain radius AND count both computed from rho(z); tie lines at "
           + ", ".join(f"{z:.0f}" for z in TIE_Z) + " cm")
     print(f"  shared compaction band: surface to {Z_COMPACT:.0f} cm — the "

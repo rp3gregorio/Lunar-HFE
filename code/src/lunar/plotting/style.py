@@ -248,6 +248,27 @@ def legend_between(fig, above, handles, labels, *, ncols="auto", pad_in=0.10, **
     return leg
 
 
+# ─── the letter's page: figures print at the text's own size ─────────────────
+# The letter is 11 pt on A4 with 2.2 cm margins. Its figures are drawn at the
+# text width and included at their natural size (scale 1), so a font of DOC_PT
+# in the figure prints at DOC_PT on the page, the size of the text around it.
+TEXT_W = 16.6 / 2.54        # text width [in]
+DOC_PT = 11.0               # body font size [pt]
+
+
+def use_document_fonts(pt=DOC_PT):
+    """Set every figure text (labels, ticks, titles, legends) to the document's
+    body size. Call once before drawing; draw at width TEXT_W (or less) and
+    include the PDF in LaTeX without scaling."""
+    global FS_BASE, FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND
+    FS_BASE = FS_TITLE = FS_LABEL = FS_TICK = FS_LEGEND = pt
+    LEGEND_KW["fontsize"] = pt
+    plt.rcParams.update({"font.size": pt, "axes.titlesize": pt, "axes.labelsize": pt,
+                         "xtick.labelsize": pt, "ytick.labelsize": pt,
+                         "legend.fontsize": pt, "legend.title_fontsize": pt,
+                         "axes.titlepad": 6.0, "savefig.pad_inches": 0.02})
+
+
 def assert_no_overlap(ax, *, tol_px=1.0, densify=400):
     """Programmatic text-on-data guard for one Axes.
 

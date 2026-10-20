@@ -6,8 +6,10 @@ sensor (below the 80 cm cut) and, under it, one row per sensor: a thin line
 where the sensor recorded and a thick bar over its stability window, the
 stretch averaged into its equilibrium temperature. Both sites share one time
 axis, in UTC, from the first Apollo 15 sample to the last Apollo 17 sample,
-and both temperature panels span the same 3.5 K. Black only; every text at the
-letter's body size (lunar.plotting.style.use_document_fonts).
+and both temperature panels span the same 3.5 K. Each sensor keeps one colour
+in its trace and its row: the site's hue (Apollo 15 green, Apollo 17 coral),
+light for the shallowest sensor and dark for the deepest. Text is black, at
+the letter's body size (lunar.plotting.style.use_document_fonts).
 
 Reads the Apollo record through lunar.apollo_helpers (the same windows as
 results/stability_windows.json). Data only, no model output.
@@ -36,7 +38,8 @@ boot.ensure_apollo_hfe(mission="a17", probes=())
 from lunar.apollo_helpers import extract_sensor_stability
 from lunar.config import SITES
 from lunar.plotting import style
-from lunar.plotting.style import C_GRID, assert_no_overlap
+from lunar.plotting.style import C_A15, C_A17, C_GRID, assert_no_overlap
+from matplotlib.colors import to_rgb
 
 OUT = ROOT / ".." / "figures"
 T_SPAN = 3.5            # K, the same temperature range in both site panels
@@ -60,6 +63,14 @@ def records(site):
             out.append(dict(name=s["sensor"], probe=probe, depth=s["depth_cm"], t=t,
                             T=tab["T"][m].astype(float), i0=o["probe_data"][probe][s["sensor"]]["i_start"]))
     return out
+
+
+def shade(site, depth, depths):
+    """The site's hue, light for the shallowest of its sensors and dark for the deepest."""
+    base = np.array(to_rgb({"A15": C_A15, "A17": C_A17}[site]))
+    f = (depth - min(depths)) / (max(depths) - min(depths))       # 0 shallow .. 1 deep
+    light, dark = base + 0.55 * (1 - base), base * 0.62
+    return tuple((1 - f) * light + f * dark)
 
 
 def segments(t):
@@ -87,9 +98,10 @@ def main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False):
         # temperature records
         y -= TITLE_H + TEMP_H
         at = fig.add_axes([ax_x, y / h, ax_w, TEMP_H / h])
-        for r in rs:
+        dep = [r["depth"] for r in rs]
+        for r in sorted(rs, key=lambda r: r["depth"]):          # deep traces drawn last, on top
             for a, b in segments(r["t"]):
-                at.plot(r["t"][a:b + 1], r["T"][a:b + 1], color="black", lw=0.5)
+                at.plot(r["t"][a:b + 1], r["T"][a:b + 1], color=shade(site, r["depth"], dep), lw=0.7)
         Tlo = min(np.percentile(r["T"][r["t"] > r["t"][0] + np.timedelta64(90, "D")], 0.5) for r in rs)
         Thi = max(np.percentile(r["T"][r["t"] > r["t"][0] + np.timedelta64(90, "D")], 99.5) for r in rs)
         mid = 0.5 * (Tlo + Thi)
@@ -104,11 +116,12 @@ def main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False):
         for i, r in enumerate(rs):
             if i and r["probe"] != rs[i - 1]["probe"]:
                 yy += PROBE_GAP / ROW_H
+            c = shade(site, r["depth"], dep)
             for a, b in segments(r["t"]):
-                ab.plot([r["t"][a], r["t"][b]], [yy, yy], color="black", lw=0.6, solid_capstyle="butt")
+                ab.plot([r["t"][a], r["t"][b]], [yy, yy], color=c, lw=0.9, solid_capstyle="butt")
             tw = r["t"][r["i0"]:]
             for a, b in segments(tw):
-                ab.plot([tw[a], tw[b]], [yy, yy], color="black", lw=5.5, solid_capstyle="butt")
+                ab.plot([tw[a], tw[b]], [yy, yy], color=c, lw=5.5, solid_capstyle="butt")
             ypos.append(yy); labels.append(f"{r['name']}, {r['depth']:.0f} cm"); yy += 1.0
         ab.set_ylim(yy - 0.4, -0.6)
         ab.set_yticks(ypos, labels)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SI Fig. S4: the flux-anchored equilibrium solver, step by step (2026-10-12).
+"""SI Fig. S3: the flux-anchored equilibrium solver, step by step (2026-10-12).
 
 Replaces the three-panel fig_joint_anchor_method.pdf in the SI, which showed the
 finished construction at once but not that the method is an iteration, nor why

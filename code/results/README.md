@@ -18,10 +18,10 @@ whether anything changed.
 | `joint_probe_checks.json` | `compute_joint_probe_checks.py` | Sec. 3.4 (the ±5 K test), Sec. 4.2 (the transient diffusivities); SI Table S9 |
 | `joint_block_bootstrap.json` | `compute_joint_block_bootstrap.py` | Sec. 2.3; SI Table S5 |
 | `joint_numerics_certification.json` | `certify_joint_numerics.py` | Sec. 2.2; SI Table S3; SI Table S5, solver row |
-| `joint_fit_sensitivities.json` | `compute_joint_fit_sensitivities.py` | SI Table S5 (error budget); the pooled comparison (Sec. 4.2); SI Tables S5, S12; SI Fig S5 |
+| `joint_fit_sensitivities.json` | `compute_joint_fit_sensitivities.py` | SI Table S5 (error budget); the pooled comparison (Sec. 4.2); SI Tables S5, S12; SI Fig S4 |
 | `joint_fit_checks.json` | `compute_joint_fit_checks.py` | Table 1, lower rows (the global value and Martinez & Siegler: RMSE, bias, $\kappa$); Fig 3e, j and Sec. 3.3; Secs. 3.1, 3.2 (each sensor minus the fit); Sec. 3.5 (probe split, hold-out); Sec. 4.1 (effective conductivity) |
 | `martinez_density_fit.json` | `compute_martinez_density.py` | Sec. 4.3 (the Martinez & Siegler model with its density fitted); SI Table S4 |
-| `joint_diviner.json` | `compute_joint_diviner.py` | Sec. 3.4; SI Table S13; SI Fig S6 |
+| `joint_diviner.json` | `compute_joint_diviner.py` | Sec. 3.4; SI Table S13; SI Fig S5 |
 | `gradient_epochs.json` | `compute_gradient_epochs.py` | Sec. 3.3; SI Table S2 |
 | `joint_chi_density.json` | `compute_joint_chi_density.py` | Sec. 4.3; SI Table S14; SI Table S5, $\chi$ row |
 | `likelihood_ratio.json` | `compute_likelihood_ratio.py` | every $p$ value: Table 1; Secs. 3.3, 4.2, 4.3; SI Tables S7, S14 |

@@ -7,7 +7,6 @@ and its Supporting Information.
 
 - **Python 3.10+** and **Git**
 - About 1 GB of free disk space (more with the optional Diviner data)
-- For SI Figure S2 only: **pdflatex** (TeX Live or MacTeX)
 - Time: minutes to check the stored results; about 6 hours of wall time for
   the full analysis on a six-core laptop
 
@@ -43,7 +42,7 @@ repository. Two public data sets are not, and are needed only to recompute the
 steps that use them:
 
 ```bash
-python code/pipeline/fetch_diviner.py     # ~310 MB: Diviner comparison (SI Table S13, SI Fig S6)
+python code/pipeline/fetch_diviner.py     # ~310 MB: Diviner comparison (SI Table S13, SI Fig S5)
 mkdir -p code/data/lola
 curl -L -o code/data/lola/ldem_16.img https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/cylindrical/img/ldem_16.img   # 33 MB: SI Fig S1
 ```
@@ -101,10 +100,10 @@ python code/pipeline/compute/compute_joint_mcmc.py --sample             # ~1 min
 make figures
 ```
 
-This writes the letter's Figures 1–7 and SI Figures S1–S5 to
-`figures/`. SI Figure S6 is written by `compute_joint_diviner.py` (it needs
-the Diviner data); SI Figure S1 needs the LOLA map and SI Figure S2 needs
-pdflatex. The notebook shows every figure.
+This writes the letter's Figures 1–7 and SI Figures S1–S4 to
+`figures/`. SI Figure S5 is written by `compute_joint_diviner.py` (it needs
+the Diviner data); SI Figure S1 needs the LOLA map. The notebook shows every
+figure.
 
 ## Verification
 
@@ -143,8 +142,6 @@ verification disabled (PDS data are public).
 **A notebook step stops with "needs ... which is not downloaded"**: run the
 download of Step 3, or keep the mode at `"show"` / `"quick"`, which use the
 stored result.
-
-**SI Figure S2 is not made**: install pdflatex (a full TeX Live or MacTeX).
 
 ## Citing
 

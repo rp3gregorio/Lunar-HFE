@@ -7,14 +7,13 @@
   fig_joint_annual_wave.pdf             Fig. 5: the annual wave in the full record vs the forward model (compute_annual_wave.py)
   fig_joint_mcmc.pdf                    Fig. 6: MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
   fig_joint_variants.pdf                Fig. 7: K_d from every variant at each site
-  fig_joint_amplitude_vs_depth.pdf      Fig. S3: diurnal amplitude vs depth
-  fig_joint_anchor_process.pdf          Fig. S4: the flux-anchored solver step by step, Apollo 15 at the joint fit (~30 s)
-  fig_joint_robustness.pdf              Fig. S5: K_d under each changed input, grouped as in SI Table S5
+  fig_joint_amplitude_vs_depth.pdf      Fig. S2: diurnal amplitude vs depth
+  fig_joint_anchor_process.pdf          Fig. S3: the flux-anchored solver step by step, Apollo 15 at the joint fit (~30 s)
+  fig_joint_robustness.pdf              Fig. S4: K_d under each changed input, grouped as in SI Table S5
 
 Figs. 1, 2, S3 and S4 come from the make_intro_column / make_apollo_timeline_letter /
 make_letter_figures / make_anchor_process_figure generators, called here.
-SI Figs. S1, S2 and S6 come from make_context_map_figure.py, make_study_overview.py
-and compute_joint_diviner.py.
+SI Figs. S1 and S5 come from make_context_map_figure.py and compute_joint_diviner.py.
 
 Reads results/joint_albedo_fit.json (+ _cache.npz), joint_fit_checks.json,
 joint_fit_sensitivities.json, joint_valley.json, joint_mcmc.json, annual_wave.json,
@@ -172,7 +171,7 @@ def fig_constraints(res, cache):
 
 
 def fig_robustness(res, sens):
-    """SI Fig. S5: K_d* refitted under each changed input, grouped as in SI Table S5 (the error budget).
+    """SI Fig. S4: K_d* refitted under each changed input, grouped as in SI Table S5 (the error budget).
     (Until 2026-10-07 a panel (a) mapped the A17 - A15 difference over the basal-flux
     pairs; it was dropped with the site-difference claim. The map stays in
     joint_fit_sensitivities.json as qb_contrast_map.)"""
@@ -602,13 +601,13 @@ def main():
         fig_robustness(res, sens)
     else:
         print("  (fig_joint_robustness waits for results/joint_fit_sensitivities.json)")
-    # Fig. S4 first, while the house rcParams are in force; then the others and
+    # Fig. S3 first, while the house rcParams are in force; then the others and
     # Fig. 1, whose generators set their own rcParams (fonts, legend sizes)
     import make_letter_figures, make_intro_column, make_anchor_process_figure
     import make_apollo_timeline_letter
-    make_anchor_process_figure.main()   # Fig. S4: the solver step by step (A15 at the joint fit)
+    make_anchor_process_figure.main()   # Fig. S3: the solver step by step (A15 at the joint fit)
     make_apollo_timeline_letter.main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False)  # Fig. 2
-    make_letter_figures.fig_amplitude_vs_depth(out_name="fig_joint_amplitude_vs_depth.pdf")   # Fig. S3
+    make_letter_figures.fig_amplitude_vs_depth(out_name="fig_joint_amplitude_vs_depth.pdf")   # Fig. S2
     make_intro_column.main(out_stem="fig_joint_intro_column", font="times")   # Fig. 1 (swing depth at the joint K_d*)
 
 

@@ -56,7 +56,7 @@ in `code/pipeline/compute/`; times are for a full run.
 | `compute_joint_fit_sensitivities.py` (quick: `--reuse`, if its cache is present) | 80 min | Sec. 4.2; SI Tables S5 (error budget), S12 |
 | `compute_joint_fit_checks.py` | 4 min | Table 1 (lower rows), Fig 3e, j; Secs. 3.1–3.3, 3.5 |
 | `compute_martinez_density.py` | 20 min | Sec. 4.3; SI Table S4 |
-| `compute_joint_diviner.py` (needs Diviner) | 3 min | SI Table S13, SI Fig S6 |
+| `compute_joint_diviner.py` (needs Diviner) | 3 min | SI Table S13, SI Fig S5 |
 | `compute_gradient_epochs.py` | seconds | Sec. 3.3; SI Table S2 |
 | `compute_joint_chi_density.py` | 50 min | Sec. 4.3; SI Table S14 |
 | `compute_likelihood_ratio.py` | seconds | every $p$: Table 1; Secs. 3.3, 4.2, 4.3 |
@@ -68,8 +68,7 @@ in `code/pipeline/compute/`; times are for a full run.
 
 **Part 3, the figures:** `figures/make_joint_figures.py` (Figs 1–7, SI Figs
 S3–S5; 4 min), `figures/make_context_map_figure.py` (SI Fig S1; needs the LOLA
-map), `figures/make_study_overview.py` (SI Fig S2; needs pdflatex), and the
-Diviner step (SI Fig S6).
+map) and the Diviner step (SI Fig S5).
 
 **Part 4, the paper section by section:** Sections 2.1–2.3 (data, model,
 fitting), 3.1 (each probe on its own), 3.2 (each thermometer type on its

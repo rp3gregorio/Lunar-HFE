@@ -55,7 +55,7 @@ analysis step, in the order the steps need each other; (3) every figure of the
 letter and the SI; (4) the paper section by section, with each number of the
 letter next to the value the repository gives (✓ / ✗); (5) the Supporting
 Information table by table, every number of its 14 tables checked the same way;
-(6) a summary of all the checks (1,238 values: 390 in the letter, 848 in the SI
+(6) a summary of all the checks (1,212 values: 364 in the letter, 848 in the SI
 tables; all matching).
 
 Two optional notebooks go deeper: `optional_anchor_method.ipynb` (how the

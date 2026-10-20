@@ -30,7 +30,7 @@ Figures are made whenever one is missing (a fresh download has none) and
 remade in "quick" and "full". On a Mac each step keeps the computer awake
 (`caffeinate`), but not with the lid closed. In every mode, the comparison
 tables (✓ / ✗) check the results against the letter and the SI tables, and the
-last cell counts them (1,238 values: 390 in the letter, 848 in the SI tables).
+last cell counts them (1,212 values: 364 in the letter, 848 in the SI tables).
 
 ## What the notebook contains
 
@@ -42,33 +42,33 @@ in `code/pipeline/compute/`; times are for a full run.
 
 | Step (script) | Time | Letter |
 |---|---|---|
-| `retrieve_kd.py` (the fixed-albedo stage; later steps reuse it) | 95 min | Sec. 3.4 |
-| `compute_common_epoch.py` | 15 min | Secs. 3.3, 3.5 (common 1974 window) |
+| `retrieve_kd.py` (the fixed-albedo stage; later steps reuse it) | 95 min | Sec. 3.3 |
+| `compute_common_epoch.py` | 15 min | Secs. 3.5, 4.3 (common 1974 window) |
 | `compute_diviner_closure.py`, `compute_review_diagnostics.py` (need Diviner) | 3, 5 min | Fig 1 swing depth; Diviner inputs |
-| `compute_albedo_diagnostics.py`, `compute_albedo_sensitivity.py`, `compute_albedo_anchor.py` | 13, 35, 5 min | Sec. 3.4; SI Table S7 |
+| `compute_albedo_diagnostics.py`, `compute_albedo_sensitivity.py`, `compute_albedo_anchor.py` | 13, 35, 5 min | Sec. 3.3; SI Table S7 |
 | `compute_stability_windows.py` | seconds | Sec. 2.1; SI Table S1 |
-| **`compute_joint_albedo_fit.py`** (quick: `--reuse`) | 25 min | **Sec. 3.3, Table 1** |
-| `compute_subset_fits.py` | 1 min | Secs. 3.1–3.3; Table 1, Fig 3 (each probe, each thermometer type, all the sensors) |
+| **`compute_joint_albedo_fit.py`** (quick: `--reuse`) | 25 min | **Sec. 3.1, Table 1** |
+| `compute_subset_fits.py` | 1 min | Sec. 3.1; Table 1, Fig 3 (each probe, each thermometer type, all the sensors) |
 | `certify_joint_numerics.py` | 3 min | SI Table S3 |
 | `compute_joint_valley.py` | seconds | SI Table S10 |
-| `compute_joint_probe_checks.py` | seconds | Secs. 3.4, 4.2; SI Table S9 |
-| `compute_joint_block_bootstrap.py` | 1 min | Sec. 2.3; SI Table S5 |
-| `compute_joint_fit_sensitivities.py` (quick: `--reuse`, if its cache is present) | 80 min | Sec. 4.2; SI Tables S5 (error budget), S12 |
-| `compute_joint_fit_checks.py` | 4 min | Table 1 (lower rows), Fig 3e, j; Secs. 3.1–3.3, 3.5 |
-| `compute_martinez_density.py` | 20 min | Sec. 4.3; SI Table S4 |
-| `compute_joint_diviner.py` (needs Diviner) | 3 min | SI Table S13, SI Fig S5 |
-| `compute_gradient_epochs.py` | seconds | Sec. 3.3; SI Table S2 |
-| `compute_joint_chi_density.py` | 50 min | Sec. 4.3; SI Table S14 |
-| `compute_likelihood_ratio.py` | seconds | every $p$: Table 1; Secs. 3.3, 4.2, 4.3 |
-| `compute_annual_wave.py` | 3 min | Sec. 3.4, Fig 5; SI Table S11 |
+| `compute_joint_probe_checks.py` | seconds | Secs. 3.3, 4.2; SI Table S9 |
+| `compute_joint_block_bootstrap.py` | 1 min | Sec. 2.4; SI Table S5 |
+| `compute_joint_fit_sensitivities.py` (quick: `--reuse`, if its cache is present) | 80 min | Secs. 3.4, 3.5; SI Tables S5 (error budget), S12 |
+| `compute_joint_fit_checks.py` | 4 min | Table 1 (lower rows), Fig 3e, j; Secs. 3.2, 3.5, 4.1, 4.2 |
+| `compute_martinez_density.py` | 20 min | SI Table S4 |
+| `compute_joint_diviner.py` (needs Diviner) | 3 min | SI Table S13, SI Fig S8 |
+| `compute_gradient_epochs.py` | seconds | Secs. 3.2, 4.3; SI Table S2 |
+| `compute_joint_chi_density.py` | 50 min | Sec. 4.4; SI Table S14 |
+| `compute_likelihood_ratio.py` | seconds | every $p$: Table 1; Secs. 3.2–3.4, 4.4 |
+| `compute_annual_wave.py` | 3 min | Sec. 3.3, SI Fig S4; SI Table S11 |
 | `compute_own_diffusivity_fit.py` | seconds | Secs. 3.5, 4.2; SI Table S11 |
 | `compute_annual_wave_surface_test.py` | 6 min | Sec. 4.4; SI Table S11 |
-| `compute_transient_warming.py` | 2 min | Secs. 3.3–3.5, 4.4; SI Table S8 |
-| `compute_joint_mcmc.py` (quick: `--sample`) | 2 h | Secs. 3.5, 4.2; Fig 6; SI Table S6 |
+| `compute_transient_warming.py` | 2 min | Secs. 3.5, 4.3, 4.4; SI Table S8 |
+| `compute_joint_mcmc.py` (quick: `--sample`) | 2 h | Secs. 3.4, 4.3; SI Fig S5; SI Table S6 |
 
-**Part 3, the figures:** `figures/make_joint_figures.py` (Figs 1–7, SI Figs
-S3–S5; 4 min), `figures/make_context_map_figure.py` (SI Fig S1; needs the LOLA
-map) and the Diviner step (SI Fig S5).
+**Part 3, the figures:** `figures/make_joint_figures.py` (Figs 1–4, SI Figs
+S2–S7; 4 min), `figures/make_context_map_figure.py` (SI Fig S1; needs the LOLA
+map) and the Diviner step (SI Fig S8).
 
 **Part 4, the paper section by section:** Sections 2.1–2.3 (data, model,
 fitting), 3.1 (each probe on its own), 3.2 (each thermometer type on its

@@ -42,7 +42,7 @@ repository. Two public data sets are not, and are needed only to recompute the
 steps that use them:
 
 ```bash
-python code/pipeline/fetch_diviner.py     # ~310 MB: Diviner comparison (SI Table S13, SI Fig S5)
+python code/pipeline/fetch_diviner.py     # ~310 MB: Diviner comparison (SI Table S13, SI Fig S8)
 mkdir -p code/data/lola
 curl -L -o code/data/lola/ldem_16.img https://pds-geosciences.wustl.edu/lro/lro-l-lola-3-rdr-v1/lrolol_1xxx/data/lola_gdr/cylindrical/img/ldem_16.img   # 33 MB: SI Fig S1
 ```
@@ -70,8 +70,8 @@ Set `MODE` in its first code cell and *Run All*: `"show"` reads the stored
 results (minutes), `"quick"` runs the short steps and the fast form of the
 long ones (about 45 min), `"full"` runs everything from scratch (about 6 h).
 The notebook then goes through the letter section by section, and the SI
-table by table, and compares every number with the value printed there (1,238
-values: 390 in the letter, 848 in the SI tables).
+table by table, and compares every number with the value printed there (1,212
+values: 364 in the letter, 848 in the SI tables).
 `code/notebooks/README.md` lists the script behind every step.
 
 **Without Jupyter**, the same scripts in the same order:
@@ -100,8 +100,8 @@ python code/pipeline/compute/compute_joint_mcmc.py --sample             # ~1 min
 make figures
 ```
 
-This writes the letter's Figures 1–7 and SI Figures S1–S4 to
-`figures/`. SI Figure S5 is written by `compute_joint_diviner.py` (it needs
+This writes the letter's Figures 1–4 and SI Figures S1–S7 to
+`figures/`. SI Figure S8 is written by `compute_joint_diviner.py` (it needs
 the Diviner data); SI Figure S1 needs the LOLA map. The notebook shows every
 figure.
 

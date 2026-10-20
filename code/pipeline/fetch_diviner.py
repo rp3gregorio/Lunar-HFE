@@ -4,7 +4,7 @@
 The paper compares modelled diurnal surface temperatures against the
 Diviner Lunar Radiometer Global Cumulative Product (GCP) at Apollo 15
 (lat +26.13 deg, 20n30n band) and Apollo 17 (lat +20.19 deg, 10n20n
-band). Only those two tiles are needed for the Diviner comparison (SI Table S13, SI Fig. S5).
+band). Only those two tiles are needed for the Diviner comparison (SI Table S13, SI Fig. S8).
 
 Each tile is ~150 MB. Total download ~310 MB. Files are placed under
 ``data/diviner/gcp/`` and reused if already present.

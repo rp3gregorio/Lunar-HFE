@@ -4,16 +4,16 @@
   fig_joint_apollo_timeline_probes.pdf  Fig. 2: stability-window timeline (site colours)
   fig_joint_subsets.pdf                 Fig. 3: each probe, each thermometer type and all the sensors (one panel each)
   fig_joint_constraints.pdf             Fig. 4: what fixes A and K_d at each site
-  fig_joint_annual_wave.pdf             Fig. 5: the annual wave in the full record vs the forward model (compute_annual_wave.py)
-  fig_joint_mcmc.pdf                    Fig. 6: MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
-  fig_joint_variants.pdf                Fig. 7: K_d from every variant at each site
+  fig_joint_annual_wave.pdf             Fig. S4: the annual wave in the full record vs the forward model (compute_annual_wave.py)
+  fig_joint_mcmc.pdf                    Fig. S5: MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
+  fig_joint_variants.pdf                Fig. S6: K_d from every variant at each site
   fig_joint_amplitude_vs_depth.pdf      Fig. S2: diurnal amplitude vs depth
   fig_joint_anchor_process.pdf          Fig. S3: the flux-anchored solver step by step, Apollo 15 at the joint fit (~30 s)
-  fig_joint_robustness.pdf              Fig. S4: K_d under each changed input, grouped as in SI Table S5
+  fig_joint_robustness.pdf              Fig. S7: K_d under each changed input, grouped as in SI Table S5
 
 Figs. 1, 2, S3 and S4 come from the make_intro_column / make_apollo_timeline_letter /
 make_letter_figures / make_anchor_process_figure generators, called here.
-SI Figs. S1 and S5 come from make_context_map_figure.py and compute_joint_diviner.py.
+SI Figs. S1 and S8 come from make_context_map_figure.py and compute_joint_diviner.py.
 
 Reads results/joint_albedo_fit.json (+ _cache.npz), joint_fit_checks.json,
 joint_fit_sensitivities.json, joint_valley.json, joint_mcmc.json, annual_wave.json,
@@ -83,7 +83,7 @@ def fig_constraints(res, cache):
     A, K = jf.A_GRID, jf.KD_GRID * 1e3
     KLIM = (1.0, 17.0)                     # one K_d range in all four panels
     valley = json.loads((RES / "joint_valley.json").read_text())   # temperatures only at the fitted A
-    fig = plt.figure(figsize=(W_LETTER, 5.5))
+    fig = plt.figure(figsize=(W_LETTER, 4.4))
     gs = fig.add_gridspec(2, 2, height_ratios=[1.2, 0.85], hspace=0.42, wspace=0.25,
                           left=0.10, right=0.92, top=0.95, bottom=0.09)
     top = []
@@ -171,7 +171,7 @@ def fig_constraints(res, cache):
 
 
 def fig_robustness(res, sens):
-    """SI Fig. S4: K_d* refitted under each changed input, grouped as in SI Table S5 (the error budget).
+    """SI Fig. S7: K_d* refitted under each changed input, grouped as in SI Table S5 (the error budget).
     (Until 2026-10-07 a panel (a) mapped the A17 - A15 difference over the basal-flux
     pairs; it was dropped with the site-difference claim. The map stays in
     joint_fit_sensitivities.json as qb_contrast_map.)"""
@@ -240,7 +240,7 @@ def fig_robustness(res, sens):
 
 
 def fig_annual_wave():
-    """Fig. 5: the annual wave in the full record against the forward model (compute_annual_wave.py).
+    """SI Fig. S4: the annual wave in the full record against the forward model (compute_annual_wave.py).
     Left: chi^2 profile over K_d (all sensors: amplitude and phase; amplitude only; phase only).
     Middle and right: amplitude and phase lag against depth, data divided by the fitted probe factor,
     with the model at the annual-wave best fit, at the joint fit and at the global K_d."""
@@ -400,8 +400,8 @@ def fig_subsets(res, cache):
     sf = json.loads((RES / "subset_fits.json").read_text())["sites"]
     mark, msz, zlo, zhi = {"TG": "o", "TR": "s"}, {"TG": 5.6, "TR": 5.1}, 70, 245
     cols = (("probe1", "Probe 1"), ("probe2", "Probe 2"), ("TG", "TG"), ("TR", "TR"), ("all", "All"))
-    fig = plt.figure(figsize=(W_LETTER, 5.4))
-    gs = fig.add_gridspec(2, 5, hspace=0.30, wspace=0.12, left=0.11, right=0.99, top=0.95, bottom=0.10)
+    fig = plt.figure(figsize=(W_LETTER, 4.6))
+    gs = fig.add_gridspec(2, 5, hspace=0.32, wspace=0.12, left=0.11, right=0.99, top=0.95, bottom=0.10)
     zc = jf.Z_DENSE * 100
     rng, axes = {}, {}
     for r, s in enumerate(("A15", "A17")):
@@ -516,7 +516,7 @@ def variant_rows(res, chk, sens):
 
 
 def fig_variants(res, chk, sens):
-    """Fig. 7, every variant: K_d at each site, best value and 95% interval or the
+    """SI Fig. S6, every variant: K_d at each site, best value and 95% interval or the
     range of its versions; the joint fit's 95% interval shaded; the global 3.4 dotted."""
     rows = variant_rows(res, chk, sens)
     xmin, xmax = 1.0, 9.0
@@ -592,7 +592,7 @@ def main():
     if (RES / "subset_fits.json").exists():
         fig_subsets(res, cache)            # Fig. 3: each probe, each thermometer type and all the sensors
     if sens is not None:
-        fig_variants(res, chk, sens)       # Fig. 7: K_d from every variant
+        fig_variants(res, chk, sens)       # SI Fig. S6: K_d from every variant
     if (RES / "joint_mcmc.json").exists():
         fig_mcmc(res)
     if (RES / "annual_wave.json").exists():

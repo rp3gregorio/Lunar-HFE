@@ -46,8 +46,8 @@ T_SPAN = 3.5            # K, the same temperature range in both site panels
 GAP_DAYS = 20.0         # a pause longer than this breaks a record line
 # layout [in]
 LEFT, RIGHT = 1.12, 0.62           # sensor labels on the left, probe labels on the right
-TITLE_H, TEMP_H, SEP_H = 0.26, 0.70, 0.10
-ROW_H, PROBE_GAP, SITE_GAP, BOTTOM = 0.175, 0.10, 0.22, 0.62
+TITLE_H, TEMP_H, SEP_H = 0.24, 0.56, 0.08
+ROW_H, PROBE_GAP, SITE_GAP, BOTTOM = 0.162, 0.08, 0.16, 0.60
 
 
 def records(site):

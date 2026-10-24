@@ -1,0 +1,66 @@
+{
+ "meta": {
+  "purpose": "Can density alone give the measured diffusivities? (letter Section 4.1; 2026-10-24)",
+  "rho_grid_kg_m3": [
+   1600.0,
+   3300.0,
+   5.0
+  ],
+  "kappa_units": "1e-4 cm^2 s^-1",
+  "rho_cores_top_kg_m3": 1990.0
+ },
+ "sites": {
+  "A15": {
+   "albedo": 0.13625747387571432,
+   "kappa_obs": [
+    0.87,
+    0.74
+   ],
+   "kappa_obs_mean": 0.8049999999999999,
+   "kappa_model_1800": [
+    0.6446398364246599,
+    0.6441924484560986
+   ],
+   "kappa_model_cores_top": [
+    0.720591981852333,
+    0.720092455818966
+   ],
+   "kappa_model_langseth_top": [
+    0.6865079947223576,
+    0.6860320226919111
+   ],
+   "rho_langseth_top_kg_m3": 1900.0,
+   "rho_d_for_mean_obs_kg_m3": 2255.4520203837765,
+   "rho_d_for_each_probe_kg_m3": [
+    2511.472033367683,
+    2046.6660489447245
+   ]
+  },
+  "A17": {
+   "albedo": 0.1374774971965067,
+   "kappa_obs": [
+    1.0,
+    0.88
+   ],
+   "kappa_obs_mean": 0.94,
+   "kappa_model_1800": [
+    0.6470298518015103,
+    0.6472099340190637
+   ],
+   "kappa_model_cores_top": [
+    0.7233058762853395,
+    0.7234959238770151
+   ],
+   "kappa_model_langseth_top": [
+    0.7578899890522459,
+    0.7580831290646404
+   ],
+   "rho_langseth_top_kg_m3": 2090.0,
+   "rho_d_for_mean_obs_kg_m3": 2840.9419277343954,
+   "rho_d_for_each_probe_kg_m3": [
+    3223.085109017408,
+    2539.720019035764
+   ]
+  }
+ }
+}

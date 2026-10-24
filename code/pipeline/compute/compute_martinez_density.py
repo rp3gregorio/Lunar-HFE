@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The Martinez & Siegler (2021) model with its deep density fitted (letter Sec. 4.3; SI Table S4).
+"""The Martinez & Siegler (2021) model with its deep density fitted (SI Table S4).
 
 The Martinez & Siegler K(T, rho) has no conductivity to fit; its one knob is the
 density. This script scales the deep-asymptote density of the shared density

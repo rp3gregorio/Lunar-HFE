@@ -107,7 +107,7 @@ EQ_ANCHOR_TOL = 0.005   # convergence tolerance on the anchor temperature [K]
 # albedo = effective constant Bond albedo, FITTED jointly with K_d to three
 # in-situ measurements (sensor temperatures, measured surface mean, Langseth 1976
 # annual-wave diffusivity) by pipeline/compute/compute_joint_albedo_fit.py
-# (results/joint_albedo_fit.json: 0.13626 / 0.13748; letter Sec. 3.3). Up to
+# (results/joint_albedo_fit.json: 0.13626 / 0.13748; letter Sec. 3.1). Up to
 # v1.1-jgr these were fixed at 0.131 / 0.137, values with no published source.
 SITES = {
     "A15": dict(tag="A15", label="Apollo 15", lat=26.13, lon=3.63,

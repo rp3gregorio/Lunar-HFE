@@ -1,0 +1,28 @@
+{
+ "period": [
+  "1972-01-01",
+  "1977-01-01"
+ ],
+ "sampling_h": 1.0,
+ "S0_W_m2": 1361.0,
+ "sites": {
+  "A15": {
+   "lat_deg": 26.13,
+   "mean_real_W_m2": 386.76134982829916,
+   "mean_real_at_1AU_W_m2": 388.23118776448445,
+   "mean_idealized_W_m2": 388.9434402475792,
+   "real_minus_ideal_pct": -0.5610302664806555,
+   "distance_part_pct": -0.3785986243529105,
+   "geometry_part_pct": -0.18312495067184242
+  },
+  "A17": {
+   "lat_deg": 20.19,
+   "mean_real_W_m2": 404.19104020855576,
+   "mean_real_at_1AU_W_m2": 405.52536850239574,
+   "mean_idealized_W_m2": 406.5998196672167,
+   "real_minus_ideal_pct": -0.5924201984723987,
+   "distance_part_pct": -0.32903694749545354,
+   "geometry_part_pct": -0.26425274012673583
+  }
+ }
+}

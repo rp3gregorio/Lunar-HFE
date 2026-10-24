@@ -108,7 +108,7 @@ C_HAYNE_FIT, LS_HAYNE_FIT = C_TEAL, "-"            # Hayne form at the joint fit
 C_HAYNE_GLOBAL, LS_HAYNE_GLOBAL = C_TEAL_L, "--"   # Hayne form at the global K_d
 C_GLOBAL_REF, LS_GLOBAL_REF = C_TEAL, ":"          # the global value 3.4 as a reference line
 LS_MS = ":"                                        # Martinez & Siegler (colour C_MS)
-C_EXCL_FILL, C_EXCL_EDGE = "#ECE8E2", C_NEUTRAL    # borestem / excluded zone
+C_EXCL_FILL, C_EXCL_EDGE = "#E6E6E6", C_NEUTRAL    # borestem / excluded zone (neutral grey, no beige)
 
 WARM_DIVERGE = LinearSegmentedColormap.from_list(
     "warm_diverge",

@@ -4,7 +4,7 @@
 One command to "draw out the figures." Each generator is run in turn,
 timed, and reported; a failure in one does not stop the others. Assumes
 the results JSONs exist in results/ (the repository ships them; `make aux`
-or the notebook recomputes them). SI Figure S8 is drawn by
+or the notebook recomputes them). SI Figure S9 is drawn by
 compute/compute_joint_diviner.py, which needs the Diviner data.
 
 Run:  python pipeline/make_all_figures.py    (or: make figures)
@@ -20,8 +20,9 @@ sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 
 # (module, callables) — each module's figure entry point(s), in run order.
 JOBS = [
-    ("make_joint_figures",           ["main"]),   # letter Figs 1-4, SI Figs S2-S7
+    ("make_joint_figures",           ["main"]),   # letter Figs 1-4, SI Figs S3-S8
     ("make_context_map_figure",      ["main"]),   # SI Fig S1 (needs the LOLA map: REPRODUCING.md, Step 3)
+    ("make_probe_drawing",           ["main"]),   # SI Fig S2 (Langseth & Keihm 1977, Appendix C Fig. 1)
     ("make_spinup_animation",        ["main"]),   # optional_anchor_method notebook: brute-force spin-up
     ("make_anchor_method_animation", ["main"]),   # optional_anchor_method notebook: the flux-anchored method
 ]

@@ -30,7 +30,7 @@ CHIS = (1.5, 2.2, 2.45, 2.95, 3.2)
 A_LOW = np.round(np.arange(0.0, 0.20001, 0.005), 4)       # chi < 2.7: darker surfaces needed
 A_HIGH = np.round(np.arange(0.10, 0.26001, 0.005), 4)     # chi > 2.7: brighter surfaces needed
 A_COARSE = np.round(np.arange(0.0, 0.20001, 0.01), 4)     # chi = 1.5: only checks whether any albedo fits
-RHO_SITE = {"A15": 1825.0, "A17": 1960.0}                 # Langseth et al. (1976) core-range midpoints
+RHO_SITE = {"A15": 1825.0, "A17": 1960.0}                 # midpoints of the in-situ ranges Langseth et al. (1976) estimate from the cores
 CACHE = _REPO / "results" / "joint_chi_density_cache.npz"
 NAMES = ("Tz", "prof", "Ts", "clos", "kap")
 

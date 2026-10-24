@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Letter Figure 1 -- the column, its grid, the probes in it, and its density.
+"""Letter Figure 2 -- the column, its grid, the probes in it, and its density.
 
 Extends the fig_column_illustration design (3-D sheared cutaway | the 69-cell
 grid | rho(z)) with the two things the letter needs alongside them: the Apollo
@@ -68,8 +68,8 @@ from matplotlib.colors import to_rgb
 from lunar.constants import RHO_DEEP, RHO_SURFACE
 from lunar.grid import make_geometric_grid
 from lunar.plotting.style import (C_HAYNE_GLOBAL, LS_HAYNE_GLOBAL, LS_MS)
-from lunar.plotting.style import (C_CHAR, C_CORAL, C_DIM, C_FOREST, C_GRID,
-                                  C_MS)
+from lunar.plotting.style import (C_A15_2, C_A17_2, C_CHAR, C_CORAL, C_DIM, C_FOREST,
+                                  C_GRID, C_MS)
 from lunar.properties import (conductivity_hayne, conductivity_martinez,
                               density_hayne)
 
@@ -306,38 +306,52 @@ def draw_grid_half(ax):
     hidden: a horizontal line does NOT mean the same depth on both halves, so each
     half gets its own scale label and its own ticks -- log in centimetres down the
     left, linear in metres inside the right.
+
+    The letter draws the faces on the material's log axis instead (user's choice,
+    2026-10-23: two scales in one block confused readers). Below a few cm each
+    cell is 8 % thicker than the one above, so there the faces are evenly spaced;
+    the two Delta z labels give the true thicknesses. The guidebook keeps the
+    linear version.
     """
     g = make_geometric_grid(**GRID)
     zf = g.z_face
     z_max = float(zf[-1])
     span = Y_TOP - Y_BOT
+    log = _DOC["pt"] is not None          # the letter: one log depth axis for the whole block
 
     def ylin(z):
         return Y_TOP - (z / z_max) * span
 
+    yz = (lambda z: float(ymap(100.0 * z))) if log else ylin     # z in m
+
     for i in range(zf.size - 1):
-        t = zf[i] / z_max
-        ax.add_patch(Rectangle((X_SPLIT, ylin(zf[i + 1])), BLK_R - X_SPLIT,
-                               ylin(zf[i]) - ylin(zf[i + 1]),
+        t = (Y_TOP - yz(zf[i])) / span if log else zf[i] / z_max
+        ax.add_patch(Rectangle((X_SPLIT, yz(zf[i + 1])), BLK_R - X_SPLIT,
+                               yz(zf[i]) - yz(zf[i + 1]),
                                facecolor=_shade(GROUND_MID, 0.26 - 0.42 * t),
                                edgecolor=_shade(C_DIM, 0.08), lw=0.3,
                                zorder=7.2))
     ax.plot([X_SPLIT, X_SPLIT], [Y_BOT, Y_TOP], color=_shade(C_CHAR, 0.15),
             lw=1.1, zorder=7.6)
 
-    for z in (1.0, 2.0, 3.0, 4.0, 5.0):
+    # the linear half's own depth ticks; 5 m is the block's bottom edge, its label hid under the last Δz
+    for z in () if log else (1.0, 2.0, 3.0, 4.0):
         y = float(ylin(z))
         ax.plot([BLK_R - 0.07, BLK_R], [y, y], color=_shade(C_CHAR, 0.35),
                 lw=0.6, zorder=7.7)
         ax.text(BLK_R - 0.10, y, f"{z:.0f}", color=_shade(C_CHAR, 0.25),
                 fontsize=fs(7.0), ha="right", va="center", zorder=7.8, bbox=HALO)
 
+    # on the log axis the labels sit on the cell faces: a lighter halo lets the faces show through
+    halo = dict(HALO, alpha=0.45) if log else HALO
     ax.text(X_SPLIT + 0.05, Y_TOP - 0.10,
             rf"$\Delta z={g.dz[0]*1e3:.0f}$ mm", color=COOL, fontsize=fs(7.5),
-            ha="left", va="top", zorder=13, bbox=HALO)
-    ax.text(X_SPLIT + 0.05, float(ylin(z_max - g.dz[-1] / 2)),
+            ha="left", va="top", zorder=13, bbox=halo)
+    # linear: centred in the last (thick) cell; log: that cell is a thin strip at the
+    # bottom edge, so the label sits just above the edge, inside the block
+    ax.text(X_SPLIT + 0.05, Y_BOT + 0.05 if log else float(yz(z_max - g.dz[-1] / 2)),
             rf"$\Delta z={g.dz[-1]*100:.0f}$ cm", color=COOL, fontsize=fs(7.5),
-            ha="left", va="center", zorder=13, bbox=HALO)
+            ha="left", va="bottom" if log else "center", zorder=13, bbox=halo)
     return g
 
 
@@ -443,65 +457,85 @@ def draw_fluxes(ax, mid):
                                  (BLK_L + 0.16, Y_BOT + 0.16),
                                  color=C_CHAR, zorder=10, **ARROW))
 
-    # the one physical note kept on the illustration
-    y_dead = float(ymap(Z_SKIN_DEAD))
+    # the one physical note kept on the illustration. Letter: the 80 cm border of
+    # the borestem zone, which separates the open sensors from the filled ones
+    # (user, 2026-10-25); guidebook: the depth where the daily swing falls below 0.1 K.
+    z_line, note = ((BORESTEM_CM, f"{BORESTEM_CM:.0f} cm") if _DOC["pt"]
+                    else (Z_SKIN_DEAD, r"$<0.1$ K"))
+    y_dead = float(ymap(z_line))
     ax.plot([BLK_L, X_SPLIT], [y_dead, y_dead], color=C_DIM,
             lw=0.8, ls=(0, (2.4, 2.0)), zorder=12)
-    ax.text(X_SPLIT - 0.04, y_dead + 0.03,
-            r"$<0.1$ K",
+    ax.text(X_SPLIT - 0.04, y_dead + 0.03, note,
             color=C_DIM, fontsize=fs(7.5), ha="right", va="bottom",
             zorder=13, bbox=HALO)
 
 
 
 # ---- the probes, drawn into the material they measured ----------------------
-PROBE_LANES = {"a15": (BLK_L + 0.82, C_FOREST, "Apollo 15"),
-               "a17": (BLK_L + 1.04, C_CORAL, "Apollo 17")}
+# one borestem per probe (probe 1, probe 2), in the probe colours of letter Figure 1;
+# Apollo 15 left of the sunlight arrow, Apollo 17 right of it
+PROBE_LANES = {"a15": ((BLK_L + 0.24, BLK_L + 0.37), (C_FOREST, C_A15_2), "Apollo 15"),
+               "a17": ((BLK_L + 0.90, BLK_L + 1.03), (C_CORAL, C_A17_2), "Apollo 17")}
 
 
 def draw_probes(ax):
-    """Both borestems, drawn as instruments rather than lines.
+    """The borestems, one per probe, drawn as instruments rather than lines.
 
     Each is a pale drill casing with the probe rod inside it, a small head box
-    at the surface, and the platinum sensors as beads on the rod: filled where
-    the sensor enters the retrieval, open inside the excluded borestem zone.
+    at the surface, and the platinum resistance thermometers as beads on the
+    rod, gradient bridge (TG) as circles and ring bridge (TR) as squares, as in
+    letter Figure 3: filled where the sensor enters the retrieval, open inside
+    the excluded borestem zone. The cable thermocouples (TC, in the Apollo 17
+    record only) are left out: they never enter the analysis. Each rod is
+    numbered with its probe below its end; the site is named beside the pair.
     """
-    for mis, (x, col, lab) in PROBE_LANES.items():
+    for mis, (xs, cols, lab) in PROBE_LANES.items():
         o = extract_sensor_stability(mis, int(BORESTEM_CM))
-        d = np.asarray(o["depth_cm_all"], dtype=float)
-        m = np.asarray(o["deep_mask"], dtype=bool)
-        y_s, y_e = float(ymap(Z_TOP)), float(ymap(d.max()))
+        d_all = np.asarray(o["depth_cm_all"], dtype=float)
+        m_all = np.asarray(o["deep_mask"], dtype=bool)
+        probe = np.array([s["probe"] for s in o["sensors"]])
+        stype = np.asarray(o["stype_all"])
+        assert np.allclose([s["depth_cm"] for s in o["sensors"]], d_all)
+        ends = []
+        for p, x, col in zip((1, 2), xs, cols):
+            k = (probe == p) & (stype != "TC")
+            d, m, ty = d_all[k], m_all[k], stype[k]
+            y_s, y_e = float(ymap(Z_TOP)), float(ymap(d.max()))
+            ends.append(y_e)
 
-        # the drilled casing: pale, wider, with a soft edge
-        ax.plot([x, x], [y_s, y_e], color=PAPER, lw=5.2, alpha=0.85,
-                solid_capstyle="round", zorder=12.6)
-        ax.plot([x, x], [y_s, y_e], color=_shade(col, 0.55), lw=4.4,
-                alpha=0.55, solid_capstyle="round", zorder=12.7)
-        # the probe rod inside it
-        ax.plot([x, x], [y_s, y_e], color=_shade(col, -0.10), lw=1.5,
-                alpha=0.95, solid_capstyle="round", zorder=13)
-        # the closed nose
-        ax.plot([x], [y_e], marker="v", ms=3.4, color=_shade(col, -0.25),
-                zorder=13.5)
-        # the head box, sitting on the surface
-        ax.add_patch(Rectangle((x - 0.055, y_s), 0.11, 0.075,
-                               facecolor=_shade(col, 0.30),
-                               edgecolor=_shade(col, -0.25), lw=0.6,
-                               zorder=13.6))
+            # the drilled casing: pale, wider, with a soft edge
+            ax.plot([x, x], [y_s, y_e], color=PAPER, lw=5.2, alpha=0.85,
+                    solid_capstyle="round", zorder=12.6)
+            ax.plot([x, x], [y_s, y_e], color=_shade(col, 0.55), lw=4.4,
+                    alpha=0.55, solid_capstyle="round", zorder=12.7)
+            # the probe rod inside it
+            ax.plot([x, x], [y_s, y_e], color=_shade(col, -0.10), lw=1.5,
+                    alpha=0.95, solid_capstyle="round", zorder=13)
+            # the closed nose
+            ax.plot([x], [y_e], marker="v", ms=3.4, color=_shade(col, -0.25),
+                    zorder=13.5)
+            # the head box, sitting on the surface
+            ax.add_patch(Rectangle((x - 0.055, y_s), 0.11, 0.075,
+                                   facecolor=_shade(col, 0.30),
+                                   edgecolor=_shade(col, -0.25), lw=0.6,
+                                   zorder=13.6))
 
-        # the sensors
-        ax.scatter(np.full(int(m.sum()), x), ymap(d[m]), s=13, facecolor=col,
-                   edgecolor=PAPER, linewidth=0.6, zorder=14)
-        ax.scatter(np.full(int((~m).sum()), x), ymap(d[~m]), s=13,
-                   facecolor=PAPER, edgecolor=col, linewidth=0.8, zorder=14)
+            # the sensors: TG circles, TR squares; filled = used, open = borestem zone
+            for t, mk, size in (("TG", "o", 13), ("TR", "s", 11)):
+                u, x_ = m & (ty == t), ~m & (ty == t)
+                ax.scatter(np.full(int(u.sum()), x), ymap(d[u]), s=size, marker=mk,
+                           facecolor=col, edgecolor=PAPER, linewidth=0.6, zorder=14)
+                ax.scatter(np.full(int(x_.sum()), x), ymap(d[x_]), s=size, marker=mk,
+                           facecolor=PAPER, edgecolor=col, linewidth=0.8, zorder=14)
+            # the probe number, below the rod's end
+            ax.text(x, y_e - 0.07, str(p), color=_shade(col, -0.2), fontsize=fs(7.6),
+                    ha="center", va="top", zorder=15, bbox=dict(HALO, pad=0.3))
 
-        side = -1 if mis == "a15" else 1          # labels point away from each other
-        # A17 label lifted clear of the basal-flux equation and the grid note
-        ax.text(x + 0.075 * side, y_e + (0.11 if side > 0 else 0.0),
-                ("A" + lab.split()[-1]) if _DOC["pt"] else f"{lab}\n{d.max()/100:.2f} m · {int(m.sum())} sensors",
-                color=_shade(col, -0.2), fontsize=fs(7.6), linespacing=1.35,
-                ha=("right" if side < 0 else "left"), va="center",
-                zorder=15, bbox=HALO)
+        # the site, beside the pair, level with its deeper end
+        ax.text(xs[1] + 0.13, min(ends),
+                ("A" + lab.split()[-1]) if _DOC["pt"] else f"{lab}\n{d_all.max()/100:.2f} m · {int(m_all.sum())} sensors",
+                color=_shade(cols[0], -0.2), fontsize=fs(7.6), linespacing=1.35,
+                ha="left", va="center", zorder=15, bbox=HALO)
 
 
 def draw_kpanel(ax):
@@ -530,6 +564,7 @@ def draw_kpanel(ax):
             fontsize=fs(8.5), ha="center", va="bottom", zorder=6)
 
     if _DOC["pt"]:                 # letter: both names to the right of the curves near the top
+        draw_depth_axis(ax, KPAN_L, KPAN_R)
         ax.text(kx(3.6), ymap(0.75), "Hayne", color=_shade(C_HAYNE_GLOBAL, -0.3), fontsize=fs(8),
                 ha="left", va="center", zorder=7, bbox=HALO)
         ax.text(kx(4.4), ymap(2.3), "Mart\u00ednez\n& Siegler", color=C_MS,
@@ -552,6 +587,19 @@ def draw_bc_labels(ax):
             r"$K\,\partial_z T\,|_{z_{\max}}=Q_b$",
             color=C_CHAR, fontsize=fs(10), ha="left", va="bottom",
             zorder=15, bbox=HALO)
+
+
+def draw_depth_axis(ax, x_l, x_r):
+    """The block's depth ticks (1, 10, 100, 500 cm) repeated on the left of a
+    panel, with faint guides across it: the three panels share one log depth
+    axis, and each now says so (letter; user, 2026-10-23)."""
+    ax.plot([x_l, x_l], [Y_BOT, Y_TOP], color=C_DIM, lw=0.6, zorder=3)
+    for zc, lab in TICKS:
+        y = float(ymap(zc))
+        ax.plot([x_l, x_r], [y, y], color=C_GRID, lw=0.6, zorder=1.5)
+        ax.plot([x_l - 0.05, x_l], [y, y], color=C_DIM, lw=0.6, zorder=6)
+        ax.text(x_l - 0.08, y, lab, color=C_DIM, fontsize=fs(8.0), ha="right",
+                va="center", zorder=6)
 
 
 def draw_density(ax):
@@ -580,6 +628,15 @@ def draw_density(ax):
             rf"$\rho_s$ = {RHO_SURFACE:.0f}, $\rho_d$ = {RHO_DEEP:.0f} kg m$^{{\mathrm{{-3}}}}$,"
             rf" $H$ = {HAYNE['H'] * 100:.0f} cm",
             color=C_DIM, fontsize=fs(8.0), ha="center", va="center", zorder=15)
+    if _DOC["pt"]:                 # letter: the shared depth axis, and H marked on the curve
+        draw_depth_axis(ax, DENS_L, DENS_R)
+        zh = HAYNE["H"] * 100.0
+        xh, yh = float(dens_x(float(density_hayne(zh / 100.0)))), float(ymap(zh))
+        ax.plot([xh], [yh], marker="o", ms=3.0, color=DARK, mec=PAPER, mew=0.5, zorder=6)
+        # above and right of the dot: the curve leaves it toward the lower right
+        ax.text(xh + 0.06, yh + 0.02, rf"$H$ = {zh:.0f} cm", color=C_DIM, fontsize=fs(7.6),
+                ha="left", va="bottom", zorder=7, bbox=HALO)
+        return
     # --- the tie lines: the packing at a depth <-> the density at that depth --
     # Four depths spanning the transition: 15 %, 63 %, 92 % and 99 % of the way
     # from the surface density to the deep one. Each runs from the block to a dot
@@ -595,6 +652,14 @@ def draw_density(ax):
                              else "")
         ax.text(GAP_L + 0.03, y, tag, color=C_DIM, fontsize=fs(7.0), ha="left",
                 va="center", zorder=7, bbox=HALO)
+
+
+def draw_panel_labels(ax):
+    """Letter: (a) the column, (b) density, (c) conductivity, in one row above
+    the panels, each over the left edge of its depth tick labels."""
+    for lab, x_l in (("(a)", BLK_L), ("(b)", DENS_L), ("(c)", KPAN_L)):
+        ax.text(x_l - 0.42, Y_TOP + 1.00, lab, color=C_CHAR, fontsize=fs(9),
+                fontweight="bold", ha="left", va="top", zorder=15)
 
 
 def draw_texture_notes(ax):
@@ -632,12 +697,15 @@ def main(out_stem: str = "fig_intro_column", font: str = "cambria") -> None:
     g = draw_grid_half(ax)
     draw_fluxes(ax, mid)
     draw_density(ax)
-    draw_shared_band(ax)          # a light wash, over both panels, drawn last
+    if _DOC["pt"] is None:        # guidebook only: in the letter the band's hard edge at
+        draw_shared_band(ax)      # 30 cm read as a layer; the shading follows rho(z) alone
     draw_grid_notes(ax, g)
     draw_probes(ax)
     draw_kpanel(ax)
     if _DOC["pt"] is None:         # the equations belong to the text of the letter
         draw_bc_labels(ax)
+    else:
+        draw_panel_labels(ax)
 
     fig.canvas.draw()
     FIGS.mkdir(parents=True, exist_ok=True)
@@ -649,8 +717,9 @@ def main(out_stem: str = "fig_intro_column", font: str = "cambria") -> None:
           f"({W * _DOC['scale']:.2f} x {H * _DOC['scale']:.2f} in, landscape)")
     print("  grain radius AND count both computed from rho(z); tie lines at "
           + ", ".join(f"{z:.0f}" for z in TIE_Z) + " cm")
-    print(f"  shared compaction band: surface to {Z_COMPACT:.0f} cm — the "
-          "boundary-condition equations are left to the document")
+    if _DOC["pt"] is None:
+        print(f"  shared compaction band: surface to {Z_COMPACT:.0f} cm — the "
+              "boundary-condition equations are left to the document")
 
 
 if __name__ == "__main__":

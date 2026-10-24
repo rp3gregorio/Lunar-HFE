@@ -351,7 +351,7 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
                              gridspec_kw={"wspace": 0.06})
     fig.subplots_adjust(left=0.10, right=0.975, top=0.92, bottom=0.12)
     XLIM = (2e-2, 150.0)
-    YLIM = (210.0, 0.0)
+    YLIM = (245.0, 0.0)          # down past the deepest sensor (A17, 234 cm)
 
     for ax, name in zip(axes, ["A15", "A17"]):
         cfg = SITES[name]
@@ -413,10 +413,11 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
         ax.semilogx(amp_obs[~stem], z_obs[~stem], "o", color=col,
                     mec="white", mew=0.7, markersize=7, ls="none")
 
-        # digitization noise floor of the restored record (0.05-0.2 K,
-        # Nagihara 2018): the deep-sensor amplitudes flatten here, which
-        # is why they do not constrain the deep diffusivity (Sec. 2.1).
-        ax.axvspan(0.05, 0.2, color=C_NEUTRAL, alpha=0.30, zorder=0)
+        # 0.05 K: below this Langseth & Keihm (1977, Section V-C) count the
+        # daily variation as insignificant. The deep-sensor swings flatten at
+        # 0.03-0.12 K, the noise of the record, which resolves 0.001 K
+        # (Nagihara et al., 2018, p. 1127), so this is noise, not digitization.
+        ax.axvline(0.05, color=C_NEUTRAL, ls=(0, (4, 2)), lw=1.0, zorder=0.6)
         # borestem zone (the excluded-zone role colour)
         ax.axhspan(0, 80, color=C_EXCL_FILL, zorder=0)
 
@@ -446,9 +447,9 @@ def fig_amplitude_vs_depth(out_name="fig_amplitude_vs_depth.pdf"):
          Line2D([], [], ls=LS_MS, color=C_MS, lw=2.0),
          tuple(Line2D([], [], marker="o", ls="none", color=c, mec="white", ms=7) for c in (C_A15, C_A17)),
          tuple(Line2D([], [], marker="o", ls="none", mfc="white", mec=c, ms=7) for c in (C_A15, C_A17)),
-         Patch(fc=C_NEUTRAL, alpha=0.30), Patch(fc=C_EXCL_FILL)]
+         Line2D([], [], color=C_NEUTRAL, ls=(0, (4, 2)), lw=1.0), Patch(fc=C_EXCL_FILL)]
     l = ["Hayne, global $K_d$", "Martínez & Siegler", "meter-scale sensor",
-         "borestem-zone sensor", "digitization noise floor", "borestem zone"]
+         "borestem-zone sensor", "0.05 K: insignificant daily swing", "borestem zone"]
     # extra clearance so the legend clears the x-axis labels; sensor entries in both site colours
     from matplotlib.legend_handler import HandlerTuple
     legend_below(fig, h, l, pad_in=0.30, handlelength=2.6,

@@ -11,15 +11,15 @@ parameter), so a value outside its 95 % interval has p < 0.05.
 This script only post-processes stored fits; it solves nothing.
   * per site, the global K_d = 3.4 against the joint fit, each with its own
     fitted albedo (joint_albedo_fit.json: global_test J minus best J), with
-    and without the diffusivity; df = 1 (Table 1, Sec. 3.3);
+    and without the diffusivity; df = 1 (Table 1, Sec. 3.2);
   * per site, the published global values 3.4 (Hayne et al. 2017), 3.8
     (Feng et al. 2020) and 7 (Vasavada et al. 2012, whose radiative term
-    differs) read off the profile of J over K_d; df = 1 (Sec. 3.3);
+    differs) read off the profile of J over K_d; df = 1 (Sec. 3.2);
   * pooled over both sites: one shared K_d (df = 1) and the global value
     (df = 2) against separate values per site
-    (joint_fit_sensitivities.json, model_comparison; Sec. 4.2);
+    (joint_fit_sensitivities.json, model_comparison; Sec. 3.4);
   * the global value under other radiative coefficients chi and the site
-    densities (joint_chi_density.json; Sec. 4.3, SI Table S14). That file keeps
+    densities (joint_chi_density.json; Sec. 4.4, SI Table S14). That file keeps
     only Delta-AICc, which is converted back to Delta J exactly:
     Delta J = Delta AICc - [pen(2) - pen(3)], pen(k) = 2k + 2k(k+1)/(N-k-1),
     N = n + 3 (compute_joint_albedo_fit.analyse);
@@ -29,11 +29,14 @@ This script only post-processes stored fits; it solves nothing.
   * a stress test of the weakest input: the global value against the joint
     fit with the Langseth et al. (1976) diffusivity uncertainties doubled,
     per site (df = 1) and over both sites (df = 2), recomputed on the cached
-    joint-fit grid (grid minima, as in the pooled model comparison; Sec. 3.3);
+    joint-fit grid (grid minima, as in the pooled model comparison; Sec. 3.2);
   * the standard lunar-average albedo 0.12 (Hayne et al. 2017, their Table A1)
     held fixed against the fitted albedo, with the diffusivity, per site
     (df = 1): K_d* along K_d at A = 0.12 (parabola vertex, as in the joint
-    fit), the sensor bias and RMSE and the surface mean there (Sec. 3.3).
+    fit), the sensor bias and RMSE and the surface mean there (Sec. 3.3);
+  * what carries the rejection of the global value: the change of each term of J
+    (sensors, surface mean, diffusivity) between the joint best and K_d = 3.4
+    with its own albedo, and the test of the diffusivity term alone (Sec. 3.2).
 
 p is the chi^2 survival probability; "sigma" is the two-sided Gaussian
 equivalent of p.
@@ -122,6 +125,24 @@ def main():
         dbl[s] = test(dJ, 1)
     dbl["pooled"] = test(tot, 2)
     out["diffusivity_uncertainty_doubled"] = dbl
+
+    # what carries the rejection of the global value (grid minima, as above): the change of each
+    # term of J between the joint best and K_d = 3.4 with its own albedo. The diffusivity term
+    # alone does not rest on the sensors being independent (Sec. 3.2).
+    terms = {}
+    for s in ("A15", "A17"):
+        z, Tobs = jf.observed(s)
+        n = len(Tobs)
+        kobs = np.array([q[2] for q in jf.KAPPA_OBS[s]]); ksig = np.array([q[3] for q in jf.KAPPA_OBS[s]])
+        parts = dict(sensors=n * np.log(((c[f"{s}_Tz"] - Tobs) ** 2).sum(axis=-1) / n),
+                     surface_mean=((c[f"{s}_Ts"] - jf.TS_OBS[s]) / jf.SIGMA_TS) ** 2,
+                     diffusivity=(((c[f"{s}_kap"] - kobs) / ksig) ** 2).sum(axis=-1))
+        J = sum(parts.values())
+        ib = np.unravel_index(int(np.argmin(J)), J.shape)
+        ig = (int(np.argmin(J[:, iG])), iG)
+        terms[s] = {k: float(v[ig] - v[ib]) for k, v in parts.items()}
+        terms[s]["diffusivity_alone"] = test(terms[s]["diffusivity"], 1)
+    out["global_3p4_terms"] = terms
 
     # the standard albedo 0.12 held fixed, with the diffusivity (refined minima, as in the per-site tests)
     ia = int(np.argmin(np.abs(np.asarray(jf.A_GRID) - A_STANDARD)))

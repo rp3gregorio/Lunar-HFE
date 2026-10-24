@@ -1,6 +1,6 @@
 """Joint fit with our own annual-wave diffusivities (2026-10-12).
 
-The joint (A, K_d) fit (compute_joint_albedo_fit.py, letter Sec. 3.3) takes the
+The joint (A, K_d) fit (compute_joint_albedo_fit.py, letter Sec. 3.1) takes the
 annual-wave diffusivities of Langseth et al. (1976, Table 1). This script
 repeats it with the diffusivities we measured ourselves in the full restored
 record (compute_annual_wave.py, uniform_kappa: Langseth's uniform-medium method

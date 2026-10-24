@@ -52,6 +52,8 @@ aux:                 ## every analysis of the paper after the retrieval (26 step
 	$(PY) code/pipeline/compute/compute_joint_chi_density.py   # ~50 min: joint fit for chi 1.5-3.2 and site-specific densities (letter Sec. 4.3; SI Table S14)
 	$(PY) code/pipeline/compute/compute_likelihood_ratio.py   # seconds, after the joint fit, sensitivities, chi sweep and albedo anchor: likelihood-ratio tests (letter Table 1, Secs. 3.3, 4.2, 4.3; SI Tables S7, S14)
 	$(PY) code/pipeline/compute/compute_annual_wave.py   # ~3 min: annual wave measured in the full record + SPICE-forced forward model (letter Sec. 3.3, SI Fig S4, SI Table S11)
+	$(PY) code/pipeline/compute/compute_insolation_check.py   # ~1 min: real 1972-1976 against the idealized sunlight (letter Sec. 2.2)
+	$(PY) code/pipeline/compute/compute_martinez_diffusivity.py   # ~2 min: density the Martinez & Siegler model needs for the measured diffusivities (letter Sec. 4.1)
 	$(PY) code/pipeline/compute/compute_own_diffusivity_fit.py   # ~15 s, after the annual wave and the joint fit: joint fit with our own diffusivities instead of Langseth's (letter Secs. 3.5, 4.2; SI Table S11)
 	$(PY) code/pipeline/compute/compute_annual_wave_surface_test.py   # ~6 min, after the annual wave: near-surface layer (H 3-10 cm, K_s x0.5-2) vs the annual-wave amplitude factor (letter Sec. 4.4 (iii), SI Table S11)
 	$(PY) code/pipeline/compute/compute_transient_warming.py   # ~2 min, after the annual wave: surface darkening at deployment, warming in the windows, refit (letter Secs. 3.3-3.5, 4.4; SI Table S8)

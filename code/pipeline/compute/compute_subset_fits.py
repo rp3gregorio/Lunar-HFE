@@ -1,4 +1,4 @@
-"""K_d from each probe and each thermometer type on its own, and from all the sensors (letter Secs. 3.1-3.3; Table 1, Fig. 3).
+"""K_d from each probe and each thermometer type on its own, and from all the sensors (letter Sec. 3.1; Table 1, Fig. 3).
 
 The joint (A, K_d) fit of compute_joint_albedo_fit.py is repeated on subsets of
 the meter-scale sensors of each site, with the same objective J, the same solved
@@ -16,10 +16,13 @@ A subset with fewer than three sensors (A15 probe 2 has two below the 80 cm
 cut) cannot fix both the albedo and K_d; for it the albedo is held at the
 all-sensor value of the site (the solved grid interpolated linearly in A) and
 only K_d is fitted. For every subset the global K_d = 3.4 is also tested
-(likelihood ratio, the albedo refitted where it is free; df = 1).
+(likelihood ratio, the albedo refitted where it is free; df = 1), and its
+misfit there is kept: the sensor RMSE and bias and the model diffusivity at
+K_d = 3.4 and the refitted albedo (Table 1, "RMSE at 3.4").
 
 Reads:  results/joint_albedo_fit.json, results/joint_albedo_fit_cache.npz, the Apollo record
-Writes: results/subset_fits.json
+Writes: results/subset_fits.json, results/subset_fits_draws.npz (the bootstrap draws of A and K_d of
+        every subset, for the shaded range of Fig. 3)
 Runtime: about 1 min (no new model runs).
 
 Run with:
@@ -92,14 +95,18 @@ def fit_subset(s, mask, probes, c, a_fixed=None):
     b, bt, g = res["best"], res["bootstrap"], res["global_test"]
     dJ = float(g["J"] - b["J"])
     r = at_fit(Tz, b["A"], b["kd_star_mW"] * 1e-3, a_grid) - T_all[mask]       # misfit at the refined fit
-    return dict(n_sensors=int(mask.sum()), probes_diffusivity=[int(p) + 1 for p in probes],
+    rg = at_fit(Tz, g["A_fitted"], 3.4e-3, a_grid) - T_all[mask]                # ... and at the global K_d
+    draws = dict(A=np.asarray(bt["samples_A"]), kd_mW=np.asarray(bt["samples_kd_mW"]))
+    return draws, dict(n_sensors=int(mask.sum()), probes_diffusivity=[int(p) + 1 for p in probes],
                 albedo_fixed=a_fixed is not None,
                 A=b["A"], kd_mW=b["kd_star_mW"], sensor_rmse_K=float(np.sqrt(np.mean(r ** 2))), bias_K=float(r.mean()),
                 surface_mean_K=b["surface_mean_K"], kappa_obs=b["kappa_obs"],
                 kappa_model=at_fit(kap, b["A"], b["kd_star_mW"] * 1e-3, a_grid).tolist(),   # at the refined fit
                 kd_bootstrap_mW=bt["kd_mW"], A_bootstrap=bt["A"],
                 profile_sets_mW=res["profile_kd"]["sets_mW"],
-                global_3p4=dict(delta_J=dJ, df=1, p=float(chi2.sf(max(dJ, 0.0), 1))))
+                global_3p4=dict(delta_J=dJ, df=1, p=float(chi2.sf(max(dJ, 0.0), 1)),
+                                A=g["A_fitted"], sensor_rmse_K=float(np.sqrt(np.mean(rg ** 2))), bias_K=float(rg.mean()),
+                                kappa_model=at_fit(kap, g["A_fitted"], 3.4e-3, a_grid).tolist()))
 
 
 def main():
@@ -107,8 +114,9 @@ def main():
     c = np.load(_REPO / "results" / "joint_albedo_fit_cache.npz")
     assert np.allclose(c["A_grid"], jf.A_GRID) and np.allclose(c["kd_grid"], jf.KD_GRID), "cache grid differs"
     joint = json.loads((_REPO / "results" / "joint_albedo_fit.json").read_text())["sites"]
-    out = dict(meta=dict(purpose="K_d from each probe and each thermometer type on its own (letter Secs. 3.1-3.3; Table 1, Fig. 3)",
+    out = dict(meta=dict(purpose="K_d from each probe and each thermometer type on its own (letter Sec. 3.1; Table 1, Fig. 3)",
                          min_sensors_for_free_albedo=MIN_FREE, n_boot=jf.N_BOOT, seed=jf.SEED), sites={})
+    draws = {}
     for s in ("A15", "A17"):
         probe, stype, names = sensor_table(s)
         a_all = joint[s]["with_diffusivity"]["best"]["A"]
@@ -117,8 +125,9 @@ def main():
         subsets += [(t, stype == t, [0, 1]) for t in ("TG", "TR")]
         subsets += [("all", np.ones(len(probe), bool), [0, 1])]
         for key, mask, probes in subsets:
-            r = fit_subset(s, mask, probes, c, a_fixed=None if mask.sum() >= MIN_FREE else a_all)
+            d, r = fit_subset(s, mask, probes, c, a_fixed=None if mask.sum() >= MIN_FREE else a_all)
             site[key] = r
+            draws[f"{s}_{key}_A"], draws[f"{s}_{key}_kd_mW"] = d["A"], d["kd_mW"]
             kb = r["kd_bootstrap_mW"]
             print(f"{s} {key:6s} n={r['n_sensors']:2d} diffusivity of probe(s) {r['probes_diffusivity']}"
                   f"{' (albedo held at %.4f)' % a_all if r['albedo_fixed'] else ''}: A {r['A']:.4f}, K_d {r['kd_mW']:.2f} "
@@ -131,7 +140,8 @@ def main():
     out["meta"]["runtime_s"] = round(time.time() - t0, 1)
     p = _REPO / "results" / "subset_fits.json"
     p.write_text(json.dumps(out, indent=1))
-    print(f"wrote {p.relative_to(_REPO)} in {time.time() - t0:.0f} s")
+    np.savez_compressed(p.with_name("subset_fits_draws.npz"), **draws)
+    print(f"wrote {p.relative_to(_REPO)} and subset_fits_draws.npz in {time.time() - t0:.0f} s")
 
 
 if __name__ == "__main__":

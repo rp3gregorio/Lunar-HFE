@@ -151,6 +151,7 @@ code/pipeline/figures/*.py
 !code/pipeline/figures/make_apollo_timeline_letter.py
 !code/pipeline/figures/make_anchor_process_figure.py
 !code/pipeline/figures/make_context_map_figure.py
+!code/pipeline/figures/make_probe_drawing.py
 # (the SI study overview, make_study_overview.py + tikz/, was dropped 2026-10-20; kept locally)
 !code/pipeline/figures/make_spinup_animation.py
 !code/pipeline/figures/make_anchor_method_animation.py

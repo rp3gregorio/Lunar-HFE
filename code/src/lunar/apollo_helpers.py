@@ -14,6 +14,15 @@ import numpy as np
 
 from lunar.validation import load_apollo_hfe_depth
 
+# Apollo 15 probe 1 upper gradient bridge: only its 1975 data (restored by
+# Nagihara et al., 2018) may enter an equilibrium temperature -- see
+# extract_sensor_stability. Its 1971-1974 values were faulty in the original
+# archive (Nagihara et al., 2018, p. 1131) and are corrected in the St. Clair
+# et al. (2020) record used here; the window rule puts TG11B's window in 1975
+# anyway, so this guard is a precaution and does not change K_d.
+A15_TG11_SENSORS = ("TG11A", "TG11B")
+A15_TG11_FIRST_VALID = "1975-01-01"
+
 
 def iso_to_seconds(iso_arr: np.ndarray) -> np.ndarray:
     """Convert ISO-8601 strings to Unix timestamp seconds."""
@@ -103,6 +112,20 @@ def extract_sensor_stability(mission: str, min_depth_cm: float) -> dict[str, Any
             n = len(subset)
             i_start, day_start, method, slope = find_stable_window(subset)
             tail = subset[i_start:]
+            # Apollo 15 TG11A/TG11B: the 1971-1974 values, as processed by the
+            # original investigators, were likely not processed correctly; the
+            # 1975 data, reprocessed from the tapes, "do not show such oddity"
+            # (Nagihara et al., 2018, p. 1131). Only 1975 data may enter their
+            # equilibrium temperature. The window rule already gives this -- the
+            # last 25% of the samples lie in the 8x denser 1975 data, 1 May to
+            # 30 June 1975, two lunations -- so it is enforced as a check:
+            # cutting the record to 1975 first would leave a 3-week window,
+            # shorter than one lunar day.
+            if mission == "a15" and sensor.strip() in A15_TG11_SENSORS:
+                first = str(tail['time_iso'][0])[:10]
+                if first < A15_TG11_FIRST_VALID:
+                    raise ValueError(f"A15 {sensor.strip()}: stability window starts {first}, "
+                                     f"before the reprocessed data ({A15_TG11_FIRST_VALID})")
 
             depth = float(np.unique(tail['depth_cm'])[0])
             T_eq = float(np.mean(tail['T']))

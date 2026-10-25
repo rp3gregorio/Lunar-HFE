@@ -4,32 +4,32 @@
   "n_t_per_lunation": 1417,
   "n_cells": 69,
   "site": "A15",
-  "Kd": 0.00459953095401091,
+  "Kd": 0.004201845796997423,
   "N_verify_lun": 10,
   "N_time_lun": 50
  },
- "verification_max_dev_K": 7.389644451905042e-13,
- "verification_max_dev_njit_K": 1.0800249583553523e-12,
- "py_ms_per_lunation": 442.85,
- "py_njit_ms_per_lunation": 3.948,
- "cpp_ms_per_lunation": 2.764,
+ "verification_max_dev_K": 8.526512829121202e-13,
+ "verification_max_dev_njit_K": 9.947598300641403e-13,
+ "py_ms_per_lunation": 108.5,
+ "py_njit_ms_per_lunation": 3.532,
+ "cpp_ms_per_lunation": 3.262,
  "py_runs_s": [
-  21.364,
-  22.142,
-  22.468
+  5.447,
+  5.231,
+  5.425
  ],
  "py_njit_runs_s": [
-  0.191,
-  0.197,
-  0.204
+  0.177,
+  0.169,
+  0.221
  ],
  "cpp_runs_s": [
-  0.13,
-  0.138,
-  0.149
+  0.163,
+  0.146,
+  0.192
  ],
- "speedup_cpp_over_py": 160.2,
- "speedup_njit_over_py": 112.2,
- "speedup_cpp_over_njit": 1.43,
+ "speedup_cpp_over_py": 33.3,
+ "speedup_njit_over_py": 30.7,
+ "speedup_cpp_over_njit": 1.08,
  "note": "solver march only (no bootstrap/statistics). Three sides: generic interpreted _step loop, the compiled njit kernel (production fast path), and the C++ port -- all verified equal to <1e-6 K first"
 }

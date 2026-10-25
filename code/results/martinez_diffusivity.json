@@ -1,6 +1,6 @@
 {
  "meta": {
-  "purpose": "Can density alone give the measured diffusivities? (letter Section 4.1; 2026-10-24)",
+  "purpose": "Can density alone give the measured diffusivities? (letter Section 4.1)",
   "rho_grid_kg_m3": [
    1600.0,
    3300.0,

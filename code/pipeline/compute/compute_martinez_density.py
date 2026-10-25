@@ -9,11 +9,7 @@ past the solid-basalt bound, and finds the minimum of the meter-scale-sensor
 RMSE by a parabola through the three lowest grid points. alpha = 1 is the
 published model (the forward run of compute_joint_fit_checks.py).
 
-The letter quotes the best densities (1871 and 1861 kg/m^3, inside the Apollo
-core range) and that even there the A17 misfit stays at least 1.4 times that of
-the joint fit. The same sweep was first run inside compute_headline_rmse.py
-(2026-10-05, results/headline_rmse.json, an earlier-phase script that is not
-part of the repository); this script repeats only its Martinez part.
+The best densities, 1871 and 1861 kg/m^3, are in SI Table S4.
 
 Reads:  the Apollo record (lunar.apollo_helpers), config.SITES
 Writes: results/martinez_density_fit.json

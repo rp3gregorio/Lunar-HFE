@@ -1,4 +1,4 @@
-"""Anchor the effective albedo to the Hayne et al. (2017) standard model (audit 2026-10-04).
+"""Anchor the effective albedo to the Hayne et al. (2017) standard model.
 
 Why
 ---

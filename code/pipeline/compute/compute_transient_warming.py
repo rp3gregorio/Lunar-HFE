@@ -1,4 +1,4 @@
-"""Does the post-deployment warming bias K_d? A transient test (2026-10-07).
+"""Does the post-deployment warming bias K_d? A transient test.
 
 The meter-scale HFE sensors were still warming when their records end.
 Nagihara et al. (2018) attribute this to the astronauts darkening the surface:

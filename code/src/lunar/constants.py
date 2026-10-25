@@ -34,19 +34,19 @@ RHO_ICE: float = 917.0
 # the Moon from the Diviner Lunar Radiometer Experiment." JGR: Planets 122,
 # 2371-2400. doi:10.1002/2017JE005387
 
-#: Surface bulk density [kg m^-3] — Hayne et al. (2017) Table 2.
+#: Surface bulk density [kg m^-3] — Hayne et al. (2017) Table A1.
 RHO_SURFACE: float = 1100.0
 
-#: Deep bulk density [kg m^-3] — Hayne et al. (2017) Table 2.
+#: Deep bulk density [kg m^-3] — Hayne et al. (2017) Table A1.
 RHO_DEEP: float = 1800.0
 
 #: H-parameter (density/conductivity scale height) [m] — Hayne et al. (2017).
 H_PARAMETER: float = 0.06
 
-#: Surface contact conductivity [W m^-1 K^-1] — Hayne et al. (2017) Table 2.
+#: Surface contact conductivity [W m^-1 K^-1] — Hayne et al. (2017) Table A1.
 K_SURFACE: float = 7.4e-4
 
-#: Deep contact conductivity [W m^-1 K^-1] — Hayne et al. (2017) Table 2.
+#: Deep contact conductivity [W m^-1 K^-1] — Hayne et al. (2017) Table A1.
 #: NOTE: earlier versions of heat1d had an incorrect value here. The correct
 #: published value is 3.4e-3.
 K_DEEP: float = 3.4e-3

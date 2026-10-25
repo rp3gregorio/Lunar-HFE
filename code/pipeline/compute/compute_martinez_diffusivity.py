@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Can density alone give the measured diffusivities? (letter Section 4.1; 2026-10-24)
+"""Can density alone give the measured diffusivities? (letter Section 4.1)
 
 The Martinez & Siegler (2021) conductivity rises with density, K(T, rho), so a
 denser regolith conducts better. This script asks how dense the deep regolith

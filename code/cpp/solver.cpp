@@ -2,7 +2,7 @@
 // (src/lunar/solver.py: solve_pixel radiative march).
 //
 // Scope: the SOLVER only -- properties, harmonic faces, Crank-Nicolson
-// assembly, Newton surface balance (trapezoidal ghost, 2026-07-03), Thomas
+// assembly, Newton surface balance (trapezoidal ghost), Thomas
 // solve, lunation march. No statistics, no bootstrap.
 //
 // Faithfulness contract: every formula and its evaluation ORDER mirrors the
@@ -129,12 +129,12 @@ int main(int argc, char** argv) {
     // wrap step length: the periodic grid spans [0, P-dt], so each cycle
     // must ALSO march t[-1] -> P (forcing = insol[0]); skipping it slips
     // the phase by dt per cycle and makes the attractor first-order in dt
-    // (solve_pixel, audit F-5 addendum III, 2026-07-03)
+    // (as in solve_pixel)
     const double dt_wrap = t[1] - t[0];
     double Ts_at_zero = -1.0;  // <0: not yet available (first cycle)
 
-    // One Crank-Nicolson step with midpoint-Picard sweeps (_step,
-    // 2026-07-03): sweep 0 evaluates properties at T_prev (predictor);
+    // One Crank-Nicolson step with midpoint-Picard sweeps (as in _step):
+    // sweep 0 evaluates properties at T_prev (predictor);
     // each corrector sweep re-evaluates them at 0.5*(T_prev + T_new) and
     // re-anchors the surface Newton at the implicit T_new[0]. T stays the
     // previous state for the explicit RHS across ALL sweeps. Updates T in

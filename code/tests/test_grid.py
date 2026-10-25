@@ -1,7 +1,6 @@
 """Grid construction tests.
 
-Resolution requirements (see ``lunar.grid.make_geometric_grid`` docstring
-and the ``lunar-audit`` skill's grid invariant):
+Resolution requirements (see the ``lunar.grid.make_geometric_grid`` docstring):
   * Grid is geometric, not uniform.
   * >= 10 points within one diurnal skin depth (~5 cm).
   * >= 5 points within one H scale height (~6 cm).

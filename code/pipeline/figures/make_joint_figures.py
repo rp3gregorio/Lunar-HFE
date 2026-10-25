@@ -1,28 +1,27 @@
-"""The paper's figures from the joint (albedo, K_d) fit (letter and SI numbering of 2026-10-19).
+"""Figures of the letter and the SI that come from the joint (albedo, K_d) fit.
 
-  fig_joint_intro_column.pdf            Fig. 2: the modeled column, panels (a)-(c), the 80 cm border
-  fig_joint_apollo_timeline_probes.pdf  Fig. 2: stability-window timeline (site colours)
-  fig_joint_subsets.pdf                 Fig. 3: each probe, each thermometer type and all the sensors (one panel each)
-  fig_joint_constraints.pdf             Fig. 4: what fixes A and K_d at each site
-  fig_joint_annual_wave.pdf             Fig. S5: the annual wave in the full record vs the forward model (compute_annual_wave.py)
-  fig_joint_mcmc.pdf                    Fig. S6: MCMC posterior: K_d, Q_b, K_d vs rho_d (compute_joint_mcmc.py)
-  fig_joint_variants.pdf                Fig. S7: K_d from every variant at each site
-  fig_joint_amplitude_vs_depth.pdf      Fig. S3: diurnal amplitude vs depth
-  fig_joint_anchor_process.pdf          Fig. S4: the flux-anchored solver step by step, Apollo 15 at the joint fit (~30 s)
-  fig_joint_robustness.pdf              Fig. S8: K_d under each changed input, grouped as in SI Table S5
+  fig_joint_apollo_timeline_probes.pdf  Figure 1: the record and each sensor's stability window
+  fig_joint_intro_column.pdf            Figure 2: the model column, density and conductivity
+  fig_joint_subsets.pdf                 Figure 3: each probe, each thermometer type and all the sensors
+  fig_joint_constraints.pdf             Figure 4: what fixes A and K_d at each site
+  fig_joint_amplitude_vs_depth.pdf      SI Figure S3: the daily swing against depth
+  fig_joint_anchor_process.pdf          SI Figure S4: the flux-anchored solver, step by step
+  fig_joint_annual_wave.pdf             SI Figure S5: the annual wave, measured and modeled
+  fig_joint_mcmc.pdf                    SI Figure S6: MCMC posteriors
+  fig_joint_variants.pdf                SI Figure S7: K_d from every variant
 
-Figs. 1, 2, S4 and S5 come from the make_intro_column / make_apollo_timeline_letter /
-make_letter_figures / make_anchor_process_figure generators, called here.
-SI Figs. S1 and S9 come from make_context_map_figure.py and compute_joint_diviner.py.
+Figures 1, 2, S3 and S4 have their own generators (make_apollo_timeline_letter,
+make_intro_column, make_daily_swing_figure, make_anchor_process_figure), called
+from main(). SI Figures S1 and S2 come from make_context_map_figure.py and
+make_probe_drawing.py.
 
 Reads results/joint_albedo_fit.json (+ _cache.npz), joint_fit_checks.json,
-joint_fit_sensitivities.json, joint_valley.json, joint_mcmc.json, annual_wave.json,
-albedo_sensitivity.json, own_diffusivity_fit.json, joint_chi_density.json,
-transient_warming.json.
-Writes to the top-level figures/ folder.
+joint_fit_sensitivities.json, subset_fits.json (+ _draws.npz), joint_mcmc.json,
+annual_wave.json, albedo_sensitivity.json, own_diffusivity_fit.json,
+joint_chi_density.json, transient_warming.json. Writes to figures/.
 
 Run with:
-    python pipeline/figures/make_joint_figures.py
+    python code/pipeline/figures/make_joint_figures.py
 """
 from __future__ import annotations
 import json, sys, pathlib, copy
@@ -167,75 +166,6 @@ def fig_constraints(res, cache):
                  ["with the diffusivity (joint fit)", "temperatures alone", r"$\Delta J$ = 1 (68%), 3.84 (95%)", "global $K_d$ = 3.4"],
                  handlelength=3.0, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.4)})
     out = FIG / "fig_joint_constraints.pdf"
-    fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
-    print(f"  -> {out}")
-
-
-def fig_robustness(res, sens):
-    """SI Fig. S8: K_d* refitted under each changed input, grouped as in SI Table S5 (the error budget).
-    (Until 2026-10-07 a panel (a) mapped the A17 - A15 difference over the basal-flux
-    pairs; it was dropped with the site-difference claim. The map stays in
-    joint_fit_sensitivities.json as qb_contrast_map.)"""
-    chi_path = RES / "joint_chi_density.json"          # radiative factor and site densities (compute_joint_chi_density.py)
-    chid = json.loads(chi_path.read_text()) if chi_path.exists() else None
-    # (label, key prefix); key None = group heading. chi = 1.5 is excluded (no physical albedo fits; Table S14)
-    rows = [("Measured inputs", None),
-            ("basal flux $Q_b$, site range", "Qb"),
-            ("density $\\rho_d$ 1700–2000 kg m$^{-3}$", "rho_d"),
-            ("estimated site densities", "rho_site"),   # Langseth et al. (1976) in-situ estimates
-            ("heat capacity $c_p$ $\\pm$3%", "cp_x"),
-            ("surface conductivity $K_s$ $\\pm$30%", "Ks"),
-            ("Methodological choices", None),
-            ("borestem cut $z_b$ 70–90 cm", "zb"),
-            ("window threshold", "thr"),
-            ("window start", ("floor_", "fallback_")),
-            ("common 1974 window", "epoch_T_common"),
-            ("Conditionality", None),
-            ("radiative coefficient $\\chi$ 2.2–3.2", "chi_"),
-            ("compaction depth $H$ 3–10 cm", "H_"),
-            ("angular albedo laws", "form")]
-    if not chid:
-        rows = [r for r in rows if r[1] not in ("rho_site", "chi_")]
-    fig, ax = plt.subplots(figsize=(W_LETTER, 4.4))
-    fig.subplots_adjust(left=0.36, right=0.97, top=0.98, bottom=0.12)
-    for s, dy in (("A15", -0.14), ("A17", 0.14)):
-        b = res["sites"][s]["with_diffusivity"]
-        k0 = b["best"]["kd_star_mW"]; q = b["bootstrap"]["kd_mW"]
-        ax.axvspan(q["p2.5"], q["p97.5"], color=SITE_COL[s], alpha=0.10, lw=0)
-        ax.axvline(k0, color=SITE_COL[s], lw=1.2)
-        V = {**{k: v["with_diffusivity"]["kd_star_mW"] for k, v in sens["sites"][s]["variants"].items()},
-             **{k: v["kd_star_mW"] for k, v in sens["sites"][s]["reanalysis"].items()}}
-        if chid:
-            V = {k: v for k, v in V.items() if not k.startswith("chi_")}
-            V.update({k: v["kd_star_mW"] for k, v in chid["sites"][s].items()
-                      if (k.startswith("chi_") and k != "chi_1.5") or k == "rho_site"})
-        for i, (lab, key) in enumerate(rows):
-            if key is None:
-                continue
-            vals = [v for k, v in V.items() if k.startswith(key) and k != "nominal_compact"]
-            if vals:
-                ax.plot([min(vals), max(vals)], [i + dy] * 2, color=SITE_COL[s], lw=2.2, solid_capstyle="round")
-                ax.plot(vals, [i + dy] * len(vals), "o", ms=4, color=SITE_COL[s], mec="white", mew=0.5)
-    ax.axvline(3.4, color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)
-    ax.set_yticks([i for i, r in enumerate(rows) if r[1] is not None], [r[0] for r in rows if r[1] is not None])
-    ax.set_ylim(len(rows) - 0.5, -0.6)
-    ax.set_xlim(3.2, 6.9)
-    fmt_axis(ax, xlabel=r"$K_d^{*}$ (mW m$^{-1}$ K$^{-1}$)")
-    ax.grid(axis="y", visible=False)
-    from matplotlib.transforms import blended_transform_factory
-    head = blended_transform_factory(fig.transFigure, ax.transData)
-    for i, (lab, key) in enumerate(rows):          # group headings: italic, flush left, with a rule above
-        if key is None:
-            ax.text(0.015, i, lab, transform=head, ha="left", va="center", fontstyle="italic", color=C_DIM)
-            if i:
-                ax.axhline(i - 0.5, color=C_GRID, lw=0.8)
-    handles = [(Line2D([], [], color=C_A15, lw=2.2), Line2D([], [], ls="", marker="o", ms=4, color=C_A15, mec="white", mew=0.5)),
-               (Line2D([], [], color=C_A17, lw=2.2), Line2D([], [], ls="", marker="o", ms=4, color=C_A17, mec="white", mew=0.5)),
-               Line2D([], [], color=C_DIM, lw=1.2), Patch(fc=C_DIM, alpha=0.15),
-               Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)]
-    labels = ["Apollo 15", "Apollo 17", "adopted fit", "bootstrap 95% interval", "global $K_d$ = 3.4"]
-    legend_below(fig, handles, labels, handler_map={tuple: HandlerTuple(ndivide=1)})
-    out = FIG / "fig_joint_robustness.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> {out}")
 
@@ -507,7 +437,6 @@ def variant_rows(res, chk, sens):
         return dict(best=best, lo=min(pts), hi=max(pts), pts=pts)
     rows = []
     sf = json.loads((RES / "subset_fits.json").read_text())["sites"]
-    draws = np.load(RES / "subset_fits_draws.npz")
     sub = lambda keys: {s: rng([sf[s][k]["kd_mW"] for k in keys]) for s in S}
     rows.append(("Subsets of the sensors", "Each probe", sub(("probe1", "probe2"))))
     rows.append(("Subsets of the sensors", "Each thermometer type", sub(("TG", "TR"))))
@@ -630,18 +559,14 @@ def main():
         fig_mcmc(res)
     if (RES / "annual_wave.json").exists():
         fig_annual_wave()
-    if sens is not None:
-        fig_robustness(res, sens)
-    else:
-        print("  (fig_joint_robustness waits for results/joint_fit_sensitivities.json)")
-    # Fig. S4 first, while the house rcParams are in force; then the others and
-    # Fig. 1, whose generators set their own rcParams (fonts, legend sizes)
-    import make_letter_figures, make_intro_column, make_anchor_process_figure
+    # SI Fig. S4 first, while the house rcParams are in force; then the
+    # generators that set their own rcParams (fonts, legend sizes)
+    import make_daily_swing_figure, make_intro_column, make_anchor_process_figure
     import make_apollo_timeline_letter
-    make_anchor_process_figure.main()   # Fig. S4: the solver step by step (A15 at the joint fit)
-    make_apollo_timeline_letter.main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False)  # Fig. 2
-    make_letter_figures.fig_amplitude_vs_depth(out_name="fig_joint_amplitude_vs_depth.pdf")   # Fig. S3
-    make_intro_column.main(out_stem="fig_joint_intro_column", font="times")   # Fig. 2 (panels a-c; the 80 cm border)
+    make_anchor_process_figure.main()   # SI Fig. S4: the solver step by step (A15 at the joint fit)
+    make_apollo_timeline_letter.main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False)  # Fig. 1
+    make_daily_swing_figure.main()      # SI Fig. S3: the daily swing against depth
+    make_intro_column.main()            # Fig. 2
 
 
 if __name__ == "__main__":

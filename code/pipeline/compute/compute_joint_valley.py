@@ -1,4 +1,4 @@
-"""What the diffusivity adds: the K_d cut through the joint objective at the fitted albedo (2026-10-05).
+"""What the diffusivity adds: the K_d cut through the joint objective at the fitted albedo.
 
 Holds the albedo at each site's joint-fit value and tabulates, for a set of
 K_d, how well the model matches each measurement: the meter-scale sensor

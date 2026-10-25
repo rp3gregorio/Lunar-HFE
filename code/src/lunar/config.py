@@ -1,13 +1,9 @@
-"""Single source of truth for run configuration and site parameters.
+"""Run configuration and site parameters, defined once.
 
-Everything that used to be copy-pasted across the pipeline and figure
-scripts -- the per-site table (SITES), the depth grid, the Hayne-form
-bundle, the equilibrium-solver settings, the K_d sweep grids, and the
-3-layer diagnostic parameters -- lives here so it cannot drift between
-files. Cited physical constants live in :mod:`lunar.constants`; this
-module composes them into ready-to-use run configuration.
-
-Import it, never redefine it:
+The per-site table (SITES), the depth grid, the Hayne-form parameters, the
+equilibrium-solver settings, the K_d sweep grids and the parameters of the
+3-layer diagnostic model. Cited physical constants live in
+:mod:`lunar.constants`; this module composes them into run settings.
 
     from lunar.config import SITES, GRID, HAYNE, S0, T_LUNAR, DT_STEP
 """
@@ -27,45 +23,33 @@ from .constants import (
 # --- forcing / time-stepping -------------------------------------------------
 S0 = SOLAR_CONSTANT          # 1361 W m^-2 (Kopp & Lean 2011)
 T_LUNAR = LUNATION_SECONDS   # one synodic lunation [s]
-# Solver time step [s]. RE-BASELINED 3600 -> 1800 on 2026-07-03 (audit
-# AUDIT_2026-07-03 F-5): 3600 s was not temporally converged. The dominant
-# O(dt) error was the MISSING WRAP STEP in the cycle chaining (solve_pixel:
-# the periodic grid spans [0, P-dt]; skipping the final t[-1] -> P step
-# slipped the phase by dt per lunation and made even the periodic attractor
-# first-order: +61 mK/halving at 1800 s, which biased K_d*(A17) by +0.6 mW).
-# With the wrap step + CN_PICARD_SWEEPS below, the attractor drift is
-# ~ -4 mK/halving. Certified in K_d* space: certify_joint_numerics.py halves the
-# step twice at the joint fit (SI Table S3; <=0.001 mW per halving). The earlier
-# dt ladders (dt_ladder.py) are in release v1.4.2-jgr. Re-run the certification
-# if any of these values change.
+# Solver time step [s]. Each lunation is chained to the next through the final
+# step t[-1] -> P; without it the phase slips by dt per lunation and the periodic
+# state carries an O(dt) error. With that step and CN_PICARD_SWEEPS below, the
+# periodic state moves by about -4 mK per halving of the step.
+# certify_joint_numerics.py halves the step twice at the joint fit (SI Table S3;
+# K_d* moves by <= 0.001 mW m^-1 K^-1 per halving). Re-run it if these change.
 DT_STEP = 1800.0
-# Midpoint-Picard corrector sweeps per Crank-Nicolson step (solver._step).
-# Each sweep re-solves the step with K, c_p evaluated at 0.5*(T_prev + T_new)
-# (implicit-midpoint prescription) and the surface Newton re-anchored at the
-# implicit T_new[0]. 0 = the pre-2026-07-03 frozen-property linearisation.
-# Attractor dt drift per halving at dt=1800 (A15, 6000-lunation C++ ladder):
-# sweeps 1/2/4/8 -> -8.6/-4.2/-2.2/-2.0 mK; 2 sweeps sit within ~2 mK of the
-# fixed point (~0.02 mW on K_d*(A17)) at 3 tridiagonal solves per step.
-# Keep in sync with the C++ port (cpp/solver.cpp reads it from the blob).
+# Midpoint-Picard corrector sweeps per Crank-Nicolson step (solver._step). Each
+# sweep re-solves the step with K and c_p at 0.5*(T_prev + T_new) and re-anchors
+# the surface Newton iteration at the implicit T_new[0]; 0 gives the frozen-
+# property linearisation. Drift of the periodic state per halving of dt at
+# 1800 s (A15, 6000 lunations): 1/2/4/8 sweeps -> -8.6/-4.2/-2.2/-2.0 mK, so two
+# sweeps sit within ~2 mK of the fixed point at three tridiagonal solves per
+# step. The C++ port (cpp/solver.cpp) uses the same value.
 CN_PICARD_SWEEPS = 2
 
 # --- depth grid (geometric) --------------------------------------------------
 GRID = dict(z_max=5.0, dz0=0.002, growth=0.08)
 
-# --- K_d retrieval sweep grids [W m^-1 K^-1] ---------------------------------
-# A WIDE coarse span (so the bootstrap upper-tail percentiles sit inside the
-# swept range, not at the grid edge) UNION a DENSE 0.2 mW band bracketing the
-# minimum so the 3-point parabola vertex is grid-converged. A uniform 28/30-pt
-# grid (0.5-0.76 mW) biased the vertex HIGH by a coarse-parabola artifact (A15:
-# 4.641 coarse vs 4.603 dense; ~0.04 mW). SINGLE-SOURCED here so the retrieval,
-# headline-RMSE, and sensitivity scripts cannot drift apart (they previously held
-# three different hardcoded grids -- the same duplication that hid the Q_b bug).
-# NB (2026-07-06 audit): the two A15 linspaces both hit 3.8e-3 but differ in
-# the last floating-point bit, so np.unique keeps BOTH (29 pts, one ~0-width
-# gap). Verified inert: the near-twin sits 0.8 mW below the vertex bracket,
-# so K_d* is unaffected; cost is one duplicate solve. Deduping would shrink
-# the grid and trip the KD_GRIDS staleness guard against certified results,
-# so leave as-is until the next full re-baseline (then round before unique).
+# --- K_d sweep grids [W m^-1 K^-1] -------------------------------------------
+# A wide coarse span, so the bootstrap percentiles stay inside the swept range,
+# joined with a dense 0.2 mW band around the minimum, so the 3-point parabola
+# vertex is grid-converged (a uniform 0.5 mW grid biased it high by ~0.04 mW).
+# The two A15 linspaces both reach 3.8e-3 but differ in the last floating-point
+# bit, so np.unique keeps both; the near-twin lies 0.8 mW below the vertex
+# bracket and does not affect K_d*. It is kept so the grid matches the stored
+# results.
 KD_GRIDS = {
     "A15": np.unique(np.concatenate([
         np.linspace(1.0e-3, 15.0e-3, 16), np.linspace(3.6e-3, 6.0e-3, 13)])),
@@ -78,37 +62,25 @@ HAYNE = dict(K_S=K_SURFACE, H=H_PARAMETER, CHI=CHI_RADIATIVE, T_REF=T_REFERENCE)
 
 # --- flux-anchored equilibrium solver (lunar.equilibrium) --------------------
 EQ_Z_ANCHOR = 0.55      # anchor depth [m], below the rectification zone
-# Inner spin-up lunations per outer iteration. Set by a convergence study
-# (2026-06-30). The retrieved K_d* converges to a plateau in n_inner; convergence
-# is judged on K_d* STABILITY (|dK_d*|<0.005 mW), not a fixed cycle count. With the
-# Step A domain truncation (equilibrium.solve_periodic_equilibrium time-steps only
-# the skin [0, z_anchor+0.15] and reconstructs the deep column) the truncated method
-# reaches the SAME value as the old full-column solve, validated unbiased (A15 at
-# n=128: 4.6022 truncated vs 4.6049 full). A17 plateaus by n~48-64 (7.088/7.085
-# full-column, 7.082/7.080 truncated); A15 has lower K -> lower diffusivity ->
-# converges SLOWER (4.5968/4.6015/4.6022 at n=64/96/128), so the SLOWER site sets
-# n_inner. RE-DERIVED 2026-08-28 on the CERTIFIED solver (wrap step + Picard
-# sweeps); the previous figures here were from the 2026-06-30 pre-wrap-step study
-# and were quoted in the thesis. Source: convergence_scan.py (release v1.4.2-jgr); at the joint
-# fit, 64 and 128 move K_d* by <=0.0002 (certify_joint_numerics.py, SI Table S3). 96 puts both on the
-# plateau (~13 s/solve). OLD n_inner=12 (closure ~6%) biased K_d*(A17) HIGH ~0.4 mW;
-# the OLD full-column Step A needed n~200 (and ~3-4x the cost) for the same answer.
-# See the n_inner study and the project_ninner_underresolution memory.
+# Inner spin-up lunations per outer iteration. Step A time-steps only the top
+# z_anchor + 0.15 m and reconstructs the deep column (lunar.equilibrium). K_d*
+# reaches a plateau in n_inner (judged by |dK_d*| < 0.005 mW m^-1 K^-1); A15,
+# with the lower diffusivity, converges more slowly and sets the value. At the
+# joint fit, 64 and 128 move K_d* by <= 0.0002 (certify_joint_numerics.py,
+# SI Table S3); 96 is on the plateau at both sites, at ~13 s per solve.
 EQ_N_INNER = 96         # inner spin-up lunations per outer iteration (converged, truncated Step A)
 EQ_MAX_OUTER = 20       # outer-iteration cap
 EQ_ANCHOR_TOL = 0.005   # convergence tolerance on the anchor temperature [K]
 
-# --- per-site configuration (THE single definition) --------------------------
-# Q_BASAL = site basal geothermal heat flux [W m^-2], from Langseth et al. (1976)
-# revised values: A15 (Hadley Rille) 2.1 uW cm^-2 = 0.021 (regionally
-# representative); A17 (Taurus-Littrow) 1.6 uW cm^-2 = 0.016 (borehole value;
-# the regional topo-corrected estimate is 1.4 = 0.014). Nagihara et al. (2018)
-# supplies the restored record, NOT the flux magnitude.
-# albedo = effective constant Bond albedo, FITTED jointly with K_d to three
-# in-situ measurements (sensor temperatures, measured surface mean, Langseth 1976
-# annual-wave diffusivity) by pipeline/compute/compute_joint_albedo_fit.py
-# (results/joint_albedo_fit.json: 0.13626 / 0.13748; letter Sec. 3.1). Up to
-# v1.1-jgr these were fixed at 0.131 / 0.137, values with no published source.
+# --- per-site configuration -------------------------------------------------
+# Q_BASAL: basal heat flow [W m^-2], the revised values of Langseth et al. (1976):
+# 2.1 uW cm^-2 at A15 (mean of the two probes) and 1.6 uW cm^-2 at A17 (probe 1;
+# 1.4 after their topographic correction). Nagihara et al. (2018) restored the
+# record; the fluxes are Langseth's.
+# albedo: effective constant Bond albedo, fitted jointly with K_d to the sensor
+# temperatures, the measured mean surface temperature and the annual-wave
+# diffusivity of Langseth et al. (1976) by compute_joint_albedo_fit.py
+# (results/joint_albedo_fit.json: 0.13626 / 0.13748; letter Section 3.1).
 SITES = {
     "A15": dict(tag="A15", label="Apollo 15", lat=26.13, lon=3.63,
                 albedo=0.1363, emissivity=0.95, Q_BASAL=0.021,
@@ -117,8 +89,6 @@ SITES = {
                 albedo=0.1375, emissivity=0.95, Q_BASAL=0.016,
                 T_MEAN_EFF=255.0, MIN_DEPTH_CM=80, mission="a17"),
 }
-
-# (K_d sweep grids KD_GRIDS are defined once near the top, beside GRID.)
 
 # --- bootstrap ---------------------------------------------------------------
 DEPTH_SIGMA_CM = 2.5     # adopted sensor-placement envelope, set at the probe-rod diameter (Nagihara et al. 2018: "2.5-cm diameter" rods); no per-sensor depth error is published

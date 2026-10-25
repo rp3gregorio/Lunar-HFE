@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Does the near-surface layer explain the annual-wave amplitude mismatch? (2026-10-11)
+"""Does the near-surface layer explain the annual-wave amplitude mismatch?
 
 The annual-wave fit (compute_annual_wave.py) needs one free complex factor per
 probe: the model wave is 1.5-2.5 times larger than the measured one (factor

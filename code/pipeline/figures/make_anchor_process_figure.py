@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""SI Fig. S4: the flux-anchored equilibrium solver, step by step (2026-10-12).
+"""SI Fig. S4: the flux-anchored equilibrium solver, step by step.
 
-Replaces the three-panel fig_joint_anchor_method.pdf in the SI, which showed the
-finished construction at once but not that the method is an iteration, nor why
-it is allowed. Everything is computed live from the production solver for
-Apollo 15 at its joint fit (config.SITES albedo, joint K_d*).
+Everything is computed live from the production solver for Apollo 15 at its
+joint fit (config.SITES albedo, joint K_d*).
 
 Top row -- the process:
   (a) a deliberately wrong start, straight in depth;
@@ -52,7 +50,7 @@ from lunar.solver import (PixelInputs, solve_pixel, standard_insolation,
                           periodic_time_grid)
 from lunar.equilibrium import (solve_periodic_equilibrium, _rectified_flux,
                                _reconstruct_subskin, _truncate_grid)
-from lunar.plotting.style import (JGR_FULL, C_CHAR, C_DIM, C_NEUTRAL, C_FOREST,
+from lunar.plotting.style import (C_CHAR, C_DIM, C_NEUTRAL, C_FOREST,
                                   C_TEAL, C_GRID, fmt_axis, legend_between,
                                   legend_below)
 

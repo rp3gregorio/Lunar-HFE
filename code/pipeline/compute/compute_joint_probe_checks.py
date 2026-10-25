@@ -1,4 +1,4 @@
-"""Three checks on what the diffusivity and the original Apollo calibration can support (2026-10-05).
+"""Three checks on what the diffusivity and the original Apollo calibration can support.
 
 Re-analyses the committed joint-fit grid (results/joint_albedo_fit_cache.npz); no new solves.
 

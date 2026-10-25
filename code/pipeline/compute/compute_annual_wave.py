@@ -1,4 +1,4 @@
-"""The annual temperature wave in the restored HFE record, measured and forward-modeled (2026-10-06).
+"""The annual temperature wave in the restored HFE record, measured and forward-modeled.
 
 The joint retrieval takes its conductivity constraint from the annual-wave
 diffusivities of Langseth et al. (1976): four numbers obtained in 1975 by

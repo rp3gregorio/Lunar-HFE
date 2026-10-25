@@ -1,4 +1,4 @@
-"""How the measured meter-scale gradient depends on the window epoch (2026-10-05).
+"""How the measured meter-scale gradient depends on the window epoch.
 
 The retrieval uses per-sensor stability windows, which end at different dates
 (SI Table S1); because the column warmed throughout the record, mostly from the

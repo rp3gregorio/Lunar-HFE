@@ -1,4 +1,4 @@
-"""Numerical certification of the reported K_d* (SI Table S3; 2026-10-12).
+"""Numerical certification of the reported K_d* (SI Table S3).
 
 The solver tests of the SI (now Table S3) were run in July on the temperature-only fit
 at the albedos then in use (0.131 / 0.137), and several came from one-off

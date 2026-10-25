@@ -112,15 +112,11 @@ def extract_sensor_stability(mission: str, min_depth_cm: float) -> dict[str, Any
             n = len(subset)
             i_start, day_start, method, slope = find_stable_window(subset)
             tail = subset[i_start:]
-            # Apollo 15 TG11A/TG11B: the 1971-1974 values, as processed by the
-            # original investigators, were likely not processed correctly; the
-            # 1975 data, reprocessed from the tapes, "do not show such oddity"
-            # (Nagihara et al., 2018, p. 1131). Only 1975 data may enter their
-            # equilibrium temperature. The window rule already gives this -- the
-            # last 25% of the samples lie in the 8x denser 1975 data, 1 May to
-            # 30 June 1975, two lunations -- so it is enforced as a check:
-            # cutting the record to 1975 first would leave a 3-week window,
-            # shorter than one lunar day.
+            # Apollo 15 TG11A/TG11B (see A15_TG11_SENSORS): the window rule
+            # already puts their windows in 1975 -- the last 25 % of the samples
+            # lie in the 8x denser 1975 data, 1 May to 30 June 1975, two
+            # lunations -- so this is a check; cutting the record to 1975 first
+            # would leave a 3-week window, shorter than one lunar day.
             if mission == "a15" and sensor.strip() in A15_TG11_SENSORS:
                 first = str(tail['time_iso'][0])[:10]
                 if first < A15_TG11_FIRST_VALID:

@@ -102,7 +102,7 @@ def _download(url: str, dest: Path, *, force: bool = False) -> Path:
         return dest
     tmp = dest.with_suffix(dest.suffix + ".part")
     req = urllib.request.Request(
-        url, headers={"User-Agent": "Lunar-V2/phase2-martinez"}
+        url, headers={"User-Agent": "Lunar-HFE"}
     )
     with urllib.request.urlopen(req, timeout=60) as resp, tmp.open("wb") as fh:
         while True:

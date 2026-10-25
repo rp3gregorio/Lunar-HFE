@@ -13,8 +13,7 @@ def test_stefan_boltzmann():
 
 
 def test_hayne_regolith_defaults():
-    # Hayne et al. (2017), Table 2. The K_d value 3.4e-3 was historically
-    # wrong in the project — guard against regression.
+    # Hayne et al. (2017), Table A1.
     assert C.RHO_SURFACE == 1100.0
     assert C.RHO_DEEP == 1800.0
     assert C.H_PARAMETER == 0.06

@@ -1,4 +1,4 @@
-"""Probe-level bootstrap of the joint (albedo, K_d) retrieval (2026-10-05).
+"""Probe-level bootstrap of the joint (albedo, K_d) retrieval.
 
 The production bootstrap (compute_joint_albedo_fit.py) resamples sensors with
 replacement and gives each sensor its own +-2.5 cm depth jitter, i.e. it treats

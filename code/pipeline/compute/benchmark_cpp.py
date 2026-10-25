@@ -13,9 +13,10 @@ Protocol:
   2. timing -- N_TIME lunations, median of 3 runs per side, same machine,
      run back-to-back.
 
-Writes: results/cpp_benchmark.json     (the archive; quote only from here)
-Build first:  clang++ -O3 -std=c++17 -o cpp/lunar_solver cpp/solver.cpp
-Run:          python pipeline/compute/benchmark_cpp.py
+Writes: results/cpp_benchmark.json (SI Table S3)
+Builds cpp/lunar_solver from cpp/solver.cpp first if it is missing (needs a
+C++17 compiler: c++, clang++ or g++).
+Run:    python code/pipeline/compute/benchmark_cpp.py
 """
 from __future__ import annotations
 
@@ -51,13 +52,12 @@ KD = retrieved_kd_star("A15")   # same problem as the main benchmark; single-sou
 
 
 def dump_inputs(path, g, t, insol, T_init, site, n_lun, kd=None):
-    # kd overrides the default K_d so the C++ kernel can be driven across a
-    # K_d sweep (used by the C++ brute-force retrieval demo in the optional_performance notebook);
-    # the binary reads K_d from this file, so no recompile is needed.
+    # kd overrides the default K_d; the binary reads K_d from this file, so a
+    # different K_d needs no recompile.
     kd_use = KD if kd is None else float(kd)
     with open(path, "wb") as f:
         # n_picard mirrors config.CN_PICARD_SWEEPS so both sides march the
-        # same midpoint-Picard scheme (solver._step, 2026-07-03)
+        # same midpoint-Picard scheme (solver._step)
         f.write(struct.pack("<4q", g.z_mid.size, t.size, n_lun,
                             CN_PICARD_SWEEPS))
         for arr in (g.z_mid, g.dz, t, insol, T_init):
@@ -96,9 +96,20 @@ def run_py(g, t, insol, T_init, site, n_lun, fast=False):
     return time.perf_counter() - t0, out.T
 
 
+def build():
+    """Compile the C++ solver with the first compiler found."""
+    import shutil
+    cxx = next((c for c in ("c++", "clang++", "g++") if shutil.which(c)), None)
+    if cxx is None:
+        sys.exit("no C++ compiler found (c++, clang++ or g++); install one to run this check")
+    src = ROOT / "cpp" / "solver.cpp"
+    print(f"building {BIN.relative_to(ROOT)} with {cxx}", flush=True)
+    subprocess.run([cxx, "-O3", "-std=c++17", "-o", str(BIN), str(src)], check=True)
+
+
 def main():
     if not BIN.exists():
-        sys.exit(f"build first: clang++ -O3 -std=c++17 -o {BIN} cpp/solver.cpp")
+        build()
     SCRATCH.mkdir(exist_ok=True)
     site = SITES["A15"]
     g = make_geometric_grid(**GRID)

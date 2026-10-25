@@ -1,7 +1,5 @@
 """Publication figure style: JGR:Planets sizes, palette, and helpers.
 
-Single home for what used to live at the top of make_results_figures.py
-and be imported across every figure (and even the pipeline) script.
 Importing this module applies the rcParams; the names below are meant to
 be pulled in with ``from lunar.plotting.style import *``.
 """
@@ -100,8 +98,7 @@ C_BLUE_L = "#B4C3E0"
 C_OBS_T, C_OBS_KAPPA, C_OBS_TS = C_OCHRE, C_BLUE, C_DIM   # ... and the surface mean
 C_CONTRAST = C_CHAR      # inter-site contrast: belongs to neither site
 
-# ── semantic roles: one colour and line style per concept in every letter
-#    figure (agreed with the author 2026-10-05) ──────────────────────────────
+# ── semantic roles: one colour and line style per concept in every figure ──
 C_A15_2 = "#6F9A78"      # second probe at Apollo 15 (Fig. 2)
 C_A17_2 = "#D48A6C"      # second probe at Apollo 17 (Fig. 2)
 C_HAYNE_FIT, LS_HAYNE_FIT = C_TEAL, "-"            # Hayne form at the joint fit
@@ -181,8 +178,7 @@ def _legend_layout(fig, handles, labels, ncols, style):
 def legend_below(fig, handles, labels, *, ncols="auto", pad_in=0.10, **kw):
     """Shared legend in a reserved strip below all axes; grows the figure
     downward so no axis label is ever overlapped. Styled like the letter's
-    Fig. 2 (no frame, 9 pt, compact handles), the house legend since
-    2026-10-05; keyword arguments override LEGEND_KW.
+    Fig. 2 (no frame, compact handles); keyword arguments override LEGEND_KW.
 
     ncols="auto" (default) uses the FEWEST rows that fit the figure width,
     then spreads the entries evenly over those rows (no lonely half-row), and
@@ -282,7 +278,7 @@ def assert_no_overlap(ax, *, tol_px=1.0, densify=400):
     This catches the legend/annotation collisions that a low-DPI eyeball misses.
     Lines are densified so a segment crossing a text box (with no vertex inside)
     is still flagged; scatter offsets are included. A failure means: move the box
-    to verified-empty space or outside the axes (see the skill's placement rules).
+    to empty space or outside the axes.
     """
     import numpy as np
     fig = ax.figure
@@ -329,17 +325,3 @@ def assert_no_overlap(ax, *, tol_px=1.0, densify=400):
             "TEXT-ON-DATA in '%s': %s covers plotted data — move it to "
             "verified-empty space or outside the axes."
             % (ax.get_title() or "axes", ", ".join(bad)))
-
-
-# ── user style overrides (self-serve; no code knowledge needed) ──────────────
-# If lunar/plotting/style_overrides.py defines any of the names above
-# (FS_LEGEND, C_A15, ...) or calls plt.rcParams.update(...), it wins.
-# Edit that file, re-run a generator, done. See
-# deliverables/documents/notes/FIGURE_STYLING.md for the how-to.
-try:
-    from lunar.plotting import style_overrides as _ov
-    for _name in dir(_ov):
-        if not _name.startswith("_"):
-            globals()[_name] = getattr(_ov, _name)
-except ImportError:
-    pass

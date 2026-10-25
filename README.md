@@ -1,122 +1,106 @@
-# apollo-hfe-kd-retrieval
+# Lunar-HFE
 
-The deep-regolith thermal conductivity $K_d$ at the Apollo 15 and 17
-Heat-Flow Experiment (HFE) boreholes, from the restored 1971–1977 record.
+Code, data and results for
 
-This is the reproducibility repository for the paper:
+> Gregorio, R. P., Larsson, R., Kamada, A., Yamada, T., Kuroda, T., & Kasai, Y. (2026).
+> Difference of the lunar regolith thermal conductivity $K_d$ at the Apollo 15 and 17
+> heat-flow boreholes from global model values. Submitted to *JGR: Planets*.
 
-> Gregorio, Larsson, Kamada, Yamada, Kuroda & Kasai (2026), *Difference of the Lunar
-> Regolith Thermal Conductivity $K_d$ at the Apollo 15 and 17 Heat-Flow Boreholes from
-> Global Model Values*, in preparation for **JGR: Planets**.
-
-## What it does
-
-At each borehole the Hayne et al. (2017) conductivity model $K(T,z)$ is kept,
-and its deep conductivity $K_d$ is fitted **together with the effective surface
-albedo** to three measurements made there: the equilibrium temperatures of the
-meter-scale sensors, the measured mean surface temperature, and the annual-wave
-thermal diffusivity of Langseth et al. (1976). The joint fit
-([`compute_joint_albedo_fit.py`](code/pipeline/compute/compute_joint_albedo_fit.py) →
-[`joint_albedo_fit.json`](code/results/joint_albedo_fit.json)) gives
+The standard lunar thermal model of Hayne et al. (2017) gives the whole Moon one
+deep regolith conductivity, $K_d = 3.4$ mW m⁻¹ K⁻¹. This repository
+recalibrates $K_d$ at the Apollo 15 and 17 heat-flow boreholes. At each site the
+model's albedo and $K_d$ are fitted together to three measurements: the
+equilibrium temperatures of the sensors below 80 cm, the mean surface
+temperature, and the annual-wave thermal diffusivity of Langseth et al. (1976).
 
 | | Apollo 15 | Apollo 17 |
 |---|---|---|
-| fitted albedo $A^*$ | 0.136 [0.128, 0.145] | 0.137 [0.135, 0.140] |
+| albedo $A^*$ | 0.136 [0.128, 0.145] | 0.137 [0.135, 0.140] |
 | $K_d^*$ (mW m⁻¹ K⁻¹) | 4.87 [4.29, 5.47] | 5.89 [5.26, 6.51] |
 
-(95% bootstrap intervals.) The Moon-wide $K_d = 3.4$ of Hayne et al. (2017) is
-rejected at both sites (likelihood-ratio $p = 9\times10^{-7}$ and $10^{-14}$;
-[`likelihood_ratio.json`](code/results/likelihood_ratio.json)). The two sites
-are consistent with one value of about 5–6.
+The brackets are 95% bootstrap intervals
+([`joint_albedo_fit.json`](code/results/joint_albedo_fit.json)). The global
+value is rejected at both sites (likelihood ratio, $p = 9\times10^{-7}$ and
+$10^{-14}$).
 
-## Running it: one notebook
+## Running it
 
-[`code/notebooks/run_everything.ipynb`](code/notebooks/run_everything.ipynb)
-runs the whole study. Choose a mode in its first cell, then **Run All**:
-
-| Mode | What runs | Time |
-|---|---|---|
-| `"show"` (default) | nothing; the stored results are read | minutes |
-| `"quick"` | the short steps, and the long ones in their fast form | about 45 min |
-| `"full"` | everything from scratch, as for the paper | about 6 h (six-core laptop) |
-
-It needs Python 3.10 or newer (`python3 --version`; the `python3` that ships with macOS is 3.9).
+You need Python 3.10 or newer (`python3 --version`; the one that comes with
+macOS is 3.9).
 
 ```bash
 git clone https://github.com/rp3gregorio/Lunar-HFE.git
 cd Lunar-HFE
-python3 -m venv .venv && source .venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -e ".[dev,mcmc]"
 jupyter lab code/notebooks/run_everything.ipynb
 ```
 
-The notebook has six parts: (1) setup checks and optional downloads; (2) every
-analysis step, in the order the steps need each other; (3) every figure of the
-letter and the SI; (4) the paper section by section, with each number of the
-letter next to the value the repository gives (✓ / ✗); (5) the Supporting
-Information table by table, every number of its 14 tables checked the same way;
-(6) a summary of all the checks (1,212 values: 364 in the letter, 848 in the SI
-tables; all matching).
+Set `MODE` in the first code cell, then run all cells.
 
-Two optional notebooks go deeper: `optional_anchor_method.ipynb` (how the
-solver reaches its steady state) and `optional_performance.ipynb` (the solver
-in Python against C++). [`code/notebooks/README.md`](code/notebooks/README.md)
-lists the script behind every step.
+| `MODE` | What runs | Time |
+|---|---|---|
+| `"show"` (default) | nothing is recomputed: the stored results are read and checked | a few minutes |
+| `"quick"` | the short steps, and the fast forms of the long ones | about 45 min |
+| `"full"` | every step from scratch, as for the paper | about 6 h on a six-core laptop |
 
-## Without Jupyter
+The notebook runs the analysis scripts in order and draws every figure. It
+then goes through the letter section by section and the Supporting
+Information table by table, and puts each number in the paper next to the
+value the code gives. The last cell counts the checks: 1,203 values, all
+matching.
 
-The same steps run from the `Makefile` (`make help` lists them):
+To install the exact package versions used for the paper, run
+`pip install -r requirements-lock.txt` and then `pip install -e .`.
+
+### Optional downloads
+
+Two public data sets are not in the repository: the
+Diviner surface temperatures (about 310 MB, for SI Table S13) and the LOLA
+elevation map (33 MB, for SI Figure S1). Without them every other step runs,
+and the steps that need them show their stored results. The notebook
+downloads both when you set `DOWNLOAD = True` in its section 1.5;
+[`code/data/README.md`](code/data/README.md) gives the commands.
+
+### Without Jupyter
+
+The same scripts run from the `Makefile`:
 
 ```bash
-make install        # the lunar package + dependencies
-make test           # unit tests of the physics code
-make retrieve aux   # every analysis, in order (about 6 h)
-make figures        # the paper's figures -> figures/
-make notebooks      # run run_everything.ipynb as a check ("show" mode)
+make test        # unit tests of the physics code (under a minute)
+make analysis    # every analysis step, in order (about 6 h)
+make figures     # the paper's figures, written to figures/
+make notebook    # run run_everything.ipynb in "show" mode as a check
 ```
 
-[`documents/notes/REPRODUCING.md`](documents/notes/REPRODUCING.md) is the
-step-by-step recipe, including the two optional downloads (Diviner, LOLA).
-After a full run, `git diff --stat code/results` shows whether any result
-changed.
+After a full run, `git diff --stat code/results` shows which results changed.
+Normally only run times and the recorded commit do.
 
-## How the code is organised
+## Layout
 
-| Where | What |
+| Folder | Contents |
 |---|---|
-| `code/src/lunar/` | the physics, as an installed package: `properties.py` ($K$, $\rho$, $c_p$), `solver.py` (the heat equation), `equilibrium.py` (the flux-anchored solver), `config.py` (every site value and setting), `notebook.py` (runs the steps from the notebook) |
+| `code/src/lunar/` | the model, as a Python package: `properties.py` ($K$, $\rho$, $c_p$), `solver.py` (the heat equation, Crank-Nicolson), `equilibrium.py` (the periodic steady state, by the anchor method), `config.py` (site values and solver settings) |
 | `code/pipeline/compute/` | one script per analysis; each writes one file in `code/results/` |
-| `code/pipeline/figures/` | the figure scripts; `make_joint_figures.py` draws most of the paper's figures |
-| `code/results/` | every result the paper reports ([`README.md`](code/results/README.md) maps each file to the paper) |
-| `code/data/` | inputs: the Apollo record, SPICE kernels, site maps |
-| `code/tests/` | unit tests of the physics code |
-| `code/cpp/` | an independent C++ copy of the solver (SI Table S3) |
-| `code/notebooks/` | `run_everything.ipynb`, and two optional notebooks |
+| `code/pipeline/figures/` | the figure scripts, which read `code/results/` and write to `figures/` |
+| `code/results/` | the stored results; [its README](code/results/README.md) maps each file to the paper |
+| `code/data/` | inputs: the Apollo record, SPICE kernels and site maps; [its README](code/data/README.md) gives the sources |
+| `code/notebooks/` | `run_everything.ipynb` |
+| `code/tests/` | unit tests |
+| `code/cpp/` | a C++ copy of the solver, used to check the Python one (SI Table S3) |
 
-Data flow one way: `code/data/` → `code/pipeline/compute/` →
-`code/results/` → `code/pipeline/figures/` → `figures/`. See
-[`STRUCTURE.md`](STRUCTURE.md) for the full map.
+The first lines of each script in `code/pipeline/` say what it does, and the
+`Makefile` lists every analysis step with its run time.
 
-## Citing this work
+## Citation
 
-```bibtex
-@article{gregorio2026,
-  author  = {Gregorio, R.~P. and Larsson, R. and Kamada, A. and Yamada, T. and Kuroda, T. and Kasai, Y.},
-  title   = {Difference of the Lunar Regolith Thermal Conductivity $K_d$
-             at the Apollo 15 and 17 Heat-Flow Boreholes from Global Model Values},
-  journal = {Journal of Geophysical Research: Planets},
-  year    = {2026},
-  doi     = {TBD}
-}
-```
+Please cite the paper and this repository (`CITATION.cff`; Zenodo concept
+DOI [10.5281/zenodo.22183100](https://doi.org/10.5281/zenodo.22183100)).
 
-`CITATION.cff` is provided for GitHub's citation widget.
+## License
 
-## Licenses
-
-- **Code** (`code/src/`, `code/pipeline/`, `code/tests/`, `code/notebooks/`, `code/cpp/`):
-  MIT License ([`LICENSE`](LICENSE))
-- **Figures, documentation and results** (`figures/`, `documents/`, `code/results/`):
-  CC-BY-4.0 ([`LICENSE-CC-BY-4.0`](LICENSE-CC-BY-4.0))
-- **Bundled HFE data** (`code/data/apollo/`): public domain via NASA PDS-Geosciences
-  (Nagihara et al., 2018)
+The code is under the MIT License ([`LICENSE`](LICENSE)); the results and
+the documentation are under CC BY 4.0 ([`LICENSE-CC-BY-4.0`](LICENSE-CC-BY-4.0)).
+The Apollo heat-flow record comes from the NASA Planetary Data System
+(St. Clair et al., 2020, with the data restored by Nagihara et al., 2018).

@@ -1,4 +1,4 @@
-"""Per-sensor stability windows of the Apollo HFE record (2026-10-05).
+"""Per-sensor stability windows of the Apollo HFE record.
 
 Lists, for every sensor at both sites, the window that defines its equilibrium
 temperature T_eq: the selection method (strict criterion or fallback), the first

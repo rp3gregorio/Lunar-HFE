@@ -214,7 +214,7 @@ def test_radiative_bc_smoke_run_short():
 
 
 # ----------------------------------------------------------------------------
-# Midpoint-Picard property sweeps (solver._step, 2026-07-03)
+# Midpoint-Picard property sweeps (solver._step)
 # ----------------------------------------------------------------------------
 
 

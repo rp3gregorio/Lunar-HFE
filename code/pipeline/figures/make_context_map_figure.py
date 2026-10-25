@@ -94,8 +94,8 @@ def mean_surface_temp_by_lat():
     Runs the model's forward march (fast Hayne kernel) at a ladder of
     latitudes and averages the true skin temperature over one lunation,
     so the map layer is a genuine model output -- not an analytic
-    stand-in. Cached in results/abstract_mean_surface_T.json (first made for the
-    GEDES abstract figures), so figure rebuilds are instant.
+    stand-in. Cached in results/abstract_mean_surface_T.json, so figure
+    rebuilds are instant.
     Values are symmetric in latitude; nominal Hayne properties and
     equatorial Q_b are used (the skin mean is insensitive to K_d/Q_b).
     """
@@ -139,8 +139,7 @@ def _dem():
     re-ordered to run from 180 W to 180 E for extent=(-180, 180); cached.
 
     The LDEM's first column is 0 deg E (PDS label WESTERNMOST_LONGITUDE = 0), so
-    it is rolled by half a turn. Until 2026-10-08 it was drawn unrolled, which
-    put the far side at the centre of the map."""
+    it is rolled by half a turn."""
     if "d" not in _DEM_CACHE:
         d = np.fromfile(DEM, dtype="<i2").reshape(2880, 5760).astype(float)
         d = np.roll(d, d.shape[1] // 2, axis=1)          # 0..360 E -> -180..180

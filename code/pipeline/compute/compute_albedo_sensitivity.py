@@ -1,4 +1,4 @@
-"""Albedo sensitivity of the per-site K_d retrieval (audit 2026-10-04).
+"""Albedo sensitivity of the per-site K_d retrieval.
 
 Why
 ---
@@ -63,8 +63,7 @@ FENG_P = 0.2752                                 # Feng et al. (2020) eq. 9 expon
 SURFACE_MEAN_OBS = {"A15": 211.0, "A17": 216.0}  # Keihm et al. (1973a,b) via Hayne (2017) Table A2
 CONST_ALBEDOS = np.round(np.arange(0.08, 0.2001, 0.01), 3)
 FINE_ALBEDOS = np.round(np.arange(0.12, 0.16001, 0.0025), 4)   # in-situ band, resolved
-# The fixed site albedos used up to v1.1-jgr, kept as an explicit comparison row
-# (letter Fig. 4 cross, SI Table S7) now that config.SITES holds the fitted values.
+# Fixed site albedos, a comparison row (SI Table S7); config.SITES holds the fitted values.
 COMPARISON_ALBEDOS = (0.131, 0.137)
 ANG_STRENGTHS = (0.0, 0.25, 0.5, 0.75, 1.0)
 CHI_VALUES = (1.8, 2.1, 2.4, 2.7)

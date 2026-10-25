@@ -140,13 +140,11 @@ def periodic_time_grid(dt_target: float) -> np.ndarray:
     exactly, so the cycle-to-cycle chaining in ``solve_pixel`` wraps with zero
     phase error and the cycle mean weights every phase once.
 
-    Why this exists (audit 2026-07-03): a plain ``arange(0, T_LUNAR, dt)``
-    leaves a sliver (T_LUNAR - n*dt ≠ 0) at the wrap, silently distorting the
-    effective forcing period — measured at ~70 mK in sensor-band ⟨T⟩, i.e.
-    ~0.1 mW in K_d*. The older inclusive ``linspace`` avoided the sliver but
-    double-counted the noon phase in cycle means. This constructor has neither
-    defect. The realized dt differs from ``dt_target`` by < 0.05 %; treat the
-    TARGET as the config knob and never build a lunation grid any other way.
+    A plain ``arange(0, T_LUNAR, dt)`` leaves a sliver (T_LUNAR - n*dt ≠ 0) at
+    the wrap, which distorts the forcing period (about 70 mK in the sensor-band
+    ⟨T⟩, 0.1 mW m^-1 K^-1 in K_d*); an inclusive ``linspace`` avoids the sliver
+    but counts the noon phase twice in cycle means. The realized dt differs from
+    ``dt_target`` by < 0.05 %; build every lunation grid with this function.
     """
     from .constants import LUNATION_SECONDS
     n = int(round(LUNATION_SECONDS / float(dt_target)))
@@ -169,9 +167,7 @@ def standard_insolation(lat_deg: float, t: np.ndarray) -> np.ndarray:
         bakes (1 - A) into the forcing counts the albedo TWICE.
       * Do NOT omit cos(lat). Both Apollo sites are off-equator (A15 26.1 N,
         A17 20.2 N); dropping the factor runs a fictitious equatorial site.
-    An audit on 2026-07-03 found eight demo/figure callers violating one or
-    both rules (published retrieval numbers were unaffected -- retrieve_kd
-    always did this correctly). Use this helper instead of re-deriving.
+    Use this helper instead of re-deriving the forcing.
 
     Parameters
     ----------
@@ -373,26 +369,23 @@ def _step(
     current sub-surface cell).
     Lower (z=z_max): geothermal flux ``Q_b`` (Neumann).
 
-    Property treatment (midpoint Picard, 2026-07-03)
-    ------------------------------------------------
+    Property treatment (midpoint Picard)
+    ------------------------------------
     K, rho, c_p depend on T, so where we evaluate them sets the order of
-    the scheme. Freezing them at the explicit level T_prev -- the
-    classic linearisation this solver used until 2026-07-03 -- makes the
-    whole step FIRST order in dt regardless of the trapezoidal
-    averaging, and the error is not academic: the retrieved K_d*(A17)
-    drifted -0.30 mW per dt halving (7.699 / 7.397 / 7.251 at dt =
-    1800/900/450 s; Richardson limit 7.104 mW; the dt-ladder record is in
-    release v1.4.2-jgr).
+    the scheme. Freezing them at the explicit level T_prev makes the whole
+    step first order in dt regardless of the trapezoidal averaging, and the
+    error is large enough to move K_d* by tenths of a mW m^-1 K^-1 per
+    halving of dt.
 
-    The fix is ``n_picard`` corrector sweeps: after the predictor solve,
+    The remedy is ``n_picard`` corrector sweeps: after the predictor solve,
     re-evaluate the properties at the time-midpoint state
     ``0.5*(T_prev + T_new)`` and re-solve. Property evaluation at the
     midpoint is what the implicit-midpoint rule prescribes and restores
     second-order accuracy; the sweeps also move the surface Newton's
     sub-surface anchor from the lagged ``T_prev[0]`` to the implicit
     ``T_new[0]``, closing the surface-interior coupling. The default
-    resolves ``config.CN_PICARD_SWEEPS`` at call time (a hard-coded
-    signature default is exactly how the stale ``n_inner=12`` bug hid).
+    resolves ``config.CN_PICARD_SWEEPS`` at call time, so the setting has
+    one source.
     """
     if n_picard is None:
         from .config import CN_PICARD_SWEEPS
@@ -468,13 +461,11 @@ def _step(
             )
             # Explicit-side ghost: use the PREVIOUS step's surface
             # temperature when the march supplies it, making the boundary
-            # genuinely trapezoidal (Crank-Nicolson-consistent). The old
-            # behavior (T_s_prev = T_s_new, the same endpoint Newton
-            # solution on both sides) degraded the whole scheme to FIRST
-            # order in dt at the day/night terminator -- measured as a
-            # 136 mK/dt-halving drift in sensor-band <T> (audit
-            # 2026-07-03). Zero extra cost: the previous T_s is already
-            # stored by solve_pixel.
+            # genuinely trapezoidal (Crank-Nicolson-consistent). Using the
+            # same endpoint Newton solution on both sides would make the
+            # scheme first order in dt at the day/night terminator (about
+            # 136 mK per halving of dt in the sensor-band <T>). The previous
+            # T_s is already stored by solve_pixel.
             T_s_prev = (float(radiative_T_s_prev)
                         if radiative_T_s_prev is not None else T_s_new)
 
@@ -511,9 +502,8 @@ def _step(
 # A line-for-line transcription of the verified C++ port (cpp/solver.cpp,
 # itself equal to the generic Python march to ~1e-12 K): scalar Hayne
 # properties, midpoint-Picard Crank-Nicolson step, trapezoidal surface ghost,
-# basal Q_b Neumann, cycle chaining WITH the wrap step. Exists because the
-# generic ``_step`` loop is pure Python and the 2026-07-03 numerics fixes
-# (Picard sweeps x wrap step x dt=1800) made it the pipeline bottleneck.
+# basal Q_b Neumann, cycle chaining with the wrap step. The generic ``_step``
+# loop is pure Python and too slow for the production runs.
 
 
 @njit(cache=True)
@@ -772,16 +762,13 @@ def solve_pixel(inputs: PixelInputs) -> PixelOutputs:
     converged = False
     delta = np.nan
     cycle = 0
-    # The WRAP step (found 2026-07-03, the wrap-sliver bug's final form):
-    # t[] spans [0, P-dt] (periodic grid, no duplicated endpoint), so the
-    # k-loop below advances only P-dt seconds per cycle. Chaining cycles
-    # without also marching the final step t[-1] -> P (whose forcing is
-    # insolation[0] again) relabels the t = P-dt state as t = 0 -- a phase
-    # slip of exactly dt per cycle that makes the PERIODIC ATTRACTOR itself
-    # first-order in dt (+61 mK/halving at dt=1800, depth-uniform; it was
-    # the true source of the K_d*(A17) dt drift, NOT the property
-    # linearisation). The wrap step below closes the cycle; with it the
-    # attractor is second-order (toy study, audit F-5 addendum III).
+    # The wrap step: t[] spans [0, P-dt] (periodic grid, no duplicated
+    # endpoint), so the k-loop below advances only P-dt seconds per cycle.
+    # Chaining cycles without also marching the final step t[-1] -> P (whose
+    # forcing is insolation[0] again) relabels the t = P-dt state as t = 0, a
+    # phase slip of dt per cycle that makes the periodic state itself first
+    # order in dt (+61 mK per halving at dt = 1800 s). With the wrap step it
+    # is second order.
     dt_wrap = float(inputs.t[1] - inputs.t[0])
     T_s_at_zero: float | None = None
     for cycle in range(1, inputs.n_lunations_spinup + 1):

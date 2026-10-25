@@ -8,7 +8,7 @@ diffusive timescale of the *whole* column: for the 5-m production grid
 fixed-length spin-up of a few tens of lunations therefore retains memory
 of the initial condition at sensor depths (0.8--2.4 m), and any anchor
 constant used to build the initial profile acts as a hidden free
-parameter of the retrieval (audit flag F1, docs/FLAG_REPORT.md).
+parameter of the retrieval.
 
 Method: flux-anchored outer iteration
 -------------------------------------
@@ -28,9 +28,9 @@ The skin equilibrates in a few lunations (tau(z0) ~ z0^2 / kappa, about
 10 lunations at the default z0 = 0.55 m); only the deep column is slow.
 The anchor must sit below the diurnal *rectification* zone: where the
 diurnal amplitude is still ~K-level, u_rect is a sizeable fraction of
-Q_b. At 0.55 m the amplitude is ~0.15 K and u_rect is < 1 % of Q_b
-(validated by the 120-lunation drift test below); the reconstruction
-still carries it. We exploit this split:
+Q_b. At 0.55 m the daily amplitude is about 0.1 K and u_rect about
+0.01 % of Q_b (SI Figure S4); the reconstruction still carries it. We
+exploit this split:
 
   repeat:
     (i)  run ``n_inner`` lunations of the full nonlinear solver from the
@@ -52,7 +52,7 @@ dependence on the initial guess. Step (i) runs on the truncated skin
 sub-grid only (see ``solve_periodic_equilibrium``); its cost is set by
 ``config.EQ_N_INNER``.
 
-Validation (see tests/test_equilibrium.py and the audit notebook):
+Validation (tests/test_equilibrium.py):
 initial guesses 240 K and 260 K converge to sensor-depth mean
 temperatures agreeing to < 0.03 K, and the cycle-mean flux closes on
 Q_b to < 2 % at all depths below 0.3 m.
@@ -172,7 +172,7 @@ def _truncate_grid(grid: DepthGrid, z_cut: float) -> tuple[DepthGrid, int]:
     arrays as ``arr[:n]``. Step A is time-stepped on this sub-column with the
     geothermal Q_b flux BC applied at its base; the deep column below ``z_cut``
     is reconstructed by Step B's closure ODE and never time-stepped. A
-    ``z_cut >= z_max`` returns the full grid (recovering the old behaviour).
+    ``z_cut >= z_max`` returns the full grid.
     """
     n = int(np.searchsorted(grid.z_face, z_cut, side="left"))
     n = int(np.clip(n, 2, grid.n_layers))
@@ -235,16 +235,14 @@ def solve_periodic_equilibrium(
     z = grid.z_mid
     i0 = int(np.argmin(np.abs(z - z_anchor)))
 
-    # --- Step A domain truncation (the n_inner convergence fix, 2026-06-30) ---
-    # Step A's only job is to settle the diurnal *skin*; the deep column below
-    # the anchor is reconstructed by Step B's closure ODE. The original code
-    # time-stepped the WHOLE 5 m column in Step A, so the slow ~10^3-lunation
-    # deep relaxation leaked back into the anchor and the retrieved K_d* drifted
-    # with n_inner (biased high at the old n_inner=12). We therefore run Step A
-    # on a sub-grid [0, cap] a short margin below the anchor, applying the Q_b
-    # flux BC at its base (at steady state the flux there IS Q_b). Everything
-    # below cap is reconstructed, never time-stepped, so a small n_inner suffices
-    # and each solve is cheap. cap >= z_max recovers the old full-column path.
+    # --- Step A on the skin only ---
+    # Step A's only job is to settle the diurnal skin; the deep column below the
+    # anchor is reconstructed by Step B's closure ODE. Time-stepping the whole
+    # 5 m column here would let its slow (~10^3-lunation) relaxation leak back
+    # into the anchor and make K_d* depend on n_inner. Step A therefore runs on a
+    # sub-grid [0, cap] a short margin below the anchor, with the Q_b flux
+    # condition at its base (in the steady state the flux there is Q_b).
+    # cap >= z_max runs the full column.
     cap = step_a_depth_m if step_a_depth_m is not None else z_anchor + 0.15
     sub_grid, n_cut = _truncate_grid(grid, cap)
     if i0 >= n_cut:

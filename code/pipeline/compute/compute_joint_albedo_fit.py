@@ -1,4 +1,4 @@
-"""Joint retrieval of the effective albedo and K_d at each site (audit 2026-10-04).
+"""Joint retrieval of the effective albedo and K_d at each site.
 
 Why
 ---

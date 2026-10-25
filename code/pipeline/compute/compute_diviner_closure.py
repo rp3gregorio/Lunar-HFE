@@ -71,9 +71,7 @@ def model_surface_cycle(site_cfg, k_func):
     cpf = lambda T: specific_heat(T, model="hayne")
 
     def forcing(dt):
-        # commensurate lunation grid at THIS function's dt (the migration to
-        # periodic_time_grid briefly hardcoded DT_STEP here -- unimported and
-        # wrong for the fine output cycle; audit 2026-07-03)
+        # commensurate lunation grid at this function's dt (the output cycle is finer)
         t = periodic_time_grid(dt)
         insol = standard_insolation(site_cfg["lat"], t)
         return t, insol
@@ -195,7 +193,7 @@ def main():
         # separation is invisible at full scale. The inset magnifies it in
         # the empty upper-centre band, above the trough and left of the
         # stats box; a zoom indicator ties it to the shaded night region.
-        axins = ax.inset_axes([0.30, 0.38, 0.40, 0.34])   # centred (was 0.27)
+        axins = ax.inset_axes([0.30, 0.38, 0.40, 0.34])
         _draw(axins, 1.7, lbl=False)
         axins.set_xlim(7.0, 17.0)                       # LST 19 -> 05
         lo, hi = np.inf, -np.inf

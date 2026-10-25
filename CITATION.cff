@@ -7,9 +7,6 @@ message: >-
   If you use this software or the bundled HFE record, please cite both
   the associated paper (preferred) and this repository.
 type: software
-# NOTE: Zenodo builds the archived record's creator list from THIS top-level
-# `authors:` block, not from `preferred-citation.authors`. All co-authors must
-# appear here or they are omitted from the software DOI.
 authors:
   - given-names: Ramon III Palinguba
     family-names: Gregorio
@@ -33,8 +30,8 @@ authors:
 repository-code: 'https://github.com/rp3gregorio/Lunar-HFE'
 doi: 10.5281/zenodo.22183100   # concept DOI (all versions)
 license: MIT
-version: v2.1.1-jgr
-date-released: '2026-10-19'
+version: v2.2-jgr
+date-released: '2026-10-26'
 preferred-citation:
   type: article
   authors:
@@ -56,4 +53,3 @@ preferred-citation:
     Apollo 15 and 17 Heat-Flow Boreholes from Global Model Values
   journal: Journal of Geophysical Research, Planets
   year: 2026
-  doi: 10.0000/TBD

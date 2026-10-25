@@ -15,8 +15,6 @@ Source (LOLA LDEM, 16 pixels/degree global topographic map):
   WESTERNMOST_LONGITUDE = 0, EASTERNMOST_LONGITUDE = 360).
     lat  ->  row = (90 - lat) * 16
     lon  ->  col = (lon mod 360) * 16, wrapping across 0/360 deg
-  (Until 2026-10-08 this read col = (lon + 180) * 16, which cut both crops
-  from the far side, 180 deg away from the sites.)
 
 Each crop spans +/-15 deg longitude, +/-10 deg latitude about the site
 (matching ZOOM_DLON/ZOOM_DLAT in make_context_map_figure.py): 480 cols
@@ -58,8 +56,8 @@ ZOOM_DLAT = 10.0
 def load_ldem():
     if not LDEM.exists():
         raise FileNotFoundError(
-            f"LDEM source not found at {LDEM}. It ships with the AOGS "
-            "assets (data/lola/ldem_16.img); the committed crops in "
+            f"LDEM source not found at {LDEM}. code/data/README.md says how to "
+            "download it (data/lola/ldem_16.img); the committed crops in "
             f"{OUT} let the figure build without it.")
     dem = np.fromfile(LDEM, dtype="<i2").reshape(N_ROWS, N_COLS)
     return dem.astype(np.float32) * ELEV_SCALE_KM        # km

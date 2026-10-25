@@ -1,4 +1,4 @@
-"""Review diagnostics (audit 2026-10-01): three questions the letter answers in words.
+"""Review diagnostics: three questions the letter answers in words.
 
 Question 1 -- is the global K_d rejected at A17 whatever the basal flux?
 ------------------------------------------------------------------------
@@ -23,8 +23,7 @@ floor -- and continued exponentially to the retained-sensor depths. The raw
 max-min at those depths (wave plus residual drift) is stored alongside as a
 cross-check; the two agree in order of magnitude.
 Also reported: the depths at which the swing (and the half-swing amplitude)
-fall below 0.1 K. Replaces the hard-coded Z_SKIN_DEAD = 54 cm of
-make_intro_column.py.
+fall below 0.1 K.
 
 Question 3 -- why does the A17 level rise with K_d?
 ---------------------------------------------------

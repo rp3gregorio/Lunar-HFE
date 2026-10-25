@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Common-epoch sensitivity of the per-site K_d retrieval (audit F2).
+"""Common-epoch sensitivity of the per-site K_d retrieval.
 
-THE PROBLEM (codex audit 2026-07-13, confirmed by diagnostic): the
+THE PROBLEM: the
 per-sensor stability windows end at different calendar epochs while the
 record is still warming. At A17 the retained sensors at 130--178 cm carry
 mid-1977 windows while every sensor below 180 cm carries a 1974 window --

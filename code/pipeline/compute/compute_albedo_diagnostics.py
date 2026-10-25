@@ -1,4 +1,4 @@
-"""Site-albedo diagnostics (audit 2026-10-02): what albedo do the sites have, and what does the fit need?
+"""Site-albedo diagnostics: what albedo do the sites have, and what does the fit need?
 
 Background
 ----------

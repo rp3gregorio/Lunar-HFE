@@ -1,4 +1,4 @@
-"""Headline metrics and internal checks of the joint (A, K_d) retrieval (audit 2026-10-05).
+"""Headline metrics and internal checks of the joint (A, K_d) retrieval.
 
 At the joint best fit of each site (compute_joint_albedo_fit.py, with the
 diffusivity), and at the global K_d = 3.4 with its own fitted albedo:
@@ -28,7 +28,7 @@ diffusivity), and at the global K_d = 3.4 with its own fitted albedo:
     the observed one (if results/joint_fit_sensitivities.json is present,
     from its Q_b variants);
   * the fixed-albedo sensitivity to a uniform +-1 K bias of the T_eq
-    (temperatures only, albedo held at the joint fit; no longer quoted in the letter);
+    (temperatures only, albedo held at the joint fit);
   * the published global K_d values -- 3.4 (Hayne et al. 2017), 3.8 (Feng et
     al. 2020) and 7 (Vasavada et al. 2012, whose radiative term differs, so
     only indicative) -- scored by Delta-AICc against the joint fit, each with

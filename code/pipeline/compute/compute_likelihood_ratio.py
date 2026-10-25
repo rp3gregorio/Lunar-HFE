@@ -1,4 +1,4 @@
-"""Likelihood-ratio tests for the letter's model comparisons (2026-10-07).
+"""Likelihood-ratio tests for the letter's model comparisons.
 
 The joint-fit objective J (letter Eq. 10) is -2 ln L up to a constant, with
 the sensor noise estimated from the residuals. For nested models -- a model
@@ -19,7 +19,7 @@ This script only post-processes stored fits; it solves nothing.
     (df = 2) against separate values per site
     (joint_fit_sensitivities.json, model_comparison; Sec. 3.4);
   * the global value under other radiative coefficients chi and the site
-    densities (joint_chi_density.json; Sec. 4.4, SI Table S14). That file keeps
+    densities (joint_chi_density.json; Sec. 4.3, SI Table S14). That file keeps
     only Delta-AICc, which is converted back to Delta J exactly:
     Delta J = Delta AICc - [pen(2) - pen(3)], pen(k) = 2k + 2k(k+1)/(N-k-1),
     N = n + 3 (compute_joint_albedo_fit.analyse);

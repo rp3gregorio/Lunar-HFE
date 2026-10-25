@@ -1,4 +1,4 @@
-"""Real against idealized sunlight at the two Apollo sites (2026-10-23).
+"""Real against idealized sunlight at the two Apollo sites.
 
 The model (letter Section 2.2, Equation 1) is driven by an idealized cycle:
 the Sun rises and sets once per mean synodic month, at the site latitude,

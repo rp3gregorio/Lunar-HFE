@@ -1,6 +1,6 @@
 """K_d* vertex routine (retrieve_kd.kd_star_from_residuals).
 
-Regression for audit 2026-10-04: a merged grid built with np.unique over two
+Regression test: a merged grid built with np.unique over two
 constructions of the same K_d can keep last-bit twins. When the RMSE minimum
 sat on such a twin, the 3-point parabola was singular and returned a vertex
 outside its bracket (7.81 for a true minimum at 6.5 mW m^-1 K^-1).

@@ -2,7 +2,7 @@
 
 We check limiting behavior and known-published numbers rather than
 fitting to any particular temperature — the goal is to catch regressions
-against SKILL.md benchmarks and the Hayne (2017) model definition.
+against published values and the Hayne (2017) model definition.
 """
 
 import numpy as np

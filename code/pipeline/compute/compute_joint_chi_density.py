@@ -1,4 +1,4 @@
-"""Joint (A, K_d) retrieval under other radiative factors chi and site-specific densities (2026-10-05).
+"""Joint (A, K_d) retrieval under other radiative factors chi and site-specific densities.
 
 The joint retrieval holds chi = 2.7 (Hayne et al. 2017) and the deep density
 rho_d = 1800 kg m^-3 at both sites. Because the diffusivity fixes the effective

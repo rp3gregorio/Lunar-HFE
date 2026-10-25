@@ -1,12 +1,9 @@
 """Regression tests for the flux-anchored periodic-equilibrium driver.
 
-The defining property (audit flag F1, docs/FLAG_REPORT.md): the converged
-profile must not depend on the initial-guess temperature. The full
-production validation (5-m grid, 1-h steps, guesses 240/260 K, 120-lunation
-drift certification) gives <= 0.023 K guess-dependence and <= 0.08 K
-honest-run drift at sensor depths, i.e. <= ~0.1 mW/m/K in the retrieved
-K_d* -- an order of magnitude below the bootstrap uncertainty. Here we run
-a coarsened version so CI stays fast.
+The defining property: the converged profile must not depend on the
+initial-guess temperature. These tests run a coarsened column so CI stays
+fast; at production resolution the start does not move the sensor-depth
+profile (SI Figure S4 d; certify_joint_numerics.py, SI Table S3).
 """
 from __future__ import annotations
 

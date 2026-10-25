@@ -3,9 +3,8 @@
 The subsurface grid MUST be geometric — uniform spacing is forbidden because
 it under-resolves the diurnal skin depth (millimetre curvature at the
 surface) and over-resolves the deep interior (centimetre-to-metre spacing
-suffices once the daily wave has decayed). See ``lunar-audit`` skill,
-"Known bugs to catch" #3, and ``tests/test_grid.py`` for the resolution
-requirements this construction is held to.
+suffices once the daily wave has decayed). ``tests/test_grid.py`` holds the
+construction to its resolution requirements.
 """
 
 from __future__ import annotations

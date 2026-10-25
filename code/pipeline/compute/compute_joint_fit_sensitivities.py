@@ -1,4 +1,4 @@
-"""Error budget and sensitivities of the joint (A, K_d) retrieval (audit 2026-10-05).
+"""Error budget and sensitivities of the joint (A, K_d) retrieval.
 
 The joint retrieval (compute_joint_albedo_fit.py) fits the effective albedo
 and K_d at each site to three in-situ measurements: the meter-scale sensor

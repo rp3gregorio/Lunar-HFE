@@ -1,4 +1,4 @@
-"""Bayesian (MCMC) version of the joint (albedo, K_d) retrieval (2026-10-05).
+"""Bayesian (MCMC) version of the joint (albedo, K_d) retrieval.
 
 The joint retrieval (compute_joint_albedo_fit.py) fits the effective albedo A
 and K_d at each site with the basal flux and the deep density held at their
@@ -44,8 +44,7 @@ import compute_joint_albedo_fit as jf
 N_WORKERS = 5
 A_G = np.round(np.arange(0.115, 0.16001, 0.0025), 4)                  # 19
 KD_G = np.round(np.arange(3.0, 9.0001, 0.25), 4) * 1e-3                # 25
-# the first run (8-21 at A17, 1550-2050) cut the A17 posterior at Q_b = 8 and
-# rho_d = 2050; the grid now reaches 5 and 2300 so no posterior touches an edge
+# wide enough that no posterior touches an edge (A17 needs Q_b down to 5, rho_d up to 2300)
 QB_G = {"A15": np.array([13.0, 17.0, 21.0, 25.0, 29.0]),               # mW m^-2
         "A17": np.array([5.0, 8.0, 11.0, 14.0, 16.0, 18.0, 21.0])}
 RHO_G = np.array([1550.0, 1800.0, 2050.0, 2300.0])                     # kg m^-3

@@ -74,7 +74,7 @@ def density_hayne(
     rho_d: float = RHO_DEEP,
     H: float = H_PARAMETER,
 ) -> np.ndarray:
-    """Bulk density [kg m^-3] vs depth, Hayne et al. (2017) Eq. 5.
+    """Bulk density [kg m^-3] vs depth, Hayne et al. (2017) Eq. A2.
 
     ``rho(z) = rho_d - (rho_d - rho_s) * exp(-z / H)``
     """
@@ -112,13 +112,13 @@ def conductivity_hayne(
     H: float = H_PARAMETER,
     chi: float = CHI_RADIATIVE,
 ) -> np.ndarray:
-    """H-parameter conductivity, Hayne et al. (2017) Eq. 4.
+    """H-parameter conductivity, Hayne et al. (2017) Eqs. A3-A5.
 
     ``K_c(z) = K_d - (K_d - K_s) * exp(-z/H)``
     ``K(T, z) = K_c(z) * (1 + chi * (T / 350)^3)``
 
-    The radiative term ``chi * (T/350)^3`` MUST be present; omitting it
-    is known bug #5 in SKILL.md.
+    The radiative term ``chi * (T/350)^3`` must be present: without it the
+    conductivity at 250 K is about half the model's.
     """
     T = np.asarray(T, dtype=np.float64)
     z = np.asarray(z, dtype=np.float64)
@@ -226,9 +226,7 @@ def conductivity_icy(
 
         K_eff = (1 - phi_ice) * K_dry(T, rho) + phi_ice * K_ice(T)
 
-    The Hashin-Shtrikman lower bound is also a defensible mixing rule;
-    sensitivity of z_star to this choice is a planned study (thesis
-    Chapter 6).
+    The Hashin-Shtrikman lower bound is also a defensible mixing rule.
     """
     phi = np.asarray(phi_ice, dtype=np.float64)
     K_dry = conductivity_martinez(T, z=z, rho=rho)

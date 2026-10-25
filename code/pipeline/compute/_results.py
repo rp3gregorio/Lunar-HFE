@@ -1,10 +1,8 @@
 """Read-side accessors for canonical results/ artifacts.
 
-Benchmark and diagnostic scripts need "the retrieved K_d*" as an INPUT
-(e.g. to time a solve at the production operating point). Hardcoding it is
-how three scripts silently ran at a stale 4.603e-3 across two re-baselines
--- the same duplication failure as the Q_b bug. Import from here instead;
-the retrieval json (written ONLY by retrieve_kd.py) is the single source.
+Benchmark scripts need the retrieved K_d* as an input (to time a solve at
+the production operating point). They read it here, from the retrieval json
+written by retrieve_kd.py, instead of hard-coding a value.
 """
 from __future__ import annotations
 

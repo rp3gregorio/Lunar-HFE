@@ -1,49 +1,24 @@
 #!/usr/bin/env python3
-"""Letter Figure 2 -- the column, its grid, the probes in it, and its density.
+"""Letter Figure 2: the model column, the Apollo probes in it, and its properties.
 
-Extends the fig_column_illustration design (3-D sheared cutaway | the 69-cell
-grid | rho(z)) with the two things the letter needs alongside them: the Apollo
-borestems drawn at their real sensor depths in the material they measured, and
-the two boundary conditions named on the fluxes that already carry them.
+(a) A cutaway of the 5 m regolith column on a logarithmic depth axis. The cut
+    face is shaded by density and carries grains whose size and number follow
+    rho(z); its right part shows the 69 cells of the model grid. Arrows mark the
+    heat flows: sunlight arriving, scattered and absorbed, heat radiated back
+    out, heat conducted down, and the basal heat flow. The two borestems of each
+    site are drawn at their sensor depths; the dashed line is the 80 cm border
+    of the borestem zone.
+(b) The density profile of Hayne et al. (2017), with the scale depth H.
+(c) The Hayne and the Martinez & Siegler (2021) conductivities at 250 K.
 
-ORIGINAL DOC FOLLOWS.
+All three panels share the depth axis. All text is at the letter's 11 pt, and
+the figure is drawn at the text width.
 
-The regolith column, lit, beside the density profile Hayne's model gives it.
-
-Deliberately UNLABELLED apart from the two axes. This is the picture only -- the
-boundary-condition equations are added downstream, in the document, so the figure
-leaves the space and makes no claim of its own. That is why the arrows carry no
-symbols: an equation printed here would have to be moved or deleted later.
-
-  LEFT   a lit block cutaway of the full 5 m column. One light source, the Sun,
-         upper left; every shadow falls down-right. The ground is a solid block
-         with a lit top face and a shaded side face, and the grains loosen toward
-         the surface and crowd with depth because the real density does.
-         Five flux arrows, visually distinct so each can be labelled:
-             straight warm, into the surface .... sunlight arriving
-             warm fan off the impact point ...... scattered back (diffuse)
-             thick warm, into the ground ........ absorbed
-             wavy cool, off the whole surface ... radiated back out
-             thin dark, downward ................ conducted into the column
-             green, upward at the base .......... the interior's heat
-  RIGHT  the density profile from lunar.properties.density_hayne on the SAME
-         depth axis, with the compaction scale H marked.
-
-WHY THE ARROWS LOOK THE WAY THEY DO. The scatter is a starburst, not a bounce:
-regolith is a rough scatterer and a specular reflection would teach the wrong
-thing. The outgoing heat is wavy, cool, and leaves the whole surface rather than
-the impact point, because it is not reflected sunlight -- it is the warm ground
-glowing, at a wavelength fifteen times longer.
-
-DEPTH AXIS. Log, 0.5 cm to 500 cm, ticks printed. A linear 5 m axis buries the
-entire density rise and the 6 cm compaction scale in the top 5 % of the frame.
-
-Outputs: figures/fig_column_illustration.pdf (+ .png at 300 dpi)
-Run:     python code/pipeline/figures/make_column_illustration.py
+Output: figures/fig_joint_intro_column.pdf (+ .png)
+Run:    python code/pipeline/figures/make_intro_column.py
 """
 from __future__ import annotations
 
-import json
 import pathlib
 import sys
 
@@ -52,8 +27,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.patches import Circle, FancyArrowPatch, Polygon, Rectangle
+from matplotlib.colors import LinearSegmentedColormap, to_rgb
+from matplotlib.patches import Circle, Ellipse, FancyArrowPatch, Polygon, Rectangle
 
 _HERE = pathlib.Path(__file__).resolve().parent
 _REPO = _HERE.parents[1]
@@ -63,85 +38,101 @@ for _p in (str(_REPO), str(_REPO / "src"), str(_HERE)):
 
 from lunar.apollo_helpers import extract_sensor_stability
 from lunar.config import GRID, HAYNE, SITES
-from matplotlib.colors import to_rgb
-
 from lunar.constants import RHO_DEEP, RHO_SURFACE
 from lunar.grid import make_geometric_grid
-from lunar.plotting.style import (C_HAYNE_GLOBAL, LS_HAYNE_GLOBAL, LS_MS)
+from lunar.plotting import style
 from lunar.plotting.style import (C_A15_2, C_A17_2, C_CHAR, C_CORAL, C_DIM, C_FOREST,
-                                  C_GRID, C_MS)
-from lunar.properties import (conductivity_hayne, conductivity_martinez,
-                              density_hayne)
-
-from make_surface_balance import (GRAIN_RIM, GROUND_DEEP, GROUND_LIT,
-                                  GROUND_MID, PAPER, _shade, apply_style,
-                                  grain, setup_fonts)
+                                  C_GRID, C_HAYNE_GLOBAL, C_MS, LS_HAYNE_GLOBAL, LS_MS)
+from lunar.properties import conductivity_hayne, conductivity_martinez, density_hayne
 
 FIGS = _REPO.parent / "figures"
 
-W, H = 7.48, 4.36                     # landscape; drawing coordinates in these inches
-_DOC = {"pt": None, "scale": 1.0}       # letter mode: all text at the body size, canvas at the text width
+W, H = 7.48, 4.36                      # drawing coordinates, in inches before scaling
+SCALE = (style.TEXT_W - 0.10) / W      # the canvas is scaled to the text width
+PT = style.DOC_PT                      # every text at the letter's body size
 
-
-def fs(v):
-    """Font size: the given one, or the letter's body size in letter mode."""
-    return _DOC["pt"] or v
-
-# colour roles (letter figures): coral / green are the sites, teal / violet the
-# models, so the schematic uses gold for sunlight and grey for emitted heat
+# colours: green and coral are the sites, teal and violet the models, so the
+# schematic uses gold for sunlight and grey for emitted heat
 WARM, COOL, DARK = "#C99A2E", C_DIM, C_CHAR
-BAND_COMPACT = "#EFE7DC"              # the compaction zone, shared by both panels
+GROUND_LIT = "#E8D8BE"                 # the lit top face
+GROUND_MID = "#D6C0A0"                 # the cut face, near the surface
+GROUND_DEEP = "#A98D6B"                # the cut face, at depth
+GRAIN_FACE, GRAIN_HI, GRAIN_RIM = "#E4D2B4", "#F6EEDF", "#9C8264"
+PAPER = "#FFFFFF"
 
-# ---- x budget (inches) ------------------------------------------------------
-BLK_L, BLK_R = 0.68, 3.32
-SHEAR_X, SHEAR_Y = 0.26, 0.17
+# ---- layout, in drawing inches -----------------------------------------------
+BLK_L, BLK_R = 0.68, 3.32              # the front face of the block
+SHEAR_X, SHEAR_Y = 0.26, 0.17          # how far the top and side faces recede
 X_SPLIT = 0.68 + 0.66 * (3.32 - 0.68)  # material (left) | grid (right)
-GAP_L = BLK_R + SHEAR_X + 0.10        # where the tie lines start
-DENS_L, DENS_R = 4.16, 5.24
-KPAN_L, KPAN_R = 5.86, 7.06        # the K(z) comparison panel
-NOTE_X = KPAN_R + 0.12                 # (texture notes now live in the caption)
-# The grid half carries its OWN LINEAR depth mapping. It cannot share the log
-# axis: a log axis compresses exactly where the cells are fine, so cell faces
-# drawn on one crowd at depth and spread at the surface -- 12 per inch near the
-# surface against 36 deep, where the truth is 807 against 12. The price is that a
-# horizontal line does not mean the same depth on both halves, so each half is
-# labelled with its own scale and its own ticks.
-
-# ---- y budget (inches) ------------------------------------------------------
+DENS_L, DENS_R = 4.16, 5.24            # panel (b)
+KPAN_L, KPAN_R = 5.86, 7.06            # panel (c)
 Y_TOP, Y_BOT = 3.00, 0.52
 SUN, SUN_R = (1.05, 3.90), 0.090
-IMPACT = (1.34, 3.09)
+IMPACT = (1.34, 3.09)                  # where the sunbeam meets the surface
 EMIT_X = (1.88, 2.32, 2.74)
 X_CONDUCT = 1.88
 
-Z_TOP, Z_BOT = 0.5, 500.0
+Z_TOP, Z_BOT = 0.5, 500.0              # cm, the depth axis
 TICKS = [(1, "1"), (10, "10"), (100, "100"), (500, "500")]
-Z_COMPACT = 30.0         # rho is within 0.7 % of its deep value by here
-# Depth below which the modeled diurnal swing is < 0.1 K at BOTH sites: the
-# deeper of the two crossings at the joint-fit K_d* (config.SITES albedo).
-# Written by pipeline/compute/compute_review_diagnostics.py (replaces a
-# hard-coded 54 cm that no script reproduced; audit 2026-10-01).
-_SWING = json.loads((_REPO / "results" / "review_diagnostics.json")
-                    .read_text())["diurnal_swing"]
-Z_SKIN_DEAD = 100.0 * max(_SWING[s]["kd_joint"]["depth_p2p_below_0p1K_m"]
-                          for s in ("A15", "A17"))
-BORESTEM_CM = SITES["A15"]["MIN_DEPTH_CM"]   # 80 cm exclusion
-TIE_Z = (1.0, 6.0, 15.0, 30.0)
+BORESTEM_CM = SITES["A15"]["MIN_DEPTH_CM"]   # 80 cm, the border of the borestem zone
+K_LO, K_HI = 0.0, 9.0                  # mW m^-1 K^-1, the span of panel (c)
 
 HALO = dict(facecolor=PAPER, edgecolor="none", alpha=0.80, pad=1.2)
 ARROW = dict(arrowstyle="-|>", mutation_scale=11, lw=1.8, shrinkA=0, shrinkB=0)
 
 
-def ymap(z_cm):
-    z = np.clip(np.asarray(z_cm, dtype=float), Z_TOP, Z_BOT)
-    return Y_TOP - (Y_TOP - Y_BOT) * (np.log10(z / Z_TOP)
-                                      / np.log10(Z_BOT / Z_TOP))
+def apply_style() -> None:
+    plt.rcParams.update({
+        "font.family": "serif",
+        "font.serif": ["Times", "STIX Two Text", "Times New Roman"],
+        "mathtext.fontset": "custom",
+        "mathtext.it": "STIX Two Math:italic",
+        "mathtext.rm": "STIX Two Math",
+        "mathtext.bf": "STIX Two Math:bold",
+        "mathtext.cal": "STIX Two Math:italic",
+        "mathtext.default": "it",
+        "text.color": DARK,
+        "figure.facecolor": PAPER, "savefig.facecolor": PAPER,
+    })
+    plt.rcParams.update({"mathtext.fontset": "stix", "pdf.fonttype": 42})
 
+
+def _shade(hex_color: str, f: float) -> tuple:
+    """Lighten (f > 0) or darken (f < 0) a colour."""
+    r, g, b = to_rgb(hex_color)
+    if f >= 0:
+        return (r + (1 - r) * f, g + (1 - g) * f, b + (1 - b) * f)
+    return (r * (1 + f), g * (1 + f), b * (1 + f))
 
 
 def _blend(c0, c1, t):
     a = np.array(to_rgb(c0)); b = np.array(to_rgb(c1))
     return tuple(a + (b - a) * float(np.clip(t, 0.0, 1.0)))
+
+
+def grain(ax, x, y, r, z=7, dim=0.0):
+    """One shaded grain: contact shadow, body, highlight and rim.
+
+    ``dim`` darkens the grain, for the side face that turns away from the Sun.
+    """
+    ax.add_patch(Ellipse((x + 0.22 * r, y - 0.80 * r), 1.7 * r, 0.5 * r,
+                         facecolor=DARK, edgecolor="none", alpha=0.13,
+                         zorder=z))
+    ax.add_patch(Circle((x, y), r, facecolor=_shade(GRAIN_FACE, -dim),
+                        edgecolor="none", zorder=z + 1))
+    ax.add_patch(Circle((x - 0.26 * r, y + 0.26 * r), 0.60 * r,
+                        facecolor=_shade(GRAIN_HI, -dim), edgecolor="none",
+                        alpha=0.60, zorder=z + 2))
+    ax.add_patch(Circle((x, y), r, facecolor="none",
+                        edgecolor=_shade(GRAIN_RIM, -0.1 - dim), lw=0.45,
+                        zorder=z + 3))
+
+
+def ymap(z_cm):
+    """Depth (cm) to drawing y, on the shared logarithmic axis."""
+    z = np.clip(np.asarray(z_cm, dtype=float), Z_TOP, Z_BOT)
+    return Y_TOP - (Y_TOP - Y_BOT) * (np.log10(z / Z_TOP)
+                                      / np.log10(Z_BOT / Z_TOP))
 
 
 def zmap(y):
@@ -151,14 +142,7 @@ def zmap(y):
 
 
 def compaction(y):
-    """0 at the loosest surface, 1 at the fully compacted deep value.
-
-    The tone of the cut faces is driven by this rather than by position on the
-    axis, so the block darkens exactly where rho(z) actually rises -- all of it
-    above 30 cm -- and stops darkening below, where the regolith is already at
-    its deep density. Position-linear shading implied compaction continuing to
-    5 m, which the density panel to the right plainly contradicts.
-    """
+    """0 at the loosest surface, 1 at the deep density: the shade of the cut face."""
     rho = density_hayne(zmap(y) / 100.0)
     lo, hi = float(density_hayne(np.array([Z_TOP / 100.0]))[0]), RHO_DEEP
     return np.clip((rho - lo) / (hi - lo), 0.0, 1.0)
@@ -168,41 +152,13 @@ def dens_x(rho):
     return DENS_L + (np.asarray(rho) - 1050.0) / 800.0 * (DENS_R - DENS_L)
 
 
-K_LO, K_HI = 0.0, 9.0                 # mW/m/K, the panel's span
-
-
 def kx(k_mW):
     return KPAN_L + (np.asarray(k_mW) - K_LO) / (K_HI - K_LO) * (KPAN_R - KPAN_L)
 
 
-def draw_shared_band(ax):
-    """ONE band across BOTH panels: the surface down to 30 cm, which is where
-    rho actually moves (99.3 % of its whole range).
-
-    Drawn before the block so the grains sit on top of it, and carried through
-    the gap and across the density panel at the same tone. That is what makes the
-    texture and the curve read as one statement instead of two coincidences.
-    """
-    y0 = float(ymap(Z_COMPACT))
-    # The band is a LOG-axis statement, so it stops at the split and resumes
-    # beyond the block: over the grid half it would mark the wrong depth.
-    ax.add_patch(Rectangle((BLK_L, y0), X_SPLIT - BLK_L, Y_TOP - y0,
-                           facecolor=BAND_COMPACT, edgecolor="none",
-                           alpha=0.30, zorder=6.5))
-    ax.add_patch(Rectangle((GAP_L - 0.10, y0), DENS_R - GAP_L + 0.10,
-                           Y_TOP - y0, facecolor=BAND_COMPACT,
-                           edgecolor="none", alpha=0.30, zorder=6.5))
-    ax.plot([BLK_L, X_SPLIT], [y0, y0], color=_shade(C_DIM, 0.25), lw=0.8,
-            ls=(0, (2.6, 2.2)), zorder=6.6)
-    ax.plot([GAP_L - 0.10, DENS_R], [y0, y0], color=_shade(C_DIM, 0.25),
-            lw=0.8, ls=(0, (2.6, 2.2)), zorder=6.6)
-
-
 def draw_block(ax):
-    mid = 0.5 * (BLK_L + BLK_R)
-
     for dx, dy, a in ((0.09, -0.09, 0.05), (0.05, -0.05, 0.06),
-                      (0.02, -0.02, 0.07)):
+                      (0.02, -0.02, 0.07)):           # the shadow under the block
         ax.add_patch(Polygon([(BLK_L + dx, Y_BOT + dy), (BLK_R + dx, Y_BOT + dy),
                               (BLK_R + SHEAR_X + dx, Y_BOT + SHEAR_Y + dy),
                               (BLK_L + SHEAR_X + dx, Y_BOT + SHEAR_Y + dy)],
@@ -245,7 +201,7 @@ def draw_block(ax):
     ax.plot([BLK_L, BLK_L, BLK_R, BLK_R], [Y_TOP, Y_BOT, Y_BOT, Y_TOP],
             color=_shade(GRAIN_RIM, -0.25), lw=0.7, zorder=6)
 
-    # grains: counts and radii driven off the real density profile
+    # grains: their number and size follow the density profile
     rng = np.random.default_rng(23)
     zz = np.geomspace(Z_TOP, Z_BOT, 200)
     rho = density_hayne(zz / 100.0)
@@ -281,51 +237,30 @@ def draw_block(ax):
 
     # the depth scale
     ax.text(BLK_L - 0.07, Y_TOP + 0.30, "depth\n(cm)", color=C_DIM,
-            fontsize=fs(8.0), ha="right", va="center", linespacing=1.2)
+            fontsize=PT, ha="right", va="center", linespacing=1.2)
     for zc, lab in TICKS:
         y = float(ymap(zc))
         ax.plot([BLK_L - 0.05, BLK_L], [y, y], color=C_DIM, lw=0.6, zorder=6)
-        ax.text(BLK_L - 0.08, y, lab, color=C_DIM, fontsize=fs(8.0), ha="right",
+        ax.text(BLK_L - 0.08, y, lab, color=C_DIM, fontsize=PT, ha="right",
                 va="center")
-    return mid
 
 
 def draw_grid_half(ax):
-    """The right half of the block: the 69 cell faces, on a LINEAR depth mapping.
+    """The right part of the block: the faces of the model's 69 cells.
 
-    The cell separations are the point of this half, and they are only truthful on
-    a linear axis. Two earlier versions both failed on the shared log axis: faces
-    drawn on it made the surface look coarsest (cell 2 is 160x thinner than the
-    deepest cell yet was drawn 3.4x taller), and switching to bars whose LENGTH
-    was the thickness fixed that reading but left the SPACING inverted -- 12 per
-    inch near the surface against 36 deep, where reality is 807 against 12.
-
-    So this half maps depth linearly over the same vertical extent. The fine cells
-    now collapse into a dense band at the surface and the 37 cm cells are visibly
-    thick, which is the truth. The cost is real and is signposted rather than
-    hidden: a horizontal line does NOT mean the same depth on both halves, so each
-    half gets its own scale label and its own ticks -- log in centimetres down the
-    left, linear in metres inside the right.
-
-    The letter draws the faces on the material's log axis instead (user's choice,
-    2026-10-23: two scales in one block confused readers). Below a few cm each
-    cell is 8 % thicker than the one above, so there the faces are evenly spaced;
-    the two Delta z labels give the true thicknesses. The guidebook keeps the
-    linear version.
+    The faces sit on the same log axis as the material. Below a few cm each cell
+    is 8 % thicker than the one above, so there they are evenly spaced; the two
+    Delta z labels give the true thicknesses of the first and the last cell.
     """
     g = make_geometric_grid(**GRID)
     zf = g.z_face
-    z_max = float(zf[-1])
     span = Y_TOP - Y_BOT
-    log = _DOC["pt"] is not None          # the letter: one log depth axis for the whole block
 
-    def ylin(z):
-        return Y_TOP - (z / z_max) * span
-
-    yz = (lambda z: float(ymap(100.0 * z))) if log else ylin     # z in m
+    def yz(z):                                # z in m
+        return float(ymap(100.0 * z))
 
     for i in range(zf.size - 1):
-        t = (Y_TOP - yz(zf[i])) / span if log else zf[i] / z_max
+        t = (Y_TOP - yz(zf[i])) / span
         ax.add_patch(Rectangle((X_SPLIT, yz(zf[i + 1])), BLK_R - X_SPLIT,
                                yz(zf[i]) - yz(zf[i + 1]),
                                facecolor=_shade(GROUND_MID, 0.26 - 0.42 * t),
@@ -334,44 +269,27 @@ def draw_grid_half(ax):
     ax.plot([X_SPLIT, X_SPLIT], [Y_BOT, Y_TOP], color=_shade(C_CHAR, 0.15),
             lw=1.1, zorder=7.6)
 
-    # the linear half's own depth ticks; 5 m is the block's bottom edge, its label hid under the last Δz
-    for z in () if log else (1.0, 2.0, 3.0, 4.0):
-        y = float(ylin(z))
-        ax.plot([BLK_R - 0.07, BLK_R], [y, y], color=_shade(C_CHAR, 0.35),
-                lw=0.6, zorder=7.7)
-        ax.text(BLK_R - 0.10, y, f"{z:.0f}", color=_shade(C_CHAR, 0.25),
-                fontsize=fs(7.0), ha="right", va="center", zorder=7.8, bbox=HALO)
-
-    # on the log axis the labels sit on the cell faces: a lighter halo lets the faces show through
-    halo = dict(HALO, alpha=0.45) if log else HALO
+    # the labels sit on the cell faces: a light halo lets the faces show through
+    halo = dict(HALO, alpha=0.45)
     ax.text(X_SPLIT + 0.05, Y_TOP - 0.10,
-            rf"$\Delta z={g.dz[0]*1e3:.0f}$ mm", color=COOL, fontsize=fs(7.5),
+            rf"$\Delta z={g.dz[0]*1e3:.0f}$ mm", color=COOL, fontsize=PT,
             ha="left", va="top", zorder=13, bbox=halo)
-    # linear: centred in the last (thick) cell; log: that cell is a thin strip at the
-    # bottom edge, so the label sits just above the edge, inside the block
-    ax.text(X_SPLIT + 0.05, Y_BOT + 0.05 if log else float(yz(z_max - g.dz[-1] / 2)),
-            rf"$\Delta z={g.dz[-1]*100:.0f}$ cm", color=COOL, fontsize=fs(7.5),
-            ha="left", va="bottom" if log else "center", zorder=13, bbox=halo)
+    ax.text(X_SPLIT + 0.05, Y_BOT + 0.05,
+            rf"$\Delta z={g.dz[-1]*100:.0f}$ cm", color=COOL, fontsize=PT,
+            ha="left", va="bottom", zorder=13, bbox=halo)
     return g
 
 
 def draw_grid_notes(ax, g):
     ax.text(0.5 * (BLK_L + X_SPLIT), Y_BOT - 0.17,
-            "the material", color=C_CHAR, fontsize=fs(8.5), ha="center",
+            "the material", color=C_CHAR, fontsize=PT, ha="center",
             va="center")
-
     ax.text(0.5 * (X_SPLIT + BLK_R), Y_BOT - 0.17,
-            f"the grid — {g.n_layers} cells", color=C_CHAR, fontsize=fs(8.5),
+            f"the grid — {g.n_layers} cells", color=C_CHAR, fontsize=PT,
             ha="center", va="center")
-    # one line for both scales: two separate sub-labels overlapped at the split
-    if _DOC["pt"] is None:         # the letter says this in the caption
-      ax.text(0.5 * (BLK_L + BLK_R), Y_BOT - 0.42,
-            r"left: log depth (cm, outer axis)  ·  right: linear depth "
-            r"(m, inner ticks), each cell $1.08\times$ the last",
-              color=C_DIM, fontsize=fs(7.5), ha="center", va="center")
 
 
-def draw_fluxes(ax, mid):
+def draw_fluxes(ax):
     ix, iy = IMPACT
     sx, sy = SUN
 
@@ -390,7 +308,7 @@ def draw_fluxes(ax, mid):
     perp = np.array([-d[1], d[0]])
     ang = np.degrees(np.arctan2(-d[1], -d[0]))
 
-    # arriving sunlight: one arrow, with parallel strokes in its upper third only
+    # arriving sunlight: one arrow, with parallel strokes in its upper third
     p0 = np.array([sx, sy]) + d * 0.26
     for off, a in ((-0.060, 0.50), (0.060, 0.50), (-0.030, 0.68), (0.030, 0.68)):
         q0, q1 = p0 + perp * off, p0 + d * 0.42 + perp * off
@@ -421,16 +339,15 @@ def draw_fluxes(ax, mid):
                                  lw=2.8, arrowstyle="-|>", mutation_scale=13,
                                  shrinkA=0, shrinkB=0, zorder=12))
 
-    # radiated back out: wavy, cool, from along the whole surface
+    # radiated back out: wavy, from along the whole surface
     for j, ex in enumerate(EMIT_X):
         th = np.radians(95 - 8 * j)
         v = np.array([np.cos(th), np.sin(th)])
         n = np.array([-v[1], v[0]])
         s = np.linspace(0, 1, 150)
         L = 0.58 + 0.04 * (j % 2)
-        # The wiggle ramps in from the surface AND back out before the tip, so
-        # the last stretch is straight along v. Left at full amplitude the head
-        # inherited the sine's steepest slope and skewed off the path.
+        # the wiggle fades in from the surface and out before the tip, so the
+        # head points along v
         env = np.clip(s * 3.0, 0, 1) * np.clip((1.0 - s) * 5.0, 0, 1)
         pts = (np.array([ex, Y_TOP + 0.05])[None, :]
                + v[None, :] * (s * L)[:, None]
@@ -444,50 +361,41 @@ def draw_fluxes(ax, mid):
                                      mutation_scale=7.5, shrinkA=0, shrinkB=0,
                                      joinstyle="miter", zorder=10))
 
-    # conducted downward: thin, and it should look thin
+    # conducted downward
     ax.add_patch(FancyArrowPatch((X_CONDUCT, Y_TOP - 0.14),
                                  (X_CONDUCT, Y_TOP - 0.58),
                                  color=DARK, lw=1.0, arrowstyle="-|>",
                                  mutation_scale=8, shrinkA=0, shrinkB=0,
                                  zorder=12))
 
-    # the interior's heat, arriving at the base. Kept left of centre: at the
-    # block's midpoint its tail ran straight through the grid caption below.
+    # the basal heat flow, arriving at the base
     ax.add_patch(FancyArrowPatch((BLK_L + 0.16, Y_BOT - 0.28),
                                  (BLK_L + 0.16, Y_BOT + 0.16),
                                  color=C_CHAR, zorder=10, **ARROW))
 
-    # the one physical note kept on the illustration. Letter: the 80 cm border of
-    # the borestem zone, which separates the open sensors from the filled ones
-    # (user, 2026-10-25); guidebook: the depth where the daily swing falls below 0.1 K.
-    z_line, note = ((BORESTEM_CM, f"{BORESTEM_CM:.0f} cm") if _DOC["pt"]
-                    else (Z_SKIN_DEAD, r"$<0.1$ K"))
-    y_dead = float(ymap(z_line))
-    ax.plot([BLK_L, X_SPLIT], [y_dead, y_dead], color=C_DIM,
+    # the 80 cm border of the borestem zone, between the open and the filled sensors
+    y_cut = float(ymap(BORESTEM_CM))
+    ax.plot([BLK_L, X_SPLIT], [y_cut, y_cut], color=C_DIM,
             lw=0.8, ls=(0, (2.4, 2.0)), zorder=12)
-    ax.text(X_SPLIT - 0.04, y_dead + 0.03, note,
-            color=C_DIM, fontsize=fs(7.5), ha="right", va="bottom",
+    ax.text(X_SPLIT - 0.04, y_cut + 0.03, f"{BORESTEM_CM:.0f} cm",
+            color=C_DIM, fontsize=PT, ha="right", va="bottom",
             zorder=13, bbox=HALO)
 
 
-
-# ---- the probes, drawn into the material they measured ----------------------
-# one borestem per probe (probe 1, probe 2), in the probe colours of letter Figure 1;
+# one borestem per probe, in the probe colours of letter Figure 1;
 # Apollo 15 left of the sunlight arrow, Apollo 17 right of it
-PROBE_LANES = {"a15": ((BLK_L + 0.24, BLK_L + 0.37), (C_FOREST, C_A15_2), "Apollo 15"),
-               "a17": ((BLK_L + 0.90, BLK_L + 1.03), (C_CORAL, C_A17_2), "Apollo 17")}
+PROBE_LANES = {"a15": ((BLK_L + 0.24, BLK_L + 0.37), (C_FOREST, C_A15_2), "A15"),
+               "a17": ((BLK_L + 0.90, BLK_L + 1.03), (C_CORAL, C_A17_2), "A17")}
 
 
 def draw_probes(ax):
-    """The borestems, one per probe, drawn as instruments rather than lines.
+    """The borestems at their real sensor depths.
 
-    Each is a pale drill casing with the probe rod inside it, a small head box
-    at the surface, and the platinum resistance thermometers as beads on the
-    rod, gradient bridge (TG) as circles and ring bridge (TR) as squares, as in
-    letter Figure 3: filled where the sensor enters the retrieval, open inside
-    the excluded borestem zone. The cable thermocouples (TC, in the Apollo 17
-    record only) are left out: they never enter the analysis. Each rod is
-    numbered with its probe below its end; the site is named beside the pair.
+    Each is a pale drill casing with the probe rod inside, a head box at the
+    surface, and the thermometers as beads on the rod: gradient bridges (TG)
+    as circles, ring bridges (TR) as squares, filled where the sensor enters
+    the fit and open in the borestem zone. The thermocouples on the cable never
+    enter the analysis and are left out. Each rod is numbered below its end.
     """
     for mis, (xs, cols, lab) in PROBE_LANES.items():
         o = extract_sensor_stability(mis, int(BORESTEM_CM))
@@ -503,102 +411,44 @@ def draw_probes(ax):
             y_s, y_e = float(ymap(Z_TOP)), float(ymap(d.max()))
             ends.append(y_e)
 
-            # the drilled casing: pale, wider, with a soft edge
+            # the drilled casing, the probe rod inside it, its closed nose
             ax.plot([x, x], [y_s, y_e], color=PAPER, lw=5.2, alpha=0.85,
                     solid_capstyle="round", zorder=12.6)
             ax.plot([x, x], [y_s, y_e], color=_shade(col, 0.55), lw=4.4,
                     alpha=0.55, solid_capstyle="round", zorder=12.7)
-            # the probe rod inside it
             ax.plot([x, x], [y_s, y_e], color=_shade(col, -0.10), lw=1.5,
                     alpha=0.95, solid_capstyle="round", zorder=13)
-            # the closed nose
             ax.plot([x], [y_e], marker="v", ms=3.4, color=_shade(col, -0.25),
                     zorder=13.5)
-            # the head box, sitting on the surface
+            # the head box, on the surface
             ax.add_patch(Rectangle((x - 0.055, y_s), 0.11, 0.075,
                                    facecolor=_shade(col, 0.30),
                                    edgecolor=_shade(col, -0.25), lw=0.6,
                                    zorder=13.6))
 
-            # the sensors: TG circles, TR squares; filled = used, open = borestem zone
             for t, mk, size in (("TG", "o", 13), ("TR", "s", 11)):
                 u, x_ = m & (ty == t), ~m & (ty == t)
                 ax.scatter(np.full(int(u.sum()), x), ymap(d[u]), s=size, marker=mk,
                            facecolor=col, edgecolor=PAPER, linewidth=0.6, zorder=14)
                 ax.scatter(np.full(int(x_.sum()), x), ymap(d[x_]), s=size, marker=mk,
                            facecolor=PAPER, edgecolor=col, linewidth=0.8, zorder=14)
-            # the probe number, below the rod's end
-            ax.text(x, y_e - 0.07, str(p), color=_shade(col, -0.2), fontsize=fs(7.6),
+            ax.text(x, y_e - 0.07, str(p), color=_shade(col, -0.2), fontsize=PT,
                     ha="center", va="top", zorder=15, bbox=dict(HALO, pad=0.3))
 
         # the site, beside the pair, level with its deeper end
-        ax.text(xs[1] + 0.13, min(ends),
-                ("A" + lab.split()[-1]) if _DOC["pt"] else f"{lab}\n{d_all.max()/100:.2f} m · {int(m_all.sum())} sensors",
-                color=_shade(cols[0], -0.2), fontsize=fs(7.6), linespacing=1.35,
+        ax.text(xs[1] + 0.13, min(ends), lab,
+                color=_shade(cols[0], -0.2), fontsize=PT, linespacing=1.35,
                 ha="left", va="center", zorder=15, bbox=HALO)
 
 
-def draw_kpanel(ax):
-    """The difference that actually exists between the two published models:
-    not rho(z) -- Martinez & Siegler adopt Hayne's exponential form (their
-    Eq. 3) -- but K(z). Evaluated at 250 K, the mean deep temperature."""
-    zz = np.geomspace(Z_TOP, Z_BOT, 400)
-    T = np.full_like(zz, 250.0)
-    kh = conductivity_hayne(T, zz / 100.0) * 1e3
-    km = conductivity_martinez(T, zz / 100.0) * 1e3
-
-    ax.plot([kx(K_LO), kx(K_HI)], [Y_TOP, Y_TOP], color=C_GRID, lw=0.8, zorder=3)
-    ax.plot(kx(kh), ymap(zz), color=C_HAYNE_GLOBAL, lw=1.7, ls=LS_HAYNE_GLOBAL,
-            zorder=5, label="Hayne")
-    ax.plot(kx(km), ymap(zz), color=C_MS, lw=1.7, ls=LS_MS,
-            solid_capstyle="round", zorder=5)
-
-    for v in (0, 3, 6, 9):
-        ax.plot([kx(v), kx(v)], [Y_TOP, Y_TOP + 0.055], color=C_DIM, lw=0.7,
-                zorder=4)
-        ax.text(kx(v), Y_TOP + 0.09, f"{v:g}", color=C_DIM, fontsize=fs(8),
-                ha="center", va="bottom", zorder=6)
-    ax.text(0.5 * (KPAN_L + KPAN_R), Y_TOP + 0.30,
-            (r"$K$ at 250 K" "\n" r"(mW m$^{\mathrm{-1}}$ K$^{\mathrm{-1}}$)") if _DOC["pt"] else
-            r"$K$ (mW m$^{\mathrm{-1}}$ K$^{\mathrm{-1}}$) at 250 K", color=C_CHAR,
-            fontsize=fs(8.5), ha="center", va="bottom", zorder=6)
-
-    if _DOC["pt"]:                 # letter: both names to the right of the curves near the top
-        draw_depth_axis(ax, KPAN_L, KPAN_R)
-        ax.text(kx(3.6), ymap(0.75), "Hayne", color=_shade(C_HAYNE_GLOBAL, -0.3), fontsize=fs(8),
-                ha="left", va="center", zorder=7, bbox=HALO)
-        ax.text(kx(4.4), ymap(2.3), "Mart\u00ednez\n& Siegler", color=C_MS,
-                fontsize=fs(8), ha="left", va="center", zorder=7, bbox=HALO)
-        return
-    ax.text(kx(6.9), ymap(2.2), "Hayne", color=_shade(C_HAYNE_GLOBAL, -0.3), fontsize=fs(8),
-            ha="left", va="center", zorder=7, bbox=HALO)
-    ax.text(kx(8.1), ymap(320.0), "Mart\u00ednez\n& Siegler", color=C_MS,
-            fontsize=fs(8), ha="left", va="center", zorder=7, bbox=HALO)
-
-
-def draw_bc_labels(ax):
-    """Name the two boundary conditions on the fluxes already drawn."""
-    ax.text(BLK_R + SHEAR_X + 0.06, Y_TOP + 0.95,
-            r"$(\mathrm{1}-A)\,F_\odot-\varepsilon\sigma T_s^{\mathrm{4}}"
-            r"=\left(-K\,\partial_z T\right)_{z=\mathrm{0}}$",
-            color=DARK, fontsize=fs(11), ha="right", va="center", zorder=15,
-            bbox=HALO)
-    ax.text(BLK_L + 0.26, Y_BOT + 0.03,
-            r"$K\,\partial_z T\,|_{z_{\max}}=Q_b$",
-            color=C_CHAR, fontsize=fs(10), ha="left", va="bottom",
-            zorder=15, bbox=HALO)
-
-
 def draw_depth_axis(ax, x_l, x_r):
-    """The block's depth ticks (1, 10, 100, 500 cm) repeated on the left of a
-    panel, with faint guides across it: the three panels share one log depth
-    axis, and each now says so (letter; user, 2026-10-23)."""
+    """The depth ticks repeated on the left of panels (b) and (c), with faint guides."""
     ax.plot([x_l, x_l], [Y_BOT, Y_TOP], color=C_DIM, lw=0.6, zorder=3)
     for zc, lab in TICKS:
         y = float(ymap(zc))
         ax.plot([x_l, x_r], [y, y], color=C_GRID, lw=0.6, zorder=1.5)
         ax.plot([x_l - 0.05, x_l], [y, y], color=C_DIM, lw=0.6, zorder=6)
-        ax.text(x_l - 0.08, y, lab, color=C_DIM, fontsize=fs(8.0), ha="right",
+        ax.text(x_l - 0.08, y, lab, color=C_DIM, fontsize=PT, ha="right",
                 va="center", zorder=6)
 
 
@@ -614,98 +464,72 @@ def draw_density(ax):
         xv = DENS_L + (v - lo) / (hi - lo) * (DENS_R - DENS_L)
         ax.plot([xv, xv], [Y_BOT, Y_TOP], color=C_GRID, lw=0.6,
                 ls=(0, (1.6, 1.6)), zorder=3)
-        ax.text(xv, Y_TOP + 0.06, f"{v}", color=C_DIM, fontsize=fs(8.0),
+        ax.text(xv, Y_TOP + 0.06, f"{v}", color=C_DIM, fontsize=PT,
                 ha="center", va="bottom")
     ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.24,
-            r"$\rho$ (kg m$^{\mathrm{-3}}$)", color=C_DIM, fontsize=fs(8.5),
+            r"$\rho$ (kg m$^{\mathrm{-3}}$)", color=C_DIM, fontsize=PT,
             ha="center", va="bottom")
-    # the density law itself (letter Equation 7), with its three constants (not in the letter)
-    if _DOC["pt"] is None:
-      ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.86,
-            r"$\rho(z)=\rho_d-(\rho_d-\rho_s)\,e^{-z/H}$",
-            color=DARK, fontsize=fs(11), ha="center", va="center", zorder=15)
-      ax.text(0.5 * (DENS_L + DENS_R), Y_TOP + 0.58,
-            rf"$\rho_s$ = {RHO_SURFACE:.0f}, $\rho_d$ = {RHO_DEEP:.0f} kg m$^{{\mathrm{{-3}}}}$,"
-            rf" $H$ = {HAYNE['H'] * 100:.0f} cm",
-            color=C_DIM, fontsize=fs(8.0), ha="center", va="center", zorder=15)
-    if _DOC["pt"]:                 # letter: the shared depth axis, and H marked on the curve
-        draw_depth_axis(ax, DENS_L, DENS_R)
-        zh = HAYNE["H"] * 100.0
-        xh, yh = float(dens_x(float(density_hayne(zh / 100.0)))), float(ymap(zh))
-        ax.plot([xh], [yh], marker="o", ms=3.0, color=DARK, mec=PAPER, mew=0.5, zorder=6)
-        # above and right of the dot: the curve leaves it toward the lower right
-        ax.text(xh + 0.06, yh + 0.02, rf"$H$ = {zh:.0f} cm", color=C_DIM, fontsize=fs(7.6),
-                ha="left", va="bottom", zorder=7, bbox=HALO)
-        return
-    # --- the tie lines: the packing at a depth <-> the density at that depth --
-    # Four depths spanning the transition: 15 %, 63 %, 92 % and 99 % of the way
-    # from the surface density to the deep one. Each runs from the block to a dot
-    # on the curve, so the correspondence is traced rather than asserted.
-    for zc in TIE_Z:
-        y = float(ymap(zc))
-        xr = float(dens_x(float(density_hayne(zc / 100.0))))
-        ax.plot([GAP_L, xr], [y, y], color=_shade(C_DIM, 0.38), lw=0.6,
-                ls=(0, (1.4, 1.6)), zorder=4)
-        ax.plot([xr], [y], marker="o", ms=3.0, color=DARK, mec=PAPER, mew=0.5,
-                zorder=6)
-        tag = f"{zc:.0f}" + ("  ($H$)" if abs(zc - HAYNE["H"] * 100.0) < 0.1
-                             else "")
-        ax.text(GAP_L + 0.03, y, tag, color=C_DIM, fontsize=fs(7.0), ha="left",
-                va="center", zorder=7, bbox=HALO)
+    draw_depth_axis(ax, DENS_L, DENS_R)
+    # H marked on the curve, its label above and right of the dot
+    zh = HAYNE["H"] * 100.0
+    xh, yh = float(dens_x(float(density_hayne(zh / 100.0)))), float(ymap(zh))
+    ax.plot([xh], [yh], marker="o", ms=3.0, color=DARK, mec=PAPER, mew=0.5, zorder=6)
+    ax.text(xh + 0.06, yh + 0.02, rf"$H$ = {zh:.0f} cm", color=C_DIM, fontsize=PT,
+            ha="left", va="bottom", zorder=7, bbox=HALO)
+
+
+def draw_kpanel(ax):
+    """The two conductivity models against depth, at 250 K, the mean deep temperature."""
+    zz = np.geomspace(Z_TOP, Z_BOT, 400)
+    T = np.full_like(zz, 250.0)
+    kh = conductivity_hayne(T, zz / 100.0) * 1e3
+    km = conductivity_martinez(T, zz / 100.0) * 1e3
+
+    ax.plot([kx(K_LO), kx(K_HI)], [Y_TOP, Y_TOP], color=C_GRID, lw=0.8, zorder=3)
+    ax.plot(kx(kh), ymap(zz), color=C_HAYNE_GLOBAL, lw=1.7, ls=LS_HAYNE_GLOBAL,
+            zorder=5)
+    ax.plot(kx(km), ymap(zz), color=C_MS, lw=1.7, ls=LS_MS,
+            solid_capstyle="round", zorder=5)
+
+    for v in (0, 3, 6, 9):
+        ax.plot([kx(v), kx(v)], [Y_TOP, Y_TOP + 0.055], color=C_DIM, lw=0.7,
+                zorder=4)
+        ax.text(kx(v), Y_TOP + 0.09, f"{v:g}", color=C_DIM, fontsize=PT,
+                ha="center", va="bottom", zorder=6)
+    ax.text(0.5 * (KPAN_L + KPAN_R), Y_TOP + 0.30,
+            r"$K$ at 250 K" "\n" r"(mW m$^{\mathrm{-1}}$ K$^{\mathrm{-1}}$)", color=C_CHAR,
+            fontsize=PT, ha="center", va="bottom", zorder=6)
+
+    draw_depth_axis(ax, KPAN_L, KPAN_R)
+    ax.text(kx(3.6), ymap(0.75), "Hayne", color=_shade(C_HAYNE_GLOBAL, -0.3), fontsize=PT,
+            ha="left", va="center", zorder=7, bbox=HALO)
+    ax.text(kx(4.4), ymap(2.3), "Martínez\n& Siegler", color=C_MS,
+            fontsize=PT, ha="left", va="center", zorder=7, bbox=HALO)
 
 
 def draw_panel_labels(ax):
-    """Letter: (a) the column, (b) density, (c) conductivity, in one row above
-    the panels, each over the left edge of its depth tick labels."""
+    """(a), (b), (c) in one row above the panels, over their depth tick labels."""
     for lab, x_l in (("(a)", BLK_L), ("(b)", DENS_L), ("(c)", KPAN_L)):
-        ax.text(x_l - 0.42, Y_TOP + 1.00, lab, color=C_CHAR, fontsize=fs(9),
+        ax.text(x_l - 0.42, Y_TOP + 1.00, lab, color=C_CHAR, fontsize=PT,
                 fontweight="bold", ha="left", va="top", zorder=15)
 
 
-def draw_texture_notes(ax):
-    """The two sentences the pairing exists to make."""
-    y0 = float(ymap(Z_COMPACT))
-    ax.text(NOTE_X, 0.5 * (Y_TOP + y0),
-            "grains loosen upward\n"
-            r"as $\rho$ falls — the whole" "\n"
-            rf"change is above {Z_COMPACT:.0f} cm",
-            color=DARK, fontsize=fs(8.0), ha="left", va="center", linespacing=1.45)
-    ax.text(NOTE_X, 0.5 * (y0 + Y_BOT),
-            r"below it $\rho$ is constant," "\n"
-            "so the packing stops\nchanging as well",
-            color=C_DIM, fontsize=fs(8.0), ha="left", va="center", linespacing=1.45)
-
-
-def main(out_stem: str = "fig_intro_column", font: str = "cambria") -> None:
-    if font == "times":            # the letter: same face as every other figure
-        apply_style("Times", False)
-        plt.rcParams.update({"mathtext.fontset": "stix", "pdf.fonttype": 42})
-    else:                          # the guidebook illustration set (Cambria)
-        family, cambria = setup_fonts()
-        apply_style(family, cambria)
-
-    if font == "times":            # letter: printed at 100 % at the text width, 11 pt, no equations
-        from lunar.plotting import style
-        _DOC.update(pt=style.DOC_PT, scale=(style.TEXT_W - 0.10) / W)
-    fig = plt.figure(figsize=(W * _DOC["scale"], H * _DOC["scale"]))
+def main(out_stem: str = "fig_joint_intro_column") -> None:
+    apply_style()
+    fig = plt.figure(figsize=(W * SCALE, H * SCALE))
     ax = fig.add_axes([0, 0, 1, 1])
     ax.set_xlim(0, W)
     ax.set_ylim(0, H)
     ax.axis("off")
 
-    mid = draw_block(ax)
+    draw_block(ax)
     g = draw_grid_half(ax)
-    draw_fluxes(ax, mid)
+    draw_fluxes(ax)
     draw_density(ax)
-    if _DOC["pt"] is None:        # guidebook only: in the letter the band's hard edge at
-        draw_shared_band(ax)      # 30 cm read as a layer; the shading follows rho(z) alone
     draw_grid_notes(ax, g)
     draw_probes(ax)
     draw_kpanel(ax)
-    if _DOC["pt"] is None:         # the equations belong to the text of the letter
-        draw_bc_labels(ax)
-    else:
-        draw_panel_labels(ax)
+    draw_panel_labels(ax)
 
     fig.canvas.draw()
     FIGS.mkdir(parents=True, exist_ok=True)
@@ -713,13 +537,7 @@ def main(out_stem: str = "fig_intro_column", font: str = "cambria") -> None:
         fig.savefig(FIGS / f"{out_stem}.pdf")
         fig.savefig(FIGS / f"{out_stem}.png", dpi=300)
     plt.close(fig)
-    print(f"  wrote figures/{out_stem}.pdf + .png "
-          f"({W * _DOC['scale']:.2f} x {H * _DOC['scale']:.2f} in, landscape)")
-    print("  grain radius AND count both computed from rho(z); tie lines at "
-          + ", ".join(f"{z:.0f}" for z in TIE_Z) + " cm")
-    if _DOC["pt"] is None:
-        print(f"  shared compaction band: surface to {Z_COMPACT:.0f} cm — the "
-              "boundary-condition equations are left to the document")
+    print(f"  wrote figures/{out_stem}.pdf + .png ({W * SCALE:.2f} x {H * SCALE:.2f} in)")
 
 
 if __name__ == "__main__":

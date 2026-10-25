@@ -68,10 +68,8 @@ from lunar.equilibrium import solve_periodic_equilibrium
 from lunar.apollo_helpers import extract_sensor_stability
 
 
-# Single source of truth for ALL run configuration (lunar/config.py) --
-# SITES, GRID, the Hayne bundle, the equilibrium-solver settings, the
-# 3-layer parameters. These used to be redefined here and in four figure
-# scripts; now there is exactly one definition.
+# All run configuration comes from lunar/config.py: SITES, GRID, the Hayne
+# parameters, the equilibrium-solver settings, the 3-layer parameters.
 from lunar.config import (   # noqa: E402
     S0, T_LUNAR,   # noqa: F401 -- re-exported for scripts that import them from here
     DT_STEP,
@@ -165,7 +163,7 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
     h = HAYNE['H'] if h is None else h
     grid_  = make_geometric_grid(**GRID)
     z_mid  = grid_.z_mid
-    t_s = periodic_time_grid(DT_STEP)   # commensurate lunation grid (audit 2026-07-03)
+    t_s = periodic_time_grid(DT_STEP)   # commensurate lunation grid
     insol = standard_insolation(site['lat'], t_s)   # the ONE forcing builder
     if k_model == '3layer':
         if kd is None:
@@ -207,7 +205,7 @@ def run_with(site_cfg, *, kd=None, h=None, qb=None, k_model='hayne',
     # call: EQ_N_INNER skin lunations per outer iteration, round(T_LUNAR /
     # DT_STEP) Crank-Nicolson steps per lunation, 1 + CN_PICARD_SWEEPS
     # tridiagonal solves per step. T_MEAN_EFF only seeds the first iterate;
-    # the converged profile is independent of it (F1 audit).
+    # the converged profile is independent of it.
     eq = solve_periodic_equilibrium(
         grid=grid_, t=t_s, insolation=insol,
         albedo=site['albedo'], emissivity=site['emissivity'],
@@ -274,7 +272,7 @@ def kd_star_from_residuals(R, kd_grid, idx=None, warn_coarse=True):
       * bracket spacing > KD_VERTEX_MAX_SPACING -> the minimum has drifted
         out of the dense band; re-center config.KD_GRIDS before trusting
         the third decimal of K_d*.
-    Two numerical safeguards (audit 2026-10-04) change nothing on a clean
+    Two numerical safeguards change nothing on a clean
     bracket: near-duplicate grid points (one K_d built twice, differing in
     the last bit -- np.unique over two linspaces keeps both) are collapsed,
     since a bracket holding both makes the parabola singular; and the vertex
@@ -560,17 +558,15 @@ def main():
     boot17 = np.array(results['A17']['bootstrap']['samples'])
     contrast = boot17 - boot15
     cmed, clo, chi_ = np.percentile(contrast, [50, 2.5, 97.5])
-    # 16-84 percentiles: the asymmetric 1-sigma interval the manuscript
-    # quotes (2.31 +0.67/-0.90); persist so the quote is auditable.
+    # 16-84 percentiles: the asymmetric 1-sigma interval of the contrast
     cq16, cq84 = np.percentile(contrast, [16, 84])
     results['contrast_bootstrap'] = dict(
         median=float(cmed), ci_lo=float(clo), ci_hi=float(chi_),
         q16=float(cq16), q84=float(cq84),
         # NB this is the bootstrap tail proportion P_boot(contrast <= 0)
         # computed from the FITTED (non-null-centered) bootstrap draws --
-        # report it as such, never as a conventional null-centered p-value
-        # (audit 2026-07-13, codex F5). Key name kept for compatibility;
-        # p_boot_leq0 is the honest alias.
+        # report it as such, never as a conventional null-centered p-value.
+        # The key p_value is kept for compatibility; p_boot_leq0 names it.
         p_value=float((contrast <= 0).mean()),
         p_boot_leq0=float((contrast <= 0).mean()))
     print(f"   contrast = {cmed*1e3:.2f} (95% CI [{clo*1e3:.2f}, {chi_*1e3:.2f}]),  "
@@ -585,9 +581,8 @@ def main():
     kd_joint = {}
     for name in SITES:
         ks = results[name]['kd_star']
-        # A17's K_d-H degeneracy valley bottoms ABOVE the old 1.45x edge, so
-        # sweep it wider (to ~1.7x, ~12 mW) on a finer grid to capture the
-        # interior minimum; A15's minimum is interior already (unchanged).
+        # A17's K_d-H valley bottoms above 1.45 K_d*, so it is swept to 1.7 K_d*
+        # (~12 mW) on a finer grid; A15's minimum lies inside 1.45 K_d*.
         hi, npts = (1.70, 12) if name == "A17" else (1.45, 8)
         kd_joint[name] = np.linspace(0.55*ks, hi*ks, npts)
     prefetch_profiles([(cfg, dict(kd=kd, h=h)) for name, cfg in SITES.items()
@@ -632,12 +627,10 @@ def main():
         if isinstance(o, dict): return {k: jsonify(v) for k, v in o.items()}
         if isinstance(o, (list, tuple)): return [jsonify(x) for x in o]
         return o
-    # Add the PROPORTIONAL Q_b surrogate grid. SUPERSEDED (audit F-9):
-    # the proportional rule K_d*(alpha*Qb) = alpha*K_d* is a disproved
-    # model of the degeneracy -- the real relation is inverse and
-    # non-proportional (the Q_b map of compute_joint_fit_sensitivities.py;
-    # earlier, compute_qb_degeneracy.py in release v1.4.2-jgr). Kept only for backward compatibility
-    # of the JSON schema; do NOT base any conclusion on this block.
+    # The proportional Q_b surrogate grid, K_d*(alpha*Qb) = alpha*K_d*. This is
+    # not the real relation, which is inverse and non-proportional (the Q_b map
+    # of compute_joint_fit_sensitivities.py). It is kept only so the JSON schema
+    # stays the same; do not base any conclusion on this block.
     alphas = np.linspace(0.0, 1.3, 27)
     g15, g17 = np.meshgrid(alphas, alphas, indexing='ij')
     _kd15 = results['A15']['kd_star'] * g15

@@ -55,8 +55,8 @@ def find_repo_root(start: pathlib.Path | None = None) -> pathlib.Path:
     """
     here = (start or pathlib.Path.cwd()).resolve()
     for candidate in (here, *here.parents):
-        # umbrella layout (2026-07-06 reorg): the package + data + results
-        # live under a `code/` umbrella, with pyproject.toml at the repo root.
+        # this repository: package, data and results under code/,
+        # pyproject.toml at the root
         if (candidate / "code" / "src" / "lunar" / "__init__.py").is_file():
             return candidate / "code"
         if (candidate / "src" / "lunar" / "__init__.py").is_file() \

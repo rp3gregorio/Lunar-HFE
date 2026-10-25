@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "apollo-hfe-kd-retrieval"
-version = "2.2.0"
+version = "2.3.0"
 description = "Recalibration of the deep regolith conductivity K_d at the Apollo 15 and 17 heat-flow boreholes."
 readme = "README.md"
 requires-python = ">=3.10"

@@ -34,22 +34,30 @@ cd Lunar-HFE
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev,mcmc]"
-jupyter lab code/notebooks/run_everything.ipynb
+jupyter lab code/notebooks/
 ```
 
-Set `MODE` in the first code cell, then run all cells.
+The study is in three notebooks in `code/notebooks/`:
+
+| Notebook | What it does | Time |
+|---|---|---|
+| `1_run_analysis.ipynb` | runs every analysis step in order and writes the results to `code/results/` | see below |
+| `2_letter_results.ipynb` | rebuilds Table 1, draws Figures 3 and 4, and puts each number of the letter next to the value the results give (355 values) | a few minutes |
+| `3_supporting_information.ipynb` | does the same for every number of the 14 SI tables (848 values) and draws SI Figures S5–S7 | a few minutes |
+
+The repository ships every result, so notebooks 2 and 3 work straight after
+installing. To recompute the results first, set `MODE` in the first code cell
+of notebook 1 and run all its cells:
 
 | `MODE` | What runs | Time |
 |---|---|---|
-| `"show"` (default) | nothing is recomputed: the stored results are read and checked | a few minutes |
+| `"show"` (default) | nothing is recomputed; each step reports its stored result | a minute |
 | `"quick"` | the short steps, and the fast forms of the long ones | about 45 min |
 | `"full"` | every step from scratch, as for the paper | about 6 h on a six-core laptop |
 
-The notebook runs the analysis scripts in order and draws every figure. It
-then goes through the letter section by section and the Supporting
-Information table by table, and puts each number in the paper next to the
-value the code gives. The last cell counts the checks: 1,203 values, all
-matching.
+Then run notebooks 2 and 3. Each ends by counting its checks; all 1,203
+values should match. The other figures of the paper illustrate the data and
+the method (Figures 1 and 2, SI Figures S1–S4); `make figures` draws them.
 
 To install the exact package versions used for the paper, run
 `pip install -r requirements-lock.txt` and then `pip install -e .`.
@@ -60,7 +68,7 @@ Two public data sets are not in the repository: the
 Diviner surface temperatures (about 310 MB, for SI Table S13) and the LOLA
 elevation map (33 MB, for SI Figure S1). Without them every other step runs,
 and the steps that need them show their stored results. The notebook
-downloads both when you set `DOWNLOAD = True` in its section 1.5;
+downloads the Diviner data when you set `DOWNLOAD = True` in section 1.5 of notebook 1;
 [`code/data/README.md`](code/data/README.md) gives the commands.
 
 ### Without Jupyter
@@ -70,8 +78,8 @@ The same scripts run from the `Makefile`:
 ```bash
 make test        # unit tests of the physics code (under a minute)
 make analysis    # every analysis step, in order (about 6 h)
-make figures     # the paper's figures, written to figures/
-make notebook    # run run_everything.ipynb in "show" mode as a check
+make figures     # every figure of the paper, written to figures/
+make notebook    # run the three notebooks, the analysis in "show" mode, as a check
 ```
 
 After a full run, `git diff --stat code/results` shows which results changed.
@@ -86,7 +94,7 @@ Normally only run times and the recorded commit do.
 | `code/pipeline/figures/` | the figure scripts, which read `code/results/` and write to `figures/` |
 | `code/results/` | the stored results; [its README](code/results/README.md) maps each file to the paper |
 | `code/data/` | inputs: the Apollo record, SPICE kernels and site maps; [its README](code/data/README.md) gives the sources |
-| `code/notebooks/` | `run_everything.ipynb` |
+| `code/notebooks/` | the three notebooks: run the analysis, check the letter, check the SI |
 | `code/tests/` | unit tests |
 | `code/cpp/` | a C++ copy of the solver, used to check the Python one (SI Table S3) |
 

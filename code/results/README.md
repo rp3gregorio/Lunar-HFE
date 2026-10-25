@@ -1,7 +1,7 @@
 # Results
 
 Every number in the paper is read from one of these files. Each is written by
-one script in `code/pipeline/compute/` (run by `make aux` or `code/notebooks/run_everything.ipynb`).
+one script in `code/pipeline/compute/` (run by `make analysis` or `code/notebooks/1_run_analysis.ipynb`).
 Rerunning a script overwrites its file; `git diff code/results` then shows
 whether anything changed.
 

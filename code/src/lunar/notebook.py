@@ -1,4 +1,4 @@
-"""Run the analysis from the notebook (code/notebooks/run_everything.ipynb).
+"""Run the analysis from the notebooks in code/notebooks/.
 
 Each analysis step is one script in ``code/pipeline/``. A notebook cell calls
 ``step(...)`` with that script, and the script's own printout streams into the
@@ -14,7 +14,7 @@ decides what actually runs:
            six-core laptop.
 
 Figures are made in every mode when they are missing (a fresh clone has
-none), and remade in "quick" and "full". On macOS each run is wrapped in
+none), and remade in "quick" and "full", or always with ``always=True``. On macOS each run is wrapped in
 ``caffeinate`` so the computer does not sleep during a long step.
 
 ``Checks`` puts each value next to the number printed in the paper, and
@@ -23,6 +23,7 @@ none), and remade in "quick" and "full". On macOS each run is wrapped in
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import shutil
 import subprocess
@@ -70,8 +71,12 @@ def _run(script: str, args: tuple[str, ...]) -> None:
     if sys.platform == "darwin" and shutil.which("caffeinate"):
         cmd = ["caffeinate", "-dims", *cmd]          # keep the Mac (and screen) awake
     t0 = time.time()
+    # the scripts draw with matplotlib's file backend, as from a terminal; without
+    # this they inherit the notebook kernel's inline backend, whose screen
+    # resolution changes how a measured legend strip rounds (Figure 4 grew 0.7 pt)
+    env = {**os.environ, "MPLBACKEND": "Agg"}
     proc = subprocess.Popen(cmd, cwd=CODE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            text=True, bufsize=1)
+                            text=True, bufsize=1, env=env)
     for line in proc.stdout:
         print(line, end="", flush=True)
     rc = proc.wait()
@@ -110,7 +115,7 @@ def step(script: str, minutes: float, writes: str | tuple[str, ...] = (), args: 
     name = pathlib.Path(script).name
     lacking = [n for n in needs if not (CODE / n).exists()]
     if lacking and _mode != "show":
-        msg = f"{name} needs {', '.join(lacking)}, which is not downloaded (see section 1.5 of run_everything.ipynb)"
+        msg = f"{name} needs {', '.join(lacking)}, which is not downloaded (see section 1.5 of 1_run_analysis.ipynb)"
         if _mode == "full":
             raise FileNotFoundError(msg)
         print(f"■ {msg}; stored result used, {_stored(writes)}.")
@@ -135,8 +140,8 @@ def step(script: str, minutes: float, writes: str | tuple[str, ...] = (), args: 
 
 
 def figures(script: str, makes: str | tuple[str, ...], minutes: float = 1, args: tuple[str, ...] = (),
-            needs: tuple[str, ...] = ()) -> None:
-    """Make figures: always when any is missing, and again in "quick" and "full".
+            needs: tuple[str, ...] = (), always: bool = False) -> None:
+    """Make figures: when any is missing, again in "quick" and "full", and every time if ``always``.
 
     makes  the figures it writes, under figures/ ("fig_x" means fig_x.pdf; "anim/x.gif" as given)
     needs  input files (under code/) it needs, e.g. the LOLA map for SI Figure S1
@@ -145,9 +150,9 @@ def figures(script: str, makes: str | tuple[str, ...], minutes: float = 1, args:
     missing = [m for m in makes if not (FIGURES / (m if "." in m else f"{m}.pdf")).exists()]
     lacking = [n for n in needs if not (CODE / n).exists()]
     if lacking:
-        print(f"■ {pathlib.Path(script).name} needs {', '.join(lacking)}, which is not downloaded (see section 1.5 of run_everything.ipynb).")
+        print(f"■ {pathlib.Path(script).name} needs {', '.join(lacking)}, which is not downloaded (see section 1.5 of 1_run_analysis.ipynb).")
         return
-    if _mode == "show" and not missing:
+    if _mode == "show" and not missing and not always:
         print(f"■ {pathlib.Path(script).name}: figures already made ({', '.join(makes)}).")
         return
     print(f"▶ {pathlib.Path(script).name}: making figures ({_minutes(minutes)})", flush=True)

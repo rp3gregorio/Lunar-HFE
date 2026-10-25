@@ -21,7 +21,8 @@ annual_wave.json, albedo_sensitivity.json, own_diffusivity_fit.json,
 joint_chi_density.json, transient_warming.json. Writes to figures/.
 
 Run with:
-    python code/pipeline/figures/make_joint_figures.py
+    python code/pipeline/figures/make_joint_figures.py                       # every figure
+    python code/pipeline/figures/make_joint_figures.py --only subsets,constraints
 """
 from __future__ import annotations
 import json, sys, pathlib, copy
@@ -29,6 +30,8 @@ _REPO = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO)); sys.path.insert(0, str(_REPO / "src")); sys.path.insert(0, str(_REPO / "pipeline" / "compute"))
 
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")             # the same output on every platform and from the notebooks
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.legend_handler import HandlerTuple
@@ -167,7 +170,7 @@ def fig_constraints(res, cache):
                  handlelength=3.0, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.4)})
     out = FIG / "fig_joint_constraints.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
-    print(f"  -> {out}")
+    print(f"  -> figures/{out.name}")
 
 
 def fig_annual_wave():
@@ -241,7 +244,7 @@ def fig_annual_wave():
     legend_below(fig, handles, labels, handlelength=4.6, handler_map=PAIR_MAP)
     out = FIG / "fig_joint_annual_wave.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
-    print(f"  -> {out}")
+    print(f"  -> figures/{out.name}")
 
 
 def fig_mcmc(res):
@@ -313,7 +316,7 @@ def fig_mcmc(res):
                  ["prior", "68% and 95% regions"], handlelength=2.6, handler_map=PAIR_MAP)
     out = FIG / "fig_joint_mcmc.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
-    print(f"  -> {out}")
+    print(f"  -> figures/{out.name}")
 
 
 def half_up(v, n=1):
@@ -422,7 +425,7 @@ def fig_subsets(res, cache):
         assert_no_overlap(ax)
     out = FIG / "fig_joint_subsets.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
-    print(f"  -> {out}")
+    print(f"  -> figures/{out.name}")
 
 
 def variant_rows(res, chk, sens):
@@ -544,30 +547,48 @@ def fig_variants(res, chk, sens):
         assert_no_overlap(ax)
     out = FIG / "fig_joint_variants.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
-    print(f"  -> {out}")
+    print(f"  -> figures/{out.name}")
 
 
-def main():
+FIGURE_NAMES = ("constraints", "subsets", "variants", "mcmc", "annual_wave",         # results
+                "anchor_process", "timeline", "daily_swing", "intro_column")       # design and method
+
+
+def main(only=None):
+    """Draw every figure, or only those named in ``only`` (see FIGURE_NAMES)."""
+    want = lambda name: only is None or name in only
     _style.use_document_fonts()          # every text at the letter's 11 pt
     res, cache, chk, sens = load()
-    fig_constraints(res, cache)
-    if (RES / "subset_fits.json").exists():
+    if want("constraints"):
+        fig_constraints(res, cache)        # Fig. 4
+    if want("subsets") and (RES / "subset_fits.json").exists():
         fig_subsets(res, cache)            # Fig. 3: each probe, each thermometer type and all the sensors
-    if sens is not None:
+    if want("variants") and sens is not None:
         fig_variants(res, chk, sens)       # SI Fig. S7: K_d from every variant
-    if (RES / "joint_mcmc.json").exists():
-        fig_mcmc(res)
-    if (RES / "annual_wave.json").exists():
-        fig_annual_wave()
+    if want("mcmc") and (RES / "joint_mcmc.json").exists():
+        fig_mcmc(res)                      # SI Fig. S6
+    if want("annual_wave") and (RES / "annual_wave.json").exists():
+        fig_annual_wave()                  # SI Fig. S5
     # SI Fig. S4 first, while the house rcParams are in force; then the
     # generators that set their own rcParams (fonts, legend sizes)
     import make_daily_swing_figure, make_intro_column, make_anchor_process_figure
     import make_apollo_timeline_letter
-    make_anchor_process_figure.main()   # SI Fig. S4: the solver step by step (A15 at the joint fit)
-    make_apollo_timeline_letter.main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False)  # Fig. 1
-    make_daily_swing_figure.main()      # SI Fig. S3: the daily swing against depth
-    make_intro_column.main()            # Fig. 2
+    if want("anchor_process"):
+        make_anchor_process_figure.main()   # SI Fig. S4: the solver step by step (A15 at the joint fit)
+    if want("timeline"):
+        make_apollo_timeline_letter.main(out_name="fig_joint_apollo_timeline_probes.pdf", site_figures=False)  # Fig. 1
+    if want("daily_swing"):
+        make_daily_swing_figure.main()      # SI Fig. S3: the daily swing against depth
+    if want("intro_column"):
+        make_intro_column.main()            # Fig. 2
 
 
 if __name__ == "__main__":
-    main()
+    # python make_joint_figures.py [--only constraints,subsets]
+    only = None
+    if "--only" in sys.argv:
+        only = set(sys.argv[sys.argv.index("--only") + 1].split(","))
+        unknown = only - set(FIGURE_NAMES)
+        if unknown:
+            sys.exit(f"unknown figure name(s): {', '.join(sorted(unknown))}; choose from {', '.join(FIGURE_NAMES)}")
+    main(only)

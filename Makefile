@@ -13,7 +13,7 @@ install:     ## install the lunar package with the notebook, test and MCMC extra
 test:        ## unit tests of the physics code
 	$(PY) -m pytest -q
 
-# Every analysis step, in the order of run_everything.ipynb (later steps read
+# Every analysis step, in the order of 1_run_analysis.ipynb (later steps read
 # the results of earlier ones). Times are for a six-core laptop.
 analysis:    ## every analysis step, in order (about 6 h)
 	$(PY) $(C)/retrieve_kd.py                       # 95 min  fixed-albedo retrieval; later steps reuse it
@@ -49,9 +49,10 @@ analysis:    ## every analysis step, in order (about 6 h)
 figures:     ## the paper's figures, written to figures/
 	$(PY) code/pipeline/make_all_figures.py
 
-notebook:    ## run run_everything.ipynb in "show" mode as a check (a few minutes)
-	cd code/notebooks && PATH="$$(dirname $$($(PY) -c 'import sys; print(sys.executable)')):$$PATH" \
-	  $(PY) -m jupyter nbconvert --to notebook --execute --stdout run_everything.ipynb > /dev/null
+notebook:    ## run the three notebooks (analysis in "show" mode, then the checks) as a check (a few minutes)
+	cd code/notebooks && for n in 1_run_analysis 2_letter_results 3_supporting_information; do \
+	  PATH="$$(dirname $$($(PY) -c 'import sys; print(sys.executable)')):$$PATH" \
+	  $(PY) -m jupyter nbconvert --to notebook --execute --stdout $$n.ipynb > /dev/null || exit 1; done
 
 all: analysis figures  ## the whole study from scratch
 

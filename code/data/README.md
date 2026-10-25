@@ -18,8 +18,9 @@ The Apollo tables are read by `lunar.validation.load_apollo_hfe_depth`, and
 each sensor's stability window is found by
 `lunar.apollo_helpers.extract_sensor_stability`.
 
-The two downloads are optional: `code/notebooks/run_everything.ipynb` fetches them
-(section 1.5, `DOWNLOAD = True`), or by hand:
+The two downloads are optional. `code/notebooks/1_run_analysis.ipynb` fetches the
+Diviner data (section 1.5, `DOWNLOAD = True`); the LOLA map is needed only to redraw
+SI Figure S1 with `make figures`. By hand:
 
 ```bash
 python code/pipeline/fetch_diviner.py

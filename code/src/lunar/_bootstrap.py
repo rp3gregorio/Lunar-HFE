@@ -111,8 +111,8 @@ def ensure_lunar(extra: Iterable[str] = ()) -> pathlib.Path:
        ``import lunar`` works without ``pip install -e .``.
     2. Install the core third-party deps (numpy, scipy, numba, matplotlib)
        plus anything in ``extra`` (e.g. ``"rasterio"``, ``"spiceypy"``).
-    3. Print the Python executable and the lunar package location so the
-       user can confirm the kernel is correctly wired.
+    3. Print the Python version and where the lunar package was found, so the
+       user can confirm the kernel uses this repository's copy.
 
     Parameters
     ----------
@@ -143,16 +143,20 @@ def ensure_lunar(extra: Iterable[str] = ()) -> pathlib.Path:
         else:
             extras.append((item, item))
 
-    print("Lunar-V2 notebook bootstrap")
-    print("  python :", sys.executable)
-    print("  repo   :", repo)
+    print("Lunar-HFE setup")
+    print("  python :", sys.version.split()[0])
     installed = ensure_packages(core + extras)
     if not installed:
         print("  deps   : all present")
 
     import lunar  # noqa: F401
 
-    print("  lunar  :", lunar.__file__)
+    where = pathlib.Path(lunar.__file__).resolve()
+    try:
+        where = where.relative_to(repo.parent)    # this repository's copy: show it relative
+    except ValueError:
+        pass                                      # another copy: show its full path
+    print("  lunar  :", where)
     return repo
 
 

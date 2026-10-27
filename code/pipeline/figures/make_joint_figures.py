@@ -91,9 +91,9 @@ def fig_constraints(res, cache):
     valley = json.loads((RES / "joint_valley.json").read_text())   # temperatures only at the fitted A
     fchk = json.loads((RES / "joint_fit_checks.json").read_text())
     ms_kap = json.loads((RES / "martinez_diffusivity.json").read_text())["sites"]
-    fig = plt.figure(figsize=(W_LETTER, 5.1))
-    gs = fig.add_gridspec(3, 2, height_ratios=[1.2, 0.8, 0.42], hspace=0.82, wspace=0.25,
-                          left=0.10, right=0.92, top=0.96, bottom=0.10)
+    fig = plt.figure(figsize=(W_LETTER, 4.95))
+    gs = fig.add_gridspec(3, 2, height_ratios=[1.15, 0.78, 0.42], hspace=0.95, wspace=0.25,
+                          left=0.10, right=0.92, top=0.965, bottom=0.10)
     top = []
     for col, s in enumerate(("A15", "A17")):
         ax = fig.add_subplot(gs[0, col]); top.append(ax)
@@ -143,10 +143,8 @@ def fig_constraints(res, cache):
             inK = (Kf >= KLIM[0]) & (Kf <= KLIM[1])   # drawn only over the axis range, so no
             ax.plot(Kf[inK], pr[inK], ls=ls, color=SITE_COL[s], lw=lw)   # clipped part runs under the % labels
             curves[v_] = pr
-        for L, lab in ((1.0, "68%"), (3.84, "95%")):
+        for L in (1.0, 3.84):                   # 68% and 95%, named in the legend
             ax.axhline(L, color=C_DIM, lw=0.7, ls=(0, (2, 2)), zorder=1)
-            ax.text(1.012, L, lab, transform=ax.get_yaxis_transform(), color=C_DIM,
-                    ha="left", va="center", clip_on=False)
         ax.axvline(3.4, color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)
         ax.set_xlim(*KLIM); ax.set_ylim(0, 30)
         fmt_axis(ax, xlabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", ylabel=r"$\Delta J$ (misfit above best)" if col == 0 else "",
@@ -167,32 +165,30 @@ def fig_constraints(res, cache):
         ax.set_yticks(y, ["probe 1", "probe 2"]); ax.set_ylim(-0.6, 1.6)
         ax.set_xlim(0.45, 1.15)
         fmt_axis(ax, xlabel=r"Diffusivity ($10^{-4}$ cm$^2$ s$^{-1}$)", title=f"({'ef'[col]})  {SITE_LAB[s]}: diffusivity")
-    # one entry per marker: the stars carry the site colours, so the legend shows both
+    # ONE legend strip below all six panels: each concept once, in reading order (two
+    # columns, row-major), the site colours shown as pairs. Entries that appear in two
+    # forms carry both handles: the measured diffusivity (band in a-b, point in e-f),
+    # the joint fit (star in a-b, solid curve in c-d), the temperatures alone (dashed in c-d)
     star = lambda c: Line2D([], [], marker="*", ms=12, color=c, ls="none", mec="white", mew=0.8)
-    handles = [Patch(fc="#F1E6CC", ec=C_OBS_T),
-               Patch(fc=C_OBS_KAPPA, alpha=0.3, ec=C_OBS_KAPPA),
-               Line2D([], [], color=C_OBS_TS, ls="--", lw=1.0),
-               (star(C_A15), star(C_A17)),
-               Line2D([], [], marker="o", ms=7, mfc="white", mec=C_CHAR, mew=1.2, ls="none"),
-               (Line2D([], [], color=C_DIM, lw=0.8, ls=(0, (1, 1.5))),
-                Line2D([], [], marker="X", ms=8, color=C_DIM, ls="none", mec="white")),
-               Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)]
-    labels = ["temperatures alone: 68, 95, 99.7%", "measured diffusivity",
-              "surface mean within $\\pm$5 K", "joint fit: 68% (solid), 95% (dashed)",
-              "temperatures alone: best fit", "temperatures alone at the joint-fit $A$",
-              "global $K_d$ = 3.4"]
-    # every element of (a, b) has an entry here; (c, d) have their own legend below
-    legend_between(fig, top, handles, labels, ncols=2, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.3)})
-    # (c, d): one entry per curve type, each drawn in both site colours
     pair = lambda ls, lw: (Line2D([], [], color=C_A15, ls=ls, lw=lw), Line2D([], [], color=C_A17, ls=ls, lw=lw))
-    measured = Line2D([], [], marker="D", ms=5.5, color=C_OBS_KAPPA, mec="white", mew=0.6, ls="-", lw=1.3)
-    legend_below(fig, [pair("-", 1.9), pair("--", 1.4),
-                       Line2D([], [], color=C_DIM, lw=0.7, ls=(0, (2, 2))),
-                       Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4),
-                       measured, Line2D([], [], marker="h", ms=7.5, color=C_MS, mec="white", mew=0.6, ls="none")],
-                 ["with the diffusivity (joint fit)", "temperatures alone", r"$\Delta J$ = 1 (68%), 3.84 (95%)", "global $K_d$ = 3.4",
-                  r"measured diffusivity $\pm$1 s.e. (e, f)", "Martinez & Siegler (e, f)"],
-                 handlelength=3.0, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.4)})
+    entries = [
+        (Patch(fc="#F1E6CC", ec=C_OBS_T), "temperatures alone: 68, 95, 99.7%"),
+        ((star(C_A15), star(C_A17)), "joint fit: 68% (solid), 95% (dashed)"),
+        (Line2D([], [], marker="o", ms=7, mfc="white", mec=C_CHAR, mew=1.2, ls="none"), "temperatures alone: best fit"),
+        (pair("-", 1.9), "joint fit (c, d)"),
+        ((Line2D([], [], color=C_DIM, lw=0.8, ls=(0, (1, 1.5))),
+          Line2D([], [], marker="X", ms=8, color=C_DIM, ls="none", mec="white")), "temperatures alone at the joint-fit $A$"),
+        ((Patch(fc=C_OBS_KAPPA, alpha=0.3, ec=C_OBS_KAPPA),
+          Line2D([], [], marker="D", ms=5.5, color=C_OBS_KAPPA, mec="white", mew=0.6, ls="-", lw=1.3)),
+         r"measured diffusivity ($\pm$1 s.e. in e, f)"),
+        (pair("--", 1.4), "temperatures alone (c, d)"),
+        (Line2D([], [], color=C_OBS_TS, ls="--", lw=1.0), "surface mean within $\\pm$5 K"),
+        (Line2D([], [], color=C_DIM, lw=0.7, ls=(0, (2, 2))), r"$\Delta J$ = 1 (68%), 3.84 (95%)"),
+        (Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4), "global $K_d$ = 3.4"),
+        (Line2D([], [], marker="h", ms=7.5, color=C_MS, mec="white", mew=0.6, ls="none"), "Martinez & Siegler (e, f)"),
+    ]
+    legend_below(fig, [h for h, _ in entries], [l for _, l in entries], ncols=2, handlelength=3.0,
+                 handler_map={tuple: HandlerTuple(ndivide=None, pad=0.4)})
     fig.canvas.draw()
     for ax in fig.axes:
         assert_no_overlap(ax)

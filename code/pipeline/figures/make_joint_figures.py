@@ -81,14 +81,19 @@ D2_68, D2_95, D2_997 = 2.30, 6.18, 11.83     # Delta J for 68, 95, 99.7% regions
 
 
 def fig_constraints(res, cache):
-    """Fig. 4: (a, b) the (A, K_d) plane with the three measurements and the fits;
-    (c, d) the misfit along K_d (profile: best albedo at each K_d)."""
+    """Fig. 4 (GRL Fig. 3): (a, b) the (A, K_d) plane with the three measurements and the fits;
+    (c, d) the misfit along K_d (profile: best albedo at each K_d); (e, f) the diffusivity at
+    each probe: measured (Langseth et al. 1976, +-1 standard error) against the model at the
+    joint fit, at the global K_d = 3.4 with its own fitted albedo, and Martinez & Siegler at the
+    joint albedo and 1800 kg m-3 (joint_fit_checks.json, martinez_diffusivity.json)."""
     A, K = jf.A_GRID, jf.KD_GRID * 1e3
     KLIM = (1.0, 17.0)                     # one K_d range in all four panels
     valley = json.loads((RES / "joint_valley.json").read_text())   # temperatures only at the fitted A
-    fig = plt.figure(figsize=(W_LETTER, 4.05))
-    gs = fig.add_gridspec(2, 2, height_ratios=[1.2, 0.85], hspace=0.42, wspace=0.25,
-                          left=0.10, right=0.92, top=0.95, bottom=0.09)
+    fchk = json.loads((RES / "joint_fit_checks.json").read_text())
+    ms_kap = json.loads((RES / "martinez_diffusivity.json").read_text())["sites"]
+    fig = plt.figure(figsize=(W_LETTER, 5.1))
+    gs = fig.add_gridspec(3, 2, height_ratios=[1.2, 0.8, 0.42], hspace=0.82, wspace=0.25,
+                          left=0.10, right=0.92, top=0.96, bottom=0.10)
     top = []
     for col, s in enumerate(("A15", "A17")):
         ax = fig.add_subplot(gs[0, col]); top.append(ax)
@@ -135,7 +140,8 @@ def fig_constraints(res, cache):
                 from scipy.ndimage import gaussian_filter1d
                 pr = gaussian_filter1d(pr, 0.3 / (Kf[1] - Kf[0]), mode="nearest")
             pr = pr - pr.min()
-            ax.plot(Kf, pr, ls=ls, color=SITE_COL[s], lw=lw)
+            inK = (Kf >= KLIM[0]) & (Kf <= KLIM[1])   # drawn only over the axis range, so no
+            ax.plot(Kf[inK], pr[inK], ls=ls, color=SITE_COL[s], lw=lw)   # clipped part runs under the % labels
             curves[v_] = pr
         for L, lab in ((1.0, "68%"), (3.84, "95%")):
             ax.axhline(L, color=C_DIM, lw=0.7, ls=(0, (2, 2)), zorder=1)
@@ -145,6 +151,22 @@ def fig_constraints(res, cache):
         ax.set_xlim(*KLIM); ax.set_ylim(0, 30)
         fmt_axis(ax, xlabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)", ylabel=r"$\Delta J$ (misfit above best)" if col == 0 else "",
                  title=f"({'cd'[col]})  {SITE_LAB[s]}: misfit along $K_d$")
+        # (e, f): the diffusivity at each probe. The measured value sits just above the probe's
+        # row and the models just below, so the star never hides the measurement it matches;
+        # 3.4 gives the same diffusivity at both probes, so it is the reference line of (a)-(d)
+        ax = fig.add_subplot(gs[2, col])
+        kobs = np.array([p[2] for p in jf.KAPPA_OBS[s]]); ksig = np.array([p[3] for p in jf.KAPPA_OBS[s]])
+        y = np.array([1.0, 0.0]); dy = 0.17
+        ax.axvline(np.mean(fchk[s]["global_3p4"]["kappa_model"]), color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4, zorder=2)
+        ax.errorbar(kobs, y + dy, xerr=ksig, fmt="D", ms=5.5, color=C_OBS_KAPPA, mec="white", mew=0.6,
+                    elinewidth=1.3, capsize=2.5, zorder=4)
+        ax.plot(ms_kap[s]["kappa_model_1800"], y - dy, marker="h", ms=7.5, color=C_MS, mec="white", mew=0.6,
+                ls="none", zorder=4)
+        ax.plot(fchk[s]["fit_with_diffusivity"]["kappa_model"], y - dy, marker="*", ms=12, color=SITE_COL[s],
+                mec="white", mew=0.8, ls="none", zorder=5)
+        ax.set_yticks(y, ["probe 1", "probe 2"]); ax.set_ylim(-0.6, 1.6)
+        ax.set_xlim(0.45, 1.15)
+        fmt_axis(ax, xlabel=r"Diffusivity ($10^{-4}$ cm$^2$ s$^{-1}$)", title=f"({'ef'[col]})  {SITE_LAB[s]}: diffusivity")
     # one entry per marker: the stars carry the site colours, so the legend shows both
     star = lambda c: Line2D([], [], marker="*", ms=12, color=c, ls="none", mec="white", mew=0.8)
     handles = [Patch(fc="#F1E6CC", ec=C_OBS_T),
@@ -163,11 +185,17 @@ def fig_constraints(res, cache):
     legend_between(fig, top, handles, labels, ncols=2, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.3)})
     # (c, d): one entry per curve type, each drawn in both site colours
     pair = lambda ls, lw: (Line2D([], [], color=C_A15, ls=ls, lw=lw), Line2D([], [], color=C_A17, ls=ls, lw=lw))
+    measured = Line2D([], [], marker="D", ms=5.5, color=C_OBS_KAPPA, mec="white", mew=0.6, ls="-", lw=1.3)
     legend_below(fig, [pair("-", 1.9), pair("--", 1.4),
                        Line2D([], [], color=C_DIM, lw=0.7, ls=(0, (2, 2))),
-                       Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4)],
-                 ["with the diffusivity (joint fit)", "temperatures alone", r"$\Delta J$ = 1 (68%), 3.84 (95%)", "global $K_d$ = 3.4"],
+                       Line2D([], [], color=C_GLOBAL_REF, ls=LS_GLOBAL_REF, lw=1.4),
+                       measured, Line2D([], [], marker="h", ms=7.5, color=C_MS, mec="white", mew=0.6, ls="none")],
+                 ["with the diffusivity (joint fit)", "temperatures alone", r"$\Delta J$ = 1 (68%), 3.84 (95%)", "global $K_d$ = 3.4",
+                  r"measured diffusivity $\pm$1 s.e. (e, f)", "Martinez & Siegler (e, f)"],
                  handlelength=3.0, handler_map={tuple: HandlerTuple(ndivide=None, pad=0.4)})
+    fig.canvas.draw()
+    for ax in fig.axes:
+        assert_no_overlap(ax)
     out = FIG / "fig_joint_constraints.pdf"
     fig.savefig(out); fig.savefig(out.with_suffix(".png"), dpi=150); plt.close(fig)
     print(f"  -> figures/{out.name}")
@@ -367,9 +395,10 @@ def fig_subsets(res, cache):
             ax.axhspan(0, 80, color=C_EXCL_FILL, lw=0); ax.axhline(80, color=C_EXCL_EDGE, ls="--", lw=0.8)
             f = sf[s][key]
             if key == "all":
-                ax.plot(T_glob[vis], zc[vis], color=C_HAYNE_GLOBAL, lw=1.5, ls=LS_HAYNE_GLOBAL, zorder=2)
+                # drawn above the fit line (but below the sensors), wide enough to read
+                ax.plot(T_glob[vis], zc[vis], color=C_HAYNE_GLOBAL, lw=2.2, ls=LS_HAYNE_GLOBAL, zorder=4)
                 vm = (zm * 100 >= zlo - 2) & (zm * 100 <= zhi + 2)
-                ax.plot(Tm[vm], zm[vm] * 100, color=C_MS, lw=1.5, ls=LS_MS, zorder=2)
+                ax.plot(Tm[vm], zm[vm] * 100, color=C_MS, lw=2.2, ls=LS_MS, zorder=4)
             else:
                 ax.plot(T_allfit[vis], zc[vis], color=C_DIM, lw=0.9, alpha=0.7, zorder=2)
             Tf = bilinear(prof, f["A"], f["kd_mW"] * 1e-3)
@@ -410,7 +439,7 @@ def fig_subsets(res, cache):
     handles = [pair(marker="o", ms=5.6, mfc="SITE", mew=0.8), pair(marker="s", ms=5.1, mfc="SITE", mew=0.8),
                pair(marker="o", ms=5.6, mfc="SITE", mew=0.8), pair(marker="o", ms=5.6, mfc="white", mew=1.5),
                SITES2(lambda c: Line2D([], [], color=c, lw=1.8)), Line2D([], [], color=C_DIM, lw=0.9, alpha=0.7),
-               Line2D([], [], color=C_HAYNE_GLOBAL, lw=1.5, ls=LS_HAYNE_GLOBAL), Line2D([], [], color=C_MS, lw=1.5, ls=LS_MS),
+               Line2D([], [], color=C_HAYNE_GLOBAL, lw=2.2, ls=LS_HAYNE_GLOBAL), Line2D([], [], color=C_MS, lw=2.2, ls=LS_MS),
                Patch(fc=C_EXCL_FILL, ec=C_EXCL_EDGE, ls="--")]
     labels = ["TG sensor", "TR sensor", "probe 1 (filled)", "probe 2 (open)",
               "fit to the panel's sensors", "fit to all the sensors", "global $K_d$ = 3.4 (e, j)",

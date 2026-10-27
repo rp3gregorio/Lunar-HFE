@@ -298,8 +298,9 @@ def main():
         print(f"reused {len(store)} forward runs", flush=True)
     else:
         print(f"{len(jobs)} forward runs", flush=True)
+        from lunar.progress import bar
         with Pool(5) as pool:
-            runs = pool.map(model_run, jobs, chunksize=4)
+            runs = list(bar(pool.imap(model_run, jobs, chunksize=4), total=len(jobs), desc="forward runs", unit="runs"))
         store = {(s, A, kd): (u, Td) for s, A, kd, _, u, Td in runs}
         np.savez_compressed(cache, **{f"{s}_{A:.4f}_{kd:.3f}_{n}": a for (s, A, kd), (u, Td) in store.items()
                                       for n, a in (("u", u), ("T", Td))})

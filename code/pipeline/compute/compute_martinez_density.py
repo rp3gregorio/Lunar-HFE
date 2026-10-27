@@ -72,13 +72,14 @@ def main():
     out = {"meta": dict(purpose="Martinez & Siegler (2021) with the deep density fitted per site (letter Sec. 4.3; SI Table S4)",
                         alpha_grid=ALPHA_GRID.tolist(), rho_nominal_kg_m3=RHO_NOMINAL),
            "sites": {}}
+    from lunar.progress import bar
     for s in ("A15", "A17"):
         cfg = rk.SITES[s]
         z, T = deep_obs(cfg)
         jobs = [(s, float(a), z, T) for a in ALPHA_GRID]
         print(f"{s}: {len(jobs)} Martinez solves on {N_WORKERS} workers (albedo {cfg['albedo']:.4f})", flush=True)
         with Pool(N_WORKERS) as pool:
-            res = pool.map(_rmse, jobs, chunksize=1)
+            res = list(bar(pool.imap(_rmse, jobs, chunksize=1), total=len(jobs), desc=f"{s} densities", unit="solves"))
         rmse = np.array([r[0] for r in res]); bias = np.array([r[1] for r in res])
         a_star, rmse_star = parabola_min(ALPHA_GRID, rmse)
         fwd = _rmse((s, 1.0, z, T))

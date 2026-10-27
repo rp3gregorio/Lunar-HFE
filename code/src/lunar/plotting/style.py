@@ -304,12 +304,16 @@ def assert_no_overlap(ax, *, tol_px=1.0, densify=400):
         xy = ln.get_xydata()
         if len(xy) < 1:
             continue
+        # each line through its own transform (axhline/axvline mix axes and
+        # data coordinates), then densified in display space, where the
+        # segments are drawn straight (on log axes they are curved in data)
+        xy = ln.get_transform().transform(xy)
         if len(xy) >= 2:
             src = np.linspace(0.0, 1.0, len(xy))
             dst = np.linspace(0.0, 1.0, max(densify, len(xy)))
             xy = np.column_stack([np.interp(dst, src, xy[:, 0]),
                                   np.interp(dst, src, xy[:, 1])])
-        pts.append(ax.transData.transform(xy))
+        pts.append(xy)
     for col in ax.collections:
         off = np.asarray(col.get_offsets())
         if off.size:

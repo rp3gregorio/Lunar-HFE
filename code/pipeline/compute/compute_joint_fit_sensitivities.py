@@ -97,12 +97,11 @@ def solve_all(var, which=None):
             jobs.append((s, float(A), dict(ov, kd_grid=KD_V.tolist())))
             index.append((vi, float(A)))
     print(f"{len(which)} site-variants, {len(jobs)} rows x {len(KD_V)} K_d = {len(jobs)*len(KD_V)} solves", flush=True)
-    rows, t0 = {}, time.time()
+    from lunar.progress import bar
+    rows = {}
     with Pool(N_WORKERS) as pool:
-        for k, r in enumerate(pool.imap(jf.solve_row, jobs, chunksize=1)):
+        for k, r in enumerate(bar(pool.imap(jf.solve_row, jobs, chunksize=1), total=len(jobs), desc="variant rows")):
             rows[index[k]] = r[2:]
-            if (k + 1) % 25 == 0 or k + 1 == len(jobs):
-                print(f"  {k+1}/{len(jobs)} rows ({time.time()-t0:.0f} s)", flush=True)
     return rows
 
 

@@ -64,13 +64,13 @@ def main():
 
     if jobs:
         args = [(var[vi][0], A, dict(var[vi][2], kd_grid=KD_V.tolist())) for vi, A in jobs]
-        t0 = time.time()
+        from lunar.progress import bar
         with Pool(N_WORKERS) as pool:
-            for n, r in enumerate(pool.imap(jf.solve_row, args, chunksize=1)):
+            for n, r in enumerate(bar(pool.imap(jf.solve_row, args, chunksize=1), total=len(jobs), desc="chi/density rows")):
                 vi, A = jobs[n]
                 done[key(vi, A)] = r[2:]
                 if (n + 1) % 20 == 0 or n + 1 == len(jobs):
-                    save(); print(f"  {n+1}/{len(jobs)} rows ({time.time()-t0:.0f} s)", flush=True)
+                    save()
 
     sens = json.loads((_REPO / "results" / "joint_fit_sensitivities.json").read_text())
     out = dict(meta=dict(chis=list(CHIS), rho_site=RHO_SITE, kd_grid_mW=(KD_V * 1e3).tolist(),

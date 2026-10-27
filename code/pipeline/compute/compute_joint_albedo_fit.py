@@ -281,10 +281,10 @@ def main():
     else:
         jobs = [(s, A) for s in ("A15", "A17") for A in A_GRID]
         print(f"{len(jobs)} rows x {len(KD_GRID)} K_d = {len(jobs)*len(KD_GRID)} solves on {N_WORKERS} workers", flush=True)
+        from lunar.progress import bar
         with Pool(N_WORKERS) as pool:
-            for r in pool.imap_unordered(solve_row, jobs):
+            for r in bar(pool.imap_unordered(solve_row, jobs), total=len(jobs), desc="albedo rows"):
                 rows[(r[0], r[1])] = r[2:]
-                print(f"  {r[0]} A={r[1]:.4f} done ({len(rows)}/{len(jobs)}, {time.time()-t0:.0f} s)", flush=True)
         np.savez_compressed(cache, A_grid=A_GRID, kd_grid=KD_GRID,
                             **{f"{s}_{nm}": np.stack([rows[(s, float(A))][i] for A in A_GRID])
                                for s in ("A15", "A17") for i, nm in enumerate(names)})

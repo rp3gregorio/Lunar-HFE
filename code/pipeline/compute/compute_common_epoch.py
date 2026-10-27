@@ -105,13 +105,11 @@ def sensor_variants(mission, site_name):
 
 def solve_grid(site_cfg, kd_grid):
     """Solve the production sweep grid once; keep full mean profiles."""
+    from lunar.progress import bar
     profiles = []
-    t0 = time.time()
-    for i, kd in enumerate(kd_grid):
+    for kd in bar(kd_grid, desc=f"{site_cfg['label']} K_d grid", unit="solves"):
         z_mid, T_mean = run_with(site_cfg, kd=float(kd), k_model="hayne")
         profiles.append((np.asarray(z_mid), np.asarray(T_mean)))
-        print(f"    kd {1e3*kd:5.2f} mW  [{i+1}/{len(kd_grid)}] "
-              f"({time.time()-t0:.0f} s)", flush=True)
     return profiles
 
 
@@ -131,8 +129,9 @@ def kd_star(kd_grid, profiles, z_obs, T_obs):
 
 def bootstrap(kd_grid, profiles, z_obs, T_obs):
     n = len(z_obs)
+    from lunar.progress import bar
     stars = np.empty(N_BOOT)
-    for b in range(N_BOOT):
+    for b in bar(range(N_BOOT), desc="bootstrap", unit="draws"):
         idx = RNG.integers(0, n, n)
         zj = z_obs[idx] + RNG.normal(0, DEPTH_JITTER_CM / 100.0, n)
         s, _, _ = kd_star(kd_grid, profiles,

@@ -329,7 +329,8 @@ def fig_subsets(res, cache):
     """Fig. 3: each probe, each thermometer type and all the sensors (compute_subset_fits.py).
     One panel per site and subset (columns: probe 1, probe 2, TG, TR, all sensors; rows: A15,
     A17), each showing ONLY that subset's sensors and the model at that subset's fit (solid),
-    with its K_d and 95% interval written under the panel title, and shaded the range of the
+    with its K_d and 95% interval and its fitted albedo A written under the panel title, and
+    shaded the range of the
     model over that interval: at each depth, the central 95% of the profiles of the 1500
     bootstrap fits (A and K_d drawn together, results/subset_fits_draws.npz). Subset panels also
     show the fit to all the sensors (thin gray); the all-sensor panels add the global K_d = 3.4
@@ -345,8 +346,8 @@ def fig_subsets(res, cache):
     draws = np.load(RES / "subset_fits_draws.npz")
     mark, msz, zlo, zhi = {"TG": "o", "TR": "s"}, {"TG": 5.6, "TR": 5.1}, 70, 245
     cols = (("probe1", "Probe 1"), ("probe2", "Probe 2"), ("TG", "TG"), ("TR", "TR"), ("all", "All"))
-    fig = plt.figure(figsize=(W_LETTER, 4.6))
-    gs = fig.add_gridspec(2, 5, hspace=0.46, wspace=0.12, left=0.11, right=0.99, top=0.91, bottom=0.10)
+    fig = plt.figure(figsize=(W_LETTER, 5.0))
+    gs = fig.add_gridspec(2, 5, hspace=0.62, wspace=0.12, left=0.11, right=0.99, top=0.88, bottom=0.10)
     zc = jf.Z_DENSE * 100
     vis = (zc >= zlo - 2) & (zc <= zhi + 2)         # curves drawn only over the depths shown
     rng, axes = {}, {}
@@ -387,13 +388,14 @@ def fig_subsets(res, cache):
             ax.set_ylim(zhi, zlo)
             fmt_axis(ax, xlabel="$T$ (K)" if r == 1 else "", ylabel=f"{SITE_LAB[s]}: depth (cm)" if j == 0 else "",
                      title=f"({'abcdefghij'[5 * r + j]})  {name}")
-            # the panel's K_d and 95% interval, as in Table 1 of the letter, under the title (outside the
-            # data, which the shaded range leaves no clear corner for)
+            # the panel's K_d and 95% interval and its fitted albedo, as in Table 1 of the letter, under
+            # the title (outside the data, which the shaded range leaves no clear corner for)
             kb = f["kd_bootstrap_mW"]
-            ax.set_title(ax.get_title(loc="left"), loc="left", pad=17)
-            ax.annotate(f"{half_up(f['kd_mW'])} [{half_up(kb['p2.5'])}, {half_up(kb['p97.5'])}]", xy=(0, 1),
-                        xycoords="axes fraction", xytext=(0, 3), textcoords="offset points", ha="left", va="bottom",
-                        color=C_CHAR, annotation_clip=False)
+            ax.set_title(ax.get_title(loc="left"), loc="left", pad=31)
+            alb = f"$A$ = {half_up(f['A'], 3)}"
+            for line, dy in ((f"{half_up(f['kd_mW'])} [{half_up(kb['p2.5'])}, {half_up(kb['p97.5'])}]", 17), (alb, 3)):
+                ax.annotate(line, xy=(0, 1), xycoords="axes fraction", xytext=(0, dy), textcoords="offset points",
+                            ha="left", va="bottom", color=C_CHAR, annotation_clip=False)
             if j:
                 ax.tick_params(labelleft=False)
         rng[s] = (min(vals), max(vals))

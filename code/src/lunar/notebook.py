@@ -19,12 +19,19 @@ none), and remade in "quick" and "full", or always with ``always=True``. On macO
 
 ``Checks`` puts each value next to the number printed in the paper, and
 ``summary()`` counts every check the notebook has shown.
+
+In "full" mode each step first prints where the run stands (step k of n, the
+time left for the whole run and when it should finish, rescaled to this
+computer's speed as steps complete), the long scripts draw progress bars with
+their own time left, and ``timing()`` lists every step's time at the end.
 """
 from __future__ import annotations
 
+import codecs
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -42,6 +49,14 @@ MODES = ("show", "quick", "full")
 QUICK_MAX_MIN = 6                          # "quick" runs steps up to this long
 _mode = "show"
 _shown: dict[str, list] = {}               # every Checks table shown, by title (for summary())
+SNAPSHOT = RESULTS / "before_full_run"     # the results as they were before a full run
+# caches two steps reuse without being asked (to resume an interrupted run); a
+# full run moves them into the snapshot so that it recomputes them
+AUTO_CACHES = ("joint_chi_density_cache.npz", "joint_mcmc_grid.npz")
+# what legitimately changes from run to run: timings and the commit stamp
+_VOLATILE = re.compile(r"runtime_s|git_commit|ms_per_lun|runs_s$|speedup")
+_plan: list[tuple[str, float]] = []        # the full run's (script, usual minutes), from plan()
+_timing: dict[str, tuple[float, float]] = {}   # script -> (usual minutes, minutes this run)
 
 
 def set_mode(mode: str) -> None:
@@ -65,7 +80,7 @@ def _minutes(m: float) -> str:
     return "seconds" if m < 1 else f"about {m:g} min" if m < 90 else f"about {m / 60:.1f} h"
 
 
-def _run(script: str, args: tuple[str, ...]) -> None:
+def _run(script: str, args: tuple[str, ...]) -> float:
     path = PIPELINE / script
     cmd = [sys.executable, "-u", str(path), *args]
     if sys.platform == "darwin" and shutil.which("caffeinate"):
@@ -75,14 +90,187 @@ def _run(script: str, args: tuple[str, ...]) -> None:
     # this they inherit the notebook kernel's inline backend, whose screen
     # resolution changes how a measured legend strip rounds (Figure 4 grew 0.7 pt)
     env = {**os.environ, "MPLBACKEND": "Agg"}
-    proc = subprocess.Popen(cmd, cwd=CODE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            text=True, bufsize=1, env=env)
-    for line in proc.stdout:
-        print(line, end="", flush=True)
+    proc = subprocess.Popen(cmd, cwd=CODE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
+    # passed through as it arrives, carriage returns kept, so a progress bar
+    # redraws in place (in a notebook and in a terminal) instead of piling up lines
+    dec = codecs.getincrementaldecoder("utf-8")(errors="replace")
+    while chunk := proc.stdout.read1(4096):
+        sys.stdout.write(dec.decode(chunk))
+        sys.stdout.flush()
+    sys.stdout.write(dec.decode(b"", final=True))
     rc = proc.wait()
     if rc != 0:
         raise RuntimeError(f"{script} stopped with an error (exit code {rc}); its output is above.")
-    print(f"--- {pathlib.Path(script).name} finished in {time.time() - t0:.0f} s", flush=True)
+    print(f"--- {pathlib.Path(script).name} finished in {_clock(time.time() - t0)}", flush=True)
+    return time.time() - t0
+
+
+def _clock(seconds: float) -> str:
+    m, s = divmod(int(round(seconds)), 60)
+    h, m = divmod(m, 60)
+    return f"{h} h {m:02d} min" if h else f"{m} min {s:02d} s" if m else f"{s} s"
+
+
+def plan(steps) -> None:
+    """The steps of the full run with their usual minutes (the ``minutes`` of each
+    ``step``), so that each step can say how much of the run is left."""
+    global _plan
+    _plan = [(s, float(m)) for s, m in steps]
+    if _mode == "full":
+        _snapshot()
+        total = sum(m for _, m in _plan)
+        print(f"Full run: {len(_plan)} steps. Their listed times, rounded up, add up to {total / 60:.1f} h; "
+              f"each step rescales the estimate to this computer.")
+
+
+def _announce(script: str, minutes: float) -> None:
+    """Before a step of the full run: where the run stands and when it should end."""
+    names = [s for s, _ in _plan]
+    if script not in names:
+        return
+    k = names.index(script) + 1
+    left = sum(m for s, m in _plan if s not in _timing)               # this step and the rest
+    done_usual = sum(u for u, _ in _timing.values())
+    done_real = sum(a for _, a in _timing.values())
+    speed = done_real / done_usual if done_usual >= 10 else 1.0       # this computer vs the reference
+    left_real = left * speed
+    end = time.strftime("%H:%M", time.localtime(time.time() + 60 * left_real))
+    note = f", {speed:.2f} x the usual times so far" if done_usual >= 10 else ""
+    print(f"[step {k} of {len(_plan)}] started {time.strftime('%H:%M')}; "
+          f"the whole run has about {_clock(60 * left_real)} left{note}, ending around {end}.", flush=True)
+
+
+def _snapshot() -> None:
+    """Before a full run: copy every results file into SNAPSHOT and move the two
+    self-reused caches there, so the run starts from scratch and can be compared
+    with what it replaced. An existing snapshot (an interrupted run) is kept, and
+    so are the caches the run has rebuilt since, so a rerun resumes."""
+    if SNAPSHOT.exists():
+        print(f"Kept the snapshot of {time.strftime('%Y-%m-%d %H:%M', time.localtime(SNAPSHOT.stat().st_mtime))} "
+              f"in {SNAPSHOT.relative_to(CODE)}; delete that folder to start a new comparison.")
+        return
+    SNAPSHOT.mkdir()
+    n = 0
+    for f in RESULTS.glob("*.json"):
+        shutil.copy2(f, SNAPSHOT / f.name)
+        n += 1
+    moved = [c for c in AUTO_CACHES if (RESULTS / c).exists()]
+    for c in moved:
+        shutil.move(RESULTS / c, SNAPSHOT / c)
+    print(f"Copied {n} results files to {SNAPSHOT.relative_to(CODE)} for the comparison at the end"
+          + (f"; moved {', '.join(moved)} there, so they are recomputed." if moved else "."))
+
+
+def _strip(o):
+    if isinstance(o, dict):
+        return {k: _strip(v) for k, v in o.items() if not _VOLATILE.search(k)}
+    if isinstance(o, list):
+        return [_strip(v) for v in o]
+    return o
+
+
+def _diff(a, b, path="", out=None):
+    """Paths where two parsed JSON trees differ, with the size of numeric differences."""
+    out = [] if out is None else out
+    if isinstance(a, dict) and isinstance(b, dict):
+        for k in sorted(set(a) | set(b)):
+            if k not in a or k not in b:
+                out.append((f"{path}/{k}", "only in one"))
+            else:
+                _diff(a[k], b[k], f"{path}/{k}", out)
+    elif isinstance(a, list) and isinstance(b, list) and len(a) == len(b):
+        for i, (x, y) in enumerate(zip(a, b)):
+            _diff(x, y, f"{path}[{i}]", out)
+    elif a != b:
+        both = all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (a, b))
+        out.append((path or "/", abs(a - b) if both else "changed"))
+    return out
+
+
+def compare_with_snapshot():
+    """Every results file against its copy from before the full run (timings and
+    the commit stamp left out): identical; the same to rounding (every number
+    within a relative 1e-8, or 1e-10 near zero, as when another Python or numpy
+    version computes it);
+    different (where, by how much); or not rewritten by this run. A table."""
+    import pandas as pd
+    if not SNAPSHOT.exists():
+        print("No snapshot: it is made when a full run starts.")
+        return None
+    t_snap = SNAPSHOT.stat().st_mtime
+    rows = []
+    for old in sorted(SNAPSHOT.glob("*.json")):
+        new = RESULTS / old.name
+        if not new.exists():
+            rows.append((old.name, "missing now", "")); continue
+        if new.stat().st_mtime < t_snap:
+            rows.append((old.name, "not rewritten by this run", "")); continue
+        a, b = _strip(json.loads(old.read_text())), _strip(json.loads(new.read_text()))
+        d = _diff(a, b)
+        if not d:
+            rows.append((old.name, "identical", ""))
+        elif _rounding_only(a, b):
+            rel = _largest_relative(a, b)
+            rows.append((old.name, f"same to rounding (largest relative difference {rel:.1g})", ""))
+        else:
+            num = [x for _, x in d if isinstance(x, float) or isinstance(x, int)]
+            where = ", ".join(p for p, _ in d[:3]) + (" ..." if len(d) > 3 else "")
+            rows.append((old.name, f"{len(d)} values differ" + (f", largest {max(num):.3g}" if num else ""), where))
+    df = pd.DataFrame(rows, columns=["results file", "against the snapshot", "first differences"])
+    redone = df[df["against the snapshot"] != "not rewritten by this run"]
+    same = (redone["against the snapshot"] == "identical").sum()
+    near = redone["against the snapshot"].str.startswith("same to rounding").sum()
+    print(f"{len(redone)} results files rewritten by this run: {same} identical to the snapshot, "
+          f"{near} the same to rounding, {len(redone) - same - near} different. "
+          f"Files no step of this run writes are listed as not rewritten.")
+    return df
+
+
+def _numbers(o):
+    """The numbers of a parsed JSON tree, in order, with its non-numeric leaves."""
+    if isinstance(o, dict):
+        for k in sorted(o):
+            yield from _numbers(o[k])
+    elif isinstance(o, list):
+        for v in o:
+            yield from _numbers(v)
+    else:
+        yield o
+
+
+def _rounding_only(a, b, rel: float = 1e-8, tiny: float = 1e-10) -> bool:
+    """Same structure and text; every number within ``rel`` (relative) or, for
+    numbers near zero, within ``tiny`` (absolute)."""
+    xa, xb = list(_numbers(a)), list(_numbers(b))
+    if len(xa) != len(xb):
+        return False
+    for x, y in zip(xa, xb):
+        num = all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (x, y))
+        if not num:
+            if x != y:
+                return False
+        elif abs(x - y) > max(rel * max(abs(x), abs(y)), tiny):
+            return False
+    return True
+
+
+def _largest_relative(a, b) -> float:
+    return max((abs(x - y) / max(abs(x), abs(y), 1e-12)
+                for x, y in zip(_numbers(a), _numbers(b))
+                if all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (x, y))), default=0.0)
+
+
+def timing():
+    """Each step of this run next to its usual time (a table), and the total."""
+    import pandas as pd
+    rows = [(s, u, a) for s, (u, a) in _timing.items()]
+    if not rows:
+        print("No step has run in this session.")
+        return None
+    df = pd.DataFrame(rows, columns=["step", "usual (min)", "this run (min)"]).round(1)
+    u, a = df["usual (min)"].sum(), df["this run (min)"].sum()
+    print(f"{len(rows)} steps: {a / 60:.2f} h this run, {u / 60:.2f} h usual.")
+    return df
 
 
 def run(script: str, *args: str) -> None:
@@ -121,8 +309,9 @@ def step(script: str, minutes: float, writes: str | tuple[str, ...] = (), args: 
         print(f"■ {msg}; stored result used, {_stored(writes)}.")
         return
     if _mode == "full":
+        _announce(script, minutes)
         print(f"▶ {name}: running ({_minutes(minutes)})", flush=True)
-        _run(script, args)
+        _timing[script] = (minutes, _run(script, args) / 60)
         return
     if _mode == "quick":
         if quick is not None and (quick_needs is None or (CODE / quick_needs).exists()):

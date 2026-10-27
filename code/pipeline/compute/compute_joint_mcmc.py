@@ -84,12 +84,12 @@ def build_grid():
         np.savez_compressed(GRID, jobs=np.array([[k[0], k[1], k[2], k[3]] for k in keys], dtype=object).astype(str),
                             **{f"r{i}_{n}": done[k][m] for i, k in enumerate(keys) for m, n in enumerate(NAMES)})
     if todo:
+        from lunar.progress import bar
         with Pool(N_WORKERS) as pool:
-            for i, (job, Tz, Ts, kap) in enumerate(pool.imap_unordered(solve, todo, chunksize=1)):
+            for i, (job, Tz, Ts, kap) in enumerate(bar(pool.imap_unordered(solve, todo, chunksize=1), total=len(todo), desc="grid rows")):
                 done[job] = (Tz, Ts, kap)
                 if (i + 1) % 20 == 0 or i + 1 == len(todo):
                     save()
-                    print(f"  {i+1}/{len(todo)} rows ({time.time()-t0:.0f} s)", flush=True)
     return done
 
 

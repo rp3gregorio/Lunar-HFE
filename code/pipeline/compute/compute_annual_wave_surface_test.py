@@ -90,11 +90,10 @@ def main():
             for s in aw.PROBES for kd in KD_SCAN]
     print(f"{len(jobs)} forward runs ({len(VARIANTS)} variants x 2 sites x {len(KD_SCAN)} K_d)", flush=True)
     store = {}
+    from lunar.progress import bar
     with Pool(5) as pool:
-        for i, (s, vn, kd, u, Td) in enumerate(pool.imap_unordered(model_run, jobs, chunksize=2), 1):
+        for s, vn, kd, u, Td in bar(pool.imap_unordered(model_run, jobs, chunksize=2), total=len(jobs), desc="forward runs", unit="runs"):
             store[(s, vn, kd)] = (u, Td)
-            if i % 26 == 0 or i == len(jobs):
-                print(f"  {i}/{len(jobs)} runs ({time.time() - t0:.0f} s)", flush=True)
 
     out = dict(meta=dict(kd_scan_mW=KD_SCAN.tolist(), albedo=A_fit, kd_joint_mW=kd_joint, K_s_nominal=KS0, H_nominal=H0,
                          note="free complex factor per probe: scale < 1 means the model wave is too large; "

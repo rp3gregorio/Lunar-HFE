@@ -4,7 +4,7 @@ Code, data and results for
 
 > Gregorio, R. P., Larsson, R., Kamada, A., Yamada, T., Kuroda, T., & Kasai, Y. (2026).
 > Difference of the lunar regolith thermal conductivity $K_d$ at the Apollo 15 and 17
-> heat-flow boreholes from global model values. Submitted to *JGR: Planets*.
+> heat-flow boreholes from global model values. Submitted to *Geophysical Research Letters*.
 
 The standard lunar thermal model of Hayne et al. (2017) gives the whole Moon one
 deep regolith conductivity, $K_d = 3.4$ mW m⁻¹ K⁻¹. This repository
@@ -55,6 +55,14 @@ of notebook 1 and run all its cells:
 | `"quick"` | the short steps, and the fast forms of the long ones | about 45 min |
 | `"full"` | every step from scratch, as for the paper | about 6 h on a six-core laptop |
 
+For a full run, also set `DOWNLOAD = True` in section 1.5 (three steps need the
+Diviner data). Before each step the notebook prints which step of the run it
+is, how long the rest of the run should take and when it should end; the long
+steps draw progress bars with their own time left. A full run first copies the
+current results into `code/results/before_full_run/`, and its last section
+compares every new results file with that copy (run times aside); each should
+be identical.
+
 Then run notebooks 2 and 3. Each ends by counting its checks; all 1,203
 values should match. The other figures of the paper illustrate the data and
 the method (Figures 1 and 2, SI Figures S1–S4); `make figures` draws them.
@@ -83,7 +91,8 @@ make notebook    # run the three notebooks, the analysis in "show" mode, as a ch
 ```
 
 After a full run, `git diff --stat code/results` shows which results changed.
-Normally only run times and the recorded commit do.
+Normally only run times, the recorded commit and the row order inside
+`joint_mcmc_grid.npz` do.
 
 ## Layout
 

@@ -26,4 +26,5 @@ figures/*
 code/results/*_cache.npz
 !code/results/joint_albedo_fit_cache.npz
 code/results/.cpp_io/
+code/results/before_full_run/
 code/cpp/lunar_solver

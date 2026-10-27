@@ -138,8 +138,9 @@ def prefetch(jobs):
             todo[key] = (cfg, kd, albedo)
     if not todo:
         return
+    from lunar.progress import bar
     with Pool(N_WORKERS) as pool:
-        for key, T_mean in zip(todo, pool.imap(_solve_T_mean, todo.values())):
+        for key, T_mean in zip(todo, bar(pool.imap(_solve_T_mean, todo.values()), total=len(todo), desc="solves", unit="solves")):
             _CACHE[key] = (GRID_.z_mid, T_mean)
 
 

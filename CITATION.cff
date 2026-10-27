@@ -10,46 +10,58 @@ type: software
 authors:
   - given-names: Ramon III Palinguba
     family-names: Gregorio
+    orcid: 'https://orcid.org/0009-0001-8535-0813'
     email: rp3gregorio@gmail.com
     affiliation: Kasai Laboratory, Institute of Science Tokyo
   - given-names: Richard
     family-names: Larsson
+    orcid: 'https://orcid.org/0000-0001-6719-723X'
     affiliation: Institute of Science Tokyo
   - given-names: Arihiro
     family-names: Kamada
+    orcid: 'https://orcid.org/0000-0002-0710-7375'
     affiliation: Institute of Science Tokyo; Tohoku University
   - given-names: Takayoshi
     family-names: Yamada
+    orcid: 'https://orcid.org/0000-0002-9663-6219'
     affiliation: National Institute of Information and Communications Technology
   - given-names: Takeshi
     family-names: Kuroda
+    orcid: 'https://orcid.org/0000-0003-4789-4737'
     affiliation: National Institute of Information and Communications Technology; Tohoku University
   - given-names: Yasuko
     family-names: Kasai
+    orcid: 'https://orcid.org/0000-0002-6986-5235'
     affiliation: Institute of Science Tokyo
 repository-code: 'https://github.com/rp3gregorio/Lunar-HFE'
 doi: 10.5281/zenodo.22183100   # concept DOI (all versions)
 license: MIT
-version: v2.3-jgr
-date-released: '2026-10-26'
+version: v2.4
+date-released: '2026-10-27'
 preferred-citation:
   type: article
   authors:
     - given-names: Ramon III Palinguba
       family-names: Gregorio
+      orcid: 'https://orcid.org/0009-0001-8535-0813'
       email: rp3gregorio@gmail.com
     - given-names: Richard
       family-names: Larsson
+      orcid: 'https://orcid.org/0000-0001-6719-723X'
     - given-names: Arihiro
       family-names: Kamada
+      orcid: 'https://orcid.org/0000-0002-0710-7375'
     - given-names: Takayoshi
       family-names: Yamada
+      orcid: 'https://orcid.org/0000-0002-9663-6219'
     - given-names: Takeshi
       family-names: Kuroda
+      orcid: 'https://orcid.org/0000-0003-4789-4737'
     - given-names: Yasuko
       family-names: Kasai
+      orcid: 'https://orcid.org/0000-0002-6986-5235'
   title: >-
     Difference of the Lunar Regolith Thermal Conductivity K_d at the
     Apollo 15 and 17 Heat-Flow Boreholes from Global Model Values
-  journal: Journal of Geophysical Research, Planets
+  journal: Geophysical Research Letters
   year: 2026

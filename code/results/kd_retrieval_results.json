@@ -5123,6 +5123,6 @@
   "provenance": {
     "bootstrap_seed": 42,
     "depth_sigma_cm": 2.5,
-    "git_commit": "3966732081a9f9b5df0b63a0cffbe30645119c44"
+    "git_commit": "e0a6857d87f9da8323473633b4ab9240e585e7cf"
   }
 }

@@ -155,16 +155,17 @@ def main():
         cases += [dict(site=s, family="chi", A=float(a0[s]["map"]), chi=c) for c in CHI_VALUES]
     print(f"{len(cases)} cases on {N_WORKERS} workers", flush=True)
     out = []
+    from lunar.progress import bar
     with Pool(N_WORKERS) as pool:
-        for r in pool.imap_unordered(run_case, cases):
+        for r in (pb := bar(pool.imap_unordered(run_case, cases), total=len(cases), desc="albedo cases", unit="cases")):
             out.append(r)
             tag = {"constant": f"A={r.get('A', 0):.3f}",
                    "angular": f"{r.get('A0_label','')} A0={r.get('A0', 0):.3f} f={r.get('f', 0):.2f}",
                    "chi": f"A={r.get('A', 0):.3f} chi={r.get('chi', 0):.1f}"}[r["family"]]
-            print(f"[{len(out):3d}/{len(cases)}] {r['site']} {r['family']:8s} {tag:28s} K_d*={r['kd_star_mW']:6.2f}"
+            pb.write(f"[{len(out):3d}/{len(cases)}] {r['site']} {r['family']:8s} {tag:28s} K_d*={r['kd_star_mW']:6.2f}"
                   f"{' EDGE' if r['at_grid_edge'] else '     '} RMSE*={r['rmse_star_K']:.3f} bias={r['bias_K']:+.2f} "
                   f"minima={r['n_local_minima']} dAICc={r['delta_aicc_global_minus_fit']:+.1f} "
-                  f"<Ts>={r['surface_mean_K']:.1f}K ({time.time()-t0:.0f}s)", flush=True)
+                  f"<Ts>={r['surface_mean_K']:.1f}K ({time.time()-t0:.0f}s)")
     order = {"constant": 0, "angular": 1, "chi": 2}
     out.sort(key=lambda r: (r["site"], order[r["family"]], r.get("A0_label", ""), r.get("A", 0), r.get("f", 0), r.get("chi", 0)))
     path = _REPO / "results" / "albedo_sensitivity.json"

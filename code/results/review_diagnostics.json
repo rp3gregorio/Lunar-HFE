@@ -2,7 +2,7 @@
  "meta": {
   "purpose": "pre-submission diagnostics (audit 2026-10-01)",
   "note": "Sensitivity diagnostics; do not re-baseline the certified retrieval.",
-  "runtime_s": 496.7
+  "runtime_s": 206.0
  },
  "global_kd_vs_qb": {
   "site": "A17",

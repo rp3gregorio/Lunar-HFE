@@ -122,10 +122,10 @@ def main():
     t0 = time.time()
     jobs = [(s, v) for s in SITES_ for v in VARIANTS]
     res = {}
+    from lunar.progress import bar
     with Pool(N_WORKERS) as pool:
-        for site, name, Tz, Ts, kap, Tsens, n_outer in pool.imap_unordered(solve_variant, jobs):
+        for site, name, Tz, Ts, kap, Tsens, n_outer in bar(pool.imap_unordered(solve_variant, jobs), total=len(jobs), desc="variants", unit="variants"):
             res[(site, name)] = (Tz, Ts, kap, Tsens, n_outer)
-            print(f"  {site} {name:14s} done ({len(res)}/{len(jobs)}, {time.time()-t0:.0f} s)", flush=True)
     out = dict(meta=dict(purpose="numerical certification of the joint-fit K_d* (SI Table S3)",
                          objective="J of compute_joint_albedo_fit (with diffusivity) along K_d at the fit's albedo node; "
                                    "3-point parabola vertex, as best_point",

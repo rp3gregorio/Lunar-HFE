@@ -4,7 +4,7 @@
   "min_sensors_for_free_albedo": 3,
   "n_boot": 1500,
   "seed": 42,
-  "runtime_s": 20.7
+  "runtime_s": 25.4
  },
  "sites": {
   "A15": {

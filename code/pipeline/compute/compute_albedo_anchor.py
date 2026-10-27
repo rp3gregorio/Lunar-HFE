@@ -120,12 +120,13 @@ def main():
         cases.append(dict(site=s, family="angular", label="Vasavada 2012 eq. 1, mare A0 0.07",
                           law="keihm", A0=VASAVADA_MARE_A0, a=VASAVADA_AB[0], b=VASAVADA_AB[1], f=1.0))
     jobs = [(lat, m) for lat in FIG_A1_LATS for m in ("constant", "eq_A8")]
+    from lunar.progress import bar
     with Pool(4) as pool:
-        fig = pool.map(standard_column, jobs)
+        fig = list(bar(pool.imap(standard_column, jobs), total=len(jobs), desc="Fig. A1 columns", unit="runs"))
         for r in fig:
             print(f"  Fig. A1 check  lat {r['lat']:5.2f}  {r['albedo']:8s}: surface {r['surface_mean_K']:6.1f} K, "
                   f"1 m {r['T_1m_K']:6.1f} K, noon {r['noon_max_K']:5.1f}, night min {r['night_min_K']:5.1f}", flush=True)
-        sites = pool.map(site_case, cases)
+        sites = list(bar(pool.imap(site_case, cases), total=len(cases), desc="site cases", unit="cases"))
         for r in sites:
             print(f"  {r['site']} {r['label']:42s} A0={r['A0']:.3f}: K_d*={r['kd_star_mW']:6.2f}"
                   f"{' EDGE' if r['at_grid_edge'] else '     '} bias={r['bias_K']:+.2f} K  "

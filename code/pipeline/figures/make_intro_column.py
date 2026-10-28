@@ -246,18 +246,20 @@ def draw_block(ax):
 
 
 def draw_grid_half(ax):
-    """The right part of the block: the faces of the model's 69 cells.
+    """The right part of the block: the faces of the model's 69 cells, to scale.
 
-    The faces sit on the same log axis as the material. Below a few cm each cell
-    is 8 % thicker than the one above, so there they are evenly spaced; the two
-    Delta z labels give the true thicknesses of the first and the last cell.
+    Unlike the material, the grid is drawn on a LINEAR depth scale from the
+    surface to the base of the column, with its own metre ticks, so the cells
+    show their true sizes: the 2 mm cells at the top crowd into a thin band and
+    each cell below is 8 % thicker than the one above it, up to 37 cm at the
+    base. (On the shared log axis the deep cells looked the most crowded.)
     """
     g = make_geometric_grid(**GRID)
     zf = g.z_face
     span = Y_TOP - Y_BOT
 
-    def yz(z):                                # z in m
-        return float(ymap(100.0 * z))
+    def yz(z):                                # z in m, linear over the column
+        return float(Y_TOP - span * z / zf[-1])
 
     for i in range(zf.size - 1):
         t = (Y_TOP - yz(zf[i])) / span
@@ -271,22 +273,31 @@ def draw_grid_half(ax):
 
     # the labels sit on the cell faces: a light halo lets the faces show through
     halo = dict(HALO, alpha=0.45)
-    ax.text(X_SPLIT + 0.05, Y_TOP - 0.10,
-            rf"$\Delta z={g.dz[0]*1e3:.0f}$ mm", color=COOL, fontsize=PT,
-            ha="left", va="top", zorder=13, bbox=halo)
+    # below the band of 2 mm cells, with a short pointer up to it, so the band stays visible
+    ax.annotate(rf"$\Delta z={g.dz[0]*1e3:.0f}$ mm", xy=(X_SPLIT + 0.16, Y_TOP - 0.03),
+                xytext=(X_SPLIT + 0.05, Y_TOP - 0.26), color=COOL, fontsize=PT,
+                ha="left", va="center", zorder=13, bbox=halo,
+                arrowprops=dict(arrowstyle="-|>", color=COOL, lw=0.8, shrinkA=0, shrinkB=0,
+                                mutation_scale=7))
     ax.text(X_SPLIT + 0.05, Y_BOT + 0.05,
             rf"$\Delta z={g.dz[-1]*100:.0f}$ cm", color=COOL, fontsize=PT,
             ha="left", va="bottom", zorder=13, bbox=halo)
+    # the strip's own linear depth ticks (m), inside its right edge
+    for zm in (1, 2, 3, 4):
+        y = yz(zm)
+        ax.plot([BLK_R - 0.05, BLK_R], [y, y], color=_shade(C_CHAR, 0.15), lw=0.8, zorder=12)
+        ax.text(BLK_R - 0.07, y, f"{zm} m", color=COOL, fontsize=PT, ha="right",
+                va="center", zorder=13, bbox=halo)
     return g
 
 
 def draw_grid_notes(ax, g):
-    ax.text(0.5 * (BLK_L + X_SPLIT), Y_BOT - 0.17,
+    ax.text(0.5 * (BLK_L + X_SPLIT), Y_BOT - 0.09,
             "the material", color=C_CHAR, fontsize=PT, ha="center",
-            va="center")
-    ax.text(0.5 * (X_SPLIT + BLK_R), Y_BOT - 0.17,
-            f"the grid — {g.n_layers} cells", color=C_CHAR, fontsize=PT,
-            ha="center", va="center")
+            va="top")
+    ax.text(0.5 * (X_SPLIT + BLK_R), Y_BOT - 0.09,
+            f"the grid, to scale\n{g.n_layers} cells", color=C_CHAR, fontsize=PT,
+            ha="center", va="top", linespacing=1.15)
 
 
 def draw_fluxes(ax):

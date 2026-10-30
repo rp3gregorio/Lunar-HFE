@@ -118,9 +118,10 @@ def fig_constraints(res, cache):
         b3 = res["sites"][s]["with_diffusivity"]["best"]; b2 = res["sites"][s]["temperature_only"]["best"]
         v = valley[s]
         ax.plot([v["A"], v["A"]], [b3["kd_star_mW"], v["kd_temperatures_only_mW"]], color=C_DIM, lw=0.8, ls=(0, (1, 1.5)), zorder=5)
-        ax.plot(v["A"], v["kd_temperatures_only_mW"], marker="X", ms=8, color=C_DIM, mec="white", mew=0.6, zorder=6, ls="none")
-        ax.plot(b2["A"], b2["kd_star_mW"], marker="o", ms=7, mfc="white", mec=C_CHAR, mew=1.2, zorder=6, ls="none")
-        ax.plot(b3["A"], b3["kd_star_mW"], marker="*", ms=14, color=SITE_COL[s], mec="white", mew=0.8, zorder=7, ls="none")
+        ax.plot(v["A"], v["kd_temperatures_only_mW"], marker="X", ms=6, color=C_DIM, mec="white", mew=0.5, zorder=6, ls="none")
+        ax.plot(b2["A"], b2["kd_star_mW"], marker="o", ms=5.5, mfc="white", mec=C_CHAR, mew=1.1, zorder=6, ls="none")
+        # small enough that the 68% region (solid) around it stays readable
+        ax.plot(b3["A"], b3["kd_star_mW"], marker="*", ms=9, color=SITE_COL[s], mec="white", mew=0.5, zorder=7, ls="none")
         ax.set_xlim(A[0], A[-1]); ax.set_ylim(*KLIM)
         fmt_axis(ax, xlabel="Effective albedo $A$", ylabel=r"$K_d$ (mW m$^{-1}$ K$^{-1}$)" if col == 0 else "",
                  title=f"({'ab'[col]})  {SITE_LAB[s]}")
@@ -150,13 +151,13 @@ def fig_constraints(res, cache):
     # once; where it appears in two forms the entry carries both handles (shading in a-b and
     # dashed curve in c-d; star in a-b and solid curve in c-d). The shading levels and the
     # meaning of Delta J = 1, 3.84 are in the caption, which keeps the labels short.
-    star = lambda c: Line2D([], [], marker="*", ms=12, color=c, ls="none", mec="white", mew=0.8)
+    star = lambda c: Line2D([], [], marker="*", ms=10, color=c, ls="none", mec="white", mew=0.5)
     pair = lambda ls, lw: (Line2D([], [], color=C_A15, ls=ls, lw=lw), Line2D([], [], color=C_A17, ls=ls, lw=lw))
     entries = [
         ((Patch(fc="#F1E6CC", ec=C_OBS_T),) + pair("--", 1.4), "temperatures alone"),
-        (Line2D([], [], marker="o", ms=7, mfc="white", mec=C_CHAR, mew=1.2, ls="none"), "their best fit"),
+        (Line2D([], [], marker="o", ms=5.5, mfc="white", mec=C_CHAR, mew=1.1, ls="none"), "their best fit"),
         ((Line2D([], [], color=C_DIM, lw=0.8, ls=(0, (1, 1.5))),
-          Line2D([], [], marker="X", ms=8, color=C_DIM, ls="none", mec="white")), "at the fitted albedo"),
+          Line2D([], [], marker="X", ms=6, color=C_DIM, ls="none", mec="white")), "at the fitted albedo"),
         ((star(C_A15), star(C_A17)) + pair("-", 1.9), "joint fit"),
         ((Line2D([], [], color=C_CHAR, lw=1.3), Line2D([], [], color=C_CHAR, lw=1.0, ls=(0, (4, 2)))), "68%, 95% regions"),
         (Patch(fc=C_OBS_KAPPA, alpha=0.3, ec=C_OBS_KAPPA), "measured diffusivity"),
@@ -368,10 +369,10 @@ def fig_subsets(res, cache):
             ax.axhspan(0, 80, color=C_EXCL_FILL, lw=0); ax.axhline(80, color=C_EXCL_EDGE, ls="--", lw=0.8)
             f = sf[s][key]
             if key == "all":
-                # drawn above the fit line (but below the sensors), wide enough to read
-                ax.plot(T_glob[vis], zc[vis], color=C_HAYNE_GLOBAL, lw=2.2, ls=LS_HAYNE_GLOBAL, zorder=4)
+                # behind the fit line and the sensors (above the shaded range), wide enough to read
+                ax.plot(T_glob[vis], zc[vis], color=C_HAYNE_GLOBAL, lw=2.2, ls=LS_HAYNE_GLOBAL, zorder=2)
                 vm = (zm * 100 >= zlo - 2) & (zm * 100 <= zhi + 2)
-                ax.plot(Tm[vm], zm[vm] * 100, color=C_MS, lw=2.2, ls=LS_MS, zorder=4)
+                ax.plot(Tm[vm], zm[vm] * 100, color=C_MS, lw=2.2, ls=LS_MS, zorder=2)
             else:
                 ax.plot(T_allfit[vis], zc[vis], color=C_DIM, lw=0.9, alpha=0.7, zorder=2)
             Tf = bilinear(prof, f["A"], f["kd_mW"] * 1e-3)

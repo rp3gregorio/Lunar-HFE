@@ -369,10 +369,11 @@ def fig_subsets(res, cache):
             ax.axhspan(0, 80, color=C_EXCL_FILL, lw=0); ax.axhline(80, color=C_EXCL_EDGE, ls="--", lw=0.8)
             f = sf[s][key]
             if key == "all":
-                # behind the fit line and the sensors (above the shaded range), wide enough to read
-                ax.plot(T_glob[vis], zc[vis], color=C_HAYNE_GLOBAL, lw=2.2, ls=LS_HAYNE_GLOBAL, zorder=2)
+                # the other two models at the very back (behind the shaded range, the fit and
+                # the sensors), wide enough to read
+                ax.plot(T_glob[vis], zc[vis], color=C_HAYNE_GLOBAL, lw=2.2, ls=LS_HAYNE_GLOBAL, zorder=0.8)
                 vm = (zm * 100 >= zlo - 2) & (zm * 100 <= zhi + 2)
-                ax.plot(Tm[vm], zm[vm] * 100, color=C_MS, lw=2.2, ls=LS_MS, zorder=2)
+                ax.plot(Tm[vm], zm[vm] * 100, color=C_MS, lw=2.2, ls=LS_MS, zorder=0.8)
             else:
                 ax.plot(T_allfit[vis], zc[vis], color=C_DIM, lw=0.9, alpha=0.7, zorder=2)
             Tf = bilinear(prof, f["A"], f["kd_mW"] * 1e-3)
